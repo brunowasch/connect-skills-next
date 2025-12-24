@@ -1,0 +1,11 @@
+version: "3.8"
+
+services:
+  web:
+    container_name: connectskills_mysql
+    build: .
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    restart: always
