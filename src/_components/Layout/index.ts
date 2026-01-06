@@ -1,0 +1,1 @@
+export { Footer } from "@/src/_components/Layout/Footer/Footer";
