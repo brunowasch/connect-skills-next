@@ -4,7 +4,7 @@ import { FaWhatsapp } from "react-icons/fa";
 
 export function Footer() {
   return (
-    <footer className="mt-10 bg-blue-500 px-4 py-10 text-white">
+    <footer className="bg-blue-500 px-4 py-10 text-white">
       <div className="mx-auto max-w-6xl">
         <div className="mb-8 grid gap-8 md:grid-cols-3">
           {/* Quem somos */}
@@ -58,7 +58,7 @@ export function Footer() {
           <h5 className="mb-3 text-lg font-semibold">Apoio</h5>
           <div className="mx-auto flex justify-center">
             <Image
-              src="/img/LOOP_HOST.svg"
+              src="/img/sponsors/LOOP_HOST.svg"
               alt="Logo Loop Host"
               width={160}
               height={40}

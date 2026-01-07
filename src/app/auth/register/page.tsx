@@ -1,9 +1,12 @@
+import { Header, Footer } from "@/src/_components/Layout/index"
+import { RegisterCard } from '@/src/_components/Register/Register'
+
 export default function Register() {
-    return (
-        <div>
-            <h1>
-                Esta é a página de cadastro.
-            </h1>
-        </div>
-    )
+  return (
+    <>
+      <Header />
+      <RegisterCard />
+      <Footer />
+    </>
+  )
 }

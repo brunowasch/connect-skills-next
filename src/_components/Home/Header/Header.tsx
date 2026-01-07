@@ -63,10 +63,7 @@ export function Header() {
         </Link>
 
         {/* Mobile */}
-        <button
-          onClick={() => setOpen(!open)}
-          className="lg:hidden text-xl"
-        >
+        <button onClick={() => setOpen(!open)} className="lg:hidden text-xl">
           ☰
         </button>
 
