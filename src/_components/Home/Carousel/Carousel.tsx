@@ -60,9 +60,8 @@ export function Carousel() {
             <button
               key={index}
               onClick={() => setCurrent(index)}
-              className={`h-1.5 transition-all duration-300 rounded-full ${
-                current === index ? "w-6 bg-blue-500" : "w-1.5 bg-gray-400/60"
-              }`}
+              className={`h-1.5 transition-all duration-300 rounded-full ${current === index ? "w-6 bg-blue-500" : "w-1.5 bg-gray-400/60"
+                }`}
               aria-label={`Ir para slide ${index + 1}`}
             />
           ))}
@@ -71,14 +70,14 @@ export function Carousel() {
         {/* Botões de navegação */}
         <button
           onClick={prevSlide}
-          className="absolute left-2 md:left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/10 p-2 text-white transition-colors hover:bg-black/30 md:p-3"
+          className="absolute left-2 md:left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/10 p-2 text-white transition-colors cursor-pointer hover:bg-black/30 md:p-3"
         >
           <ChevronLeftIcon />
         </button>
 
         <button
           onClick={nextSlide}
-          className="absolute right-2 md:right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/10 p-2 text-white transition-colors hover:bg-black/30 md:p-3"
+          className="absolute right-2 md:right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/10 p-2 text-white transition-colors cursor-pointer hover:bg-black/30 md:p-3"
         >
           <ChevronRightIcon />
         </button>
@@ -89,12 +88,12 @@ export function Carousel() {
 
 function ChevronLeftIcon() {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 md:w-6 md:h-6"><path d="m15 18-6-6 6-6"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 md:w-6 md:h-6"><path d="m15 18-6-6 6-6" /></svg>
   );
 }
 
 function ChevronRightIcon() {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 md:w-6 md:h-6"><path d="m9 18 6-6-6-6"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 md:w-6 md:h-6"><path d="m9 18 6-6-6-6" /></svg>
   );
 }

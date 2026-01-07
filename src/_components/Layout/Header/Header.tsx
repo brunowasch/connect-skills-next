@@ -6,7 +6,7 @@ import { FaWhatsapp } from "react-icons/fa";
 export function Header() {
   
   return (
-    <nav className="fixed top-0 z-50 w-full bg-[#F2F4F7]">
+    <nav className="z-50 w-full bg-[#F2F4F7]">
       <div className="mx-auto flex min-h-[13vh] max-w-7xl items-center justify-between px-4">
 
         <Link href="/">

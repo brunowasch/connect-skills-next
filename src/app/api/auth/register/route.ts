@@ -75,14 +75,27 @@ export async function POST(req: Request) {
     });
 
     // 5. Retorno de sucesso
-    return NextResponse.json(
+    const response = NextResponse.json(
       {
         id: createdUser.id,
         email: createdUser.email,
         tipo: createdUser.tipo,
+        redirectTo: tipo === 'CANDIDATO' ? "/pages/candidate/register" : "/pages/company/register"
       },
       { status: 201 }
     );
+
+    // 6. Cookies de autenticação
+    response.cookies.set("time_user_id", createdUser.id, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60,
+      path: "/"
+    })
+
+    return response;
+
   } catch (err) {
     console.error("Erro no POST /api/auth/register:", err);
     return NextResponse.json(

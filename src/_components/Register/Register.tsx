@@ -29,7 +29,7 @@ export function RegisterCard() {
         return;
       }
 
-      router.push("/login");
+      router.push(data.redirectTo);
     } catch {
       setError("Erro de conexão. Tente novamente.");
     }
