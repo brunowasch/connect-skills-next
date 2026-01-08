@@ -60,7 +60,7 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarPr
                             padding: "0 1.5rem",
                         }}
                     >
-                        <Link href="/pages/candidate/candidateApp/dashboard">
+                        <Link href="/pages/company/companyApp/dashboard">
                             <div style={{ backgroundColor: "rgba(255,255,255,0.9)", borderRadius: "0.5rem", padding: "0.5rem" }}>
                                 <Image
                                     src="/img/logos/logo-connect-skills.png"
