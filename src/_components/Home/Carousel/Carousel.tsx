@@ -60,7 +60,7 @@ export function Carousel() {
             <button
               key={index}
               onClick={() => setCurrent(index)}
-              className={`h-1.5 transition-all duration-300 rounded-full ${current === index ? "w-6 bg-blue-500" : "w-1.5 bg-gray-400/60"
+              className={`h-1.5 transition-all duration-300 rounded-full cursor-pointer ${current === index ? "w-6 bg-blue-500" : "w-1.5 bg-gray-400/60"
                 }`}
               aria-label={`Ir para slide ${index + 1}`}
             />

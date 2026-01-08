@@ -1,13 +1,12 @@
 import { Header, Footer } from "@/src/_components/Layout/index"
+import { RegisterCompany } from "@/src/_components/Company/Register/Register"
 
 export default function CompanyName() {
     return (
         <>
-        <Header />
-        <h1>
-            Aqui a empresa preencherá sua razão social. 
-        </h1>
-        <Footer />
+            <Header />
+            <RegisterCompany />
+            <Footer />
         </>
     )
 }

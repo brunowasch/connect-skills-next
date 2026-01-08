@@ -3,13 +3,17 @@
 import { useState, useMemo } from "react";
 import skillsData from "@/src/data/skills.json";
 import { FiSearch } from "react-icons/fi";
+import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 
 export function SelectAreas() {
+  const router = useRouter();
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [customSkills, setCustomSkills] = useState<string[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newSkill, setNewSkill] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const toggleSkill = (skill: string) => {
     setSelectedSkills((prev) =>
@@ -28,6 +32,49 @@ export function SelectAreas() {
       }
       setNewSkill("");
       setIsModalOpen(false);
+    }
+  };
+
+  const handleContinue = async () => {
+    if (selectedSkills.length === 0) return;
+
+    setIsSubmitting(true);
+    const userId = Cookies.get("time_user_id");
+
+    if (!userId) {
+      alert("Usuário não identificado. Por favor, faça login novamente.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      const promises = selectedSkills.map(async (skill) => {
+        const response = await fetch("/api/candidate/register/areas", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            nome: skill,
+            usuario_id: userId,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || `Erro ao salvar ${skill}`);
+        }
+        return response.json();
+      });
+
+      await Promise.all(promises);
+
+      router.push("/pages/candidate/home");
+    } catch (error) {
+      console.error("Erro ao salvar áreas:", error);
+      alert("Ocorreu um erro ao salvar suas especialidades. Tente novamente.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -78,7 +125,7 @@ export function SelectAreas() {
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="p-3 rounded-lg text-sm text-left transition-all duration-200 border bg-white text-blue-600 border-blue-200 hover:border-blue-400 hover:bg-blue-50 font-medium"
+          className="p-3 rounded-lg text-sm text-left transition-all duration-200 border bg-white text-blue-600 border-blue-200 hover:border-blue-400 hover:bg-blue-50 font-medium cursor-pointer"
         >
           + Outro
         </button>
@@ -134,8 +181,12 @@ export function SelectAreas() {
             {selectedSkills.length} habilidades selecionadas
           </span>
           <div className="flex gap-3">
-            <button className="px-6 py-2 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition-colors cursor-pointer">
-              Continuar
+            <button
+              onClick={handleContinue}
+              disabled={selectedSkills.length === 0 || isSubmitting}
+              className="px-6 py-2 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? "Salvando..." : "Continuar"}
             </button>
             {selectedSkills.length > 0 && (
               <button
