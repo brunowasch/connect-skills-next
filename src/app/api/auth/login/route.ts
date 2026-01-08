@@ -43,7 +43,7 @@ export async function POST(req: Request) {
                 id: user.id,
                 email: user.email,
                 tipo: user.tipo,
-                redirectTo: user.tipo.toLocaleLowerCase() === 'candidato' ? "/pages/candidate/dashboard" : "/pages/company/dashboard"
+                redirectTo: user.tipo.toLocaleLowerCase() === 'candidato' ? "/pages/candidate/candidateApp/dashboard" : "/pages/company/companyApp/dashboard"
             },
             { status: 200 }
         );
