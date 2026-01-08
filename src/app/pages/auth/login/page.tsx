@@ -1,9 +1,11 @@
+import { Header, Footer } from "@/src/app/_components/Layout/index"
+import { LoginCard } from "./_components/LoginCard"
 export default function Login() {
     return (
-        <div>
-            <h1>
-                Esta é a página de login.
-            </h1>
-        </div>
+        <>
+            <Header />
+            <LoginCard />
+            <Footer />
+        </>
     )
 }

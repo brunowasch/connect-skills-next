@@ -1,5 +1,5 @@
-import { SelectAreas } from "@/src/_components/Candidates/Register/SelectAreas"
-import { Header, Footer } from "@/src/_components/Layout/index"
+import { SelectAreas } from "@/src/app/pages/candidate/register/select-areas/_components/SelectAreas"
+import { Header, Footer } from "@/src/app/_components/Layout/index"
 
 export default function SelectAreasPage() {
     return (

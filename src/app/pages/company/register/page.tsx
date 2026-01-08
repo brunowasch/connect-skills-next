@@ -1,5 +1,5 @@
-import { Header, Footer } from "@/src/_components/Layout/index"
-import { RegisterCompany } from "@/src/_components/Company/Register/Register"
+import { Header, Footer } from "@/src/app/_components/Layout/index"
+import { RegisterCompany } from "@/src/app/pages/company/register/_components/Register"
 
 export default function CompanyName() {
     return (

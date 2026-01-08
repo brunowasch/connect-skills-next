@@ -1,5 +1,5 @@
-import { Header, Hero, Carousel, About, ClientsSection, CTA, Contact } from "@/src/_components/Home/index"
-import { Footer } from "@/src/_components/Layout/index"
+import { Header, Hero, Carousel, About, ClientsSection, CTA, Contact } from "@/src/app/_components/Home/index"
+import { Footer } from "@/src/app/_components/Layout/index"
 
 export default function Home() {
   return (

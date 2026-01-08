@@ -1,5 +1,5 @@
-import { Header, Footer } from "@/src/_components/Layout";
-import { RegisterCandidateName } from "@/src/_components/Candidates/Register/Register";
+import { Header, Footer } from "@/src/app/_components/Layout";
+import { RegisterCandidateName } from "@/src/app/pages/candidate/register/_components/Register";
 
 export default function CandidateFullName() {
   return (
