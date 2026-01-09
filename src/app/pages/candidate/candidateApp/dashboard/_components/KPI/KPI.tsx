@@ -1,11 +1,6 @@
 import Link from 'next/link';
 import { Search, Send, LayoutGrid, PencilLine } from 'lucide-react';
-
-interface KPIProps {
-    recommendedVacanciesCount: number;
-    appliedVacanciesCount: number;
-    areas: string[];
-}
+import { KPIProps } from '@/src/app/pages/candidate/candidateApp/types/kpi';
 
 export function KPI({
     recommendedVacanciesCount,

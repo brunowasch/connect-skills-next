@@ -1,31 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Stars, MapPin, Banknote, Eye, Building2 } from 'lucide-react';
-
-interface Vacancy {
-  id: string;
-  cargo: string;
-  tipo_local_trabalho: 'Presencial' | 'Home_Office' | 'H_brido';
-  salario?: number;
-  moeda?: string;
-  empresa?: {
-    id: string;
-    nome_empresa?: string;
-    nome?: string;
-    foto_perfil?: string;
-    cidade?: string;
-    estado?: string;
-    pais?: string;
-  };
-  vaga_area?: Array<{
-    area_interesse?: { nome: string };
-    nome?: string;
-  }>;
-}
-
-interface RecommendedVacancyProps {
-  vacanciesRecommended: Vacancy[];
-}
+import { RecommendedVacancyProps } from '@/src/app/pages/candidate/candidateApp/types/vacancy';
 
 export function RecommendedVacancies({ vacanciesRecommended }: RecommendedVacancyProps) {
   const typeMap = {
@@ -67,7 +43,7 @@ export function RecommendedVacancies({ vacanciesRecommended }: RecommendedVacanc
             <div key={vacancy.id} className="group border border-slate-100 rounded-2xl p-4 hover:border-blue-200 hover:shadow-sm transition-all">
               <div className="flex gap-4 items-start">
                 {/* Logo da Empresa */}
-                <Link href={`/empresa/perfil/${vacancy.empresa?.id || ''}`} className="relative flex-shrink-0">
+                <Link href={`/pages/candidate/candidateApp/vacancies`} className="relative flex-shrink-0">
                   <div className="w-16 h-16 relative rounded-full overflow-hidden border border-slate-100">
                     <Image
                       src={vacancy.empresa?.foto_perfil || '/img/avatar.png'}

@@ -1,20 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { MapPin, User, PencilLine } from 'lucide-react';
-
-interface HeroProps {
-    candidato: {
-        nome?: string | null;
-        sobrenome?: string | null;
-        foto_perfil?: string | null;
-        pais?: string | null;
-        estado?: string | null;
-        cidade?: string | null;
-        descricao?: string | null;
-        telefone?: string | null;
-        data_nascimento?: string | Date | null;
-    };
-}
+import { HeroProps } from '@/src/app/pages/candidate/candidateApp/types/hero';
 
 const DEFAULT_AVATAR = "/img/DEFAULT_AVATAR.png";
 
