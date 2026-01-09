@@ -36,11 +36,11 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarPr
 
             <aside
                 style={{
-                    backgroundColor: "#ffffffff",
+                    backgroundColor: "#ffffff",
                     color: "#cbd5e1",
                     width: "16rem",
                     minWidth: "16rem",
-                    height: "100vh",
+                    minHeight: "100vh",
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "space-between",
@@ -49,6 +49,7 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarPr
                 }}
                 className={`sidebar ${mobileOpen ? "open" : ""}`}
             >
+
 
                 <div>
                     <div

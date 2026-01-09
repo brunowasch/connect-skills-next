@@ -19,7 +19,7 @@ export default function CandidateLayout({
                 setMobileOpen={setMobileSidebarOpen}
             />
 
-            <div className="flex flex-1 flex-col transition-all duration-300">
+            <div className="flex flex-1 flex-col transition-all duration-300 lg:ml-64">
                 <header className="flex h-16 items-center justify-between bg-white px-4 shadow-sm lg:hidden">
                     <button
                         onClick={() => setMobileSidebarOpen(true)}
@@ -30,10 +30,10 @@ export default function CandidateLayout({
                     <Image
                         src="/img/logos/logo-connect-skills.png"
                         alt="Connect Skills"
-                        width={80}
+                        width={160}
                         height={40}
                         priority
-                        style={{ height: "auto", width: "10rem" }}
+                        style={{ height: "auto", width: "12rem" }}
                     />
                     <div className="w-8" />
                 </header>

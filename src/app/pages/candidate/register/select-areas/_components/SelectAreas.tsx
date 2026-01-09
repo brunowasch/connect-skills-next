@@ -69,7 +69,7 @@ export function SelectAreas() {
 
             await Promise.all(promises);
 
-            router.push("/pages/candidate/dashboard");
+            router.push("/pages/candidate/candidateApp/dashboard");
         } catch (error) {
             console.error("Erro ao salvar áreas:", error);
             alert("Ocorreu um erro ao salvar suas especialidades. Tente novamente.");

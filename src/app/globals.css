@@ -20,16 +20,10 @@ body {
   font-family: var(--font-inter), system-ui, sans-serif;
   background-color: var(--background);
   color: var(--foreground);
+  overflow-x: hidden;
+  width: 100%;
 }
 
-.sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 50;
-  transform: translateX(-100%);
-  transition: transform 0.3s ease-in-out;
-}
 
 .sidebar.open {
   transform: translateX(0);
@@ -37,9 +31,32 @@ body {
 
 @media (min-width: 1024px) {
   .sidebar {
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 16rem;
+    height: 100vh;
+    z-index: 10;
     transform: translateX(0);
-    z-index: auto;
+  }
+
+  .vacancies {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+}
+
+
+@media (max-width: 1023px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    z-index: 50;
   }
 
   .sidebar.open {
