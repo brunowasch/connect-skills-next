@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { FaHome, FaBriefcase, FaUser, FaSignOutAlt, FaWhatsapp } from "react-icons/fa";
 
 interface SidebarProps {
@@ -12,12 +13,22 @@ interface SidebarProps {
 
 export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarProps) {
     const pathname = usePathname();
+    const router = useRouter();
+
+    const [logoutOpen, setLogoutOpen] = useState(false);
 
     const navItems = [
         { label: "Início", href: "/pages/candidate/candidateApp/dashboard", icon: FaHome },
         { label: "Vagas", href: "/pages/candidate/candidateApp/vacancies", icon: FaBriefcase },
         { label: "Meu Perfil", href: "/pages/candidate/candidateApp/profile", icon: FaUser },
     ];
+
+    const handleLogout = () => {
+        localStorage.clear();
+        setLogoutOpen(false);
+        setMobileOpen?.(false);
+        router.push("/");
+    };
 
     return (
         <>
@@ -167,6 +178,7 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarPr
                         </a>
                     </button>
                     <button
+                        onClick={() => setLogoutOpen(true)}
                         style={{
                             display: "flex",
                             width: "100%",
@@ -177,37 +189,71 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarPr
                             textAlign: "left",
                             fontWeight: 500,
                             fontSize: "1rem",
-                            color: "#94a3b8",
-                            transition: "all 0.2s",
-                            border: "none",
                             backgroundColor: "transparent",
+                            border: "none",
                             cursor: "pointer",
                         }}
                         onMouseEnter={(e) => {
                             e.currentTarget.style.backgroundColor = "rgba(239, 68, 68, 0.1)";
-                            e.currentTarget.style.color = "#f87171";
                         }}
                         onMouseLeave={(e) => {
                             e.currentTarget.style.backgroundColor = "transparent";
-                            e.currentTarget.style.color = "#fd8e8eff";
                         }}
                     >
-                        <div style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            borderRadius: "0.5rem",
-                            backgroundColor: "#f76363ff",
-                            padding: "0.5rem",
-                        }}>
+                        <div
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                borderRadius: "0.5rem",
+                                backgroundColor: "#f76363ff",
+                                padding: "0.5rem",
+                            }}
+                        >
                             <FaSignOutAlt className="text-white" style={{ fontSize: "1rem" }} />
                         </div>
                         <span className="text-red-500 hover:text-red-600 transition">
                             Sair
                         </span>
                     </button>
+
                 </div>
             </aside>
+            {logoutOpen && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4"
+                    onClick={() => setLogoutOpen(false)}
+                >
+                    <div
+                        className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl animate-fadeIn"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h2 className="text-lg font-semibold text-slate-900">
+                            Sair da conta
+                        </h2>
+
+                        <p className="mt-2 text-sm text-slate-600">
+                            Tem certeza que deseja encerrar sua sessão?
+                        </p>
+
+                        <div className="mt-6 flex gap-3">
+                            <button
+                                onClick={() => setLogoutOpen(false)}
+                                className="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 cursor-pointer hover:bg-slate-100 transition"
+                            >
+                                Cancelar
+                            </button>
+
+                            <button
+                                onClick={handleLogout}
+                                className="flex-1 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white cursor-pointer hover:bg-red-700 transition"
+                            >
+                                Sair
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }
