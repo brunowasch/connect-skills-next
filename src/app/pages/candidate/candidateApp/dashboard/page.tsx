@@ -298,7 +298,9 @@ export default async function Dashboard() {
     return (
         <>
             <div className="mb-4 sm:mb-6">
-                <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Dashboard</h1>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+                <p className="text-gray-500">Acompanhe suas candidaturas, visualize vagas recomendadas e avance na sua jornada profissional.</p>
+
             </div>
             <Hero candidato={candidate} />
             <KPI

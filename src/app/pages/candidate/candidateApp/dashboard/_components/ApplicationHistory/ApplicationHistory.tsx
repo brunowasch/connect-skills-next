@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Clock, ChevronRight } from 'lucide-react';
-import { ApplicationHistoryProps } from '@/src/app/pages/candidate/candidateApp/types/dashboard/application';
+import { ApplicationHistoryProps } from '@/src/app/pages/candidate/candidateApp/types/applicationHistory';
 
 export function ApplicationHistory({ historicoAplicacoes }: ApplicationHistoryProps) {
 
