@@ -53,7 +53,7 @@ export function Hero({ candidato }: HeroProps) {
                     </Link>
 
                     <Link
-                        href="/candidate/profile/editProfile"
+                        href="/candidate/edit/profile"
                         className="flex items-center justify-center gap-1.5 sm:gap-2 border border-blue-600 text-blue-600 hover:bg-blue-50 px-3 sm:px-4 py-2 rounded-lg transition-colors w-full sm:w-auto text-xs sm:text-sm font-medium"
                     >
                         <PencilLine size={16} className="sm:w-[18px] sm:h-[18px]" />

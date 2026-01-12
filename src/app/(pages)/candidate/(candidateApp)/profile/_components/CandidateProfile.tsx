@@ -68,7 +68,7 @@ export function CandidateProfile({ candidato, fotoPerfil, localidade, contato, l
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <Link href="/candidate/profile/editProfile">
+                            <Link href="/candidate/edit/profile">
                                 <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 flex items-center gap-2 transition cursor-pointer">
                                     <PencilLine size={16} /> Editar perfil
                                 </button>
@@ -103,7 +103,9 @@ export function CandidateProfile({ candidato, fotoPerfil, localidade, contato, l
                         <h3 className="font-bold text-gray-800 flex items-center gap-2">
                             <Target className="text-blue-600" size={18} /> Áreas de Interesse
                         </h3>
-                        <button className="text-blue-600 text-sm font-medium cursor-pointer hover:underline">Editar áreas</button>
+                        <Link href="/candidate/edit/area">
+                            <button className="text-blue-600 text-sm font-medium cursor-pointer hover:underline">Editar áreas</button>
+                        </Link>
                     </div>
                     <div className="flex flex-wrap gap-2">
                         {candidato.candidato_area?.length > 0 ? (

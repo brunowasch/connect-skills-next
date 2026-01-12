@@ -143,7 +143,7 @@ export async function POST(req: NextRequest) {
         revalidatePath("/(pages)/candidate/(candidateApp)/dashboard", "page");
         revalidatePath("/(pages)/candidate/(candidateApp)/profile", "page");
 
-        return NextResponse.json({ message: "Perfil atualizado com sucesso" });
+        return NextResponse.json({ message: "Perfil atualizado!" });
     } catch (error: any) {
         console.error("Erro ao atualizar perfil:", error);
         return NextResponse.json({ error: "Erro interno ao atualizar perfil" }, { status: 500 });

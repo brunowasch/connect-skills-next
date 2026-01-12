@@ -49,7 +49,7 @@ export function GlobalToast() {
 
                 <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-gray-900 leading-none mb-1">
-                        {message.type === 'success' ? 'Ótimo!' : 'Atenção'}
+                        {message.type === 'success' ? 'Sucesso!' : 'Atenção'}
                     </p>
                     <p className="text-xs text-gray-600 truncate">
                         {message.text}

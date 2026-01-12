@@ -4,6 +4,7 @@ import { useState } from "react";
 import { FaBars } from "react-icons/fa";
 import Sidebar from "../layout/Sidebar/Sidebar";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { Footer } from "@/src/app/(pages)/candidate/layout/Footer/Footer";
 import { GlobalToast } from "./_components/GlobalToast";
 
@@ -13,6 +14,10 @@ export default function CandidateLayout({
     children: React.ReactNode;
 }) {
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+    const pathname = usePathname();
+
+    const hideFooterPaths = ["/candidate/edit/area"];
+    const shouldHideFooter = hideFooterPaths.includes(pathname);
 
     return (
         <>
@@ -49,9 +54,11 @@ export default function CandidateLayout({
                     </main>
                 </div>
             </div>
-            <div className="flex flex-1 flex-col transition-all duration-300 lg:ml-64">
-                <Footer />
-            </div>
+            {!shouldHideFooter && (
+                <div className="flex flex-1 flex-col transition-all duration-300 lg:ml-64">
+                    <Footer />
+                </div>
+            )}
         </>
     );
 }

@@ -113,7 +113,7 @@ export function EditProfile({ initialData }: EditProfileProps) {
             if (res.ok) {
                 localStorage.setItem('global_toast', JSON.stringify({
                     type: 'success',
-                    text: 'Perfil atualizado com sucesso!'
+                    text: 'Perfil atualizado!'
                 }));
 
                 router.refresh();
@@ -277,7 +277,7 @@ export function EditProfile({ initialData }: EditProfileProps) {
                                 <button
                                     type="button"
                                     onClick={addLink}
-                                    className="text-blue-600 flex items-center gap-1 text-sm font-bold hover:text-blue-800"
+                                    className="text-blue-600 flex items-center gap-1 text-sm font-bold hover:text-blue-800 cursor-pointer"
                                 >
                                     <PlusCircle size={16} /> Adicionar link
                                 </button>
@@ -295,7 +295,7 @@ export function EditProfile({ initialData }: EditProfileProps) {
                                         <button
                                             type="button"
                                             onClick={() => removeLink(idx)}
-                                            className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                                            className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
                                         >
                                             <Trash2 size={18} />
                                         </button>
@@ -337,7 +337,7 @@ export function EditProfile({ initialData }: EditProfileProps) {
                                         <button
                                             type="button"
                                             onClick={() => removeAnexo(i)}
-                                            className="text-red-500 p-1 hover:bg-red-50 rounded"
+                                            className="text-red-500 p-1 hover:bg-red-50 rounded cursor-pointer"
                                         >
                                             <X size={14} />
                                         </button>
