@@ -22,7 +22,7 @@ export function Hero() {
             </p>
             <div className="flex flex-wrap gap-3 mb-10">
               <Link
-                href="/pages/auth/register"
+                href="/register"
                 className="flex items-center gap-2 rounded-lg bg-blue-500 px-6 py-3 text-lg font-medium text-white transition hover:bg-blue-600"
               >
                 <HiUserAdd className="text-xl" />
@@ -30,7 +30,7 @@ export function Hero() {
               </Link>
 
               <Link
-                href="/pages/auth/login"
+                href="/login"
                 className="flex items-center gap-2 rounded-lg border border-blue-500 px-6 py-3 text-lg font-medium text-blue-500 transition hover:bg-blue-500 hover:text-white"
               >
                 <HiLogin className="text-xl" />

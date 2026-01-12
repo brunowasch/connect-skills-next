@@ -73,8 +73,8 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        revalidatePath("/pages/candidate/candidateApp/dashboard", "page");
-        revalidatePath("/pages/candidate/candidateApp/profile", "page");
+        revalidatePath("/(pages)/candidate/(candidateApp)/dashboard", "page");
+        revalidatePath("/(pages)/candidate/(candidateApp)/profile", "page");
 
         return NextResponse.json({ message: "Perfil atualizado com sucesso" });
     } catch (error: any) {

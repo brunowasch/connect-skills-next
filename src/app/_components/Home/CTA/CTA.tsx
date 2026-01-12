@@ -16,7 +16,7 @@ export function CTA() {
 
             <div className="flex flex-wrap gap-3">
               <Link
-                href="/pages/auth/register"
+                href="/register"
                 className="flex items-center rounded-lg bg-white px-6 py-3 text-lg text-blue-500 transition hover:-translate-y-1 hover:shadow-lg"
               >
                 <HiUserAdd className="text-xl mr-2" />
@@ -24,7 +24,7 @@ export function CTA() {
               </Link>
 
               <Link
-                href="/pages/auth/login"
+                href="/login"
                 className="flex items-center rounded-lg border bg-white px-6 py-3 text-lg text-blue-500 transition hover:-translate-y-1 hover:shadow-lg"
               >
                 <HiLogin className="text-xl mr-2" />
