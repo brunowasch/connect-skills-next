@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
-import { Hero, KPI, RecommendedVacancies, ApplicationHistory } from "@/src/app/pages/candidate/candidateApp/dashboard/_components/index";
+import { Hero, KPI, RecommendedVacancies, ApplicationHistory, ProfileCompletion } from "@/src/app/pages/candidate/candidateApp/dashboard/_components/index";
 
 export default async function Dashboard() {
     const cookieStore = await cookies();
@@ -316,6 +316,7 @@ export default async function Dashboard() {
 
             </div>
             <Hero candidato={candidate} />
+            <ProfileCompletion candidato={candidate} usuario={userId} areas={areas} />
             <KPI
                 recommendedVacanciesCount={recommendedVacanciesCount}
                 appliedVacanciesCount={appliedVacanciesCount}

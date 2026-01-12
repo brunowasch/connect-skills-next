@@ -5,6 +5,7 @@ import { FaBars } from "react-icons/fa";
 import Sidebar from "../Layout/Sidebar/Sidebar";
 import Image from "next/image";
 import { Footer } from "@/src/app/pages/candidate/Layout/Footer";
+import { GlobalToast } from "./_components/GlobalToast";
 
 export default function CandidateLayout({
     children,
@@ -16,6 +17,7 @@ export default function CandidateLayout({
     return (
         <>
             <div className="flex min-h-screen bg-gray-50">
+                <GlobalToast />
                 <Sidebar
                     mobileOpen={mobileSidebarOpen}
                     setMobileOpen={setMobileSidebarOpen}

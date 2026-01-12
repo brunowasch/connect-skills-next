@@ -191,7 +191,7 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
     return { vagas: vacancies, areas, count: vacancies.length, isSearch };
 }
 
-export default async function VagasPage({
+export default async function VacanciesPage({
     searchParams
 }: {
     searchParams: Promise<{ [key: string]: string | undefined }>
@@ -217,7 +217,7 @@ export default async function VagasPage({
                 </span>
             </div>
             <div className="flex items-center mb-6">
-                <p className="text-gray-500">Não encontrou o que procura?</p>
+                <p className="text-gray-500">Não encontrou o que esperava?</p>
                 <button className="text-blue-500 px-2 font-semibold cursor-pointer hover:underline">Quero procurar novas vagas</button>
             </div>
             {/* Alerta de Áreas (apenas se não for busca e tiver poucas áreas) */}

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Search, Send, LayoutGrid, PencilLine } from 'lucide-react';
-import { KPIProps } from '@/src/app/pages/candidate/candidateApp/types/kpi';
+import { KPIProps } from '@/src/app/pages/candidate/candidateApp/types/KPIProps';
 
 export function KPI({
     recommendedVacanciesCount,

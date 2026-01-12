@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { MapPin, User, PencilLine } from 'lucide-react';
-import { HeroProps } from '@/src/app/pages/candidate/candidateApp/types/hero';
+import { HeroProps } from '@/src/app/pages/candidate/candidateApp/types/HeroProps';
 
 const DEFAULT_AVATAR = "/img/DEFAULT_AVATAR.png";
 
@@ -53,7 +53,7 @@ export function Hero({ candidato }: HeroProps) {
                     </Link>
 
                     <Link
-                        href="/pages/candidate/candidateApp/profile"
+                        href="/pages/candidate/candidateApp/profile/editProfile"
                         className="flex items-center justify-center gap-1.5 sm:gap-2 border border-blue-600 text-blue-600 hover:bg-blue-50 px-3 sm:px-4 py-2 rounded-lg transition-colors w-full sm:w-auto text-xs sm:text-sm font-medium"
                     >
                         <PencilLine size={16} className="sm:w-[18px] sm:h-[18px]" />

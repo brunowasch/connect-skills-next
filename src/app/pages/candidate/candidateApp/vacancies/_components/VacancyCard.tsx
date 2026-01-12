@@ -1,6 +1,6 @@
 "use client";
 
-import { Vacancy } from '@/src/app/pages/candidate/candidateApp/types/vacancy';
+import { Vacancy } from '@/src/app/pages/candidate/candidateApp/types/Vacancy';
 import { User } from 'lucide-react';
 import Image from 'next/image';
 import { MapPin, Briefcase } from "lucide-react";

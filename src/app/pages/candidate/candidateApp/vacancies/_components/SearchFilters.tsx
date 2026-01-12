@@ -53,7 +53,7 @@ export function SearchFilters() {
                 {/* Filtros e Botão */}
                 <div className="md:col-span-3 flex gap-2">
                     <select
-                        className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm md:text-base"
+                        className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm md:text-base cursor-pointer"
                         value={type}
                         onChange={(e) => setType(e.target.value)}
                     >
@@ -65,7 +65,7 @@ export function SearchFilters() {
 
                     <button
                         onClick={handleSearch}
-                        className="bg-blue-600 text-white p-2 rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center min-w-[44px]"
+                        className="bg-blue-600 text-white p-2 rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center min-w-[44px] cursor-pointer"
                     >
                         <Search size={20} />
                     </button>
