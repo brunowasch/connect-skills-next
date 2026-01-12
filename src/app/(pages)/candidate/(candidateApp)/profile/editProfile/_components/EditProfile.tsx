@@ -53,6 +53,43 @@ export function EditProfile({ initialData }: EditProfileProps) {
         }
     };
 
+    // 2.1 Gerenciamento de Anexos
+    const handleAnexosChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files) return;
+
+        const newAnexos = [...formData.anexos];
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const reader = new FileReader();
+
+            const filePromise = new Promise<{ nome: string, base64: string, size: number, type: string }>((resolve) => {
+                reader.onloadend = () => {
+                    resolve({
+                        nome: file.name,
+                        base64: reader.result as string,
+                        size: file.size,
+                        type: file.type
+                    });
+                };
+            });
+
+            reader.readAsDataURL(file);
+            const result = await filePromise;
+            newAnexos.push(result);
+        }
+
+        setFormData(prev => ({ ...prev, anexos: newAnexos }));
+    };
+
+    const removeAnexo = (index: number) => {
+        setFormData(prev => ({
+            ...prev,
+            anexos: prev.anexos.filter((_, i) => i !== index)
+        }));
+    };
+
     // 3. Submissão do Formulário
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -280,7 +317,14 @@ export function EditProfile({ initialData }: EditProfileProps) {
                             <Upload className="text-gray-300 mb-2" size={32} />
                             <p className="text-sm font-medium text-gray-600">Clique para enviar arquivos</p>
                             <p className="text-[10px] text-gray-400 mt-1 text-center">PDF, DOCX ou Imagens (Máx 10MB)</p>
-                            <input type="file" multiple className="hidden" id="anexos-upload" />
+                            <input
+                                type="file"
+                                multiple
+                                className="hidden"
+                                id="anexos-upload"
+                                onChange={handleAnexosChange}
+                                accept="image/*,.pdf,.doc,.docx"
+                            />
                             <label htmlFor="anexos-upload" className="mt-4 bg-gray-800 text-white px-4 py-2 rounded-lg text-xs font-bold cursor-pointer hover:bg-black transition">Selecionar Arquivos</label>
                         </div>
 
@@ -290,8 +334,13 @@ export function EditProfile({ initialData }: EditProfileProps) {
                                 <div key={i} className="flex items-center justify-between bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
                                     <span className="text-sm text-gray-700 truncate max-w-[200px]">{a.nome}</span>
                                     <div className="flex gap-2">
-                                        <button className="text-blue-500 p-1 hover:bg-blue-50 rounded"><Upload size={14} /></button>
-                                        <button className="text-red-500 p-1 hover:bg-red-50 rounded"><X size={14} /></button>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeAnexo(i)}
+                                            className="text-red-500 p-1 hover:bg-red-50 rounded"
+                                        >
+                                            <X size={14} />
+                                        </button>
                                     </div>
                                 </div>
                             ))}
