@@ -40,7 +40,7 @@ export function RecommendedVacancies({ vacanciesRecommended }: RecommendedVacanc
       ) : (
         <div className="space-y-4">
           {vacanciesRecommended.slice(0, 3).map((vacancy) => (
-            <div key={vacancy.id} className="group border border-slate-100 rounded-2xl p-4 hover:border-blue-200 hover:shadow-sm transition-all">
+            <div key={vacancy.id} className="group border border-slate-100 rounded-2xl p-4 hover:border-blue-200 hover:shadow-sm transition-all cursor-pointer">
               <div className="flex gap-4 items-start">
                 {/* Logo da Empresa */}
                 <Link href={`/pages/candidate/candidateApp/vacancies`} className="relative flex-shrink-0">

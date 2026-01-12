@@ -63,6 +63,20 @@ export default async function Dashboard() {
         .map(ca => ca.area_interesse.nome)
         .filter(Boolean) as string[];
 
+    // Buscar vagas aplicadas PRIMEIRO (para excluir das recomendações)
+    const appliedVacanciesData = await prisma.vaga_avaliacao.findMany({
+        where: {
+            candidato_id: candidateComplete.id
+        },
+        select: {
+            vaga_id: true,
+            created_at: true,
+        }
+    });
+
+    const appliedVacanciesIds = appliedVacanciesData.map(av => av.vaga_id);
+    const appliedVacanciesCount = appliedVacanciesData.length;
+
     // Buscar vagas recomendadas (baseadas nas áreas de interesse)
     let recommendedVacanciesCount = 0;
     let recommendedVacancies: any[] = [];
@@ -76,18 +90,30 @@ export default async function Dashboard() {
             },
             select: {
                 vaga_id: true
-            },
-            distinct: ['vaga_id']
+            }
         });
 
-        recommendedVacanciesCount = vagasIds.length;
+        // Garantir que contamos apenas IDs únicos E que NÃO foram aplicadas
+        const uniqueVagaIds = [...new Set(vagasIds.map(v => v.vaga_id))]
+            .filter(vagaId => !appliedVacanciesIds.includes(vagaId));
+
+        // Contar quantas dessas vagas realmente existem na tabela vaga
+        if (uniqueVagaIds.length > 0) {
+            recommendedVacanciesCount = await prisma.vaga.count({
+                where: {
+                    id: {
+                        in: uniqueVagaIds
+                    }
+                }
+            });
+        }
 
         // Buscar os dados completos das vagas (limitado a 3)
-        if (vagasIds.length > 0) {
+        if (uniqueVagaIds.length > 0) {
             const vagas = await prisma.vaga.findMany({
                 where: {
                     id: {
-                        in: vagasIds.map(v => v.vaga_id)
+                        in: uniqueVagaIds
                     }
                 },
                 select: {
@@ -179,19 +205,6 @@ export default async function Dashboard() {
             });
         }
     }
-
-    // Buscar vagas aplicadas
-    const appliedVacanciesData = await prisma.vaga_avaliacao.findMany({
-        where: {
-            candidato_id: candidateComplete.id
-        },
-        select: {
-            vaga_id: true,
-            created_at: true,
-        }
-    });
-
-    const appliedVacanciesCount = appliedVacanciesData.length;
 
     // Buscar dados completos das vagas aplicadas
     let appliedVacancies: any[] = [];

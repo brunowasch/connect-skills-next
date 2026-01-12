@@ -12,10 +12,11 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
         return { vagas: [], areas: [], count: 0, isSearch: false };
     }
 
-    // Buscar dados do candidtao para áreas (sempre necessário para o contexto)
+    // Buscar dados do candidato para áreas (sempre necessário para o contexto)
     const candidateComplete = await prisma.candidato.findUnique({
         where: { usuario_id: userId },
         select: {
+            id: true,  // Precisamos do ID para buscar as vagas aplicadas
             candidato_area: {
                 select: {
                     area_interesse: {
@@ -35,15 +36,42 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
         .map(ca => ca.area_interesse.nome)
         .filter(Boolean) as string[];
 
+    // Buscar vagas já aplicadas pelo candidato
+    const appliedVacancies = await prisma.vaga_avaliacao.findMany({
+        where: { candidato_id: candidateComplete.id },
+        select: { vaga_id: true }
+    });
+    const appliedVacanciesIds = appliedVacancies.map(av => av.vaga_id);
+
     let vacancies: Vacancy[] = [];
     const isSearch = !!(searchParams?.q || searchParams?.loc || searchParams?.type);
 
-    let whereClause: any = {};
+    // Sempre buscar as vagas compatíveis com as áreas de interesse
+    // Isso garante que apenas vagas recomendadas sejam mostradas
+    if (areasIds.length === 0) {
+        return { vagas: [], areas, count: 0, isSearch };
+    }
 
+    const vagasAreas = await prisma.vaga_area.findMany({
+        where: { area_interesse_id: { in: areasIds } },
+        select: { vaga_id: true }
+    });
+
+    // Filtrar vagas únicas E que NÃO foram aplicadas
+    const uniqueVagaIds = [...new Set(vagasAreas.map(v => v.vaga_id))]
+        .filter(vagaId => !appliedVacanciesIds.includes(vagaId));
+
+    if (uniqueVagaIds.length === 0) {
+        return { vagas: [], areas, count: 0, isSearch };
+    }
+
+    let whereClause: any = {
+        id: { in: uniqueVagaIds }
+    };
+
+    // Se houver busca, adicionar filtros adicionais
     if (isSearch) {
-        whereClause = {
-            AND: []
-        };
+        whereClause.AND = [];
 
         if (searchParams?.q) {
             const companies = await prisma.empresa.findMany({
@@ -82,21 +110,6 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
             whereClause.AND.push({
                 tipo_local_trabalho: searchParams.type
             });
-        }
-    } else {
-        if (areasIds.length > 0) {
-            const vagasAreas = await prisma.vaga_area.findMany({
-                where: { area_interesse_id: { in: areasIds } },
-                select: { vaga_id: true }
-            });
-
-            const uniqueVagaIds = [...new Set(vagasAreas.map(v => v.vaga_id))];
-
-            whereClause = {
-                id: { in: uniqueVagaIds }
-            };
-        } else {
-            return { vagas: [], areas, count: 0, isSearch: false };
         }
     }
 
@@ -156,9 +169,7 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
             return {
                 id: vaga.id,
                 cargo: vaga.cargo,
-                tipo_local_trabalho: (vaga.tipo_local_trabalho === 'Home Office' ? 'Home_Office' :
-                    vaga.tipo_local_trabalho === 'Híbrido' ? 'H_brido' :
-                        'Presencial') as Vacancy['tipo_local_trabalho'],
+                tipo_local_trabalho: vaga.tipo_local_trabalho as Vacancy['tipo_local_trabalho'],
                 salario: vaga.salario ? Number(vaga.salario) : undefined,
                 moeda: vaga.moeda || 'BRL',
                 empresa: empresa ? {
@@ -205,36 +216,43 @@ export default async function VagasPage({
                     {count} encontradas
                 </span>
             </div>
-
+            <div className="flex items-center mb-6">
+                <p className="text-gray-500">Não encontrou o que procura?</p>
+                <button className="text-blue-500 px-2 font-semibold cursor-pointer hover:underline">Quero procurar novas vagas</button>
+            </div>
             {/* Alerta de Áreas (apenas se não for busca e tiver poucas áreas) */}
-            {!isSearch && areas.length < 1 && (
-                <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-center justify-between mb-8">
-                    <div className="flex items-center gap-3">
-                        <i className="bi bi-exclamation-triangle-fill text-amber-500 text-xl"></i>
-                        <div>
-                            <p className="font-semibold text-amber-900">Nenhuma vaga encontrada.</p>
-                            <p className="text-sm text-amber-700">Selecione ao menos uma nova área de interesse para encontrar vagas.</p>
+            {
+                !isSearch && areas.length < 1 && (
+                    <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-center justify-between mb-8">
+                        <div className="flex items-center gap-3">
+                            <i className="bi bi-exclamation-triangle-fill text-amber-500 text-xl"></i>
+                            <div>
+                                <p className="font-semibold text-amber-900">Nenhuma vaga encontrada.</p>
+                                <p className="text-sm text-amber-700">Selecione ao menos uma nova área de interesse para encontrar vagas.</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Grid de Vagas */}
-            {vagas.length === 0 ? (
-                <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-gray-300">
-                    <p className="text-gray-500">
-                        {isSearch
-                            ? "Nenhuma vaga encontrada para sua busca."
-                            : "Nenhuma vaga recomendada no momento."}
-                    </p>
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {vagas.map((vaga) => (
-                        <VacancyCard key={vaga.id} vaga={vaga} />
-                    ))}
-                </div>
-            )}
-        </main>
+            {
+                vagas.length === 0 ? (
+                    <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-gray-300">
+                        <p className="text-gray-500">
+                            {isSearch
+                                ? "Nenhuma vaga encontrada para sua busca."
+                                : "Nenhuma vaga recomendada no momento."}
+                        </p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {vagas.map((vaga) => (
+                            <VacancyCard key={vaga.id} vaga={vaga} />
+                        ))}
+                    </div>
+                )
+            }
+        </main >
     );
 }
