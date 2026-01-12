@@ -80,7 +80,7 @@ export async function POST(req: Request) {
         id: createdUser.id,
         email: createdUser.email,
         tipo: createdUser.tipo,
-        redirectTo: tipo.toLocaleLowerCase() === 'candidato' ? "/candidate/registerName" : "/company/registerName"
+        redirectTo: tipo.toLocaleLowerCase() === 'candidato' ? "/candidate/register" : "/company/register"
       },
       { status: 201 }
     );

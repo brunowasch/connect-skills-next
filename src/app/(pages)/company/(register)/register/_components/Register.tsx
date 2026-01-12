@@ -34,9 +34,9 @@ export function RegisterCompany() {
                 return;
             }
             if (res.ok) {
-                router.push("/pages/company/companyApp/dashboard");
+                router.push("/company/dashboard");
             }
-            router.push("/pages/company/companyApp/dashboard");
+            router.push("/company/dashboard");
         } catch {
             setError("Erro de conexão. Tente novamente.");
         }
