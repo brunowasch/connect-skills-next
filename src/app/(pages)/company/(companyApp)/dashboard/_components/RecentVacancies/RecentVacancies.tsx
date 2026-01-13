@@ -52,7 +52,7 @@ export function RecentVacancies({ vacancies }: RecentVacanciesProps) {
                                 <h4 className="font-bold text-slate-800 truncate text-base group-hover:text-blue-600 transition-colors">
                                     {vacancy.title}
                                 </h4>
-                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border ${vacancy.status === 'Aberta'
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border ${vacancy.status === 'Ativa'
                                     ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
                                     : 'bg-slate-100 text-slate-500 border-slate-200'
                                     }`}>

@@ -61,7 +61,7 @@ export default async function Dashboard() {
     latestStatuses.forEach(status => {
         if (!processedVagas.has(status.vaga_id)) {
             processedVagas.add(status.vaga_id);
-            if (status.situacao.toUpperCase() === 'FECHADA') {
+            if (['INATIVA', 'FECHADA', 'ENCERRADA'].includes(status.situacao.toUpperCase())) {
                 closedVagaIds.add(status.vaga_id);
             }
         }
@@ -118,14 +118,15 @@ export default async function Dashboard() {
 
     const recentVacancies = recentVacanciesRaw.map(v => {
         const status = statusMap.get(v.id);
-        const isClosed = status?.toUpperCase() === 'FECHADA';
+        // Treat anything that matches Inativa/Fechada (legacy) as Inactiv
+        const isInactive = ['INATIVA', 'FECHADA', 'ENCERRADA'].includes(status?.toUpperCase() || '');
 
         return {
             id: v.id,
             title: v.cargo,
             date: v.created_at,
             candidatesCount: candidateCountMap.get(v.id) || 0,
-            status: isClosed ? 'Fechada' : 'Aberta'
+            status: isInactive ? 'Inativa' : 'Ativa'
         };
     });
 
@@ -146,7 +147,15 @@ export default async function Dashboard() {
     const [appCandidates, appVacancies] = await Promise.all([
         prisma.candidato.findMany({
             where: { id: { in: appCandidateIds } },
-            select: { id: true, nome: true, sobrenome: true, foto_perfil: true }
+            select: {
+                id: true,
+                nome: true,
+                sobrenome: true,
+                foto_perfil: true,
+                usuario: {
+                    select: { avatarUrl: true }
+                }
+            }
         }),
         prisma.vaga.findMany({
             where: { id: { in: appVacancyIds } },
@@ -164,7 +173,7 @@ export default async function Dashboard() {
         return {
             id: app.id,
             candidateName: candidate ? `${candidate.nome || ''} ${candidate.sobrenome || ''}`.trim() || 'Candidato' : 'Candidato Desconhecido',
-            candidatePhoto: candidate?.foto_perfil,
+            candidatePhoto: candidate?.foto_perfil || candidate?.usuario?.avatarUrl,
             vacancyTitle: vacancy?.cargo || 'Vaga Desconhecida',
             date: app.created_at,
             score: app.score,
