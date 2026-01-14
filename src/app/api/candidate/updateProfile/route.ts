@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { randomUUID } from "crypto";
 import { uploadToCloudinary } from "@/src/lib/cloudinary";
 
 export async function POST(req: NextRequest) {
@@ -14,7 +15,7 @@ export async function POST(req: NextRequest) {
         }
 
         const data = await req.json();
-        const { nome, sobrenome, localidade, ddd, numero, descricao, links, fotoPerfil, anexos } = data;
+        const { nome, sobrenome, cidade, estado, pais, ddd, numero, descricao, links, fotoPerfil, anexos } = data;
 
         // Upload para Cloudinary se for uma nova imagem (base64)
         let finalFotoPerfil = fotoPerfil;
@@ -29,16 +30,7 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        // Processar localidade (separar cidade e estado se possível)
-        let cidade = "";
-        let estado = "";
-        if (localidade && localidade.includes(",")) {
-            const parts = localidade.split(",");
-            cidade = parts[0].trim();
-            estado = parts[1].trim();
-        } else {
-            cidade = localidade;
-        }
+
 
         const telefone = `${ddd}${numero}`.replace(/\D/g, "");
 
@@ -50,9 +42,20 @@ export async function POST(req: NextRequest) {
                 sobrenome,
                 cidade,
                 estado,
+                pais,
                 telefone,
                 descricao,
                 foto_perfil: finalFotoPerfil
+            }
+        });
+
+        // Sync with usuario record
+        await prisma.usuario.update({
+            where: { id: userId },
+            data: {
+                avatarUrl: finalFotoPerfil,
+                nome: nome,
+                sobrenome: sobrenome
             }
         });
 
@@ -73,7 +76,7 @@ export async function POST(req: NextRequest) {
             const linksToInsert = links
                 .filter((l: any) => l.url.trim() !== "")
                 .map((l: any, index: number) => ({
-                    id: crypto.randomUUID(),
+                    id: randomUUID(),
                     candidato_id: candidate.id,
                     label: "Link", // Ou extrair o domínio como label
                     url: l.url,
@@ -98,7 +101,7 @@ export async function POST(req: NextRequest) {
                         try {
                             const url = await uploadToCloudinary(anexo.base64, "candidate_attachments");
                             processedAnexos.push({
-                                id: crypto.randomUUID(),
+                                id: randomUUID(),
                                 candidato_id: candidate.id,
                                 nome: anexo.nome,
                                 url: url,
@@ -116,7 +119,7 @@ export async function POST(req: NextRequest) {
                         });
                         if (existing) {
                             processedAnexos.push({
-                                id: crypto.randomUUID(),
+                                id: randomUUID(),
                                 candidato_id: candidate.id,
                                 nome: existing.nome,
                                 url: existing.url,

@@ -2,7 +2,9 @@ export interface EditProfileProps {
     initialData: {
         nome: string;
         sobrenome?: string;
-        localidade?: string;
+        cidade?: string;
+        estado?: string;
+        pais?: string;
         ddd?: string;
         numero?: string;
         descricao?: string;

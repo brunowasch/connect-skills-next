@@ -37,7 +37,7 @@ export default async function CandidateProfilePage() {
     }
 
     const localidade = candidate.cidade && candidate.estado
-        ? `${candidate.cidade} - ${candidate.estado}`
+        ? `${candidate.cidade} - ${candidate.estado}, ${candidate.pais || 'Brasil'}`
         : candidate.cidade || candidate.estado || 'Localidade não informada';
 
     const rawTelefone = candidate.telefone || '';
@@ -71,6 +71,7 @@ export default async function CandidateProfilePage() {
     const anexos = candidate.candidato_arquivo.map(a => ({
         id: a.id,
         nome: a.nome,
+        url: a.url,
         mime: a.mime,
         tamanho: a.tamanho,
         criadoEm: a.criadoEm.toISOString(),

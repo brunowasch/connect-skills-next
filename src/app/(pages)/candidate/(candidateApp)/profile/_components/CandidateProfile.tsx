@@ -13,7 +13,7 @@ interface PerfilProps {
     localidade: string;
     contato: { ddi?: string; ddd?: string; numero?: string };
     links: { url: string }[];
-    anexos: { id: string; nome: string; mime: string; tamanho: number; criadoEm: string }[];
+    anexos: { id: string; nome: string; url: string; mime: string; tamanho: number; criadoEm: string }[];
     perfilShareUrl: string;
 }
 
@@ -24,6 +24,50 @@ export function CandidateProfile({ candidato, fotoPerfil, localidade, contato, l
         navigator.clipboard.writeText(perfilShareUrl);
         setCopiado(true);
         setTimeout(() => setCopiado(false), 2000);
+    };
+
+
+    const handleViewFile = async (url: string, nome: string) => {
+        // Tenta buscar o arquivo e converter para base64 para abrir com o viewer nativo
+        // Isso resolve problemas de CORS ou visualização remota (Cloudinary/Google)
+        // replicando a lógica de "preview" que funciona no Edit Profile.
+
+        // Verifica se é PDF para aplicar essa lógica (imagens usually abrem bem direto)
+        const isPdf = url.toLowerCase().endsWith('.pdf') || url.includes('.pdf');
+
+        if (isPdf) {
+            try {
+                // Abre uma nova aba imediatamente para não bloquear o popup, 
+                // mas vamos redirecionar depois (hacky but works often) 
+                // OU (melhor) abre o viewer com um estado de loading
+
+                // Vamos usar a estratégia de fetch direto
+                const response = await fetch(url);
+                const blob = await response.blob();
+                const reader = new FileReader();
+
+                reader.onloadend = () => {
+                    const base64 = reader.result as string;
+                    const fileKey = `temp_file_${Date.now()}`;
+
+                    // Salva no sessionStorage 
+                    sessionStorage.setItem(fileKey, base64);
+
+                    // Abre o viewer apontando para a key
+                    const viewerUrl = `/viewer?fileKey=${fileKey}&title=${encodeURIComponent(nome)}`;
+                    window.open(viewerUrl, '_blank');
+                };
+
+                reader.readAsDataURL(blob);
+                return;
+            } catch (error) {
+                console.error("Erro ao converter arquivo localmente:", error);
+                // Fallback continua abaixo
+            }
+        }
+
+        const viewerUrl = `/viewer?url=${encodeURIComponent(url)}&title=${encodeURIComponent(nome)}`;
+        window.open(viewerUrl, '_blank');
     };
 
     const formatSize = (bytes: number) => {
@@ -142,15 +186,24 @@ export function CandidateProfile({ candidato, fotoPerfil, localidade, contato, l
                     </h3>
                     <div className="space-y-3">
                         {anexos.length > 0 ? anexos.map((a, idx) => (
-                            <div key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-100">
-                                <div className="truncate pr-4">
-                                    <p className="text-sm font-medium text-gray-700 truncate">{a.nome}</p>
-                                    <p className="text-[10px] text-gray-400 uppercase">{a.mime} • {formatSize(a.tamanho)}</p>
+                            <button
+                                key={idx}
+                                onClick={() => handleViewFile(a.url, a.nome)}
+                                className="w-full text-left flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 hover:border-blue-200 transition-all group cursor-pointer"
+                            >
+                                <div className="truncate pr-4 flex items-center gap-3">
+                                    <div className="p-2 rounded-lg bg-white text-gray-400 group-hover:text-blue-600 transition-colors">
+                                        <Paperclip size={18} />
+                                    </div>
+                                    <div className="truncate">
+                                        <p className="text-sm font-medium text-gray-700 truncate group-hover:text-blue-700">{a.nome}</p>
+                                        <p className="text-[10px] text-gray-400 uppercase">{a.mime} • {formatSize(a.tamanho)}</p>
+                                    </div>
                                 </div>
-                                <a href={`/anexos/${a.id}`} className="text-blue-600 hover:text-blue-800 p-2">
+                                <div className="text-gray-300 group-hover:text-blue-500 transition-colors">
                                     <ExternalLink size={18} />
-                                </a>
-                            </div>
+                                </div>
+                            </button>
                         )) : <p className="text-gray-400 text-sm">Nenhum anexo encontrado.</p>}
                     </div>
                 </div>

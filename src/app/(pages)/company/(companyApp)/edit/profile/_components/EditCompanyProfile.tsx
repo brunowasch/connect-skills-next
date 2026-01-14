@@ -1,48 +1,53 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
-    Camera, Upload, Trash2, MapPin, PlusCircle,
-    FileText, X, Save, AlertTriangle, UserCircle, Check, Eye
+    Camera, Upload, Save, AlertTriangle, X, Building2, MapPin, FileText, Eye
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { EditProfileProps } from '@/src/app/(pages)/candidate/(candidateApp)/types/EditProfileProps';
 
-export function EditProfile({ initialData }: EditProfileProps) {
+interface EditCompanyProfileProps {
+    initialData: {
+        id: string;
+        nome_empresa: string | null;
+        foto_perfil: string | null;
+        descricao: string | null;
+        telefone: string | null;
+        cidade: string | null;
+        estado: string | null;
+        pais: string | null;
+        anexos: any[];
+    };
+}
+
+export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
     const router = useRouter();
-    // Estados do Formulário
-    const [formData, setFormData] = useState({
-        ...initialData,
-        pais: initialData.pais || "Brasil"
+    const [formData, setFormData] = useState<{
+        nome_empresa: string;
+        descricao: string;
+        telefone: string;
+        cidade: string;
+        estado: string;
+        pais: string;
+        fotoPerfil: string | null | undefined;
+        anexos: any[];
+    }>({
+        nome_empresa: initialData.nome_empresa || "",
+        descricao: initialData.descricao || "",
+        telefone: initialData.telefone || "",
+        cidade: initialData.cidade || "",
+        estado: initialData.estado || "",
+        pais: initialData.pais || "Brasil",
+        fotoPerfil: initialData.foto_perfil || undefined,
+        anexos: initialData.anexos || [],
     });
-    const [links, setLinks] = useState(initialData.links.length > 0 ? initialData.links : [{ url: '' }]);
-    const [fotoPreview, setFotoPreview] = useState(initialData.fotoPerfil || '/img/avatar.png');
+
+    const [fotoPreview, setFotoPreview] = useState(initialData.foto_perfil || '/img/company-placeholder.png');
     const [showPhotoOptions, setShowPhotoOptions] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // 1. Gerenciamento de Links (Máx 5)
-    const addLink = () => {
-        if (links.length < 5) setLinks([...links, { url: '' }]);
-        else alert('Você pode adicionar no máximo 5 links.');
-    };
-
-    const updateLink = (index: number, value: string) => {
-        const newLinks = [...links];
-        newLinks[index].url = value;
-        setLinks(newLinks);
-    };
-
-    const removeLink = (index: number) => {
-        if (links.length === 1) {
-            setLinks([{ url: '' }]);
-            return;
-        }
-        setLinks(links.filter((_, i) => i !== index));
-    };
-
-    // 2. Gerenciamento de Foto
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -56,7 +61,6 @@ export function EditProfile({ initialData }: EditProfileProps) {
         }
     };
 
-    // 2.1 Gerenciamento de Anexos
     const handleAnexosChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (!files) return;
@@ -97,52 +101,32 @@ export function EditProfile({ initialData }: EditProfileProps) {
         const url = anexo.url || anexo.base64;
         if (!url) return;
 
-        // Se for um arquivo do Cloudinary (já tem URL), usamos o visualizador interno
-        if (anexo.url) {
-            const viewerUrl = `/viewer?url=${encodeURIComponent(anexo.url)}&title=${encodeURIComponent(anexo.nome || 'Arquivo')}`;
+        // Se for base64 (ainda não subiu), usamos sessionStorage para passar o dado pesado
+        if (url.startsWith('data:')) {
+            const fileKey = `temp_file_${Date.now()}`;
+            sessionStorage.setItem(fileKey, url);
+            const viewerUrl = `/viewer?fileKey=${fileKey}&title=${encodeURIComponent(anexo.nome || 'Preview')}`;
             window.open(viewerUrl, '_blank');
             return;
         }
 
-        // Se for base64 (ainda não subiu), mantemos o comportamento de Blob para preview rápido
-        if (url.startsWith('data:')) {
-            try {
-                const parts = url.split(',');
-                const byteString = atob(parts[1]);
-                const mimeString = parts[0].split(':')[1].split(';')[0];
-                const ab = new ArrayBuffer(byteString.length);
-                const ia = new Uint8Array(ab);
-                for (let i = 0; i < byteString.length; i++) {
-                    ia[i] = byteString.charCodeAt(i);
-                }
-                const blob = new Blob([ab], { type: mimeString });
-                const blobUrl = URL.createObjectURL(blob);
-                window.open(blobUrl, '_blank');
-            } catch (e) {
-                console.error("Erro ao abrir preview:", e);
-                window.open(url, '_blank');
-            }
-        } else {
-            window.open(url, '_blank');
-        }
+        const mimeType = anexo.mime || anexo.type;
+        const viewerUrl = `/viewer?url=${encodeURIComponent(url)}&title=${encodeURIComponent(anexo.nome || 'Arquivo')}&type=${encodeURIComponent(mimeType || '')}`;
+        window.open(viewerUrl, '_blank');
     };
 
-    // 3. Submissão do Formulário
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
         setMessage(null);
 
         try {
-            const res = await fetch('/api/candidate/updateProfile', {
-                method: 'POST',
+            const res = await fetch('/api/company/profile', {
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    ...formData,
-                    links: links.filter(l => l.url.trim() !== ''),
-                }),
+                body: JSON.stringify(formData),
             });
 
             const result = await res.json();
@@ -154,7 +138,6 @@ export function EditProfile({ initialData }: EditProfileProps) {
                 }));
 
                 router.refresh();
-
                 router.back();
                 return;
             } else {
@@ -166,13 +149,15 @@ export function EditProfile({ initialData }: EditProfileProps) {
             setIsLoading(false);
         }
     };
+
     const handleCancel = () => {
         router.back();
     };
+
     return (
         <main className="max-w-5xl mx-auto py-10 px-4">
             {message && message.type === 'error' && (
-                <div className={`fixed top-10 left-1/2 -translate-x-1/2 z-50 min-w-[300px] p-4 rounded-xl flex items-center gap-3 shadow-2xl animate-in fade-in slide-in-from-top-10 transition-all bg-white text-red-700 border-l-4 border-red-500`}>
+                <div className="fixed top-10 left-1/2 -translate-x-1/2 z-50 min-w-[300px] p-4 rounded-xl flex items-center gap-3 shadow-2xl animate-in fade-in slide-in-from-top-10 transition-all bg-white text-red-700 border-l-4 border-red-500">
                     <div className="p-2 rounded-full bg-red-100 uppercase">
                         <AlertTriangle size={20} />
                     </div>
@@ -180,14 +165,15 @@ export function EditProfile({ initialData }: EditProfileProps) {
                         <span className="font-bold text-gray-900">Erro</span>
                         <span className="text-sm text-gray-600">{message.text}</span>
                     </div>
-                    <button onClick={() => setMessage(null)} className="ml-auto p-1 hover:bg-gray-100 rounded-full transition-colors">
+                    <button onClick={() => setMessage(null)} className="ml-auto p-1 hover:bg-gray-100 rounded-full transition-colors cursor-pointer">
                         <X size={18} className="text-gray-400" />
                     </button>
                 </div>
             )}
+
             <form onSubmit={handleSubmit} className="space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
-
+                    {/* Left Column - Photo */}
                     <div className="md:col-span-4 flex flex-col items-center">
                         <div className="relative group">
                             <img
@@ -224,8 +210,8 @@ export function EditProfile({ initialData }: EditProfileProps) {
                                     type="button"
                                     className="text-red-500 text-xs font-semibold hover:underline mt-2 cursor-pointer"
                                     onClick={() => {
-                                        setFotoPreview('/img/avatar.png');
-                                        setFormData(prev => ({ ...prev, fotoPerfil: '/img/avatar.png' }));
+                                        setFotoPreview('/img/company-placeholder.png');
+                                        setFormData(prev => ({ ...prev, fotoPerfil: null }));
                                     }}
                                 >
                                     Remover foto
@@ -234,28 +220,32 @@ export function EditProfile({ initialData }: EditProfileProps) {
                         )}
                     </div>
 
+                    {/* Right Column - Form Fields */}
                     <div className="md:col-span-8 space-y-6">
-                        <h2 className="text-2xl font-bold text-gray-800 border-b pb-4">Editar Perfil</h2>
+                        <h2 className="text-2xl font-bold text-gray-800 border-b pb-4">Editar Perfil da Empresa</h2>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                                <label className="text-sm font-semibold text-gray-600">Nome *</label>
-                                <input
-                                    type="text"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
-                                    value={formData.nome}
-                                    onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                                />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-sm font-semibold text-gray-600">Sobrenome</label>
-                                <input
-                                    type="text"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
-                                    value={formData.sobrenome}
-                                    onChange={(e) => setFormData({ ...formData, sobrenome: e.target.value })}
-                                />
-                            </div>
+                        {/* Company Name */}
+                        <div className="space-y-1">
+                            <label className="text-sm font-semibold text-gray-600">Nome da Empresa *</label>
+                            <input
+                                type="text"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+                                value={formData.nome_empresa}
+                                onChange={(e) => setFormData({ ...formData, nome_empresa: e.target.value })}
+                                required
+                            />
+                        </div>
+
+                        {/* Phone */}
+                        <div className="space-y-1">
+                            <label className="text-sm font-semibold text-gray-600">Telefone</label>
+                            <input
+                                type="tel"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+                                value={formData.telefone}
+                                onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
+                                placeholder="(11) 98765-4321"
+                            />
                         </div>
 
                         {/* Location */}
@@ -293,74 +283,28 @@ export function EditProfile({ initialData }: EditProfileProps) {
                             </div>
                         </div>
 
-                        <div className="flex flex-wrap gap-4">
-                            <div className="w-20 space-y-1">
-                                <label className="text-sm font-semibold text-gray-600">DDI</label>
-                                <div className="bg-gray-50 border border-gray-300 rounded-lg py-2 text-center text-gray-500 font-medium">+55</div>
-                            </div>
-                            <div className="w-20 space-y-1">
-                                <label className="text-sm font-semibold text-gray-600">DDD</label>
-                                <input type="text" maxLength={2} className="w-full px-2 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-blue-500 outline-none" value={formData.ddd} onChange={(e) => setFormData({ ...formData, ddd: e.target.value })} />
-                            </div>
-                            <div className="flex-1 min-w-[150px] space-y-1">
-                                <label className="text-sm font-semibold text-gray-600">Número</label>
-                                <input type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" value={formData.numero} onChange={(e) => setFormData({ ...formData, numero: e.target.value })} />
-                            </div>
-                        </div>
-
+                        {/* Description */}
                         <div className="space-y-1">
                             <label className="text-sm font-semibold text-gray-600 flex items-center gap-2">
-                                <UserCircle size={16} /> Descrição (Sobre você)
+                                <Building2 size={16} /> Sobre a Empresa
                             </label>
                             <textarea
-                                rows={4}
-                                maxLength={600}
+                                rows={5}
+                                maxLength={1000}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition resize-none"
-                                placeholder="Conte um pouco sobre você..."
+                                placeholder="Descreva sua empresa, missão, valores e cultura..."
                                 onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
                                 value={formData.descricao}
                             />
                             <div className="flex justify-between text-[10px] uppercase font-bold text-gray-400">
-                                <span>Dica: foque nas suas experiências principais</span>
-                                <span>{formData.descricao?.length || 0}/600</span>
-                            </div>
-                        </div>
-
-                        <div className="space-y-4 pt-4">
-                            <div className="flex justify-between items-center">
-                                <label className="text-sm font-semibold text-gray-600">Links do perfil</label>
-                                <button
-                                    type="button"
-                                    onClick={addLink}
-                                    className="text-blue-600 flex items-center gap-1 text-sm font-bold hover:text-blue-800 cursor-pointer"
-                                >
-                                    <PlusCircle size={16} /> Adicionar link
-                                </button>
-                            </div>
-                            <div className="space-y-3">
-                                {links.map((link, idx) => (
-                                    <div key={idx} className="flex gap-2 animate-in slide-in-from-left-2">
-                                        <input
-                                            type="url"
-                                            placeholder="https://linkedin.com/in/user"
-                                            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                                            value={link.url}
-                                            onChange={(e) => updateLink(idx, e.target.value)}
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => removeLink(idx)}
-                                            className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </div>
-                                ))}
+                                <span>Dica: foque na missão e valores da empresa</span>
+                                <span>{formData.descricao?.length || 0}/1000</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
+                {/* Anexos Section */}
                 <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200 mt-10">
                     <div className="flex items-center gap-2 mb-4 text-gray-800 font-bold">
                         <FileText size={20} className="text-blue-600" />
@@ -384,7 +328,7 @@ export function EditProfile({ initialData }: EditProfileProps) {
                         </div>
 
                         <div className="space-y-2">
-                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Meus Arquivos ({formData.anexos.length})</h4>
+                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Arquivos da Empresa ({formData.anexos.length})</h4>
                             {formData.anexos.map((a, i) => (
                                 <div key={i} className="flex items-center justify-between bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
                                     <span className="text-sm text-gray-700 truncate max-w-[200px]">{a.nome}</span>
@@ -412,13 +356,14 @@ export function EditProfile({ initialData }: EditProfileProps) {
                     </div>
                 </div>
 
+                {/* Action Buttons */}
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-10 border-t">
-                    <button type="button" className="text-red-500 flex items-center gap-2 text-sm font-semibold cursor-pointer hover:bg-red-50 px-4 py-2 rounded-lg transition">
-                        <AlertTriangle size={18} /> Excluir minha conta
-                    </button>
-
-                    <div className="flex gap-4 w-full md:w-auto">
-                        <button type="button" onClick={handleCancel} className="flex-1 md:flex-none px-4 py-2 bg-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-300 transition cursor-pointer">
+                    <div className="flex gap-4 w-full md:w-auto md:ml-auto">
+                        <button
+                            type="button"
+                            onClick={handleCancel}
+                            className="flex-1 md:flex-none px-4 py-2 bg-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-300 transition cursor-pointer"
+                        >
                             Cancelar
                         </button>
                         <button

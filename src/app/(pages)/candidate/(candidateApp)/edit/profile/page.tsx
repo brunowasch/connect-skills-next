@@ -55,7 +55,9 @@ export default async function EditProfilePage() {
     const initialData = {
         nome: candidate.nome || '',
         sobrenome: candidate.sobrenome || '',
-        localidade: localidade,
+        cidade: candidate.cidade || '',
+        estado: candidate.estado || '',
+        pais: candidate.pais || 'Brasil',
         ddd: ddd,
         numero: numero,
         descricao: candidate.descricao || '',
@@ -64,6 +66,7 @@ export default async function EditProfilePage() {
         anexos: candidate.candidato_arquivo.map(a => ({
             id: a.id,
             nome: a.nome,
+            url: a.url,
             mime: a.mime,
             tamanho: a.tamanho,
             criadoEm: a.criadoEm.toISOString(),
