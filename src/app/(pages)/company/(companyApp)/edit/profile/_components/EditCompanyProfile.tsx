@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import {
-    Camera, Upload, Save, AlertTriangle, X, Building2, MapPin, FileText, Eye
+    Camera, Upload, Save, AlertTriangle, X, Building2, MapPin, FileText, Eye, PlusCircle, Trash2, Link as LinkIcon
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -17,6 +17,7 @@ interface EditCompanyProfileProps {
         estado: string | null;
         pais: string | null;
         anexos: any[];
+        links: any[];
     };
 }
 
@@ -31,6 +32,7 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
         pais: string;
         fotoPerfil: string | null | undefined;
         anexos: any[];
+        links: any[];
     }>({
         nome_empresa: initialData.nome_empresa || "",
         descricao: initialData.descricao || "",
@@ -40,6 +42,7 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
         pais: initialData.pais || "Brasil",
         fotoPerfil: initialData.foto_perfil || undefined,
         anexos: initialData.anexos || [],
+        links: initialData.links.length > 0 ? initialData.links : [{ label: '', url: '' }],
     });
 
     const [fotoPreview, setFotoPreview] = useState(initialData.foto_perfil || '/img/company-placeholder.png');
@@ -47,6 +50,38 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // 1. Gerenciamento de Links (Máx 5)
+    const addLink = () => {
+        if (formData.links.length < 5) {
+            setFormData(prev => ({
+                ...prev,
+                links: [...prev.links, { label: '', url: '' }]
+            }));
+        } else {
+            alert('Você pode adicionar no máximo 5 links.');
+        }
+    };
+
+    const updateLink = (index: number, field: 'label' | 'url', value: string) => {
+        const newLinks = [...formData.links];
+        newLinks[index] = { ...newLinks[index], [field]: value };
+        setFormData(prev => ({ ...prev, links: newLinks }));
+    };
+
+    const removeLink = (index: number) => {
+        if (formData.links.length === 1) {
+            setFormData(prev => ({
+                ...prev,
+                links: [{ label: '', url: '' }]
+            }));
+            return;
+        }
+        setFormData(prev => ({
+            ...prev,
+            links: prev.links.filter((_, i) => i !== index)
+        }));
+    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -103,22 +138,30 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
 
         if (!url) return;
 
+        const mime = (anexo.mime || anexo.type || '').toLowerCase();
+        const lowerName = name.toLowerCase();
+        const lowerUrl = url.toLowerCase();
+
+        const isPdf = mime.includes('pdf') ||
+            lowerUrl.includes('.pdf') ||
+            lowerUrl.includes('/pdf') ||
+            lowerName.endsWith('.pdf');
+
+        const isCloudinary = url.includes('cloudinary.com');
+
         if (url.startsWith('data:')) {
             const fileKey = `temp_file_${Date.now()}`;
             sessionStorage.setItem(fileKey, url);
-            window.open(`/viewer?fileKey=${fileKey}&title=${encodeURIComponent(name)}`, '_blank');
+            const typeParam = isPdf ? '&type=application/pdf' : '';
+            window.open(`/viewer?fileKey=${fileKey}&title=${encodeURIComponent(name)}${typeParam}`, '_blank');
         } else {
             let finalUrl = url;
             let typeParam = '';
 
-            const mime = anexo.mime || anexo.type || '';
-            const isPdf = mime.includes('pdf') ||
-                url.toLowerCase().includes('.pdf') ||
-                name.toLowerCase().includes('.pdf');
-            const isCloudinary = url.includes('cloudinary.com');
-
-            if (isPdf && isCloudinary) {
-                finalUrl = `/api/pdf-proxy?url=${encodeURIComponent(url)}`;
+            if (isPdf) {
+                if (isCloudinary) {
+                    finalUrl = `/api/pdf-proxy?url=${encodeURIComponent(url)}`;
+                }
                 typeParam = '&type=application/pdf';
             }
 
@@ -310,6 +353,51 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
                             <div className="flex justify-between text-[10px] uppercase font-bold text-gray-400">
                                 <span>Dica: foque na missão e valores da empresa</span>
                                 <span>{formData.descricao?.length || 0}/1000</span>
+                            </div>
+                        </div>
+
+                        {/* Links do perfil */}
+                        <div className="space-y-4 pt-4">
+                            <div className="flex justify-between items-center">
+                                <label className="text-sm font-semibold text-gray-600 flex items-center gap-2">
+                                    <LinkIcon size={16} /> Links da Empresa
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={addLink}
+                                    className="text-blue-600 flex items-center gap-1 text-sm font-bold hover:text-blue-800 cursor-pointer"
+                                >
+                                    <PlusCircle size={16} /> Adicionar link
+                                </button>
+                            </div>
+                            <div className="space-y-3">
+                                {formData.links.map((link, idx) => (
+                                    <div key={idx} className="flex flex-col sm:flex-row gap-2 animate-in slide-in-from-left-2">
+                                        <input
+                                            type="text"
+                                            placeholder="Título (ex: LinkedIn, Site, Portfolio)"
+                                            className="w-full sm:w-1/3 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                            value={link.label}
+                                            onChange={(e) => updateLink(idx, 'label', e.target.value)}
+                                        />
+                                        <div className="flex flex-1 gap-2">
+                                            <input
+                                                type="url"
+                                                placeholder="https://..."
+                                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                                value={link.url}
+                                                onChange={(e) => updateLink(idx, 'url', e.target.value)}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => removeLink(idx)}
+                                                className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer shrink-0"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </div>

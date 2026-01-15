@@ -1,6 +1,7 @@
 import { prisma } from "@/src/lib/prisma";
 import { VacancyForm } from "../../_components/VacancyForm";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -8,6 +9,13 @@ interface Props {
 
 export default async function EditVacancyPage({ params }: Props) {
     const { id } = await params;
+    const cookieStore = await cookies();
+    const userId = cookieStore.get("time_user_id")?.value;
+
+    const company = await prisma.empresa.findUnique({
+        where: { usuario_id: userId },
+        select: { cidade: true, estado: true, pais: true }
+    });
 
     const vacancy = await prisma.vaga.findUnique({
         where: { id },
@@ -23,13 +31,21 @@ export default async function EditVacancyPage({ params }: Props) {
         where: { vaga_id: id }
     });
 
+    const vagaArquivos = await prisma.vaga_arquivo.findMany({
+        where: { vaga_id: id }
+    });
+
+    const vagaLinks = await prisma.vaga_link.findMany({
+        where: { vaga_id: id },
+        orderBy: { ordem: 'asc' }
+    });
+
     const fullVacancy = {
         ...vacancy,
         vaga_area: vagaAreas,
         vaga_soft_skill: vagaSoftSkills,
-        // Match string/number types if needed. Prisma returns Decimals for salario?
-        // Form expects string/number. Serialization might warn about Decimal.
-        // We should convert Decimal to string/number.
+        vaga_arquivo: vagaArquivos,
+        vaga_link: vagaLinks,
         salario: vacancy.salario ? Number(vacancy.salario) : ""
     };
 
@@ -55,6 +71,7 @@ export default async function EditVacancyPage({ params }: Props) {
                 softSkills={softSkills}
                 initialData={fullVacancy}
                 vacancyId={id}
+                companyProfile={company}
             />
         </div>
     );

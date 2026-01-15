@@ -27,9 +27,15 @@ interface CompanyProfileProps {
         mime: string;
         tamanho: number;
     }[];
+    links?: {
+        id: string;
+        label: string;
+        url: string;
+        ordem: number;
+    }[];
 }
 
-export function CompanyProfile({ company, fotoPerfil, localidade, contato, email, anexos }: CompanyProfileProps) {
+export function CompanyProfile({ company, fotoPerfil, localidade, contato, email, anexos, links }: CompanyProfileProps) {
     const [formData, setFormData] = useState({
         anexos: [] as { nome: string, base64: string, size: number, type: string }[]
     });
@@ -245,6 +251,37 @@ export function CompanyProfile({ company, fotoPerfil, localidade, contato, email
                             )}
                         </div>
                     </div>
+
+                    {/* Profile Links */}
+                    {links && links.length > 0 && (
+                        <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm animate-in fade-in slide-in-from-right-4">
+                            <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                <ExternalLink size={20} className="text-blue-600" />
+                                Links e Redes
+                            </h3>
+                            <div className="flex flex-col gap-2">
+                                {links.map((link) => (
+                                    <a
+                                        key={link.id}
+                                        href={link.url.startsWith('http') ? link.url : `https://${link.url}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-between p-3 rounded-xl border border-gray-50 bg-gray-50/30 hover:bg-blue-50 hover:border-blue-100 hover:text-blue-700 transition-all group"
+                                    >
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className="p-2 rounded-lg bg-white shadow-sm ring-1 ring-gray-100 group-hover:ring-blue-100 group-hover:bg-blue-50 transition-all">
+                                                <ExternalLink size={16} className="text-gray-400 group-hover:text-blue-600" />
+                                            </div>
+                                            <span className="text-sm font-semibold truncate">
+                                                {link.label || 'Acesse o Link'}
+                                            </span>
+                                        </div>
+                                        <ExternalLink size={14} className="text-gray-300 group-hover:text-blue-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

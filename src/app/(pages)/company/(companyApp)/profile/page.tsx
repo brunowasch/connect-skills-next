@@ -23,6 +23,11 @@ export default async function CompanyProfilePage() {
                 orderBy: {
                     criadoEm: 'desc'
                 }
+            },
+            empresa_link: {
+                orderBy: {
+                    ordem: 'asc'
+                }
             }
         }
     });
@@ -81,6 +86,12 @@ export default async function CompanyProfilePage() {
                     tamanho: a.tamanho || 0,
                     url: a.url,
                     criadoEm: a.criadoEm.toISOString(),
+                }))}
+                links={company.empresa_link.map(l => ({
+                    id: l.id,
+                    label: l.label,
+                    url: l.url,
+                    ordem: l.ordem
                 }))}
             />
         </div>

@@ -12,7 +12,7 @@ interface PerfilProps {
     fotoPerfil?: string;
     localidade: string;
     contato: { ddi?: string; ddd?: string; numero?: string };
-    links: { url: string }[];
+    links: { id?: string; label?: string; url: string; ordem?: number }[];
     anexos: { id: string; nome: string; url: string; mime: string; tamanho: number; criadoEm: string }[];
     perfilShareUrl: string;
 }
@@ -168,16 +168,29 @@ export function CandidateProfile({ candidato, fotoPerfil, localidade, contato, l
                 {/* LINKS */}
                 <div>
                     <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        <LinkIcon className="text-blue-600" size={18} /> Links do perfil
+                        <LinkIcon className="text-blue-600" size={18} /> Links e Redes
                     </h3>
-                    <ul className="space-y-3">
+                    <div className="flex flex-col gap-2">
                         {links.length > 0 ? links.map((link, idx) => (
-                            <li key={idx} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 group">
-                                <ExternalLink size={16} className="text-gray-400 group-hover:text-blue-500" />
-                                <a href={link.url} target="_blank" className="text-sm text-blue-600 truncate hover:underline">{link.url}</a>
-                            </li>
-                        )) : <li className="text-gray-400 text-sm">Nenhum link adicionado.</li>}
-                    </ul>
+                            <a
+                                key={idx}
+                                href={link.url.startsWith('http') ? link.url : `https://${link.url}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center justify-between p-3 rounded-xl border border-gray-50 bg-gray-50/30 hover:bg-blue-50 hover:border-blue-100 hover:text-blue-700 transition-all group"
+                            >
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <div className="p-2 rounded-lg bg-white shadow-sm ring-1 ring-gray-100 group-hover:ring-blue-100 group-hover:bg-blue-50 transition-all">
+                                        <ExternalLink size={16} className="text-gray-400 group-hover:text-blue-600" />
+                                    </div>
+                                    <span className="text-sm font-semibold truncate">
+                                        {link.label || 'Acesse o Link'}
+                                    </span>
+                                </div>
+                                <ExternalLink size={14} className="text-gray-300 group-hover:text-blue-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                            </a>
+                        )) : <p className="text-gray-400 text-sm">Nenhum link adicionado.</p>}
+                    </div>
                 </div>
 
                 {/* ANEXOS */}

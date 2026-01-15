@@ -74,7 +74,7 @@ export async function PUT(req: NextRequest) {
                 .map((l: any, index: number) => ({
                     id: randomUUID(),
                     candidato_id: candidate.id,
-                    label: "Link",
+                    label: l.label || "Link",
                     url: l.url,
                     ordem: index
                 }));

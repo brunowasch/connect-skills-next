@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
+import { randomUUID } from "crypto";
+import { uploadToCloudinary } from "@/src/lib/cloudinary";
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
@@ -45,6 +47,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
                     moeda: data.moeda || 'BRL',
                     beneficio: data.beneficio || null,
                     vinculo_empregaticio: data.vinculo_empregaticio,
+                    opcao: data.opcao ? JSON.stringify(data.opcao) : null,
                 }
             });
 
@@ -68,6 +71,65 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
                         soft_skill_id: Number(sk)
                     }))
                 });
+            }
+
+            // --- Sincronizar Anexos ---
+            // Pegar IDs dos anexos que devem ser mantidos
+            const keptAnexoIds = data.anexos
+                .filter((a: any) => a.id)
+                .map((a: any) => a.id);
+
+            // Deletar os que não estão na lista
+            await tx.vaga_arquivo.deleteMany({
+                where: {
+                    vaga_id: id,
+                    id: { notIn: keptAnexoIds }
+                }
+            });
+
+            // Adicionar os novos (que têm base64)
+            if (data.anexos && data.anexos.length > 0) {
+                for (const anexo of data.anexos) {
+                    if (anexo.base64) {
+                        try {
+                            const url = await uploadToCloudinary(anexo.base64, "vacancy_attachments");
+                            await tx.vaga_arquivo.create({
+                                data: {
+                                    id: randomUUID(),
+                                    uuid: randomUUID(),
+                                    vaga_id: id,
+                                    nome: anexo.nome,
+                                    url: url,
+                                    mime: anexo.type || "application/octet-stream",
+                                    tamanho: anexo.size || 0
+                                }
+                            });
+                        } catch (error) {
+                            console.error("Erro ao subir anexo da vaga:", error);
+                        }
+                    }
+                }
+            }
+
+            // --- Sincronizar Links ---
+            await tx.vaga_link.deleteMany({ where: { vaga_id: id } });
+            if (data.links && data.links.length > 0) {
+                const linksToCreate = data.links
+                    .filter((l: any) => l.url.trim() !== "")
+                    .map((link: any, index: number) => ({
+                        id: randomUUID(),
+                        uuid: randomUUID(),
+                        vaga_id: id,
+                        titulo: link.titulo || "Link",
+                        url: link.url,
+                        ordem: index + 1
+                    }));
+
+                if (linksToCreate.length > 0) {
+                    await tx.vaga_link.createMany({
+                        data: linksToCreate
+                    });
+                }
             }
 
             return vaga;
@@ -110,7 +172,9 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
             await tx.vaga_area.deleteMany({ where: { vaga_id: id } });
             await tx.vaga_soft_skill.deleteMany({ where: { vaga_id: id } });
             await tx.vaga_avaliacao.deleteMany({ where: { vaga_id: id } });
-            // maybe others like vaga_link, vaga_arquivo if they exist
+            await tx.vaga_arquivo.deleteMany({ where: { vaga_id: id } });
+            await tx.vaga_link.deleteMany({ where: { vaga_id: id } });
+            await tx.vaga_status.deleteMany({ where: { vaga_id: id } });
 
             await tx.vaga.delete({ where: { id } });
         });

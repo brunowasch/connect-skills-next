@@ -23,7 +23,7 @@ export async function PUT(request: Request) {
         }
 
         const data = await request.json();
-        const { nome_empresa, fotoPerfil, descricao, telefone, cidade, estado, pais, anexos } = data;
+        const { nome_empresa, fotoPerfil, descricao, telefone, cidade, estado, pais, anexos, links } = data;
         let photoUrl = fotoPerfil;
 
         // Upload to Cloudinary if base64 image
@@ -57,6 +57,33 @@ export async function PUT(request: Request) {
                 nome: nome_empresa
             }
         });
+
+        // Processar links
+        const processedLinks: any[] = [];
+        if (links && links.length > 0) {
+            links.forEach((link: any, index: number) => {
+                if (link.url && link.url.trim() !== '') {
+                    processedLinks.push({
+                        id: link.id || randomUUID(),
+                        empresa_id: company.id,
+                        label: link.label || "Link",
+                        url: link.url,
+                        ordem: index
+                    });
+                }
+            });
+        }
+
+        // Sincronizar links no banco
+        await prisma.empresa_link.deleteMany({
+            where: { empresa_id: company.id }
+        });
+
+        if (processedLinks.length > 0) {
+            await prisma.empresa_link.createMany({
+                data: processedLinks
+            });
+        }
 
         // Processar anexos
         const processedAnexos = [];
@@ -111,4 +138,3 @@ export async function PUT(request: Request) {
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
-

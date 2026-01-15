@@ -15,7 +15,7 @@ export function EditProfile({ initialData }: EditProfileProps) {
         ...initialData,
         pais: initialData.pais || "Brasil"
     });
-    const [links, setLinks] = useState(initialData.links.length > 0 ? initialData.links : [{ url: '' }]);
+    const [links, setLinks] = useState(initialData.links.length > 0 ? initialData.links : [{ label: '', url: '' }]);
     const [fotoPreview, setFotoPreview] = useState(initialData.fotoPerfil || '/img/avatar.png');
     const [showPhotoOptions, setShowPhotoOptions] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -24,19 +24,19 @@ export function EditProfile({ initialData }: EditProfileProps) {
 
     // 1. Gerenciamento de Links (Máx 5)
     const addLink = () => {
-        if (links.length < 5) setLinks([...links, { url: '' }]);
+        if (links.length < 5) setLinks([...links, { label: '', url: '' }]);
         else alert('Você pode adicionar no máximo 5 links.');
     };
 
-    const updateLink = (index: number, value: string) => {
+    const updateLink = (index: number, field: 'label' | 'url', value: string) => {
         const newLinks = [...links];
-        newLinks[index].url = value;
+        newLinks[index] = { ...newLinks[index], [field]: value };
         setLinks(newLinks);
     };
 
     const removeLink = (index: number) => {
         if (links.length === 1) {
-            setLinks([{ url: '' }]);
+            setLinks([{ label: '', url: '' }]);
             return;
         }
         setLinks(links.filter((_, i) => i !== index));
@@ -99,27 +99,25 @@ export function EditProfile({ initialData }: EditProfileProps) {
 
         if (!url) return;
 
+        const mime = (anexo.mime || anexo.type || '').toLowerCase();
+        const lowerName = name.toLowerCase();
+        const lowerUrl = url.toLowerCase();
+
+        const isPdf = mime.includes('pdf') ||
+            lowerUrl.includes('.pdf') ||
+            lowerUrl.includes('/pdf') ||
+            lowerName.endsWith('.pdf');
+
+        const isCloudinary = url.includes('cloudinary.com');
+
         if (url.startsWith('data:')) {
             const fileKey = `temp_file_${Date.now()}`;
             sessionStorage.setItem(fileKey, url);
-            window.open(`/viewer?fileKey=${fileKey}&title=${encodeURIComponent(name)}`, '_blank');
+            const typeParam = isPdf ? '&type=application/pdf' : '';
+            window.open(`/viewer?fileKey=${fileKey}&title=${encodeURIComponent(name)}${typeParam}`, '_blank');
         } else {
             let finalUrl = url;
             let typeParam = '';
-
-            // console.log("handleViewAttachment ANEXO:", anexo);
-            const mime = (anexo.mime || anexo.type || '').toLowerCase();
-            const lowerName = name.toLowerCase();
-            const lowerUrl = url.toLowerCase();
-
-            const isPdf = mime.includes('pdf') ||
-                lowerUrl.includes('.pdf') ||
-                lowerUrl.includes('/pdf') ||
-                lowerName.endsWith('.pdf');
-
-            // console.log("isPdf detection:", { isPdf, mime, lowerName, lowerUrl });
-
-            const isCloudinary = url.includes('cloudinary.com');
 
             if (isPdf) {
                 if (isCloudinary) {
@@ -143,7 +141,7 @@ export function EditProfile({ initialData }: EditProfileProps) {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({ ...formData, links }),
             });
 
             const result = await res.json();
@@ -341,21 +339,30 @@ export function EditProfile({ initialData }: EditProfileProps) {
                             </div>
                             <div className="space-y-3">
                                 {links.map((link, idx) => (
-                                    <div key={idx} className="flex gap-2 animate-in slide-in-from-left-2">
+                                    <div key={idx} className="flex flex-col sm:flex-row gap-2 animate-in slide-in-from-left-2">
                                         <input
-                                            type="url"
-                                            placeholder="https://linkedin.com/in/user"
-                                            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                                            value={link.url}
-                                            onChange={(e) => updateLink(idx, e.target.value)}
+                                            type="text"
+                                            placeholder="Título (ex: LinkedIn, GitHub)"
+                                            className="w-full sm:w-1/3 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                            value={link.label}
+                                            onChange={(e) => updateLink(idx, 'label', e.target.value)}
                                         />
-                                        <button
-                                            type="button"
-                                            onClick={() => removeLink(idx)}
-                                            className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
+                                        <div className="flex flex-1 gap-2">
+                                            <input
+                                                type="url"
+                                                placeholder="https://..."
+                                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                                value={link.url}
+                                                onChange={(e) => updateLink(idx, 'url', e.target.value)}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => removeLink(idx)}
+                                                className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </div>
                                     </div>
                                 ))}
                             </div>

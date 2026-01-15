@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
 import { randomUUID } from "crypto";
+import { uploadToCloudinary } from "@/src/lib/cloudinary";
 
 export async function POST(request: Request) {
     try {
@@ -67,6 +68,50 @@ export async function POST(request: Request) {
                         soft_skill_id: Number(sk) // Assuming sk is ID
                     }))
                 });
+            }
+
+            // Processar Anexos
+            if (data.anexos && data.anexos.length > 0) {
+                for (const anexo of data.anexos) {
+                    if (anexo.base64) {
+                        try {
+                            const url = await uploadToCloudinary(anexo.base64, "vacancy_attachments");
+                            await tx.vaga_arquivo.create({
+                                data: {
+                                    id: randomUUID(),
+                                    uuid: randomUUID(),
+                                    vaga_id: vagaId,
+                                    nome: anexo.nome,
+                                    url: url,
+                                    mime: anexo.type || "application/octet-stream",
+                                    tamanho: anexo.size || 0
+                                }
+                            });
+                        } catch (error) {
+                            console.error("Erro ao subir anexo da vaga:", error);
+                        }
+                    }
+                }
+            }
+
+            // Processar Links
+            if (data.links && data.links.length > 0) {
+                const linksToCreate = data.links
+                    .filter((l: any) => l.url.trim() !== "")
+                    .map((link: any, index: number) => ({
+                        id: randomUUID(),
+                        uuid: randomUUID(),
+                        vaga_id: vagaId,
+                        titulo: link.titulo || "Link",
+                        url: link.url,
+                        ordem: index + 1
+                    }));
+
+                if (linksToCreate.length > 0) {
+                    await tx.vaga_link.createMany({
+                        data: linksToCreate
+                    });
+                }
             }
 
             // Create initial status as 'Ativa'

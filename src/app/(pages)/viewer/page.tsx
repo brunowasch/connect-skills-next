@@ -23,7 +23,10 @@ export default function ViewerPage() {
     if (!fileUrl) return <div className="p-10 text-center">Carregando arquivo...</div>;
 
     const fileType = searchParams.get('type');
-    const isPdf = fileType === 'application/pdf' || (fileType && fileType.includes('pdf'));
+    const isPdf = fileType === 'application/pdf' ||
+        (fileType && fileType.includes('pdf')) ||
+        (fileUrl && fileUrl.toLowerCase().includes('.pdf')) ||
+        (fileUrl && fileUrl.startsWith('data:application/pdf'));
 
     if (isPdf) {
         const finalUrl = fileUrl;

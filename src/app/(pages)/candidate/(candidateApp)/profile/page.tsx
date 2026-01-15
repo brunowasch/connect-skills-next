@@ -67,7 +67,7 @@ export default async function CandidateProfilePage() {
 
     const contato = { ddi, ddd, numero };
 
-    const links = candidate.candidato_link.map(l => ({ url: l.url }));
+    const links = candidate.candidato_link.map(l => ({ id: l.id, label: l.label, url: l.url, ordem: l.ordem }));
     const anexos = candidate.candidato_arquivo.map(a => ({
         id: a.id,
         nome: a.nome,

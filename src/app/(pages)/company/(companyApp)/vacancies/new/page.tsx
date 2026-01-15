@@ -1,7 +1,16 @@
 import { prisma } from "@/src/lib/prisma";
 import { VacancyForm } from "../_components/VacancyForm";
+import { cookies } from "next/headers";
 
 export default async function NewVacancyPage() {
+    const cookieStore = await cookies();
+    const userId = cookieStore.get("time_user_id")?.value;
+
+    const company = await prisma.empresa.findUnique({
+        where: { usuario_id: userId },
+        select: { cidade: true, estado: true, pais: true }
+    });
+
     const areas = await prisma.area_interesse.findMany({
         orderBy: { nome: 'asc' },
         select: { id: true, nome: true }
@@ -19,7 +28,7 @@ export default async function NewVacancyPage() {
                 <p className="text-gray-500">Preencha os dados abaixo para publicar uma nova oportunidade.</p>
             </div>
 
-            <VacancyForm areas={areas} softSkills={softSkills} />
+            <VacancyForm areas={areas} softSkills={softSkills} companyProfile={company} />
         </div>
     );
 }

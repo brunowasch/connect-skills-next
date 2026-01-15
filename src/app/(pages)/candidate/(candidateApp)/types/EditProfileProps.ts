@@ -9,7 +9,7 @@ export interface EditProfileProps {
         numero?: string;
         descricao?: string;
         fotoPerfil?: string;
-        links: { url: string }[];
+        links: { id?: string, label?: string, url: string, ordem?: number }[];
         anexos: any[];
     };
 }

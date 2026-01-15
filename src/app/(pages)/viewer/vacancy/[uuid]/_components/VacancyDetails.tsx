@@ -17,7 +17,8 @@ import {
     ArrowLeft,
     Copy,
     Check,
-    HeartHandshake
+    HeartHandshake,
+    Eye,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -109,6 +110,13 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount }:
     if (inclusivity?.pcd) affirmativeGroups.push("PcD");
     if (inclusivity?.lgbt) affirmativeGroups.push("LGBTQIAPN+");
 
+    // Preferir localização da vaga, fallback para localização da empresa
+    const displayLocation = {
+        cidade: inclusivity?.cidade || company?.cidade,
+        estado: inclusivity?.estado || company?.estado,
+        pais: inclusivity?.pais || company?.pais
+    };
+
     // Detectar se a página tem scroll
     useEffect(() => {
         const checkScroll = () => {
@@ -153,6 +161,36 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount }:
         if (bytes < 1024) return bytes + ' B';
         if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
         return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    };
+
+    const handleViewFile = (file: any) => {
+        const url = file.url;
+        const name = file.nome || 'Arquivo';
+
+        if (!url) return;
+
+        let finalUrl = url;
+        let typeParam = '';
+
+        const mime = (file.mime || '').toLowerCase();
+        const lowerName = name.toLowerCase();
+        const lowerUrl = url.toLowerCase();
+
+        const isPdf = mime.includes('pdf') ||
+            lowerUrl.includes('.pdf') ||
+            lowerUrl.includes('/pdf') ||
+            lowerName.endsWith('.pdf');
+
+        const isCloudinary = url.includes('cloudinary.com');
+
+        if (isPdf) {
+            if (isCloudinary) {
+                finalUrl = `/api/pdf-proxy?url=${encodeURIComponent(url)}`;
+            }
+            typeParam = '&type=application/pdf';
+        }
+
+        window.open(`/viewer?url=${encodeURIComponent(finalUrl)}&title=${encodeURIComponent(name)}${typeParam}`, '_blank');
     };
 
     const handleCopyLink = async () => {
@@ -235,10 +273,10 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount }:
                                     <WorkTypeIcon size={16} className="text-gray-400" />
                                     <span>{workType.label}</span>
                                 </div>
-                                {company?.cidade && (
+                                {displayLocation.cidade && (
                                     <div className="flex items-center gap-1.5">
                                         <MapPin size={16} className="text-gray-400" />
-                                        <span>{company.cidade}, {company.estado}</span>
+                                        <span>{displayLocation.cidade}, {displayLocation.estado}</span>
                                     </div>
                                 )}
                                 {vacancy.salario && (
@@ -319,22 +357,22 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount }:
                                             <h3 className="text-sm font-medium text-gray-500 mb-3">Arquivos</h3>
                                             <div className="space-y-2">
                                                 {vacancy.vaga_arquivo.map((file) => (
-                                                    <a
+                                                    <button
                                                         key={file.id}
-                                                        href={file.url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors"
+                                                        onClick={() => handleViewFile(file)}
+                                                        className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors cursor-pointer group"
                                                     >
                                                         <div className="flex items-center gap-3">
-                                                            <FileText size={18} className="text-gray-400" />
-                                                            <div>
-                                                                <p className="text-sm font-medium text-gray-900">{file.nome}</p>
-                                                                <p className="text-xs text-gray-500">{formatFileSize(file.tamanho)}</p>
+                                                            <div className="p-2 bg-white rounded-lg border border-gray-100 group-hover:border-blue-100 transition-colors">
+                                                                <FileText size={18} className="text-blue-500" />
+                                                            </div>
+                                                            <div className="text-left">
+                                                                <p className="text-sm font-semibold text-gray-900 line-clamp-1">{file.nome}</p>
+                                                                <p className="text-[10px] text-gray-500 uppercase font-bold">{formatFileSize(file.tamanho)}</p>
                                                             </div>
                                                         </div>
-                                                        <Download size={16} className="text-gray-400" />
-                                                    </a>
+                                                        <Eye size={16} className="text-gray-400 group-hover:text-blue-500 transition-colors" />
+                                                    </button>
                                                 ))}
                                             </div>
                                         </div>
@@ -376,10 +414,10 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount }:
                                 <p className="text-gray-700 text-sm leading-relaxed mb-3">
                                     {company.descricao}
                                 </p>
-                                {company.cidade && (
+                                {displayLocation.cidade && (
                                     <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
                                         <MapPin size={14} className="text-gray-400" />
-                                        <span>{company.cidade}, {company.estado}, {company.pais}</span>
+                                        <span>{displayLocation.cidade}, {displayLocation.estado}, {displayLocation.pais}</span>
                                     </div>
                                 )}
                                 <Link

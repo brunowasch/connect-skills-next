@@ -39,6 +39,9 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
     if (inclusivity?.pcd) affirmativeGroups.push("PcD");
     if (inclusivity?.lgbt) affirmativeGroups.push("LGBTQIAPN+");
 
+    const displayCidade = inclusivity?.cidade || vaga.empresa?.cidade;
+    const displayEstado = inclusivity?.estado || vaga.empresa?.estado;
+
     return (
         <Link
             href={`/viewer/vacancy/${vaga.uuid}`}
@@ -84,7 +87,7 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
                 <div className="space-y-2 mb-4">
                     <div className="flex items-center text-xs text-gray-500 gap-0.5">
                         <MapPin className="text-slate-400 relative top-[-1px]" size={15} />
-                        <span>{vaga.empresa?.cidade}, {vaga.empresa?.estado} - {tipoMap[vaga.tipo_local_trabalho]}</span>
+                        <span>{displayCidade}, {displayEstado} - {tipoMap[vaga.tipo_local_trabalho]}</span>
                         <span className="ml-auto flex items-center gap-1">
 
                         </span>
