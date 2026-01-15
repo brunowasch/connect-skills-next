@@ -1,5 +1,6 @@
 export interface Vacancy {
     id: string;
+    uuid?: string | null;
     cargo: string;
     tipo_local_trabalho: 'Presencial' | 'Home_Office' | 'H_brido';
     salario?: number;

@@ -3,6 +3,7 @@
 import { Vacancy } from '@/src/app/(pages)/candidate/(candidateApp)/types/Vacancy';
 import { User } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { MapPin, Briefcase } from "lucide-react";
 
 const tipoMap = {
@@ -26,11 +27,13 @@ const DEFAULT_AVATAR = <User className="w-6 h-6 sm:w-7 sm:h-7 text-slate-500" />
 
 export function VacancyCard({ vaga }: { vaga: Vacancy }) {
     return (
-        <div className="group bg-white rounded-xl shadow-sm border border-gray-100 
-                hover:shadow-md transition-shadow hover:border-blue-200 
-                flex flex-col h-full">
-
-            <div className="p-5 flex-grow cursor-pointer hover:border-blue-200 hover:shadow-sm transition-all">
+        <Link
+            href={`/viewer/vacancy/${vaga.uuid}`}
+            className="group bg-white rounded-xl shadow-sm border border-gray-100 
+                hover:shadow-md transition-all hover:border-blue-200 
+                flex flex-col h-full block"
+        >
+            <div className="p-5 flex-grow">
                 <div className="flex items-center gap-3 mb-4">
                     {vaga.empresa?.foto_perfil ? (
                         <Image
@@ -53,7 +56,7 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
                 <h3 className="font-bold text-slate-900 
                 transition-colors 
                 truncate 
-                group-hover:text-blue-600">
+                group-hover:text-blue-600 mb-3">
                     {vaga.cargo}
                 </h3>
 
@@ -73,11 +76,11 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
             </div>
 
             {/* Rodapé do Card (Data) */}
-            <div className="px-5 py-3 border-t border-gray-50 bg-gray-50/30 rounded-b-xl cursor-pointer">
+            <div className="px-5 py-3 border-t border-gray-50 bg-gray-50/30 rounded-b-xl">
                 <p className="text-[11px] text-gray-400">
                     Publicada em: {vaga.created_at ? new Date(vaga.created_at).toLocaleDateString('pt-BR') : '---'}
                 </p>
             </div>
-        </div>
+        </Link>
     );
 }

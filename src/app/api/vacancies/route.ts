@@ -34,6 +34,7 @@ export async function POST(request: Request) {
             const vaga = await tx.vaga.create({
                 data: {
                     id: vagaId,
+                    uuid: randomUUID(), // Garantir UUID para acesso público
                     empresa_id: company.id,
                     cargo: data.cargo,
                     descricao: data.descricao,

@@ -1,0 +1,458 @@
+"use client";
+
+import {
+    MapPin,
+    Briefcase,
+    Building2,
+    Calendar,
+    Users,
+    Clock,
+    Home,
+    Globe,
+    FileText,
+    Link as LinkIcon,
+    CheckCircle2,
+    ExternalLink,
+    Download,
+    ArrowLeft,
+    Copy,
+    Check
+} from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+
+interface VacancyDetailsProps {
+    vacancy: {
+        id: string;
+        cargo: string;
+        tipo_local_trabalho: any;
+        escala_trabalho: string;
+        dias_presenciais?: number | null;
+        dias_home_office?: number | null;
+        salario?: any;
+        moeda?: string | null;
+        descricao: string;
+        beneficio?: string | null;
+        pergunta?: string | null;
+        created_at: Date;
+        vinculo_empregaticio?: any;
+        vaga_area?: Array<{
+            area_interesse: {
+                id: number;
+                nome: string | null;
+            };
+        }>;
+        vaga_arquivo?: Array<{
+            id: string;
+            nome: string;
+            url: string;
+            mime: string;
+            tamanho: number;
+        }>;
+        vaga_link?: Array<{
+            id: string;
+            titulo: string;
+            url: string;
+        }>;
+    };
+    company: {
+        nome_empresa: string;
+        foto_perfil?: string | null;
+        cidade?: string | null;
+        estado?: string | null;
+        pais?: string | null;
+        descricao: string;
+    } | null;
+    isActive: boolean;
+    applicationCount: number;
+}
+
+const tipoLocalTrabalhoMap: Record<string, { label: string; icon: any }> = {
+    Presencial: { label: "Presencial", icon: Building2 },
+    Home_Office: { label: "Home Office", icon: Home },
+    H_brido: { label: "Híbrido", icon: Globe },
+};
+
+const vinculoEmpregaticioMap: Record<string, string> = {
+    Estagio: "Estágio",
+    CLT_Tempo_Integral: "CLT - Tempo Integral",
+    CLT_Meio_Periodo: "CLT - Meio Período",
+    Trainee: "Trainee",
+    Aprendiz: "Aprendiz",
+    PJ: "PJ",
+    Freelancer_Autonomo: "Freelancer / Autônomo",
+    Temporario: "Temporário",
+};
+
+export function VacancyDetails({ vacancy, company, isActive, applicationCount }: VacancyDetailsProps) {
+    const router = useRouter();
+    const stickyCardRef = useRef<HTMLDivElement>(null);
+    const [isStickyVisible, setIsStickyVisible] = useState(true);
+    const [hasScroll, setHasScroll] = useState(false);
+    const [linkCopied, setLinkCopied] = useState(false);
+    const workType = tipoLocalTrabalhoMap[vacancy.tipo_local_trabalho] || tipoLocalTrabalhoMap.Presencial;
+    const WorkTypeIcon = workType.icon;
+
+    // Detectar se a página tem scroll
+    useEffect(() => {
+        const checkScroll = () => {
+            setHasScroll(document.documentElement.scrollHeight > window.innerHeight);
+        };
+
+        checkScroll();
+        window.addEventListener('resize', checkScroll);
+
+        return () => window.removeEventListener('resize', checkScroll);
+    }, [vacancy]);
+
+    // Intersection Observer para detectar visibilidade do card sticky
+    useEffect(() => {
+        if (!stickyCardRef.current) return;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                setIsStickyVisible(entry.isIntersecting);
+            },
+            {
+                threshold: 0.1,
+                rootMargin: '0px 0px -100px 0px'
+            }
+        );
+
+        observer.observe(stickyCardRef.current);
+
+        return () => observer.disconnect();
+    }, []);
+
+    const formatSalary = (salario: any, moeda: string | null | undefined) => {
+        if (!salario) return null;
+        const value = typeof salario === 'object' ? parseFloat(salario.toString()) : salario;
+        return new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: moeda || 'BRL'
+        }).format(value);
+    };
+
+    const formatFileSize = (bytes: number) => {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    };
+
+    const handleCopyLink = async () => {
+        try {
+            const url = window.location.href;
+            await navigator.clipboard.writeText(url);
+            setLinkCopied(true);
+            setTimeout(() => setLinkCopied(false), 2000);
+        } catch (err) {
+            console.error('Erro ao copiar link:', err);
+        }
+    };
+
+    return (
+        <div className="min-h-screen bg-gray-50">
+            {/* Header simplificado */}
+            <div className="bg-white border-b border-gray-200">
+                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                    <button
+                        onClick={() => router.back()}
+                        className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors mb-6 cursor-pointer"
+                    >
+                        <ArrowLeft size={18} />
+                        Voltar
+                    </button>
+
+                    <div className="flex items-start gap-4 mb-6">
+                        {/* Logo da empresa */}
+                        {company?.foto_perfil ? (
+                            <img
+                                src={company.foto_perfil}
+                                alt={company.nome_empresa}
+                                className="w-16 h-16 rounded-lg object-cover border border-gray-200"
+                            />
+                        ) : (
+                            <div className="w-16 h-16 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center">
+                                <Building2 size={28} className="text-gray-400" />
+                            </div>
+                        )}
+
+                        <div className="flex-1">
+                            <div className="flex items-start justify-between gap-4 mb-2">
+                                <div className="flex-1">
+                                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                                        {vacancy.cargo}
+                                    </h1>
+                                    <p className="text-lg text-gray-600 mt-1">
+                                        {company?.nome_empresa}
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={handleCopyLink}
+                                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 cursor-pointer group relative"
+                                        title="Copiar link da vaga"
+                                    >
+                                        {linkCopied ? (
+                                            <Check size={18} className="text-green-600" />
+                                        ) : (
+                                            <Copy size={18} className="text-gray-600 group-hover:text-gray-900" />
+                                        )}
+                                    </button>
+                                    {isActive && (
+                                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200">
+                                            Vaga Ativa
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Informações principais */}
+                            <div className="flex flex-wrap gap-4 mt-4 text-sm text-gray-600">
+                                <div className="flex items-center gap-1.5">
+                                    <WorkTypeIcon size={16} className="text-gray-400" />
+                                    <span>{workType.label}</span>
+                                </div>
+                                {company?.cidade && (
+                                    <div className="flex items-center gap-1.5">
+                                        <MapPin size={16} className="text-gray-400" />
+                                        <span>{company.cidade}, {company.estado}</span>
+                                    </div>
+                                )}
+                                {vacancy.salario && (
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="font-semibold text-gray-900">
+                                            {formatSalary(vacancy.salario, vacancy.moeda)}
+                                        </span>
+                                    </div>
+                                )}
+                                <div className="flex items-center gap-1.5">
+                                    <Users size={16} className="text-gray-400" />
+                                    <span>{applicationCount} candidatos</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Conteúdo principal */}
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Coluna principal */}
+                    <div className="lg:col-span-2 space-y-6">
+                        {/* Descrição da vaga */}
+                        <div className="bg-white rounded-lg border border-gray-200 p-6">
+                            <h2 className="text-lg font-semibold text-gray-900 mb-4">Descrição da Vaga</h2>
+                            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                                {vacancy.descricao}
+                            </p>
+                        </div>
+
+                        {/* Benefícios */}
+                        {vacancy.beneficio && (
+                            <div className="bg-white rounded-lg border border-gray-200 p-6">
+                                <h2 className="text-lg font-semibold text-gray-900 mb-4">Benefícios</h2>
+                                <div className="space-y-2">
+                                    {vacancy.beneficio.split('\n').filter(b => b.trim()).map((benefit, index) => (
+                                        <div key={index} className="flex items-start gap-2">
+                                            <CheckCircle2 size={18} className="text-green-600 flex-shrink-0 mt-0.5" />
+                                            <span className="text-gray-700">{benefit.trim()}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Áreas de Interesse (Hard Skills) */}
+                        {vacancy.vaga_area && vacancy.vaga_area.length > 0 && (
+                            <div className="bg-white rounded-lg border border-gray-200 p-6">
+                                <h2 className="text-lg font-semibold text-gray-900 mb-4">Áreas de Atuação</h2>
+                                <div className="flex flex-wrap gap-2">
+                                    {vacancy.vaga_area.map((area) => (
+                                        <span
+                                            key={area.area_interesse.id}
+                                            className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md text-sm font-medium border border-gray-200"
+                                        >
+                                            {area.area_interesse.nome}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+
+
+                        {/* Anexos e Links */}
+                        {((vacancy.vaga_arquivo && vacancy.vaga_arquivo.length > 0) ||
+                            (vacancy.vaga_link && vacancy.vaga_link.length > 0)) && (
+                                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Materiais e Links</h2>
+
+                                    {/* Arquivos */}
+                                    {vacancy.vaga_arquivo && vacancy.vaga_arquivo.length > 0 && (
+                                        <div className="mb-4">
+                                            <h3 className="text-sm font-medium text-gray-500 mb-3">Arquivos</h3>
+                                            <div className="space-y-2">
+                                                {vacancy.vaga_arquivo.map((file) => (
+                                                    <a
+                                                        key={file.id}
+                                                        href={file.url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors"
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <FileText size={18} className="text-gray-400" />
+                                                            <div>
+                                                                <p className="text-sm font-medium text-gray-900">{file.nome}</p>
+                                                                <p className="text-xs text-gray-500">{formatFileSize(file.tamanho)}</p>
+                                                            </div>
+                                                        </div>
+                                                        <Download size={16} className="text-gray-400" />
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Links */}
+                                    {vacancy.vaga_link && vacancy.vaga_link.length > 0 && (
+                                        <div>
+                                            <h3 className="text-sm font-medium text-gray-500 mb-3">Links</h3>
+                                            <div className="space-y-2">
+                                                {vacancy.vaga_link.map((link) => (
+                                                    <a
+                                                        key={link.id}
+                                                        href={link.url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors"
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <LinkIcon size={18} className="text-gray-400" />
+                                                            <p className="text-sm font-medium text-gray-900">{link.titulo}</p>
+                                                        </div>
+                                                        <ExternalLink size={16} className="text-gray-400" />
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                    </div>
+
+                    {/* Sidebar */}
+                    <div className="space-y-6">
+                        {/* Sobre a empresa */}
+                        {company && (
+                            <div className="bg-white rounded-lg border border-gray-200 p-5">
+                                <h3 className="font-semibold text-gray-900 mb-3">Sobre a Empresa</h3>
+                                <p className="text-gray-700 text-sm leading-relaxed mb-3">
+                                    {company.descricao}
+                                </p>
+                                {company.cidade && (
+                                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+                                        <MapPin size={14} className="text-gray-400" />
+                                        <span>{company.cidade}, {company.estado}, {company.pais}</span>
+                                    </div>
+                                )}
+                                <Link
+                                    href="#"
+                                    className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors"
+                                >
+                                    <Building2 size={16} />
+                                    Ver Perfil Público
+                                </Link>
+                            </div>
+                        )}
+                        {/* Informações da vaga */}
+                        <div ref={stickyCardRef} className="bg-white rounded-lg border border-gray-200 p-5">
+                            <h3 className="font-semibold text-gray-900 mb-4">Informações</h3>
+
+                            <div className="space-y-4 text-sm">
+                                {/* Publicação */}
+                                <div className="flex items-start gap-3">
+                                    <Calendar size={16} className="text-gray-400 mt-0.5" />
+                                    <div>
+                                        <p className="text-gray-500 text-xs mb-1">Publicada em</p>
+                                        <p className="text-gray-900 font-medium">
+                                            {new Date(vacancy.created_at).toLocaleDateString('pt-BR', {
+                                                day: '2-digit',
+                                                month: 'long',
+                                                year: 'numeric'
+                                            })}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Vínculo */}
+                                {vacancy.vinculo_empregaticio && (
+                                    <div className="flex items-start gap-3 pt-4 border-t border-gray-100">
+                                        <Briefcase size={16} className="text-gray-400 mt-0.5" />
+                                        <div>
+                                            <p className="text-gray-500 text-xs mb-1">Vínculo</p>
+                                            <p className="text-gray-900 font-medium">
+                                                {vinculoEmpregaticioMap[vacancy.vinculo_empregaticio] || vacancy.vinculo_empregaticio}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Escala de trabalho */}
+                                <div className="flex items-start gap-3 pt-4 border-t border-gray-100">
+                                    <Clock size={16} className="text-gray-400 mt-0.5" />
+                                    <div>
+                                        <p className="text-gray-500 text-xs mb-1">Escala</p>
+                                        <p className="text-gray-900 font-medium">
+                                            {vacancy.escala_trabalho}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Dias de trabalho (se híbrido) */}
+                                {vacancy.tipo_local_trabalho === 'H_brido' && (
+                                    <div className="flex items-start gap-3 pt-4 border-t border-gray-100">
+                                        <Globe size={16} className="text-gray-400 mt-0.5" />
+                                        <div>
+                                            <p className="text-gray-500 text-xs mb-1">Distribuição</p>
+                                            <p className="text-gray-900 font-medium text-xs">
+                                                {vacancy.dias_presenciais || 0}x presencial • {vacancy.dias_home_office || 0}x remoto
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* CTA Button */}
+                            {isActive && (
+                                <button className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors cursor-pointer">
+                                    Candidatar-se
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* CTA Button no final da página - Aparece apenas se houver scroll e o card de informações não estiver visível */}
+                {isActive && hasScroll && !isStickyVisible && (
+                    <div className="mt-10">
+                        <div className="bg-white rounded-lg border border-gray-200 p-6 lg:p-8 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4">
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-1">Interessado nesta vaga?</h3>
+                                    <p className="text-sm text-gray-600">Candidate-se agora e faça parte do time {company?.nome_empresa}!</p>
+                                </div>
+                                <button className="w-full sm:w-auto px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors whitespace-nowrap cursor-pointer">
+                                    Candidatar-se à Vaga
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}

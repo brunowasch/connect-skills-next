@@ -22,6 +22,15 @@ export default async function VacanciesPage() {
 
     const vacancies = await prisma.vaga.findMany({
         where: { empresa_id: company.id },
+        select: {
+            id: true,
+            uuid: true,
+            cargo: true,
+            tipo_local_trabalho: true,
+            escala_trabalho: true,
+            created_at: true,
+            empresa_id: true,
+        },
         orderBy: { created_at: 'desc' },
     });
 

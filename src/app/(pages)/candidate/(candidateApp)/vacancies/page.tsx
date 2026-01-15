@@ -118,6 +118,7 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
         where: whereClause,
         select: {
             id: true,
+            uuid: true,
             cargo: true,
             tipo_local_trabalho: true,
             salario: true,
@@ -168,6 +169,7 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
 
             return {
                 id: vaga.id,
+                uuid: vaga.uuid,
                 cargo: vaga.cargo,
                 tipo_local_trabalho: vaga.tipo_local_trabalho as Vacancy['tipo_local_trabalho'],
                 salario: vaga.salario ? Number(vaga.salario) : undefined,
