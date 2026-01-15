@@ -34,11 +34,11 @@ export function ProfileCompletion({ candidato, usuario, areas }: ProfileCompleti
 
         // Checklist para cálculo
         const checklist = [
-            { label: 'Adicionar foto', done: hasFoto, icon: <Camera size={14} />, link: '/(pages)/candidate/(candidateApp)/profile' },
-            { label: 'Definir localidade', done: hasLocal, icon: <MapPin size={14} />, link: '/(pages)/candidate/(candidateApp)/profile' },
-            { label: 'Adicionar telefone', done: hasTel, icon: <Phone size={14} />, link: '/(pages)/candidate/(candidateApp)/profile' },
-            { label: 'Data de nascimento', done: hasNasc, icon: <Calendar size={14} />, link: '/(pages)/candidate/(candidateApp)/profile' },
-            { label: 'Selecionar áreas', done: hasAreas, icon: <Target size={14} />, link: '/(pages)/candidate/(candidateApp)/profile' },
+            { label: 'Adicionar foto', done: hasFoto, icon: <Camera size={14} />, link: '/candidate/edit/profile' },
+            { label: 'Definir localidade', done: hasLocal, icon: <MapPin size={14} />, link: '/candidate/edit/profile' },
+            { label: 'Adicionar telefone', done: hasTel, icon: <Phone size={14} />, link: '/candidate/edit/profile' },
+            { label: 'Data de nascimento', done: hasNasc, icon: <Calendar size={14} />, link: '/candidate/edit/profile' },
+            { label: 'Selecionar áreas', done: hasAreas, icon: <Target size={14} />, link: '/candidate/edit/profile' },
         ];
 
         const totalSteps = checklist.length;

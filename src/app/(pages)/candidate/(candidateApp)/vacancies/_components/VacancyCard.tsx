@@ -4,7 +4,7 @@ import { Vacancy } from '@/src/app/(pages)/candidate/(candidateApp)/types/Vacanc
 import { User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { MapPin, Briefcase } from "lucide-react";
+import { MapPin, Briefcase, HeartHandshake } from "lucide-react";
 
 const tipoMap = {
     Presencial: 'Presencial',
@@ -26,6 +26,19 @@ const vinculoMap: Record<string, string> = {
 const DEFAULT_AVATAR = <User className="w-6 h-6 sm:w-7 sm:h-7 text-slate-500" />;
 
 export function VacancyCard({ vaga }: { vaga: Vacancy }) {
+    let inclusivity = null;
+    try {
+        inclusivity = vaga.opcao ? JSON.parse(vaga.opcao) : null;
+    } catch (e) {
+        // Silently fail if JSON is invalid
+    }
+
+    const affirmativeGroups = [];
+    if (inclusivity?.women) affirmativeGroups.push("Mulheres");
+    if (inclusivity?.blackPeople) affirmativeGroups.push("Pessoas Negras");
+    if (inclusivity?.pcd) affirmativeGroups.push("PcD");
+    if (inclusivity?.lgbt) affirmativeGroups.push("LGBTQIAPN+");
+
     return (
         <Link
             href={`/viewer/vacancy/${vaga.uuid}`}
@@ -72,6 +85,13 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
                         <Briefcase className="text-slate-400 relative top-[-1px]" size={15} />
                         <span>{vinculoMap[vaga.vinculo_empregaticio || '']}</span>
                     </div>
+
+                    {affirmativeGroups.length > 0 && (
+                        <div className="flex items-center text-xs text-gray-500 font-medium gap-0.5 mt-1">
+                            <HeartHandshake className="text-slate-400 relative top-[-1px]" size={15} />
+                            <span>Vaga afirmativa p/ {affirmativeGroups.join(", ")}</span>
+                        </div>
+                    )}
                 </div>
             </div>
 

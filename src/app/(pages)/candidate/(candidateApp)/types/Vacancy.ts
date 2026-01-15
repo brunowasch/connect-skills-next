@@ -19,6 +19,7 @@ export interface Vacancy {
         nome?: string;
     }>;
     descricao?: string;
+    opcao?: string | null;
     created_at?: string;
     vinculo_empregaticio?: 'Estagio' | 'CLT_Tempo_Integral' | 'CLT_Meio_Periodo' | 'Trainee' | 'Aprendiz' | 'PJ' | 'Freelancer_Autonomo' | 'Temporario';
 }

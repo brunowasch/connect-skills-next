@@ -44,6 +44,12 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId }: Vacan
         beneficio: initialData?.beneficio || "",
         pergunta: initialData?.pergunta || "",
         candidatoIdeal: "",
+        inclusivity: initialData?.opcao ? JSON.parse(initialData.opcao) : {
+            pcd: false,
+            blackPeople: false,
+            women: false,
+            lgbt: false
+        },
         vinculo_empregaticio: initialData?.vinculo_empregaticio || "CLT_Tempo_Integral",
         areas: initialData?.vaga_area?.map((va: any) => va.area_interesse_id) || [] as number[],
         softSkills: initialData?.vaga_soft_skill?.map((vss: any) => vss.soft_skill_id) || [] as number[]
@@ -74,6 +80,16 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId }: Vacan
                 return { ...prev, softSkills: [...current, id] };
             }
         });
+    };
+
+    const toggleInclusivity = (key: string) => {
+        setFormData(prev => ({
+            ...prev,
+            inclusivity: {
+                ...prev.inclusivity,
+                [key]: !prev.inclusivity[key as keyof typeof prev.inclusivity]
+            }
+        }));
     };
 
     const handleAIGenerate = async (shortDesc: string) => {
@@ -140,7 +156,8 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId }: Vacan
                 // Append Candidate Ideal to description only if it has content
                 descricao: formData.candidatoIdeal
                     ? `${formData.descricao}\n\n### Perfil do Candidato Ideal\n${formData.candidatoIdeal}`
-                    : formData.descricao
+                    : formData.descricao,
+                opcao: formData.inclusivity // Send as object, backend stringifies it
             };
 
             const res = await fetch(url, {
@@ -279,6 +296,55 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId }: Vacan
                         className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
                         placeholder="Vale refeição, plano de saúde, gympass..."
                     />
+                </div>
+            </div>
+
+            <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-100 pb-2">Inclusão e Diversidade</h3>
+                <p className="text-sm text-gray-600">Marque as opções abaixo se esta for uma vaga afirmativa ou exclusiva para grupos específicos.</p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                        <input
+                            type="checkbox"
+                            checked={formData.inclusivity.women}
+                            onChange={() => toggleInclusivity('women')}
+                            className="appearance-none w-4 h-4 border border-gray-300 rounded checked:bg-blue-600 checked:border-blue-600 focus:ring-2 focus:ring-blue-100 cursor-pointer relative shrink-0 transition-all after:content-[''] after:absolute after:hidden checked:after:block after:left-[5px] after:top-[1px] after:w-[5px] after:h-[9px] after:border-white after:border-r-2 after:border-b-2 after:rotate-45"
+                        />
+                        <span className="text-sm font-medium text-gray-700">
+                            Vaga Afirmativa para Mulheres
+                        </span>
+                    </label>
+
+                    <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                        <input
+                            type="checkbox"
+                            checked={formData.inclusivity.blackPeople}
+                            onChange={() => toggleInclusivity('blackPeople')}
+                            className="appearance-none w-4 h-4 border border-gray-300 rounded checked:bg-blue-600 checked:border-blue-600 focus:ring-2 focus:ring-blue-100 cursor-pointer relative shrink-0 transition-all after:content-[''] after:absolute after:hidden checked:after:block after:left-[5px] after:top-[1px] after:w-[5px] after:h-[9px] after:border-white after:border-r-2 after:border-b-2 after:rotate-45"
+                        />
+                        <span className="text-sm font-medium text-gray-700">Vaga Afirmativa para Pessoas Negras</span>
+                    </label>
+
+                    <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                        <input
+                            type="checkbox"
+                            checked={formData.inclusivity.pcd}
+                            onChange={() => toggleInclusivity('pcd')}
+                            className="appearance-none w-4 h-4 border border-gray-300 rounded checked:bg-blue-600 checked:border-blue-600 focus:ring-2 focus:ring-blue-100 cursor-pointer relative shrink-0 transition-all after:content-[''] after:absolute after:hidden checked:after:block after:left-[5px] after:top-[1px] after:w-[5px] after:h-[9px] after:border-white after:border-r-2 after:border-b-2 after:rotate-45"
+                        />
+                        <span className="text-sm font-medium text-gray-700">Vaga para PcD</span>
+                    </label>
+
+                    <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                        <input
+                            type="checkbox"
+                            checked={formData.inclusivity.lgbt}
+                            onChange={() => toggleInclusivity('lgbt')}
+                            className="appearance-none w-4 h-4 border border-gray-300 rounded checked:bg-blue-600 checked:border-blue-600 focus:ring-2 focus:ring-blue-100 cursor-pointer relative shrink-0 transition-all after:content-[''] after:absolute after:hidden checked:after:block after:left-[5px] after:top-[1px] after:w-[5px] after:h-[9px] after:border-white after:border-r-2 after:border-b-2 after:rotate-45"
+                        />
+                        <span className="text-sm font-medium text-gray-700">Vaga para LGBTQIAPN+</span>
+                    </label>
                 </div>
             </div>
 

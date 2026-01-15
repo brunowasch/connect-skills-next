@@ -45,7 +45,8 @@ export async function POST(request: Request) {
                     salario: data.salario ? Number(data.salario) : null,
                     moeda: data.moeda || 'BRL',
                     beneficio: data.beneficio || null,
-                    pergunta: data.pergunta || null, // storing as single string for now or JSON string if multiple? Schema says String text.
+                    pergunta: data.pergunta || null,
+                    opcao: data.opcao ? JSON.stringify(data.opcao) : null, // Store inclusivity options as JSON
                     vinculo_empregaticio: data.vinculo_empregaticio,
                 }
             });

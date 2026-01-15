@@ -127,6 +127,7 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
             descricao: true,
             created_at: true,
             vinculo_empregaticio: true,
+            opcao: true,
         },
         orderBy: { created_at: 'desc' },
         take: 50
@@ -184,6 +185,7 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
                 } : undefined,
                 vaga_area: areasData,
                 descricao: vaga.descricao,
+                opcao: vaga.opcao,
                 created_at: vaga.created_at.toISOString(),
                 vinculo_empregaticio: vaga.vinculo_empregaticio || undefined,
             };

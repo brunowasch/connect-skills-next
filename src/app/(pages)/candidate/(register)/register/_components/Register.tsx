@@ -36,9 +36,9 @@ export function RegisterCandidateName() {
                 return;
             }
             if (res.ok) {
-                router.push("/candidate/selectAreas");
+                router.push("/candidate/area");
             }
-            router.push("/candidate/selectAreas");
+            router.push("/candidate/area");
         } catch {
             setError("Erro de conexão. Tente novamente.");
         }

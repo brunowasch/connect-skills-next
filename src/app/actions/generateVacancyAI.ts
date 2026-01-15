@@ -20,7 +20,7 @@ export interface GenerateVacancyResponse {
 
 export async function generateVacancyAI(data: GenerateVacancyRequest): Promise<GenerateVacancyResponse> {
     if (!API_URL) {
-        throw new Error("IA_GEN_DESC is not defined in environment variables");
+        throw new Error("IA_GEN_DESC não está definido.");
     }
 
     try {
@@ -35,13 +35,13 @@ export async function generateVacancyAI(data: GenerateVacancyRequest): Promise<G
         if (!response.ok) {
             const errorText = await response.text();
             console.error("AI API Error:", errorText);
-            throw new Error(`Failed to generate vacancy description: ${response.statusText}`);
+            throw new Error(`Erro ao gerar descrição da vaga: ${response.statusText}`);
         }
 
         const result = await response.json();
         return result;
     } catch (error) {
-        console.error("Error in generateVacancyAI:", error);
+        console.error("Erro em generateVacancyAI:", error);
         throw error;
     }
 }

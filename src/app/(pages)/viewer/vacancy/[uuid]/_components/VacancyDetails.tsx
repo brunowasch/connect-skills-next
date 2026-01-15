@@ -16,7 +16,8 @@ import {
     Download,
     ArrowLeft,
     Copy,
-    Check
+    Check,
+    HeartHandshake
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -35,6 +36,7 @@ interface VacancyDetailsProps {
         descricao: string;
         beneficio?: string | null;
         pergunta?: string | null;
+        opcao?: string | null;
         created_at: Date;
         vinculo_empregaticio?: any;
         vaga_area?: Array<{
@@ -93,6 +95,19 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount }:
     const [linkCopied, setLinkCopied] = useState(false);
     const workType = tipoLocalTrabalhoMap[vacancy.tipo_local_trabalho] || tipoLocalTrabalhoMap.Presencial;
     const WorkTypeIcon = workType.icon;
+
+    let inclusivity = null;
+    try {
+        inclusivity = vacancy.opcao ? JSON.parse(vacancy.opcao) : null;
+    } catch (e) {
+        // Silently fail if JSON is invalid
+    }
+
+    const affirmativeGroups = [];
+    if (inclusivity?.women) affirmativeGroups.push("Mulheres");
+    if (inclusivity?.blackPeople) affirmativeGroups.push("Pessoas Negras");
+    if (inclusivity?.pcd) affirmativeGroups.push("PcD");
+    if (inclusivity?.lgbt) affirmativeGroups.push("LGBTQIAPN+");
 
     // Detectar se a página tem scroll
     useEffect(() => {
@@ -187,6 +202,12 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount }:
                                     <p className="text-lg text-gray-600 mt-1">
                                         {company?.nome_empresa}
                                     </p>
+                                    {affirmativeGroups.length > 0 && (
+                                        <p className="text-sm text-purple-600 font-medium mt-1.5 flex items-center gap-1.5">
+                                            <HeartHandshake size={14} />
+                                            Vaga afirmativa p/ {affirmativeGroups.join(", ")}
+                                        </p>
+                                    )}
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <button
@@ -242,6 +263,8 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount }:
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Coluna principal */}
                     <div className="lg:col-span-2 space-y-6">
+
+
                         {/* Descrição da vaga */}
                         <div className="bg-white rounded-lg border border-gray-200 p-6">
                             <h2 className="text-lg font-semibold text-gray-900 mb-4">Descrição da Vaga</h2>
