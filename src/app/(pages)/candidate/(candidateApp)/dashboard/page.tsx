@@ -118,6 +118,7 @@ export default async function Dashboard() {
                 },
                 select: {
                     id: true,
+                    uuid: true,
                     cargo: true,
                     tipo_local_trabalho: true,
                     salario: true,
@@ -188,6 +189,7 @@ export default async function Dashboard() {
 
                 return {
                     id: vaga.id,
+                    uuid: vaga.uuid,
                     cargo: vaga.cargo,
                     tipo_local_trabalho: vaga.tipo_local_trabalho,
                     salario: vaga.salario ? Number(vaga.salario) : undefined,
@@ -219,6 +221,7 @@ export default async function Dashboard() {
             },
             select: {
                 id: true,
+                uuid: true,
                 cargo: true,
                 tipo_local_trabalho: true,
                 salario: true,
@@ -290,6 +293,7 @@ export default async function Dashboard() {
 
             return {
                 id: vaga.id,
+                uuid: vaga.uuid,
                 cargo: vaga.cargo,
                 tipo_local_trabalho: vaga.tipo_local_trabalho,
                 salario: vaga.salario ? Number(vaga.salario) : undefined,

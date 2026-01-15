@@ -18,6 +18,11 @@ export function SearchFilters() {
         if (location) params.set("loc", location);
         if (type) params.set("type", type);
 
+        // Preserve "all" mode if it exists
+        if (searchParams.get("all") === "true") {
+            params.set("all", "true");
+        }
+
         router.push(`?${params.toString()}`);
     };
 
@@ -42,7 +47,7 @@ export function SearchFilters() {
                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                     <input
                         type="text"
-                        placeholder="Cidade ou Estado..."
+                        placeholder="Cidade ou Estado (Opcional)..."
                         className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                         value={location}
                         onChange={(e) => setLocation(e.target.value)}

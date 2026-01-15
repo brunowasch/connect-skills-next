@@ -46,22 +46,22 @@ export function ProfileCompletion({ company }: CompanyProfileProps) {
 
             <div className="flex flex-wrap gap-2">
                 {!hasNome && (
-                    <Link href="/company/settings" className="text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors">
+                    <Link href="/company/edit/profile" className="text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors">
                         Definir nome
                     </Link>
                 )}
                 {!hasLocal && (
-                    <Link href="/company/settings" className="text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors">
+                    <Link href="/company/edit/profile" className="text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors">
                         Definir localidade
                     </Link>
                 )}
                 {!hasTel && (
-                    <Link href="/company/settings" className="text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors">
+                    <Link href="/company/edit/profile" className="text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors">
                         Adicionar telefone
                     </Link>
                 )}
                 {!hasFoto && (
-                    <Link href="/company/settings" className="text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors">
+                    <Link href="/company/edit/profile" className="text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors">
                         Adicionar logo
                     </Link>
                 )}

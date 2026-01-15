@@ -43,7 +43,7 @@ export function RecommendedVacancies({ vacanciesRecommended }: RecommendedVacanc
             <div key={vacancy.id} className="group border border-slate-100 rounded-2xl p-4 hover:border-blue-200 hover:shadow-sm transition-all">
               <div className="flex gap-4 items-start">
                 {/* Logo da Empresa */}
-                <Link href={`/pages/candidate/candidateApp/vacancies`} className="relative flex-shrink-0">
+                <Link href={`/viewer/vacancy/${vacancy.uuid}`} className="relative flex-shrink-0">
                   <div className="w-16 h-16 relative rounded-full overflow-hidden border border-slate-100">
                     <Image
                       src={vacancy.empresa?.foto_perfil || '/img/avatar.png'}
@@ -97,7 +97,7 @@ export function RecommendedVacancies({ vacanciesRecommended }: RecommendedVacanc
               </div>
               <div className="mt-4 flex justify-end">
                 <Link
-                  href={`/pages/candidate/candidateApp/vacancies`}
+                  href={`/viewer/vacancy/${vacancy.uuid}`}
                   className="flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-blue-600 transition-colors"
                 >
                   <Eye size={16} />

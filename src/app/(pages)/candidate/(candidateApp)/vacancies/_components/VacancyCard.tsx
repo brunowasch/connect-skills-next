@@ -42,10 +42,18 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
     return (
         <Link
             href={`/viewer/vacancy/${vaga.uuid}`}
-            className="group bg-white rounded-xl shadow-sm border border-gray-100 
-                hover:shadow-md transition-all hover:border-blue-200 
-                flex flex-col h-full block"
+            className={`group bg-white rounded-xl shadow-sm border ${vaga.isNear ? 'border-blue-300 ring-2 ring-blue-500/5' : 'border-gray-100'} 
+                hover:shadow-md transition-all hover:border-blue-400 
+                flex flex-col h-full block relative`}
         >
+            {vaga.isNear && (
+                <div className="absolute -top-2 -right-2 z-10">
+                    <span className="bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm flex items-center gap-1 animate-pulse">
+                        <MapPin size={10} />
+                        PRÓXIMO A VOCÊ
+                    </span>
+                </div>
+            )}
             <div className="p-5 flex-grow">
                 <div className="flex items-center gap-3 mb-4">
                     {vaga.empresa?.foto_perfil ? (
