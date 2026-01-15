@@ -43,6 +43,7 @@ export function EditProfile({ initialData }: EditProfileProps) {
     };
 
     // 2. Gerenciamento de Foto
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -56,7 +57,6 @@ export function EditProfile({ initialData }: EditProfileProps) {
         }
     };
 
-    // 2.1 Gerenciamento de Anexos
     const handleAnexosChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (!files) return;
@@ -93,56 +93,62 @@ export function EditProfile({ initialData }: EditProfileProps) {
         }));
     };
 
-    const handleViewFile = (anexo: any) => {
+    const handleViewAttachment = (anexo: any) => {
         const url = anexo.url || anexo.base64;
+        const name = anexo.nome || 'Arquivo';
+
         if (!url) return;
 
-        // Se for um arquivo do Cloudinary (já tem URL), usamos o visualizador interno
-        if (anexo.url) {
-            const viewerUrl = `/viewer?url=${encodeURIComponent(anexo.url)}&title=${encodeURIComponent(anexo.nome || 'Arquivo')}`;
-            window.open(viewerUrl, '_blank');
-            return;
-        }
-
-        // Se for base64 (ainda não subiu), mantemos o comportamento de Blob para preview rápido
         if (url.startsWith('data:')) {
-            try {
-                const parts = url.split(',');
-                const byteString = atob(parts[1]);
-                const mimeString = parts[0].split(':')[1].split(';')[0];
-                const ab = new ArrayBuffer(byteString.length);
-                const ia = new Uint8Array(ab);
-                for (let i = 0; i < byteString.length; i++) {
-                    ia[i] = byteString.charCodeAt(i);
-                }
-                const blob = new Blob([ab], { type: mimeString });
-                const blobUrl = URL.createObjectURL(blob);
-                window.open(blobUrl, '_blank');
-            } catch (e) {
-                console.error("Erro ao abrir preview:", e);
-                window.open(url, '_blank');
-            }
+            const fileKey = `temp_file_${Date.now()}`;
+            sessionStorage.setItem(fileKey, url);
+            window.open(`/viewer?fileKey=${fileKey}&title=${encodeURIComponent(name)}`, '_blank');
         } else {
-            window.open(url, '_blank');
+            let finalUrl = url;
+            let typeParam = '';
+
+            // Check if it's a PDF to use proxy
+            console.log("handleViewAttachment ANEXO:", anexo);
+            const mime = (anexo.mime || anexo.type || '').toLowerCase();
+            const lowerName = name.toLowerCase();
+            const lowerUrl = url.toLowerCase();
+
+            const isPdf = mime.includes('pdf') ||
+                lowerUrl.includes('.pdf') ||
+                lowerUrl.includes('/pdf') || // Cloudinary 'pdf' resource type often appears in path
+                lowerName.endsWith('.pdf');
+
+            console.log("isPdf detection:", { isPdf, mime, lowerName, lowerUrl });
+
+            // Only use proxy if it's a Cloudinary URL
+            const isCloudinary = url.includes('cloudinary.com');
+
+            if (isPdf) {
+                if (isCloudinary) {
+                    finalUrl = `/api/pdf-proxy?url=${encodeURIComponent(url)}`;
+                }
+                // If not Cloudinary but is PDF, we still might want to force type if needed, 
+                // but usually the browser handles direct links well. 
+                // However, for consistency, let's just make sure the viewer knows it's a PDF.
+                typeParam = '&type=application/pdf';
+            }
+
+            window.open(`/viewer?url=${encodeURIComponent(finalUrl)}&title=${encodeURIComponent(name)}${typeParam}`, '_blank');
         }
     };
 
-    // 3. Submissão do Formulário
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
         setMessage(null);
 
         try {
-            const res = await fetch('/api/candidate/updateProfile', {
-                method: 'POST',
+            const res = await fetch('/api/candidate/profile', {
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    ...formData,
-                    links: links.filter(l => l.url.trim() !== ''),
-                }),
+                body: JSON.stringify(formData),
             });
 
             const result = await res.json();
@@ -154,7 +160,6 @@ export function EditProfile({ initialData }: EditProfileProps) {
                 }));
 
                 router.refresh();
-
                 router.back();
                 return;
             } else {
@@ -166,9 +171,11 @@ export function EditProfile({ initialData }: EditProfileProps) {
             setIsLoading(false);
         }
     };
+
     const handleCancel = () => {
         router.back();
     };
+
     return (
         <main className="max-w-5xl mx-auto py-10 px-4">
             {message && message.type === 'error' && (
@@ -361,6 +368,7 @@ export function EditProfile({ initialData }: EditProfileProps) {
                     </div>
                 </div>
 
+                {/* Anexos Section */}
                 <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200 mt-10">
                     <div className="flex items-center gap-2 mb-4 text-gray-800 font-bold">
                         <FileText size={20} className="text-blue-600" />
@@ -384,14 +392,14 @@ export function EditProfile({ initialData }: EditProfileProps) {
                         </div>
 
                         <div className="space-y-2">
-                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Meus Arquivos ({formData.anexos.length})</h4>
+                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Arquivos da Empresa ({formData.anexos.length})</h4>
                             {formData.anexos.map((a, i) => (
                                 <div key={i} className="flex items-center justify-between bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
                                     <span className="text-sm text-gray-700 truncate max-w-[200px]">{a.nome}</span>
                                     <div className="flex gap-2">
                                         <button
                                             type="button"
-                                            onClick={() => handleViewFile(a)}
+                                            onClick={() => handleViewAttachment(a)}
                                             className="text-blue-500 p-1 hover:bg-blue-50 rounded cursor-pointer"
                                             title="Visualizar arquivo"
                                         >

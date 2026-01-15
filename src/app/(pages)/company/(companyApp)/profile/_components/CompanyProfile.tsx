@@ -67,17 +67,46 @@ export function CompanyProfile({ company, fotoPerfil, localidade, contato, email
 
         setFormData(prev => ({ ...prev, anexos: newAnexos }));
     };
-    const handleViewFile = (anexo: any) => {
-        let url = anexo.url || anexo.base64;
-        if (!url) return;
+    const handleViewFile = async (anexo: any) => {
+        const url = anexo.url || anexo.base64;
+        const nome = anexo.nome || 'Arquivo';
 
-        // Se for um arquivo recém-selecionado (Blob/File object)
-        if (anexo instanceof File) {
-            url = URL.createObjectURL(anexo);
+        console.log('[handleViewFile] Iniciando visualização:', { nome, url: url?.substring(0, 100), anexo });
+
+        if (!url) {
+            console.error('[handleViewFile] URL vazia!');
+            alert('Erro: URL do arquivo não encontrada');
+            return;
         }
 
-        const mimeType = anexo.mime || anexo.type;
-        const viewerUrl = `/viewer?url=${encodeURIComponent(url)}&title=${encodeURIComponent(anexo.nome || 'Arquivo')}&type=${encodeURIComponent(mimeType || '')}`;
+        // Verifica se é PDF para aplicar lógica especial
+        const mime = anexo.mime || anexo.type || '';
+        const isPdf = mime.includes('pdf') || url.toLowerCase().includes('.pdf');
+
+        console.log('[handleViewFile] Tipo de arquivo:', { mime, isPdf });
+
+        if (isPdf) {
+            try {
+                console.log('[handleViewFile] É PDF, abrindo viewer com proxy...');
+
+                // Usa a API proxy diretamente no viewer
+                const proxyUrl = `/api/pdf-proxy?url=${encodeURIComponent(url)}`;
+                const viewerUrl = `/viewer?url=${encodeURIComponent(proxyUrl)}&title=${encodeURIComponent(nome)}&type=application/pdf`;
+
+                console.log('[handleViewFile] Proxy URL:', proxyUrl);
+                console.log('[handleViewFile] Abrindo viewer:', viewerUrl);
+                window.open(viewerUrl, '_blank');
+                return;
+            } catch (error) {
+                console.error("[handleViewFile] Erro ao abrir PDF:", error);
+                alert(`Erro ao carregar PDF: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+            }
+        }
+
+        // Para outros tipos de arquivo ou fallback
+        const mimeType = anexo.mime || anexo.type || '';
+        const viewerUrl = `/viewer?url=${encodeURIComponent(url)}&title=${encodeURIComponent(nome)}&type=${encodeURIComponent(mimeType)}`;
+        console.log('[handleViewFile] Abrindo viewer (não-PDF ou fallback):', viewerUrl);
         window.open(viewerUrl, '_blank');
     };
 

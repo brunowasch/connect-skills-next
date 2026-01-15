@@ -12,26 +12,29 @@ export async function uploadToCloudinary(fileUri: string, folder: string) {
     const options: any = {
         folder,
         resource_type: 'auto',
+        access_mode: 'public', // Ensure files are publicly accessible
+        type: 'upload', // Use 'upload' type (not 'authenticated' or 'private')
     };
 
     if (isPdf) {
-        // Enforce 'image' resource_type for PDFs to ensure they are served with correct headers for viewing
-        // and support the .pdf extension in the URL.
-        options.resource_type = 'image';
-        options.format = 'pdf';
+        // Use 'raw' resource_type for PDFs to ensure proper document storage and serving
+        // This allows PDFs to be viewed correctly without conversion issues
+        options.resource_type = 'raw';
         options.public_id = `pdf_${Date.now()}`;
     }
 
     const result = await cloudinary.uploader.upload(fileUri, options);
 
+    // Return the secure URL directly - Cloudinary handles PDFs correctly with 'raw' type
+    // Remove any authentication parameters from the URL
     let url = result.secure_url;
 
-    // For PDF uploaded as image, ensure clean URL with .pdf extension
-    if (isPdf && result.resource_type === 'image') {
-        url = url.split('?')[0];
-        if (!url.toLowerCase().endsWith('.pdf')) {
-            url += '.pdf';
-        }
+    // Clean URL by removing signature parameters if present
+    if (url.includes('?')) {
+        const urlObj = new URL(url);
+        // Remove authentication parameters
+        urlObj.searchParams.delete('_a');
+        url = urlObj.toString();
     }
 
     return url;

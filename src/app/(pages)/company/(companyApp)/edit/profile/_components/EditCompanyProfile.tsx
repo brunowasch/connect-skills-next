@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
     Camera, Upload, Save, AlertTriangle, X, Building2, MapPin, FileText, Eye
 } from 'lucide-react';
@@ -97,22 +97,33 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
         }));
     };
 
-    const handleViewFile = (anexo: any) => {
+    const handleViewAttachment = (anexo: any) => {
         const url = anexo.url || anexo.base64;
+        const name = anexo.nome || 'Arquivo';
+
         if (!url) return;
 
-        // Se for base64 (ainda não subiu), usamos sessionStorage para passar o dado pesado
         if (url.startsWith('data:')) {
             const fileKey = `temp_file_${Date.now()}`;
             sessionStorage.setItem(fileKey, url);
-            const viewerUrl = `/viewer?fileKey=${fileKey}&title=${encodeURIComponent(anexo.nome || 'Preview')}`;
-            window.open(viewerUrl, '_blank');
-            return;
-        }
+            window.open(`/viewer?fileKey=${fileKey}&title=${encodeURIComponent(name)}`, '_blank');
+        } else {
+            let finalUrl = url;
+            let typeParam = '';
 
-        const mimeType = anexo.mime || anexo.type;
-        const viewerUrl = `/viewer?url=${encodeURIComponent(url)}&title=${encodeURIComponent(anexo.nome || 'Arquivo')}&type=${encodeURIComponent(mimeType || '')}`;
-        window.open(viewerUrl, '_blank');
+            const mime = anexo.mime || anexo.type || '';
+            const isPdf = mime.includes('pdf') ||
+                url.toLowerCase().includes('.pdf') ||
+                name.toLowerCase().includes('.pdf');
+            const isCloudinary = url.includes('cloudinary.com');
+
+            if (isPdf && isCloudinary) {
+                finalUrl = `/api/pdf-proxy?url=${encodeURIComponent(url)}`;
+                typeParam = '&type=application/pdf';
+            }
+
+            window.open(`/viewer?url=${encodeURIComponent(finalUrl)}&title=${encodeURIComponent(name)}${typeParam}`, '_blank');
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -335,7 +346,7 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
                                     <div className="flex gap-2">
                                         <button
                                             type="button"
-                                            onClick={() => handleViewFile(a)}
+                                            onClick={() => handleViewAttachment(a)}
                                             className="text-blue-500 p-1 hover:bg-blue-50 rounded cursor-pointer"
                                             title="Visualizar arquivo"
                                         >

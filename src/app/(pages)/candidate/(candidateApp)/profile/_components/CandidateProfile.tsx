@@ -28,45 +28,46 @@ export function CandidateProfile({ candidato, fotoPerfil, localidade, contato, l
 
 
     const handleViewFile = async (url: string, nome: string) => {
-        // Tenta buscar o arquivo e converter para base64 para abrir com o viewer nativo
-        // Isso resolve problemas de CORS ou visualização remota (Cloudinary/Google)
-        // replicando a lógica de "preview" que funciona no Edit Profile.
+        console.log('[handleViewFile] Iniciando visualização:', { nome, url: url?.substring(0, 100) });
 
-        // Verifica se é PDF para aplicar essa lógica (imagens usually abrem bem direto)
-        const isPdf = url.toLowerCase().endsWith('.pdf') || url.includes('.pdf');
+        if (!url) {
+            console.error('[handleViewFile] URL vazia!');
+            alert('Erro: URL do arquivo não encontrada');
+            return;
+        }
+
+        // Verifica se é PDF para aplicar essa lógica
+        const lowerUrl = url.toLowerCase();
+        const lowerName = nome?.toLowerCase() || '';
+        const isPdf = lowerUrl.includes('.pdf') ||
+            lowerUrl.includes('/pdf') ||
+            lowerName.endsWith('.pdf');
+
+        console.log('[handleViewFile] Tipo de arquivo:', { isPdf, lowerUrl, lowerName });
 
         if (isPdf) {
             try {
-                // Abre uma nova aba imediatamente para não bloquear o popup, 
-                // mas vamos redirecionar depois (hacky but works often) 
-                // OU (melhor) abre o viewer com um estado de loading
+                console.log('[handleViewFile] É PDF, abrindo viewer com proxy...');
 
-                // Vamos usar a estratégia de fetch direto
-                const response = await fetch(url);
-                const blob = await response.blob();
-                const reader = new FileReader();
+                let finalUrl = url;
+                // Usa a API proxy se for Cloudinary para resolver CORS e Content-Type
+                if (url.includes('cloudinary.com')) {
+                    finalUrl = `/api/pdf-proxy?url=${encodeURIComponent(url)}`;
+                }
 
-                reader.onloadend = () => {
-                    const base64 = reader.result as string;
-                    const fileKey = `temp_file_${Date.now()}`;
+                const viewerUrl = `/viewer?url=${encodeURIComponent(finalUrl)}&title=${encodeURIComponent(nome)}&type=application/pdf`;
 
-                    // Salva no sessionStorage 
-                    sessionStorage.setItem(fileKey, base64);
-
-                    // Abre o viewer apontando para a key
-                    const viewerUrl = `/viewer?fileKey=${fileKey}&title=${encodeURIComponent(nome)}`;
-                    window.open(viewerUrl, '_blank');
-                };
-
-                reader.readAsDataURL(blob);
+                console.log('[handleViewFile] Abrindo viewer:', viewerUrl);
+                window.open(viewerUrl, '_blank');
                 return;
             } catch (error) {
-                console.error("Erro ao converter arquivo localmente:", error);
-                // Fallback continua abaixo
+                console.error("[handleViewFile] Erro ao abrir PDF:", error);
+                alert(`Erro ao carregar PDF: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
             }
         }
 
         const viewerUrl = `/viewer?url=${encodeURIComponent(url)}&title=${encodeURIComponent(nome)}`;
+        console.log('[handleViewFile] Abrindo viewer (não-PDF ou fallback):', viewerUrl);
         window.open(viewerUrl, '_blank');
     };
 

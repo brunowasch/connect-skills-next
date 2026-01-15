@@ -23,24 +23,13 @@ export default function ViewerPage() {
     if (!fileUrl) return <div className="p-10 text-center">Carregando arquivo...</div>;
 
     const fileType = searchParams.get('type');
-    const isPdf = (fileType && fileType.includes('pdf')) || fileUrl.includes('application/pdf') || fileUrl.toLowerCase().endsWith('.pdf');
+    const isPdf = fileType === 'application/pdf' || (fileType && fileType.includes('pdf'));
 
     if (isPdf) {
-        // Tenta corrigir URL do Cloudinary para entrega correta de PDF se for image-resource
-        let finalUrl = fileUrl;
-
-        // Se for URL do Cloudinary e NÃO for 'raw', tentamos garantir a extensão .pdf
-        if (finalUrl.includes('cloudinary.com') && !finalUrl.includes('/raw/')) {
-            // Remove query params para verificar extensão limpa
-            const cleanUrl = finalUrl.split('?')[0];
-            if (!cleanUrl.toLowerCase().endsWith('.pdf')) {
-                finalUrl += '.pdf';
-            }
-        }
-
+        const finalUrl = fileUrl;
         const isExternal = finalUrl.startsWith('http');
 
-        // Renderiza PDF nativo via iframe (melhor compatibilidade)
+        // Renderiza PDF nativo via iframe
         return (
             <div className="w-full h-screen bg-gray-900 flex flex-col relative group">
                 <iframe

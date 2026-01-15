@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { randomUUID } from "crypto";
 import { uploadToCloudinary } from "@/src/lib/cloudinary";
 
-export async function POST(req: NextRequest) {
+export async function PUT(req: NextRequest) {
     try {
         const cookieStore = await cookies();
         const userId = cookieStore.get("time_user_id")?.value;
@@ -24,8 +24,6 @@ export async function POST(req: NextRequest) {
                 finalFotoPerfil = await uploadToCloudinary(fotoPerfil, "candidate_profiles");
             } catch (error) {
                 console.error("Erro ao fazer upload para Cloudinary:", error);
-                // Opcional: retornar erro ou continuar com o que tiver (base64)
-                // Melhor falhar para não poluir o banco com base64 gigante
                 return NextResponse.json({ error: "Erro ao processar imagem de perfil" }, { status: 500 });
             }
         }
@@ -49,7 +47,6 @@ export async function POST(req: NextRequest) {
             }
         });
 
-        // Sync with usuario record
         await prisma.usuario.update({
             where: { id: userId },
             data: {
@@ -61,7 +58,6 @@ export async function POST(req: NextRequest) {
 
 
         // Atualizar links
-        // Primeiro remove os antigos (estratégia simples)
         await prisma.candidato_link.deleteMany({
             where: { candidato: { usuario_id: userId } }
         });
@@ -78,7 +74,7 @@ export async function POST(req: NextRequest) {
                 .map((l: any, index: number) => ({
                     id: randomUUID(),
                     candidato_id: candidate.id,
-                    label: "Link", // Ou extrair o domínio como label
+                    label: "Link",
                     url: l.url,
                     ordem: index
                 }));
@@ -112,8 +108,6 @@ export async function POST(req: NextRequest) {
                             console.error("Erro ao subir anexo:", error);
                         }
                     } else if (anexo.id) {
-                        // Arquivo existente (manter apenas se for necessário ou se quisermos recriar)
-                        // Para simplificar seguindo a lógica do link, vamos recriar os existentes pegando os dados atuais
                         const existing = await prisma.candidato_arquivo.findUnique({
                             where: { id: anexo.id }
                         });
