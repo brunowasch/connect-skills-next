@@ -11,7 +11,7 @@ export function ProfileCompletion({ candidato, usuario, areas }: ProfileCompleti
     // 1. Lógica de Resolução de Dados (Substitui os consts do seu EJS)
     const stats = useMemo(() => {
         const fotoUrl = candidato?.foto_perfil || usuario?.foto_perfil || '';
-        const hasFoto = fotoUrl !== '' && fotoUrl !== '/img/avatar.png';
+        const hasFoto = fotoUrl !== '' && fotoUrl !== '/img/avatar.png' && fotoUrl !== '/img/DEFAULT_AVATAR.png';
 
         const localidadeValida = (loc: any) => {
             if (!loc) return false;

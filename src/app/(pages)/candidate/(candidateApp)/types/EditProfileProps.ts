@@ -8,7 +8,7 @@ export interface EditProfileProps {
         ddd?: string;
         numero?: string;
         descricao?: string;
-        fotoPerfil?: string;
+        fotoPerfil?: string | null;
         links: { id?: string, label?: string, url: string, ordem?: number }[];
         anexos: any[];
     };

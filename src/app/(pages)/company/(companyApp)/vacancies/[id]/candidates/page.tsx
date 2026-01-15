@@ -1,6 +1,6 @@
 import { prisma } from "@/src/lib/prisma";
 import Link from 'next/link';
-import { ArrowLeft, Mail, Phone, Calendar } from "lucide-react";
+import { ArrowLeft, Mail, Phone, Calendar, User } from "lucide-react";
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -79,7 +79,7 @@ export default async function VacancyCandidatesPage({ params }: Props) {
                                     {candidate.foto_perfil || candidate.usuario?.avatarUrl ? (
                                         <img src={candidate.foto_perfil || candidate.usuario?.avatarUrl!} alt="" className="w-full h-full object-cover" />
                                     ) : (
-                                        (candidate.nome?.[0] || 'C')
+                                        <User size={32} className="text-blue-400" />
                                     )}
                                 </div>
                                 <div>

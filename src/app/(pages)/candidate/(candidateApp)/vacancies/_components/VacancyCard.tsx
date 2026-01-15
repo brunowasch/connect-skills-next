@@ -1,10 +1,9 @@
 "use client";
 
 import { Vacancy } from '@/src/app/(pages)/candidate/(candidateApp)/types/Vacancy';
-import { User } from 'lucide-react';
+import { MapPin, Briefcase, HeartHandshake, Building2 } from "lucide-react";
 import Image from 'next/image';
 import Link from 'next/link';
-import { MapPin, Briefcase, HeartHandshake } from "lucide-react";
 
 const tipoMap = {
     Presencial: 'Presencial',
@@ -23,7 +22,7 @@ const vinculoMap: Record<string, string> = {
     Temporario: 'Temporário',
 };
 
-const DEFAULT_AVATAR = <User className="w-6 h-6 sm:w-7 sm:h-7 text-slate-500" />;
+const DEFAULT_AVATAR = <Building2 className="w-6 h-6 sm:w-7 sm:h-7 text-slate-500" />;
 
 export function VacancyCard({ vaga }: { vaga: Vacancy }) {
     let inclusivity = null;

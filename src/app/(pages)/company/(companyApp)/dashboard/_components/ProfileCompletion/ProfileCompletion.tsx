@@ -9,7 +9,7 @@ export function ProfileCompletion({ company }: CompanyProfileProps) {
     const hasLocal = !!(company.cidade || company.estado || company.pais);
     const hasTel = !!(company.telefone && company.telefone.trim() !== '');
 
-    const placeholders = ['/img/avatar.png', '/img/empresa-padrao.png'];
+    const placeholders = ['/img/avatar.png', '/img/empresa-padrao.png', '/img/company-placeholder.png'];
     const hasFoto = !!(company.foto_perfil && !placeholders.includes(company.foto_perfil));
 
     const checklist = [hasNome, hasLocal, hasTel, hasFoto];

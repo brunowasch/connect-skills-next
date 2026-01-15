@@ -45,7 +45,7 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
         links: initialData.links.length > 0 ? initialData.links : [{ label: '', url: '' }],
     });
 
-    const [fotoPreview, setFotoPreview] = useState(initialData.foto_perfil || '/img/company-placeholder.png');
+    const [fotoPreview, setFotoPreview] = useState(initialData.foto_perfil || null);
     const [showPhotoOptions, setShowPhotoOptions] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -230,11 +230,17 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
                     {/* Left Column - Photo */}
                     <div className="md:col-span-4 flex flex-col items-center">
                         <div className="relative group">
-                            <img
-                                src={fotoPreview}
-                                alt="Preview"
-                                className="w-56 h-56 rounded-full object-cover border-4 border-white shadow-xl ring-1 ring-gray-200"
-                            />
+                            {fotoPreview ? (
+                                <img
+                                    src={fotoPreview}
+                                    alt="Preview"
+                                    className="w-56 h-56 rounded-full object-cover border-4 border-white shadow-xl ring-1 ring-gray-200"
+                                />
+                            ) : (
+                                <div className="w-56 h-56 rounded-full bg-gray-100 border-4 border-white shadow-xl ring-1 ring-gray-200 flex items-center justify-center">
+                                    <Building2 size={80} className="text-gray-400" />
+                                </div>
+                            )}
                             <button
                                 type="button"
                                 onClick={() => setShowPhotoOptions(!showPhotoOptions)}
@@ -264,7 +270,7 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
                                     type="button"
                                     className="text-red-500 text-xs font-semibold hover:underline mt-2 cursor-pointer"
                                     onClick={() => {
-                                        setFotoPreview('/img/company-placeholder.png');
+                                        setFotoPreview(null);
                                         setFormData(prev => ({ ...prev, fotoPerfil: null }));
                                     }}
                                 >

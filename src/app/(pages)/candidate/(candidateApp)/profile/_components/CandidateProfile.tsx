@@ -84,11 +84,17 @@ export function CandidateProfile({ candidato, fotoPerfil, localidade, contato, l
             {/* HEADER DO PERFIL */}
             <div className="flex flex-col md:flex-row items-center md:items-start gap-6 border-b border-gray-100 pb-8">
                 <div className="relative">
-                    <img
-                        src={fotoPerfil || "/img/avatar.png"}
-                        alt="Foto de perfil"
-                        className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-md ring-1 ring-gray-200"
-                    />
+                    {fotoPerfil ? (
+                        <img
+                            src={fotoPerfil}
+                            alt="Foto de perfil"
+                            className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-md ring-1 ring-gray-200"
+                        />
+                    ) : (
+                        <div className="w-32 h-32 rounded-full bg-slate-100 border-4 border-white shadow-md ring-1 ring-gray-200 flex items-center justify-center">
+                            <User size={64} className="text-slate-400" />
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex-grow text-center md:text-left">

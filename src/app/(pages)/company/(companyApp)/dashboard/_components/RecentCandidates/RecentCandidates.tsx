@@ -42,7 +42,7 @@ export function RecentCandidates({ applications }: RecentCandidatesProps) {
                         className="group p-4 sm:p-5 hover:bg-slate-50 transition-all duration-200 flex items-center gap-4"
                     >
                         {/* Avatar */}
-                        <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-slate-100 overflow-hidden shrink-0 border border-slate-200">
+                        <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-slate-100 overflow-hidden shrink-0 border border-slate-200 flex items-center justify-center">
                             {app.candidatePhoto ? (
                                 <img
                                     src={app.candidatePhoto}
@@ -50,9 +50,7 @@ export function RecentCandidates({ applications }: RecentCandidatesProps) {
                                     className="h-full w-full object-cover"
                                 />
                             ) : (
-                                <div className="h-full w-full flex items-center justify-center text-slate-400 font-bold text-lg">
-                                    {app.candidateName.charAt(0).toUpperCase()}
-                                </div>
+                                <Users size={20} className="text-slate-400" />
                             )}
                         </div>
 

@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
     Camera, Upload, Trash2, MapPin, PlusCircle,
-    FileText, X, Save, AlertTriangle, UserCircle, Check, Eye
+    FileText, X, Save, AlertTriangle, User, UserCircle, Check, Eye
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { EditProfileProps } from '@/src/app/(pages)/candidate/(candidateApp)/types/EditProfileProps';
@@ -16,7 +16,7 @@ export function EditProfile({ initialData }: EditProfileProps) {
         pais: initialData.pais || "Brasil"
     });
     const [links, setLinks] = useState(initialData.links.length > 0 ? initialData.links : [{ label: '', url: '' }]);
-    const [fotoPreview, setFotoPreview] = useState(initialData.fotoPerfil || '/img/avatar.png');
+    const [fotoPreview, setFotoPreview] = useState(initialData.fotoPerfil || null);
     const [showPhotoOptions, setShowPhotoOptions] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -190,11 +190,17 @@ export function EditProfile({ initialData }: EditProfileProps) {
 
                     <div className="md:col-span-4 flex flex-col items-center">
                         <div className="relative group">
-                            <img
-                                src={fotoPreview}
-                                alt="Preview"
-                                className="w-56 h-56 rounded-full object-cover border-4 border-white shadow-xl ring-1 ring-gray-200"
-                            />
+                            {fotoPreview ? (
+                                <img
+                                    src={fotoPreview}
+                                    alt="Preview"
+                                    className="w-56 h-56 rounded-full object-cover border-4 border-white shadow-xl ring-1 ring-gray-200"
+                                />
+                            ) : (
+                                <div className="w-56 h-56 rounded-full bg-slate-100 border-4 border-white shadow-xl ring-1 ring-gray-200 flex items-center justify-center">
+                                    <User size={64} className="text-slate-400" />
+                                </div>
+                            )}
                             <button
                                 type="button"
                                 onClick={() => setShowPhotoOptions(!showPhotoOptions)}
@@ -224,8 +230,8 @@ export function EditProfile({ initialData }: EditProfileProps) {
                                     type="button"
                                     className="text-red-500 text-xs font-semibold hover:underline mt-2 cursor-pointer"
                                     onClick={() => {
-                                        setFotoPreview('/img/avatar.png');
-                                        setFormData(prev => ({ ...prev, fotoPerfil: '/img/avatar.png' }));
+                                        setFotoPreview(null);
+                                        setFormData(prev => ({ ...prev, fotoPerfil: null }));
                                     }}
                                 >
                                     Remover foto

@@ -131,8 +131,8 @@ export function CompanyProfile({ company, fotoPerfil, localidade, contato, email
                                 className="object-cover"
                             />
                         ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">
-                                <Building2 size={48} className="text-white" />
+                            <div className="w-full h-full flex items-center justify-center bg-slate-200">
+                                <Building2 size={48} className="text-slate-500" />
                             </div>
                         )}
                     </div>

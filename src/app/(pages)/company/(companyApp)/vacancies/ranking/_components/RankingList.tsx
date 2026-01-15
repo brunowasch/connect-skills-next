@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Mail, FileText, Brain } from "lucide-react";
+import { Mail, FileText, Brain, User } from "lucide-react";
 import { AnswersModal } from "./AnswersModal";
 import { AnalysisModal } from "./AnalysisModal";
 
@@ -137,7 +137,7 @@ export function RankingList({ candidates, vacancyId }: RankingListProps) {
                                         {candidate.foto_perfil || candidate.usuario?.avatarUrl ? (
                                             <img src={candidate.foto_perfil || candidate.usuario?.avatarUrl!} alt="" className="w-full h-full object-cover" />
                                         ) : (
-                                            (candidate.nome?.[0] || 'C')
+                                            <User size={32} className="text-blue-400" />
                                         )}
                                     </div>
                                     <div>

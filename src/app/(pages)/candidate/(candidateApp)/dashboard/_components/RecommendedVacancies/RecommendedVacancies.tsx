@@ -44,13 +44,17 @@ export function RecommendedVacancies({ vacanciesRecommended }: RecommendedVacanc
               <div className="flex gap-4 items-start">
                 {/* Logo da Empresa */}
                 <Link href={`/viewer/vacancy/${vacancy.uuid}`} className="relative flex-shrink-0">
-                  <div className="w-16 h-16 relative rounded-full overflow-hidden border border-slate-100">
-                    <Image
-                      src={vacancy.empresa?.foto_perfil || '/img/avatar.png'}
-                      alt="Logo"
-                      fill
-                      className="object-cover"
-                    />
+                  <div className="w-16 h-16 relative rounded-full overflow-hidden border border-slate-100 flex items-center justify-center bg-gray-50">
+                    {vacancy.empresa?.foto_perfil ? (
+                      <Image
+                        src={vacancy.empresa.foto_perfil}
+                        alt="Logo"
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <Building2 size={32} className="text-gray-400" />
+                    )}
                   </div>
                 </Link>
 

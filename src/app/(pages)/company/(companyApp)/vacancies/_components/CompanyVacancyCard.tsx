@@ -6,8 +6,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { selectVacancyForRanking } from "../actions";
 
-// Define locally or import. Ideally share types.
-// Extending the structure we saw in page.tsx logic
 export interface CompanyVacancy {
     id: string;
     uuid?: string | null;
@@ -16,9 +14,8 @@ export interface CompanyVacancy {
     created_at: Date;
     status: string;
     _count?: {
-        vaga_avaliacao?: number; // Applications count
+        vaga_avaliacao?: number;
     };
-    // Add other fields as necessary
 }
 
 const tipoMap = {
