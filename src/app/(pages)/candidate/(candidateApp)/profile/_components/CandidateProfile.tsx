@@ -28,7 +28,7 @@ export function CandidateProfile({ candidato, fotoPerfil, localidade, contato, l
 
 
     const handleViewFile = async (url: string, nome: string) => {
-        console.log('[handleViewFile] Iniciando visualização:', { nome, url: url?.substring(0, 100) });
+        // console.log('[handleViewFile] Iniciando visualização:', { nome, url: url?.substring(0, 100) });
 
         if (!url) {
             console.error('[handleViewFile] URL vazia!');
@@ -43,7 +43,7 @@ export function CandidateProfile({ candidato, fotoPerfil, localidade, contato, l
             lowerUrl.includes('/pdf') ||
             lowerName.endsWith('.pdf');
 
-        console.log('[handleViewFile] Tipo de arquivo:', { isPdf, lowerUrl, lowerName });
+        // console.log('[handleViewFile] Tipo de arquivo:', { isPdf, lowerUrl, lowerName });
 
         if (isPdf) {
             try {
@@ -57,7 +57,7 @@ export function CandidateProfile({ candidato, fotoPerfil, localidade, contato, l
 
                 const viewerUrl = `/viewer?url=${encodeURIComponent(finalUrl)}&title=${encodeURIComponent(nome)}&type=application/pdf`;
 
-                console.log('[handleViewFile] Abrindo viewer:', viewerUrl);
+                // console.log('[handleViewFile] Abrindo viewer:', viewerUrl);
                 window.open(viewerUrl, '_blank');
                 return;
             } catch (error) {
@@ -67,7 +67,7 @@ export function CandidateProfile({ candidato, fotoPerfil, localidade, contato, l
         }
 
         const viewerUrl = `/viewer?url=${encodeURIComponent(url)}&title=${encodeURIComponent(nome)}`;
-        console.log('[handleViewFile] Abrindo viewer (não-PDF ou fallback):', viewerUrl);
+        // console.log('[handleViewFile] Abrindo viewer (não-PDF ou fallback):', viewerUrl);
         window.open(viewerUrl, '_blank');
     };
 

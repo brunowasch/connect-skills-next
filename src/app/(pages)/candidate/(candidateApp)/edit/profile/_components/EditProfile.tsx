@@ -107,29 +107,24 @@ export function EditProfile({ initialData }: EditProfileProps) {
             let finalUrl = url;
             let typeParam = '';
 
-            // Check if it's a PDF to use proxy
-            console.log("handleViewAttachment ANEXO:", anexo);
+            // console.log("handleViewAttachment ANEXO:", anexo);
             const mime = (anexo.mime || anexo.type || '').toLowerCase();
             const lowerName = name.toLowerCase();
             const lowerUrl = url.toLowerCase();
 
             const isPdf = mime.includes('pdf') ||
                 lowerUrl.includes('.pdf') ||
-                lowerUrl.includes('/pdf') || // Cloudinary 'pdf' resource type often appears in path
+                lowerUrl.includes('/pdf') ||
                 lowerName.endsWith('.pdf');
 
-            console.log("isPdf detection:", { isPdf, mime, lowerName, lowerUrl });
+            // console.log("isPdf detection:", { isPdf, mime, lowerName, lowerUrl });
 
-            // Only use proxy if it's a Cloudinary URL
             const isCloudinary = url.includes('cloudinary.com');
 
             if (isPdf) {
                 if (isCloudinary) {
                     finalUrl = `/api/pdf-proxy?url=${encodeURIComponent(url)}`;
                 }
-                // If not Cloudinary but is PDF, we still might want to force type if needed, 
-                // but usually the browser handles direct links well. 
-                // However, for consistency, let's just make sure the viewer knows it's a PDF.
                 typeParam = '&type=application/pdf';
             }
 

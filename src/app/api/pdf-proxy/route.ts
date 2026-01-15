@@ -25,8 +25,8 @@ export async function GET(request: NextRequest) {
             console.warn('[PDF Proxy] Erro ao limpar URL, usando original:', e);
         }
 
-        console.log('[PDF Proxy] URL original recebida');
-        console.log('[PDF Proxy] URL limpa para fetch:', url);
+        // console.log('[PDF Proxy] URL original recebida');
+        // console.log('[PDF Proxy] URL limpa para fetch:', url);
 
         // Faz requisição ao Cloudinary
         const response = await fetch(url);
@@ -37,19 +37,19 @@ export async function GET(request: NextRequest) {
             // Se ainda der erro 401, tenta remover completamente a versão da URL
             if (response.status === 401) {
                 try {
-                    console.log('[PDF Proxy] Tentando sem versão...');
+                    // console.log('[PDF Proxy] Tentando sem versão...');
                     const cleanUrl = url.replace(/\/v\d+\//, '/');
-                    console.log('[PDF Proxy] URL sem versão:', cleanUrl);
+                    // console.log('[PDF Proxy] URL sem versão:', cleanUrl);
 
                     const retryResponse = await fetch(cleanUrl);
                     if (retryResponse.ok) {
                         const blob = await retryResponse.blob();
                         const arrayBuffer = await blob.arrayBuffer();
 
-                        console.log('[PDF Proxy] Sucesso sem versão:', {
-                            size: arrayBuffer.byteLength,
-                            type: blob.type
-                        });
+                        // console.log('[PDF Proxy] Sucesso sem versão:', {
+                        //     size: arrayBuffer.byteLength,
+                        //     type: blob.type
+                        // });
 
                         // Determina o Content-Type correto
                         let contentType = blob.type;
@@ -81,10 +81,10 @@ export async function GET(request: NextRequest) {
         const blob = await response.blob();
         const arrayBuffer = await blob.arrayBuffer();
 
-        console.log('[PDF Proxy] Arquivo obtido com sucesso:', {
-            size: arrayBuffer.byteLength,
-            type: blob.type
-        });
+        // console.log('[PDF Proxy] Arquivo obtido com sucesso:', {
+        //     size: arrayBuffer.byteLength,
+        //     type: blob.type
+        // });
 
         // Determina o Content-Type correto
         let contentType = blob.type;
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
             contentType = 'application/pdf';
         }
 
-        console.log('[PDF Proxy] Usando Content-Type:', contentType);
+        // console.log('[PDF Proxy] Usando Content-Type:', contentType);
 
         // Retorna o arquivo com os headers corretos
         return new NextResponse(arrayBuffer, {
