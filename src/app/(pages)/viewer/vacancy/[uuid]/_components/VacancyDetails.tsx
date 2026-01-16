@@ -19,10 +19,27 @@ import {
     Check,
     HeartHandshake,
     Eye,
+    Edit,
+    Power,
+    Unlock,
+    Lock,
+    BarChart3,
+    X,
+    AlertCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { selectVacancyForRanking, selectVacancyForEditing } from "@/src/app/(pages)/company/(companyApp)/vacancies/actions";
+
+interface ModalConfig {
+    isOpen: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+    confirmText: string;
+    variant: 'danger' | 'warning' | 'success' | 'info';
+}
 
 interface VacancyDetailsProps {
     vacancy: {
@@ -69,6 +86,8 @@ interface VacancyDetailsProps {
     } | null;
     isActive: boolean;
     applicationCount: number;
+    userType?: string;
+    isOwner?: boolean;
 }
 
 const tipoLocalTrabalhoMap: Record<string, { label: string; icon: any }> = {
@@ -88,12 +107,26 @@ const vinculoEmpregaticioMap: Record<string, string> = {
     Temporario: "Temporário",
 };
 
-export function VacancyDetails({ vacancy, company, isActive, applicationCount }: VacancyDetailsProps) {
+export function VacancyDetails({ vacancy, company, isActive, applicationCount, userType, isOwner }: VacancyDetailsProps) {
     const router = useRouter();
     const stickyCardRef = useRef<HTMLDivElement>(null);
     const [isStickyVisible, setIsStickyVisible] = useState(true);
     const [hasScroll, setHasScroll] = useState(false);
     const [linkCopied, setLinkCopied] = useState(false);
+    const [isPending, startTransition] = useTransition();
+    const [modal, setModal] = useState<ModalConfig>({
+        isOpen: false,
+        title: '',
+        description: '',
+        onConfirm: () => { },
+        confirmText: '',
+        variant: 'info'
+    });
+
+    const normalizedUserType = userType?.toUpperCase();
+    const isCandidate = normalizedUserType === 'CANDIDATO';
+    const isCompany = normalizedUserType === 'EMPRESA';
+    const isGuest = !normalizedUserType;
     const workType = tipoLocalTrabalhoMap[vacancy.tipo_local_trabalho] || tipoLocalTrabalhoMap.Presencial;
     const WorkTypeIcon = workType.icon;
 
@@ -204,6 +237,70 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount }:
         }
     };
 
+    const handleUpdateStatus = async (newStatus: string) => {
+        const config = {
+            'Ativa': {
+                title: 'Reabrir Vaga',
+                description: 'Deseja reabrir esta vaga? Ela voltará a ficar visível para todos os candidatos.',
+                confirmText: 'Reabrir Vaga',
+                variant: 'success' as const
+            },
+            'Fechada': {
+                title: 'Trancar Vaga',
+                description: 'Deseja trancar esta vaga? Candidatos não poderão mais se inscrever temporariamente.',
+                confirmText: 'Trancar Vaga',
+                variant: 'warning' as const
+            },
+            'Inativa': {
+                title: 'Desativar Vaga',
+                description: 'Tem certeza que deseja desativar esta vaga? Esta ação removerá a vaga da listagem pública.',
+                confirmText: 'Desativar Vaga',
+                variant: 'danger' as const
+            }
+        }[newStatus] || {
+            title: 'Confirmar Ação',
+            description: `Deseja alterar o status para ${newStatus}?`,
+            confirmText: 'Confirmar',
+            variant: 'info' as const
+        };
+
+        setModal({
+            isOpen: true,
+            ...config,
+            onConfirm: async () => {
+                try {
+                    const res = await fetch(`/api/vacancies/${vacancy.id}/status`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ situacao: newStatus })
+                    });
+
+                    if (res.ok) {
+                        router.refresh();
+                        setModal(prev => ({ ...prev, isOpen: false }));
+                    } else {
+                        alert("Erro ao atualizar status.");
+                    }
+                } catch (e) {
+                    console.error(e);
+                    alert("Erro de conexão.");
+                }
+            }
+        });
+    };
+
+    const handleRankCandidates = () => {
+        startTransition(() => {
+            selectVacancyForRanking(vacancy.id);
+        });
+    };
+
+    const handleEditVacancy = () => {
+        startTransition(() => {
+            selectVacancyForEditing(vacancy.id);
+        });
+    };
+
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Header simplificado */}
@@ -250,7 +347,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount }:
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={handleCopyLink}
-                                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 cursor-pointer group relative"
+                                        className="p-2 hover:bg-gray-100 rounded-lg tr ansition-colors border border-gray-200 cursor-pointer group relative"
                                         title="Copiar link da vaga"
                                     >
                                         {linkCopied ? (
@@ -487,18 +584,125 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount }:
                                 )}
                             </div>
 
-                            {/* CTA Button */}
-                            {isActive && (
-                                <button className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors cursor-pointer">
-                                    Candidatar-se
-                                </button>
+                            {/* CTA Button or Management Actions */}
+                            {isOwner ? (
+                                <div className="mt-6 space-y-2">
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <button
+                                            onClick={handleEditVacancy}
+                                            disabled={isPending}
+                                            className="flex items-center justify-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                                        >
+                                            <Edit size={16} />
+                                            Editar
+                                        </button>
+
+                                        {!isActive ? (
+                                            <button
+                                                onClick={() => handleUpdateStatus('Ativa')}
+                                                className="flex items-center justify-center gap-2 bg-emerald-50 border border-emerald-100 hover:bg-emerald-100 text-emerald-700 font-medium py-2 px-4 rounded-lg transition-colors cursor-pointer"
+                                            >
+                                                <Unlock size={16} />
+                                                Abrir
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={() => handleUpdateStatus('Fechada')}
+                                                className="flex items-center justify-center gap-2 bg-amber-50 border border-amber-100 hover:bg-amber-100 text-amber-700 font-medium py-2 px-4 rounded-lg transition-colors cursor-pointer"
+                                            >
+                                                <Lock size={16} />
+                                                Trancar
+                                            </button>
+                                        )}
+                                    </div>
+                                    <button
+                                        onClick={() => handleUpdateStatus('Inativa')}
+                                        className="w-full flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2.5 px-4 rounded-lg transition-colors cursor-pointer border border-red-100"
+                                    >
+                                        <Power size={18} />
+                                        Desativar Vaga
+                                    </button>
+
+                                    <button
+                                        onClick={handleRankCandidates}
+                                        disabled={isPending}
+                                        className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors cursor-pointer disabled:opacity-50 mt-2"
+                                    >
+                                        <BarChart3 size={18} />
+                                        Ver Ranking de Candidatos
+                                    </button>
+                                </div>
+                            ) : (
+                                isActive && (isCandidate || isGuest) && (
+                                    <button className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors cursor-pointer">
+                                        Candidatar-se
+                                    </button>
+                                )
                             )}
                         </div>
                     </div>
                 </div>
 
-                {/* CTA Button no final da página - Aparece apenas se houver scroll e o card de informações não estiver visível */}
-                {isActive && hasScroll && !isStickyVisible && (
+                {modal.isOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+                        {/* Backdrop */}
+                        <div
+                            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300"
+                            onClick={() => setModal(prev => ({ ...prev, isOpen: false }))}
+                        />
+
+                        {/* Modal Card */}
+                        <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 fade-in duration-300 scale-100">
+                            <div className="p-6">
+                                <div className="flex items-start gap-4">
+                                    <div className={`p-3 rounded-xl shrink-0 ${modal.variant === 'danger' ? 'bg-red-50 text-red-600' :
+                                        modal.variant === 'warning' ? 'bg-amber-50 text-amber-600' :
+                                            modal.variant === 'success' ? 'bg-emerald-50 text-emerald-600' :
+                                                'bg-blue-50 text-blue-600'
+                                        }`}>
+                                        <AlertCircle size={24} />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="text-xl font-bold text-slate-900 mb-2 leading-tight">
+                                            {modal.title}
+                                        </h3>
+                                        <p className="text-slate-600 leading-relaxed">
+                                            {modal.description}
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={() => setModal(prev => ({ ...prev, isOpen: false }))}
+                                        className="text-slate-400 hover:text-slate-600 transition-colors p-1 cursor-pointer"
+                                    >
+                                        <X size={20} />
+                                    </button>
+                                </div>
+
+                                <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                                    <button
+                                        onClick={() => setModal(prev => ({ ...prev, isOpen: false }))}
+                                        className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-all active:scale-95 cursor-pointer"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={modal.onConfirm}
+                                        className={`flex-1 px-4 py-2.5 text-white font-semibold rounded-xl transition-all active:scale-95 shadow-lg shadow-opacity-20 cursor-pointer ${modal.variant === 'danger' ? 'bg-red-600 hover:bg-red-700 shadow-red-500/30' :
+                                            modal.variant === 'warning' ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/30' :
+                                                modal.variant === 'success' ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/30' :
+                                                    'bg-blue-600 hover:bg-blue-700 shadow-blue-500/30'
+                                            }`}
+                                    >
+                                        {modal.confirmText}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* CTA Button no final da página */}
+                {!isOwner && isActive && hasScroll && !isStickyVisible && (isCandidate || isGuest) && (
                     <div className="mt-10">
                         <div className="bg-white rounded-lg border border-gray-200 p-6 lg:p-8 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4">
                             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">

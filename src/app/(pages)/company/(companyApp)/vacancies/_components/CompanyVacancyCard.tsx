@@ -4,7 +4,7 @@ import { useTransition } from "react";
 import { Edit, Users, Eye, MoreHorizontal, Trash2 } from "lucide-react"; // Icons
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { selectVacancyForRanking } from "../actions";
+import { selectVacancyForRanking, selectVacancyForEditing } from "../actions";
 
 export interface CompanyVacancy {
     id: string;
@@ -76,54 +76,22 @@ export function CompanyVacancyCard({ vacancy }: { vacancy: CompanyVacancy }) {
                     <Users size={16} />
                     Ver Candidatos
                 </button>
-
                 <Link
-                    href={`/company/vacancies/${vacancy.id}/edit`}
-                    onClick={(e) => e.stopPropagation()}
-                    className="flex items-center justify-center w-10 h-10 text-gray-400 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-colors border border-gray-200"
+                    href={`/viewer/vacancy/${vacancy.uuid}`}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-medium cursor-pointer hover:bg-blue-100 transition-colors"
+                >
+                    Ver Vaga
+                </Link>
+                <button
+                    onClick={(e) => {
+                        e.preventDefault();
+                        startTransition(() => selectVacancyForEditing(vacancy.id));
+                    }}
+                    className="flex items-center justify-center w-10 h-10 text-gray-400 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-colors border border-gray-200 cursor-pointer"
                     title="Editar Vaga"
                 >
                     <Edit size={16} />
-                </Link>
-                {vacancy.status === 'Ativa' ? (
-                    <button
-                        className="flex items-center justify-center w-10 h-10 text-gray-400 hover:text-red-600 hover:bg-red-100 rounded-lg transition-colors border border-gray-200 cursor-pointer"
-                        title="Desativar Vaga"
-                        onClick={async (e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            if (confirm("Deseja desativar esta vaga? Ela deixará de receber novas candidaturas.")) {
-                                try {
-                                    const res = await fetch(`/api/vacancies/${vacancy.id}/status`, {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ situacao: 'Inativa' })
-                                    });
-                                    if (res.ok) {
-                                        startTransition(() => {
-                                            router.refresh();
-                                        });
-                                    } else {
-                                        alert("Erro ao desativar vaga.");
-                                    }
-                                } catch (e) {
-                                    console.error(e);
-                                    alert("Erro ao conectar com servidor.");
-                                }
-                            }
-                        }}
-                    >
-                        <Trash2 size={16} />
-                    </button>
-                ) : (
-                    <button
-                        disabled
-                        className="flex items-center justify-center w-10 h-10 text-gray-300 bg-gray-50 rounded-lg border border-gray-100 cursor-not-allowed"
-                        title="Vaga Inativa"
-                    >
-                        <Trash2 size={16} />
-                    </button>
-                )}
+                </button>
             </div>
         </div >
     );

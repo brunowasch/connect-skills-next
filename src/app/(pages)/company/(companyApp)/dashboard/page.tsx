@@ -123,6 +123,7 @@ export default async function Dashboard() {
 
         return {
             id: v.id,
+            uuid: v.uuid || v.id,
             title: v.cargo,
             date: v.created_at,
             candidatesCount: candidateCountMap.get(v.id) || 0,

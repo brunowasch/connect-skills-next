@@ -1,5 +1,6 @@
 export interface RecentVacancyItem {
     id: string;
+    uuid: string;
     title: string;
     date: Date;
     candidatesCount: number;

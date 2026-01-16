@@ -79,7 +79,7 @@ export function RecentVacancies({ vacancies }: RecentVacanciesProps) {
                         </div>
 
                         <Link
-                            href={`/company/vacancies/${vacancy.id}`}
+                            href={`/viewer/vacancy/${vacancy.uuid}`}
                             className="bg-white border border-slate-200 text-slate-600 hover:bg-blue-600 hover:text-white hover:border-blue-600 p-2.5 rounded-xl transition-all shadow-sm hover:shadow-md group-hover:scale-105 shrink-0"
                             title="Ver detalhes"
                         >

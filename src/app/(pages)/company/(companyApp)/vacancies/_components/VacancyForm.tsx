@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Check, Loader2, Sparkles, Search, X, PlusCircle, FileText, Trash2, Upload, Eye, Link as LinkIcon } from "lucide-react";
+import { ArrowLeft, Check, Loader2, Sparkles, Search, X, FileText, Trash2, Upload, Eye, Link as LinkIcon } from "lucide-react";
 import Link from "next/link";
 import { AIGenerationModal } from "./AIGenerationModal";
 import { generateVacancyAI } from "@/src/app/actions/generateVacancyAI";
@@ -55,10 +55,18 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
     const [searchSoftSkill, setSearchSoftSkill] = useState("");
     const isEdit = !!vacancyId;
 
-    // Parse existing options safely
-    const existingOptions = initialData?.opcao ? JSON.parse(initialData.opcao) : {};
+    let existingOptions: any = {};
+    try {
+        if (initialData?.opcao) {
+            existingOptions = typeof initialData.opcao === 'string'
+                ? JSON.parse(initialData.opcao)
+                : initialData.opcao;
+        }
+    } catch (e) {
+        console.error("Erro ao processar as opções da vaga:", e);
+        existingOptions = {};
+    }
 
-    // Inclusivity might be the whole 'opcao' if it's old data, or nested in 'inclusivity'
     const initialInclusivity = existingOptions.pcd !== undefined ? existingOptions : (existingOptions.inclusivity || {
         pcd: false,
         blackPeople: false,

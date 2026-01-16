@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import { prisma } from "@/src/lib/prisma";
 import { VacancyDetails } from "@/src/app/(pages)/viewer/vacancy/[uuid]/_components/VacancyDetails";
 
@@ -62,9 +63,36 @@ export default async function VacancyDetailsPage({ params }: { params: Promise<{
     const rawStatus = status ? status.situacao.toUpperCase() : 'ATIVA';
     const isActive = !['INATIVA', 'FECHADA', 'ENCERRADA'].includes(rawStatus);
 
+    // Obter usuário logado para verificar permissões
+    const cookieStore = await cookies();
+    const userId = cookieStore.get("time_user_id")?.value;
+
+    let userType: string | undefined;
+    let isOwner = false;
+
+    if (userId) {
+        const user = await prisma.usuario.findUnique({
+            where: { id: userId },
+            select: {
+                tipo: true,
+                empresa: { select: { id: true } }
+            }
+        });
+
+        if (user) {
+            userType = user.tipo;
+            const normalizedTipo = user.tipo.toUpperCase();
+            if (normalizedTipo === "EMPRESA" && user.empresa?.id === vacancy.empresa_id) {
+                isOwner = true;
+            }
+        }
+    }
+
     // Montar o objeto de vaga com todos os relacionamentos
-    const vacancyWithRelations = {
+    // Serializar para evitar erro de Decimal e Date não-POJO
+    const vacancyWithRelations = JSON.parse(JSON.stringify({
         ...vacancy,
+        salario: vacancy.salario ? Number(vacancy.salario) : null,
         vaga_area: areas.map(area => ({
             area_interesse: {
                 id: area.id,
@@ -73,7 +101,7 @@ export default async function VacancyDetailsPage({ params }: { params: Promise<{
         })),
         vaga_arquivo: files,
         vaga_link: links
-    };
+    }));
 
     return (
         <VacancyDetails
@@ -81,6 +109,8 @@ export default async function VacancyDetailsPage({ params }: { params: Promise<{
             company={company}
             isActive={isActive}
             applicationCount={applicationCount}
+            userType={userType}
+            isOwner={isOwner}
         />
     );
 }
