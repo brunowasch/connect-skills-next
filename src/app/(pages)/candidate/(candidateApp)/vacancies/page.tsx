@@ -4,13 +4,25 @@ import { Vacancy } from "@/src/app/(pages)/candidate/(candidateApp)/types/Vacanc
 import { cookies } from "next/headers";
 import { prisma } from "@/src/lib/prisma";
 import { SearchActionSection } from "./_components/SearchActionSection";
+import { VacancyTabs } from "./_components/VacancyTabs";
 
-async function getVacancies(searchParams?: { q?: string; loc?: string; type?: string; all?: string }) {
+async function getVacancies(searchParams?: { q?: string; loc?: string; type?: string; all?: string; tab?: string }) {
     const cookieStore = await cookies();
     const userId = cookieStore.get("time_user_id")?.value;
 
     if (!userId) {
-        return { vagas: [], areas: [], count: 0, isSearch: false, isAll: false };
+        return { vagas: [], areas: [], count: 0, isSearch: false, isAll: false, isFavorites: false };
+    }
+
+    const isFavorites = searchParams?.tab === 'favorites';
+    const favoritesCookie = cookieStore.get("favorite_vacancies")?.value;
+    let favoriteIds: string[] = [];
+    if (favoritesCookie) {
+        try {
+            favoriteIds = JSON.parse(favoritesCookie);
+        } catch (e) {
+            console.error("Failed to parse favorites cookie", e);
+        }
     }
 
     // Buscar dados do candidato para áreas (sempre necessário para o contexto)
@@ -53,8 +65,12 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
 
     let whereClause: any = {};
 
-    // Se NÃO for "global", filtramos pelas áreas do candidato
-    if (!isAll) {
+    if (isFavorites) {
+        if (favoriteIds.length === 0) {
+            return { vagas: [], areas, count: 0, isSearch, isAll, isFavorites: true };
+        }
+        whereClause.id = { in: favoriteIds };
+    } else if (!isAll) {
         if (areasIds.length === 0) {
             return { vagas: [], areas, count: 0, isSearch, isAll: false };
         }
@@ -286,7 +302,7 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
         });
     }
 
-    return { vagas: vacancies, areas, count: vacancies.length, isSearch, isAll };
+    return { vagas: vacancies, areas, count: vacancies.length, isSearch, isAll, isFavorites };
 }
 
 export default async function VacanciesPage({
@@ -295,7 +311,7 @@ export default async function VacanciesPage({
     searchParams: Promise<{ [key: string]: string | undefined }>
 }) {
     const params = await searchParams;
-    const { vagas, areas, count, isSearch, isAll } = await getVacancies(params);
+    const { vagas, areas, count, isSearch, isAll, isFavorites } = await getVacancies(params);
 
     return (
         <main className="max-w-5xl mx-auto px-4 py-8 md:py-12">
@@ -306,16 +322,18 @@ export default async function VacanciesPage({
 
             <SearchFilters />
 
+            <VacancyTabs />
+
             <div className="flex items-center justify-between mb-2">
                 <h2 className="text-xl font-bold text-gray-900">
-                    {isSearch ? 'Resultados da busca' : isAll ? 'Todas as vagas disponíveis' : 'Recomendadas para você'}
+                    {isFavorites ? 'Suas vagas favoritas' : isSearch ? 'Resultados da busca' : isAll ? 'Todas as vagas disponíveis' : 'Recomendadas para você'}
                 </h2>
                 <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
                     {count} encontradas
                 </span>
             </div>
             <p className="text-gray-500 mb-5">
-                {isAll ? 'Veja todas as vagas baseadas em sua busca.' : 'Veja as melhores vagas baseadas em suas especialidades.'}
+                {isFavorites ? 'As vagas que você salvou para ver mais tarde.' : isAll ? 'Veja todas as vagas baseadas em sua busca.' : 'Veja as melhores vagas baseadas em suas especialidades.'}
             </p>
             <SearchActionSection />
             {
@@ -337,9 +355,11 @@ export default async function VacanciesPage({
                 vagas.length === 0 ? (
                     <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-gray-300">
                         <p className="text-gray-500">
-                            {isSearch
-                                ? "Nenhuma vaga encontrada para sua busca."
-                                : "Nenhuma vaga recomendada no momento."}
+                            {isFavorites
+                                ? "Você ainda não favoritou nenhuma vaga."
+                                : isSearch
+                                    ? "Nenhuma vaga encontrada para sua busca."
+                                    : "Nenhuma vaga recomendada no momento."}
                         </p>
                     </div>
                 ) : (

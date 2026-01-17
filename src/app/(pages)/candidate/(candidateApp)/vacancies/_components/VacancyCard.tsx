@@ -1,9 +1,10 @@
 "use client";
 
 import { Vacancy } from '@/src/app/(pages)/candidate/(candidateApp)/types/Vacancy';
-import { MapPin, Briefcase, HeartHandshake, Building2 } from "lucide-react";
+import { MapPin, Briefcase, HeartHandshake, Building2, Star } from "lucide-react";
 import Image from 'next/image';
 import Link from 'next/link';
+import { useFavorites } from '../_hooks/useFavorites';
 
 const tipoMap = {
     Presencial: 'Presencial',
@@ -25,12 +26,13 @@ const vinculoMap: Record<string, string> = {
 const DEFAULT_AVATAR = <Building2 className="w-6 h-6 sm:w-7 sm:h-7 text-slate-500" />;
 
 export function VacancyCard({ vaga }: { vaga: Vacancy }) {
+    const { isFavorite, toggleFavorite } = useFavorites();
+    const favorited = isFavorite(vaga.id);
+
     let inclusivity = null;
     try {
         inclusivity = vaga.opcao ? JSON.parse(vaga.opcao) : null;
-    } catch (e) {
-        // Silently fail if JSON is invalid
-    }
+    } catch (e) { }
 
     const affirmativeGroups = [];
     if (inclusivity?.women) affirmativeGroups.push("Mulheres");
@@ -57,23 +59,40 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
                 </div>
             )}
             <div className="p-5 flex-grow">
-                <div className="flex items-center gap-3 mb-4">
-                    {vaga.empresa?.foto_perfil ? (
-                        <Image
-                            src={vaga.empresa.foto_perfil}
-                            width={40}
-                            height={40}
-                            className="w-10 h-10 rounded-lg object-cover border border-gray-100"
-                            alt="Logo"
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                        {vaga.empresa?.foto_perfil ? (
+                            <Image
+                                src={vaga.empresa.foto_perfil}
+                                width={40}
+                                height={40}
+                                className="w-10 h-10 rounded-lg object-cover border border-gray-100"
+                                alt="Logo"
+                            />
+                        ) : (
+                            <div className="w-10 h-10 rounded-lg border border-gray-100 flex items-center justify-center bg-gray-50">
+                                {DEFAULT_AVATAR}
+                            </div>
+                        )}
+                        <span className="text-sm font-medium text-gray-600 truncate max-w-[120px]">
+                            {vaga.empresa?.nome_empresa}
+                        </span>
+                    </div>
+
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            toggleFavorite(vaga.id);
+                        }}
+                        className={`p-2 rounded-full transition-all hover:bg-gray-100 group/star ${favorited ? 'text-yellow-500' : 'text-gray-300'}`}
+                    >
+                        <Star
+                            size={20}
+                            fill={favorited ? "currentColor" : "none"}
+                            className={`transition-transform group-active/star:scale-125 cursor-pointer ${favorited ? 'filter drop-shadow-sm' : ''}`}
                         />
-                    ) : (
-                        <div className="w-10 h-10 rounded-lg border border-gray-100 flex items-center justify-center bg-gray-50">
-                            {DEFAULT_AVATAR}
-                        </div>
-                    )}
-                    <span className="text-sm font-medium text-gray-600 truncate">
-                        {vaga.empresa?.nome_empresa}
-                    </span>
+                    </button>
                 </div>
 
                 <h3 className="font-bold text-slate-900 
