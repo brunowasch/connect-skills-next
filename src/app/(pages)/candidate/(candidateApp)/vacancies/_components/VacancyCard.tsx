@@ -26,8 +26,10 @@ const vinculoMap: Record<string, string> = {
 const DEFAULT_AVATAR = <Building2 className="w-6 h-6 sm:w-7 sm:h-7 text-slate-500" />;
 
 export function VacancyCard({ vaga }: { vaga: Vacancy }) {
-    const { isFavorite, toggleFavorite } = useFavorites();
-    const favorited = isFavorite(vaga.id);
+    const { isFavorite, toggleFavorite, isInitialized } = useFavorites();
+    // Se o hook ainda não inicializou (SSR ou primeiro render no cliente), usamos o dado do servidor.
+    // Assim que o hook lê os cookies, passamos a usar o estado do hook (que permite updates reativos).
+    const favorited = isInitialized ? isFavorite(vaga.id) : !!vaga.isFavorited;
 
     let inclusivity = null;
     try {

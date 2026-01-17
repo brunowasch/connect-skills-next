@@ -14,18 +14,9 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
         return { vagas: [], areas: [], count: 0, isSearch: false, isAll: false, isFavorites: false };
     }
 
-    const isFavorites = searchParams?.tab === 'favorites';
-    const favoritesCookie = cookieStore.get("favorite_vacancies")?.value;
-    let favoriteIds: string[] = [];
-    if (favoritesCookie) {
-        try {
-            favoriteIds = JSON.parse(favoritesCookie);
-        } catch (e) {
-            console.error("Failed to parse favorites cookie", e);
-        }
-    }
+    const isFavorites = searchParams?.tab?.toLowerCase() === 'favorites';
 
-    // Buscar dados do candidato para áreas (sempre necessário para o contexto)
+    // Buscar dados do candidato para áreas e FAVORITOS (sempre necessário para o contexto)
     const candidateComplete = await prisma.candidato.findUnique({
         where: { usuario_id: userId },
         select: {
@@ -39,17 +30,23 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
                         select: { id: true, nome: true }
                     }
                 }
+            },
+            vaga_favorita: {
+                select: { vaga_id: true }
             }
         },
     });
 
     if (!candidateComplete) {
-        return { vagas: [], areas: [], count: 0, isSearch: false, isAll: false };
+        return { vagas: [], areas: [], count: 0, isSearch: false, isAll: false, isFavorites };
     }
 
-    const areasIds = candidateComplete.candidato_area.map(ca => ca.area_interesse.id);
+    const dbFavoriteIds = candidateComplete.vaga_favorita.map((f: any) => f.vaga_id) || [];
+    const favoriteIds = dbFavoriteIds;
+
+    const areasIds = candidateComplete.candidato_area.map((ca: any) => ca.area_interesse.id);
     const areas = candidateComplete.candidato_area
-        .map(ca => ca.area_interesse.nome)
+        .map((ca: any) => ca.area_interesse.nome)
         .filter(Boolean) as string[];
 
     // Buscar vagas já aplicadas pelo candidato
@@ -65,14 +62,16 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
 
     let whereClause: any = {};
 
+    // 1. Determinar o conjunto BASE de IDs (Favoritos, Recomendadas ou Todas)
     if (isFavorites) {
         if (favoriteIds.length === 0) {
-            return { vagas: [], areas, count: 0, isSearch, isAll, isFavorites: true };
+            return { vagas: [], areas, count: 0, isSearch, isAll, isFavorites: true, allFavoritesCount: 0 };
         }
         whereClause.id = { in: favoriteIds };
     } else if (!isAll) {
+        // Modo Recomendadas: filtrado por área e que não foram aplicadas
         if (areasIds.length === 0) {
-            return { vagas: [], areas, count: 0, isSearch, isAll: false };
+            return { vagas: [], areas, count: 0, isSearch, isAll: false, isFavorites: false, allFavoritesCount: favoriteIds.length };
         }
 
         const vagasAreas = await prisma.vaga_area.findMany({
@@ -80,59 +79,55 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
             select: { vaga_id: true }
         });
 
-        // Filtrar vagas únicas E que NÃO foram aplicadas
         const uniqueVagaIds = [...new Set(vagasAreas.map(v => v.vaga_id))]
             .filter(vagaId => !appliedVacanciesIds.includes(vagaId));
 
         if (uniqueVagaIds.length === 0) {
-            return { vagas: [], areas, count: 0, isSearch, isAll: false };
+            return { vagas: [], areas, count: 0, isSearch, isAll: false, isFavorites: false, allFavoritesCount: favoriteIds.length };
         }
 
         whereClause.id = { in: uniqueVagaIds };
     } else {
-        // Se for global, apenas excluímos as que ele já aplicou (opcional, mas faz sentido para "procurar novas")
+        // Modo Global: excluímos apenas as já aplicadas
         whereClause.id = { notIn: appliedVacanciesIds };
     }
 
-    // Se houver busca, adicionar filtros adicionais
+    // 2. Aplicar FILTROS ADICIONAIS (Search) sobre o conjunto base
     if (isSearch) {
-        if (!whereClause.AND) whereClause.AND = [];
+        const andFilters: any[] = [];
 
         // Filtro por termo de busca (Cargo, Descrição, Empresa, Áreas)
         if (searchParams?.q) {
             const terms = searchParams.q.split(' ').filter(word => word.length > 1);
 
             for (const term of terms) {
-                // Buscar empresas que batem com o termo
                 const companies = await prisma.empresa.findMany({
                     where: { nome_empresa: { contains: term } },
                     select: { id: true }
                 });
                 const companyIds = companies.map(c => c.id);
 
-                // Buscar áreas que batem com o termo
                 const matchingAreas = await prisma.area_interesse.findMany({
                     where: { nome: { contains: term } },
                     select: { id: true }
                 });
-                const areaIds = matchingAreas.map(a => a.id);
+                const areaIdsFromTerm = matchingAreas.map(a => a.id);
 
-                // Buscar IDs de vagas que possuem essa área
-                let vagaIdsFromArea: string[] = [];
-                if (areaIds.length > 0) {
+                let vagaIdsFromSearchTermArea: string[] = [];
+                if (areaIdsFromTerm.length > 0) {
                     const vagasWithArea = await prisma.vaga_area.findMany({
-                        where: { area_interesse_id: { in: areaIds } },
+                        where: { area_interesse_id: { in: areaIdsFromTerm } },
                         select: { vaga_id: true }
                     });
-                    vagaIdsFromArea = vagasWithArea.map(v => v.vaga_id);
+                    vagaIdsFromSearchTermArea = vagasWithArea.map(v => v.vaga_id);
                 }
 
-                whereClause.AND.push({
+                andFilters.push({
                     OR: [
                         { cargo: { contains: term } },
                         { descricao: { contains: term } },
                         { empresa_id: { in: companyIds } },
-                        { id: { in: vagaIdsFromArea } }
+                        { id: { in: vagaIdsFromSearchTermArea } }
                     ]
                 });
             }
@@ -151,16 +146,20 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
             });
             const companyIdsLoc = companiesLoc.map(c => c.id);
 
-            whereClause.AND.push({
+            andFilters.push({
                 empresa_id: { in: companyIdsLoc }
             });
         }
 
         // Filtro por tipo
         if (searchParams?.type) {
-            whereClause.AND.push({
+            andFilters.push({
                 tipo_local_trabalho: searchParams.type
             });
+        }
+
+        if (andFilters.length > 0) {
+            whereClause.AND = andFilters;
         }
     }
 
@@ -186,7 +185,7 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
 
     // Se a busca com localização não retornou nada, mas tínhamos um termo de busca 'q',
     // tentamos buscar novamente ignorando a localização para não deixar o usuário sem resultados.
-    if (vagasLocalizadas.length === 0 && searchParams?.loc && searchParams?.q) {
+    if (!isFavorites && vagasLocalizadas.length === 0 && searchParams?.loc && searchParams?.q) {
         // Remover filtro de localização (empresa_id baseado em cidade/estado)
         const refinedWhere = { ...whereClause };
         if (refinedWhere.AND) {
@@ -291,7 +290,8 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
                 vinculo_empregaticio: vaga.vinculo_empregaticio || undefined,
                 // Adicionamos flags extras para o componente
                 score,
-                isNear: score >= 50 // Destaque para mesma cidade ou estado
+                isNear: score >= 50, // Destaque para mesma cidade ou estado
+                isFavorited: favoriteIds.includes(vaga.id)
             } as any;
         });
 
@@ -302,7 +302,7 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
         });
     }
 
-    return { vagas: vacancies, areas, count: vacancies.length, isSearch, isAll, isFavorites };
+    return { vagas: vacancies, areas, count: vacancies.length, isSearch, isAll, isFavorites, allFavoritesCount: favoriteIds.length };
 }
 
 export default async function VacanciesPage({
@@ -311,7 +311,7 @@ export default async function VacanciesPage({
     searchParams: Promise<{ [key: string]: string | undefined }>
 }) {
     const params = await searchParams;
-    const { vagas, areas, count, isSearch, isAll, isFavorites } = await getVacancies(params);
+    const { vagas, areas, count, isSearch, isAll, isFavorites, allFavoritesCount } = await getVacancies(params);
 
     return (
         <main className="max-w-5xl mx-auto px-4 py-8 md:py-12">
@@ -322,11 +322,14 @@ export default async function VacanciesPage({
 
             <SearchFilters />
 
-            <VacancyTabs />
+            <VacancyTabs initialCount={allFavoritesCount} />
 
             <div className="flex items-center justify-between mb-2">
                 <h2 className="text-xl font-bold text-gray-900">
-                    {isFavorites ? 'Suas vagas favoritas' : isSearch ? 'Resultados da busca' : isAll ? 'Todas as vagas disponíveis' : 'Recomendadas para você'}
+                    {isFavorites
+                        ? (isSearch ? 'Busca em Favoritas' : 'Suas vagas favoritas')
+                        : (isSearch ? 'Resultados da busca' : (isAll ? 'Todas as vagas disponíveis' : 'Recomendadas para você'))
+                    }
                 </h2>
                 <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
                     {count} encontradas
@@ -356,7 +359,7 @@ export default async function VacanciesPage({
                     <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-gray-300">
                         <p className="text-gray-500">
                             {isFavorites
-                                ? "Você ainda não favoritou nenhuma vaga."
+                                ? (isSearch ? "Nenhuma vaga favorita encontrada para sua busca." : "Você ainda não favoritou nenhuma vaga.")
                                 : isSearch
                                     ? "Nenhuma vaga encontrada para sua busca."
                                     : "Nenhuma vaga recomendada no momento."}

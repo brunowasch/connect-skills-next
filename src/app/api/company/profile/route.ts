@@ -23,7 +23,7 @@ export async function PUT(request: Request) {
         }
 
         const data = await request.json();
-        const { nome_empresa, fotoPerfil, descricao, telefone, cidade, estado, pais, anexos, links } = data;
+        const { nome_empresa, fotoPerfil, descricao, ddi, ddd, numero, cidade, estado, pais, anexos, links } = data;
         let photoUrl = fotoPerfil;
 
         // Upload to Cloudinary if base64 image
@@ -36,13 +36,15 @@ export async function PUT(request: Request) {
             }
         }
 
+        const telefoneFormatado = `+${ddi}|${ddd}|${numero}`;
+
         const updatedCompany = await prisma.empresa.update({
             where: { id: company.id },
             data: {
                 nome_empresa,
                 foto_perfil: photoUrl,
                 descricao,
-                telefone,
+                telefone: telefoneFormatado,
                 cidade,
                 estado,
                 pais,

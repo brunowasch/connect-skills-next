@@ -1,6 +1,7 @@
 import 'dotenv/config'
-import { PrismaClient } from '@/prisma/generated/client'
+import { PrismaClient } from '@prisma/client'
 import { PrismaMariaDb } from '@prisma/adapter-mariadb'
+// Triggering client reload
 
 const adapter = new PrismaMariaDb({
   host: process.env.DB_HOST!,

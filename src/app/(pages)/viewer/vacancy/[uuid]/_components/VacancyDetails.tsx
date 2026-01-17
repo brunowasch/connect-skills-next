@@ -408,10 +408,12 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                         </span>
                                     </div>
                                 )}
-                                <div className="flex items-center gap-1.5">
-                                    <Users size={16} className="text-gray-400" />
-                                    <span>{applicationCount} candidatos</span>
-                                </div>
+                                {isOwner && (
+                                    <div className="flex items-center gap-1.5">
+                                        <Users size={16} className="text-gray-400" />
+                                        <span>{applicationCount} candidatos</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

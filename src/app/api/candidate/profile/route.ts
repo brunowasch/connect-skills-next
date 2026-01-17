@@ -15,7 +15,7 @@ export async function PUT(req: NextRequest) {
         }
 
         const data = await req.json();
-        const { nome, sobrenome, cidade, estado, pais, ddd, numero, descricao, links, fotoPerfil, anexos } = data;
+        const { nome, sobrenome, cidade, estado, pais, ddi, ddd, numero, descricao, links, fotoPerfil, anexos } = data;
 
         // Upload para Cloudinary se for uma nova imagem (base64)
         let finalFotoPerfil = fotoPerfil;
@@ -28,9 +28,7 @@ export async function PUT(req: NextRequest) {
             }
         }
 
-
-
-        const telefone = `${ddd}${numero}`.replace(/\D/g, "");
+        const telefone = `+${ddi}|${ddd}|${numero}`;
 
         // Atualizar candidato
         await prisma.candidato.update({

@@ -13,15 +13,16 @@ export function SearchFilters() {
     const [type, setType] = useState(searchParams.get("type") || "");
 
     const handleSearch = () => {
-        const params = new URLSearchParams();
-        if (search) params.set("q", search);
-        if (location) params.set("loc", location);
-        if (type) params.set("type", type);
+        const params = new URLSearchParams(searchParams.toString());
 
-        // Preserve "all" mode if it exists
-        if (searchParams.get("all") === "true") {
-            params.set("all", "true");
-        }
+        if (search) params.set("q", search);
+        else params.delete("q");
+
+        if (location) params.set("loc", location);
+        else params.delete("loc");
+
+        if (type) params.set("type", type);
+        else params.delete("type");
 
         router.push(`?${params.toString()}`);
     };

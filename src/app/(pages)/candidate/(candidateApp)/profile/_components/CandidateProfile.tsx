@@ -108,7 +108,7 @@ export function CandidateProfile({ candidato, fotoPerfil, localidade, contato, l
                                 <span className="flex items-center gap-1">
                                     <Phone size={16} className="text-blue-500" />
                                     {contato.ddi || contato.ddd || contato.numero ? (
-                                        `${contato.ddi ? `(+${contato.ddi}) ` : ''}${contato.ddd ? `${contato.ddd} ` : ''}${contato.numero}`
+                                        `${contato.ddi ? `+${contato.ddi} ` : ''}${contato.ddd ? `(${contato.ddd}) ` : ''}${contato.numero}`
                                     ) : 'Não informado'}
                                 </span>
                                 <span className="flex items-center gap-1">

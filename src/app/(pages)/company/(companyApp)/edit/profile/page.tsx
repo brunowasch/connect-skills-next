@@ -31,8 +31,37 @@ export default async function EditCompanyProfilePage() {
         redirect("/auth/login");
     }
 
+    const rawTelefone = company.telefone || '';
+    let ddi = '';
+    let ddd = '';
+    let numero = '';
+
+    if (rawTelefone.includes('|')) {
+        const parts = rawTelefone.split('|');
+        ddi = parts[0].replace('+', '');
+        ddd = parts[1] || '';
+        numero = parts[2] || '';
+    } else {
+        const cleanTelefone = rawTelefone.replace(/\D/g, '');
+        if (cleanTelefone.length >= 12 && cleanTelefone.startsWith('55')) {
+            ddi = '55';
+            ddd = cleanTelefone.substring(2, 4);
+            numero = cleanTelefone.substring(4);
+        } else if (cleanTelefone.length >= 10) {
+            const numLen = cleanTelefone.length >= 11 ? 9 : 8;
+            numero = cleanTelefone.slice(-numLen);
+            ddd = cleanTelefone.slice(-numLen - 2, -numLen);
+            ddi = cleanTelefone.slice(0, -numLen - 2);
+        } else {
+            numero = rawTelefone;
+        }
+    }
+
     const initialData = {
         ...company,
+        ddi,
+        ddd,
+        numero,
         anexos: company.empresa_arquivo.map(a => ({
             id: a.id,
             nome: a.nome,

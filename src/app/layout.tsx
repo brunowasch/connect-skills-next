@@ -13,6 +13,8 @@ export const metadata: Metadata = {
   description: "Conectando talentos ao mercado de trabalho",
 };
 
+import { Toaster } from "sonner";
+
 export default function RootLayout({
   children,
 }: {
@@ -20,7 +22,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR" className={montserrat.variable}>
-      <body className={montserrat.className}>{children}</body>
+      <body className={montserrat.className}>
+        {children}
+        <Toaster position="top-right" richColors />
+      </body>
     </html>
   );
 }

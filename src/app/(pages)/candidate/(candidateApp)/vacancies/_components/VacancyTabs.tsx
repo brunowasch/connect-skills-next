@@ -2,12 +2,16 @@
 
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Star, LayoutGrid } from "lucide-react";
+import { useFavorites } from "../_hooks/useFavorites";
 
-export function VacancyTabs() {
+export function VacancyTabs({ initialCount = 0 }: { initialCount?: number }) {
+    const { count, isInitialized } = useFavorites();
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
     const currentTab = searchParams.get("tab") || "explore";
+
+    const displayCount = isInitialized ? count : initialCount;
 
     const setTab = (tab: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -40,6 +44,11 @@ export function VacancyTabs() {
             >
                 <Star size={18} />
                 Vagas Favoritas
+                {displayCount > 0 && (
+                    <span className={`ml-1 px-1.5 py-0.5 text-[10px] rounded-full ${currentTab === 'favorites' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
+                        {displayCount}
+                    </span>
+                )}
             </button>
         </div>
     );

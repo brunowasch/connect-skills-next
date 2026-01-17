@@ -24,6 +24,7 @@ export interface Vacancy {
     vinculo_empregaticio?: 'Estagio' | 'CLT_Tempo_Integral' | 'CLT_Meio_Periodo' | 'Trainee' | 'Aprendiz' | 'PJ' | 'Freelancer_Autonomo' | 'Temporario';
     isNear?: boolean;
     score?: number;
+    isFavorited?: boolean;
 }
 
 export interface RecommendedVacancyProps {

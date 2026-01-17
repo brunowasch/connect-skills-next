@@ -5,6 +5,7 @@ import { FaBars } from "react-icons/fa";
 import Sidebar from "../Layout/Sidebar/Sidebar";
 import Image from "next/image";
 import { Footer } from "../Layout/Footer/Footer";
+import { GlobalToast } from "./_components/GlobalToast";
 
 export default function CompanyLayout({
     children,
@@ -15,6 +16,7 @@ export default function CompanyLayout({
 
     return (
         <div className="flex min-h-screen bg-gray-50">
+            <GlobalToast />
             <Sidebar
                 mobileOpen={mobileSidebarOpen}
                 setMobileOpen={setMobileSidebarOpen}

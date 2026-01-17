@@ -12,7 +12,9 @@ interface EditCompanyProfileProps {
         nome_empresa: string | null;
         foto_perfil: string | null;
         descricao: string | null;
-        telefone: string | null;
+        ddi?: string;
+        ddd?: string;
+        numero?: string;
         cidade: string | null;
         estado: string | null;
         pais: string | null;
@@ -26,7 +28,9 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
     const [formData, setFormData] = useState<{
         nome_empresa: string;
         descricao: string;
-        telefone: string;
+        ddi: string;
+        ddd: string;
+        numero: string;
         cidade: string;
         estado: string;
         pais: string;
@@ -36,7 +40,9 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
     }>({
         nome_empresa: initialData.nome_empresa || "",
         descricao: initialData.descricao || "",
-        telefone: initialData.telefone || "",
+        ddi: initialData.ddi || "",
+        ddd: initialData.ddd || "",
+        numero: initialData.numero || "",
         cidade: initialData.cidade || "",
         estado: initialData.estado || "",
         pais: initialData.pais || "Brasil",
@@ -286,7 +292,7 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
 
                         {/* Company Name */}
                         <div className="space-y-1">
-                            <label className="text-sm font-semibold text-gray-600">Nome da Empresa *</label>
+                            <label className="text-sm font-semibold text-gray-600">Razão Social *</label>
                             <input
                                 type="text"
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
@@ -297,15 +303,41 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
                         </div>
 
                         {/* Phone */}
-                        <div className="space-y-1">
-                            <label className="text-sm font-semibold text-gray-600">Telefone</label>
-                            <input
-                                type="tel"
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
-                                value={formData.telefone}
-                                onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
-                                placeholder="(11) 98765-4321"
-                            />
+                        <div className="flex flex-wrap gap-4">
+                            <div className="w-24 space-y-1">
+                                <label className="text-sm font-semibold text-gray-600">DDI</label>
+                                <div className="relative">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">+</span>
+                                    <input
+                                        type="text"
+                                        maxLength={3}
+                                        className="w-full pl-7 pr-2 py-2 border border-gray-300 rounded-lg text-left focus:ring-2 focus:ring-blue-500 outline-none transition"
+                                        value={formData.ddi}
+                                        onChange={(e) => setFormData({ ...formData, ddi: e.target.value.replace(/\D/g, '') })}
+                                        placeholder="55"
+                                    />
+                                </div>
+                            </div>
+                            <div className="w-20 space-y-1">
+                                <label className="text-sm font-semibold text-gray-600">DDD</label>
+                                <input
+                                    type="text"
+                                    maxLength={2}
+                                    className="w-full px-2 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-blue-500 outline-none"
+                                    value={formData.ddd}
+                                    onChange={(e) => setFormData({ ...formData, ddd: e.target.value.replace(/\D/g, '') })}
+                                    placeholder="11"
+                                />
+                            </div>
+                            <div className="flex-1 min-w-[150px] space-y-1">
+                                <label className="text-sm font-semibold text-gray-600">Número</label>
+                                <input
+                                    type="text"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    value={formData.numero}
+                                    onChange={(e) => setFormData({ ...formData, numero: e.target.value })}
+                                />
+                            </div>
                         </div>
 
                         {/* Location */}

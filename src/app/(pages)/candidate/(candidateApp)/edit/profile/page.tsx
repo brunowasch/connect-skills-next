@@ -36,20 +36,29 @@ export default async function EditProfilePage() {
         : candidate.cidade || candidate.estado || '';
 
     const rawTelefone = candidate.telefone || '';
-    const cleanTelefone = rawTelefone.replace(/\D/g, '');
-
+    let ddi = '';
     let ddd = '';
     let numero = '';
 
-    if (cleanTelefone.length >= 10) {
-        let startIdx = 0;
-        if (cleanTelefone.startsWith('55') && cleanTelefone.length >= 12) {
-            startIdx = 2;
-        }
-        ddd = cleanTelefone.substring(startIdx, startIdx + 2);
-        numero = cleanTelefone.substring(startIdx + 2);
+    if (rawTelefone.includes('|')) {
+        const parts = rawTelefone.split('|');
+        ddi = parts[0].replace('+', '');
+        ddd = parts[1] || '';
+        numero = parts[2] || '';
     } else {
-        numero = rawTelefone;
+        const cleanTelefone = rawTelefone.replace(/\D/g, '');
+        if (cleanTelefone.length >= 12 && cleanTelefone.startsWith('55')) {
+            ddi = '55';
+            ddd = cleanTelefone.substring(2, 4);
+            numero = cleanTelefone.substring(4);
+        } else if (cleanTelefone.length >= 10) {
+            const numLen = cleanTelefone.length >= 11 ? 9 : 8;
+            numero = cleanTelefone.slice(-numLen);
+            ddd = cleanTelefone.slice(-numLen - 2, -numLen);
+            ddi = cleanTelefone.slice(0, -numLen - 2);
+        } else {
+            numero = rawTelefone;
+        }
     }
 
     const initialData = {
@@ -58,6 +67,7 @@ export default async function EditProfilePage() {
         cidade: candidate.cidade || '',
         estado: candidate.estado || '',
         pais: candidate.pais || 'Brasil',
+        ddi: ddi,
         ddd: ddd,
         numero: numero,
         descricao: candidate.descricao || '',

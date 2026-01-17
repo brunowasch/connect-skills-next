@@ -5,6 +5,7 @@ export interface EditProfileProps {
         cidade?: string;
         estado?: string;
         pais?: string;
+        ddi?: string;
         ddd?: string;
         numero?: string;
         descricao?: string;

@@ -300,9 +300,19 @@ export function EditProfile({ initialData }: EditProfileProps) {
                         </div>
 
                         <div className="flex flex-wrap gap-4">
-                            <div className="w-20 space-y-1">
+                            <div className="w-24 space-y-1">
                                 <label className="text-sm font-semibold text-gray-600">DDI</label>
-                                <div className="bg-gray-50 border border-gray-300 rounded-lg py-2 text-center text-gray-500 font-medium">+55</div>
+                                <div className="relative">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">+</span>
+                                    <input
+                                        type="text"
+                                        maxLength={3}
+                                        className="w-full pl-7 pr-2 py-2 border border-gray-300 rounded-lg text-left focus:ring-2 focus:ring-blue-500 outline-none transition"
+                                        value={formData.ddi}
+                                        onChange={(e) => setFormData({ ...formData, ddi: e.target.value.replace(/\D/g, '') })}
+                                        placeholder="55"
+                                    />
+                                </div>
                             </div>
                             <div className="w-20 space-y-1">
                                 <label className="text-sm font-semibold text-gray-600">DDD</label>

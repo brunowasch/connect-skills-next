@@ -41,21 +41,29 @@ export default async function CandidateProfilePage() {
         : candidate.cidade || candidate.estado || 'Localidade não informada';
 
     const rawTelefone = candidate.telefone || '';
-    const cleanTelefone = rawTelefone.replace(/\D/g, '');
-
     let ddi = '';
     let ddd = '';
     let numero = '';
 
-    if (cleanTelefone.length >= 12 && cleanTelefone.startsWith('55')) {
-        ddi = '55';
-        ddd = cleanTelefone.substring(2, 4);
-        numero = cleanTelefone.substring(4);
-    } else if (cleanTelefone.length >= 10) {
-        ddd = cleanTelefone.substring(0, 2);
-        numero = cleanTelefone.substring(2);
+    if (rawTelefone.includes('|')) {
+        const parts = rawTelefone.split('|');
+        ddi = parts[0].replace('+', '');
+        ddd = parts[1] || '';
+        numero = parts[2] || '';
     } else {
-        numero = rawTelefone;
+        const cleanTelefone = rawTelefone.replace(/\D/g, '');
+        if (cleanTelefone.length >= 12 && cleanTelefone.startsWith('55')) {
+            ddi = '55';
+            ddd = cleanTelefone.substring(2, 4);
+            numero = cleanTelefone.substring(4);
+        } else if (cleanTelefone.length >= 10) {
+            const numLen = cleanTelefone.length >= 11 ? 9 : 8;
+            numero = cleanTelefone.slice(-numLen);
+            ddd = cleanTelefone.slice(-numLen - 2, -numLen);
+            ddi = cleanTelefone.slice(0, -numLen - 2);
+        } else {
+            numero = rawTelefone;
+        }
     }
 
     // Formatar número com hífen se for celular ou fixo
