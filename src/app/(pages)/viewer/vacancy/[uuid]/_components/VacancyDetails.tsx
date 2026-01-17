@@ -26,6 +26,9 @@ import {
     BarChart3,
     X,
     AlertCircle,
+    Trash2,
+    Ban,
+    ChevronUp,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -35,7 +38,7 @@ import { selectVacancyForRanking, selectVacancyForEditing } from "@/src/app/(pag
 interface ModalConfig {
     isOpen: boolean;
     title: string;
-    description: string;
+    description: React.ReactNode;
     onConfirm: () => void;
     confirmText: string;
     variant: 'danger' | 'warning' | 'success' | 'info';
@@ -241,22 +244,16 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
         const config = {
             'Ativa': {
                 title: 'Reabrir Vaga',
-                description: 'Deseja reabrir esta vaga? Ela voltará a ficar visível para todos os candidatos.',
+                description: <>Deseja reabrir a vaga <strong>{vacancy.cargo}</strong>? Ela voltará a ficar visível para todos os candidatos.</>,
                 confirmText: 'Reabrir Vaga',
                 variant: 'success' as const
             },
             'Fechada': {
                 title: 'Trancar Vaga',
-                description: 'Deseja trancar esta vaga? Candidatos não poderão mais se inscrever temporariamente.',
+                description: <>Deseja trancar a vaga <strong>{vacancy.cargo}</strong>? Ela deixará de aparecer na busca pública e novos candidatos não poderão se inscrever.</>,
                 confirmText: 'Trancar Vaga',
                 variant: 'warning' as const
             },
-            'Inativa': {
-                title: 'Desativar Vaga',
-                description: 'Tem certeza que deseja desativar esta vaga? Esta ação removerá a vaga da listagem pública.',
-                confirmText: 'Desativar Vaga',
-                variant: 'danger' as const
-            }
         }[newStatus] || {
             title: 'Confirmar Ação',
             description: `Deseja alterar o status para ${newStatus}?`,
@@ -298,6 +295,34 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
     const handleEditVacancy = () => {
         startTransition(() => {
             selectVacancyForEditing(vacancy.id);
+        });
+    };
+
+    const handleDeleteVacancy = () => {
+        setModal({
+            isOpen: true,
+            title: 'Excluir Vaga',
+            description: <>Tem certeza que deseja excluir a vaga <strong>{vacancy.cargo}</strong> permanentemente? Esta ação não pode ser desfeita e todos os dados relacionados (candidatos, avaliações, etc) serão removidos.</>,
+            confirmText: 'Excluir Definitivamente',
+            variant: 'danger',
+            onConfirm: async () => {
+                try {
+                    const res = await fetch(`/api/vacancies/${vacancy.id}`, {
+                        method: 'DELETE',
+                    });
+
+                    if (res.ok) {
+                        router.push('/company/vacancies');
+                        router.refresh();
+                    } else {
+                        const data = await res.json();
+                        alert(data.error || "Erro ao excluir vaga.");
+                    }
+                } catch (e) {
+                    console.error(e);
+                    alert("Erro de conexão.");
+                }
+            }
         });
     };
 
@@ -585,63 +610,74 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                             </div>
 
                             {/* CTA Button or Management Actions */}
-                            {isOwner ? (
-                                <div className="mt-6 space-y-2">
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <button
-                                            onClick={handleEditVacancy}
-                                            disabled={isPending}
-                                            className="flex items-center justify-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
-                                        >
-                                            <Edit size={16} />
-                                            Editar
-                                        </button>
-
-                                        {!isActive ? (
-                                            <button
-                                                onClick={() => handleUpdateStatus('Ativa')}
-                                                className="flex items-center justify-center gap-2 bg-emerald-50 border border-emerald-100 hover:bg-emerald-100 text-emerald-700 font-medium py-2 px-4 rounded-lg transition-colors cursor-pointer"
-                                            >
-                                                <Unlock size={16} />
-                                                Abrir
-                                            </button>
-                                        ) : (
-                                            <button
-                                                onClick={() => handleUpdateStatus('Fechada')}
-                                                className="flex items-center justify-center gap-2 bg-amber-50 border border-amber-100 hover:bg-amber-100 text-amber-700 font-medium py-2 px-4 rounded-lg transition-colors cursor-pointer"
-                                            >
-                                                <Lock size={16} />
-                                                Trancar
-                                            </button>
-                                        )}
-                                    </div>
-                                    <button
-                                        onClick={() => handleUpdateStatus('Inativa')}
-                                        className="w-full flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2.5 px-4 rounded-lg transition-colors cursor-pointer border border-red-100"
-                                    >
-                                        <Power size={18} />
-                                        Desativar Vaga
-                                    </button>
-
-                                    <button
-                                        onClick={handleRankCandidates}
-                                        disabled={isPending}
-                                        className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors cursor-pointer disabled:opacity-50 mt-2"
-                                    >
-                                        <BarChart3 size={18} />
-                                        Ver Ranking de Candidatos
-                                    </button>
-                                </div>
-                            ) : (
-                                isActive && (isCandidate || isGuest) && (
-                                    <button className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors cursor-pointer">
-                                        Candidatar-se
-                                    </button>
-                                )
+                            {!isOwner && isActive && (isCandidate || isGuest) && (
+                                <button className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors cursor-pointer">
+                                    Candidatar-se
+                                </button>
                             )}
                         </div>
                     </div>
                 </div>
+
+                {/* Seção de Gerenciamento para o Dono da Vaga */}
+                {isOwner && (
+                    <div className="mt-10 pt-8 border-t border-gray-100">
+                        <h2 className="text-lg font-semibold text-gray-900 mb-4">Gerenciamento de vagas</h2>
+                        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+                            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                                {/* Lado Esquerdo */}
+                                <div>
+                                    <button
+                                        onClick={handleRankCandidates}
+                                        disabled={isPending}
+                                        className="inline-flex items-center gap-2 px-4 py-2.5 border border-blue-600 text-blue-600 font-medium rounded-lg hover:bg-blue-50 transition-colors cursor-pointer disabled:opacity-50 text-sm"
+                                    >
+                                        <BarChart3 size={18} />
+                                        Ver ranqueamento
+                                    </button>
+                                </div>
+
+                                {/* Lado Direito */}
+                                <div className="flex flex-wrap items-center gap-3">
+                                    <button
+                                        onClick={handleEditVacancy}
+                                        disabled={isPending}
+                                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors cursor-pointer disabled:opacity-50 text-sm"
+                                    >
+                                        <Edit size={18} />
+                                        Editar vaga
+                                    </button>
+
+                                    {!isActive ? (
+                                        <button
+                                            onClick={() => handleUpdateStatus('Ativa')}
+                                            className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-600 font-medium rounded-lg hover:bg-gray-50 transition-colors cursor-pointer text-sm"
+                                        >
+                                            <Unlock size={18} />
+                                            Abrir vaga
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={() => handleUpdateStatus('Fechada')}
+                                            className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-600 font-medium rounded-lg hover:bg-gray-50 transition-colors cursor-pointer text-sm"
+                                        >
+                                            <Ban size={18} />
+                                            Fechar vaga
+                                        </button>
+                                    )}
+
+                                    <button
+                                        onClick={handleDeleteVacancy}
+                                        className="inline-flex items-center gap-2 px-4 py-2.5 border border-red-500 text-red-500 font-medium rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-sm"
+                                    >
+                                        <Trash2 size={18} />
+                                        Excluir vaga
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {modal.isOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
