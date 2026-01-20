@@ -1,6 +1,7 @@
 import { prisma } from "@/src/lib/prisma";
 import Link from 'next/link';
 import { ArrowLeft, Mail, Phone, Calendar, User } from "lucide-react";
+import { ApplicationDetails } from "./_components/ApplicationDetails";
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -96,8 +97,8 @@ export default async function VacancyCandidatesPage({ params }: Props) {
                                 <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                     Match Score: {candidate.application?.score || 0}%
                                 </div>
-
                             </div>
+                            <ApplicationDetails application={candidate.application} />
                         </div>
                     ))}
                 </div>

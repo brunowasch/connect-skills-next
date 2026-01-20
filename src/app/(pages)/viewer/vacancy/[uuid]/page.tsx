@@ -29,13 +29,25 @@ export default async function VacancyDetailsPage({ params }: { params: Promise<{
     });
 
     // Buscar áreas de interesse
-    const vagaAreas = await prisma.$queryRaw<Array<{ area_interesse_id: number }>>`
-        SELECT area_interesse_id FROM vaga_area WHERE vaga_id = ${vacancy.id}
-    `;
+    const vagaAreas = await prisma.vaga_area.findMany({
+        where: { vaga_id: vacancy.id },
+        select: { area_interesse_id: true }
+    });
 
     const areaIds = vagaAreas.map(va => va.area_interesse_id);
     const areas = areaIds.length > 0 ? await prisma.area_interesse.findMany({
         where: { id: { in: areaIds } }
+    }) : [];
+
+    // Buscar soft skills
+    const vagaSoftSkills = await prisma.vaga_soft_skill.findMany({
+        where: { vaga_id: vacancy.id },
+        select: { soft_skill_id: true }
+    });
+
+    const softSkillIds = vagaSoftSkills.map(vss => vss.soft_skill_id);
+    const softSkills = softSkillIds.length > 0 ? await prisma.soft_skill.findMany({
+        where: { id: { in: softSkillIds } }
     }) : [];
 
     // Buscar arquivos
@@ -99,6 +111,12 @@ export default async function VacancyDetailsPage({ params }: { params: Promise<{
                 nome: area.nome
             }
         })),
+        vaga_soft_skill: softSkills.map(ss => ({
+            soft_skill: {
+                id: ss.id,
+                nome: ss.nome
+            }
+        })),
         vaga_arquivo: files,
         vaga_link: links
     }));
@@ -111,6 +129,7 @@ export default async function VacancyDetailsPage({ params }: { params: Promise<{
             applicationCount={applicationCount}
             userType={userType}
             isOwner={isOwner}
+            userId={userId}
         />
     );
 }

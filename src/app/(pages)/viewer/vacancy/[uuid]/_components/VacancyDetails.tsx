@@ -29,6 +29,7 @@ import {
     Trash2,
     Ban,
     ChevronUp,
+    Loader2,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -47,6 +48,7 @@ interface ModalConfig {
 interface VacancyDetailsProps {
     vacancy: {
         id: string;
+        uuid: string;
         cargo: string;
         tipo_local_trabalho: any;
         escala_trabalho: string;
@@ -78,6 +80,12 @@ interface VacancyDetailsProps {
             titulo: string;
             url: string;
         }>;
+        vaga_soft_skill?: Array<{
+            soft_skill: {
+                id: number;
+                nome: string;
+            };
+        }>;
     };
     company: {
         nome_empresa: string;
@@ -91,6 +99,7 @@ interface VacancyDetailsProps {
     applicationCount: number;
     userType?: string;
     isOwner?: boolean;
+    userId?: string;
 }
 
 const tipoLocalTrabalhoMap: Record<string, { label: string; icon: any }> = {
@@ -110,7 +119,7 @@ const vinculoEmpregaticioMap: Record<string, string> = {
     Temporario: "Temporário",
 };
 
-export function VacancyDetails({ vacancy, company, isActive, applicationCount, userType, isOwner }: VacancyDetailsProps) {
+export function VacancyDetails({ vacancy, company, isActive, applicationCount, userType, isOwner, userId }: VacancyDetailsProps) {
     const router = useRouter();
     const stickyCardRef = useRef<HTMLDivElement>(null);
     const [isStickyVisible, setIsStickyVisible] = useState(true);
@@ -324,6 +333,63 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                 }
             }
         });
+    };
+
+    const [isCheckingApplication, setIsCheckingApplication] = useState(false);
+
+    const handleApply = async () => {
+        if (!userId) {
+            router.push("/login?redirect=" + window.location.pathname);
+            return;
+        }
+
+        setIsCheckingApplication(true);
+        try {
+            // Verificar se já se candidatou
+            const res = await fetch(`/api/vacancies/${vacancy.id}/check-application`);
+            const data = await res.json();
+
+            if (data.applied) {
+                alert("Você já se candidatou a esta vaga.");
+                return;
+            }
+
+            setModal({
+                isOpen: true,
+                title: 'Confirmar Candidatura',
+                description: (
+                    <div className="space-y-4">
+                        <p>Você está prestes a se candidatar para a vaga de <strong>{vacancy.cargo}</strong>.</p>
+                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 text-sm text-blue-800">
+                            <h4 className="font-bold mb-2 flex items-center gap-2">
+                                <AlertCircle size={16} />
+                                Regras da Avaliação:
+                            </h4>
+                            <ul className="list-disc list-inside space-y-1">
+                                <li>Uma nova guia será aberta para o teste.</li>
+                                <li><strong>Não saia da guia</strong> durante o teste.</li>
+                                <li>O uso de <strong>Control+C e Control+V</strong> está desabilitado.</li>
+                                <li>O seu tempo de resposta será contabilizado.</li>
+                                <li>Se você sair da tela, as perguntas serão alteradas.</li>
+                            </ul>
+                        </div>
+                        <p className="text-sm text-gray-500">Deseja iniciar a entrevista agora?</p>
+                    </div>
+                ),
+                confirmText: 'Iniciar Entrevista',
+                variant: 'info',
+                onConfirm: () => {
+                    const assessmentUrl = `/candidate/vacancies/${vacancy.uuid}/apply`;
+                    window.open(assessmentUrl, '_blank');
+                    setModal(prev => ({ ...prev, isOpen: false }));
+                }
+            });
+        } catch (error) {
+            console.error(error);
+            alert("Erro ao verificar candidatura.");
+        } finally {
+            setIsCheckingApplication(false);
+        }
     };
 
     return (
@@ -613,7 +679,12 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
 
                             {/* CTA Button or Management Actions */}
                             {!isOwner && isActive && (isCandidate || isGuest) && (
-                                <button className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors cursor-pointer">
+                                <button
+                                    onClick={handleApply}
+                                    disabled={isCheckingApplication}
+                                    className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    {isCheckingApplication && <Loader2 size={18} className="animate-spin" />}
                                     Candidatar-se
                                 </button>
                             )}
@@ -748,7 +819,12 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                     <h3 className="text-lg font-semibold text-gray-900 mb-1">Interessado nesta vaga?</h3>
                                     <p className="text-sm text-gray-600">Candidate-se agora e faça parte do time {company?.nome_empresa}!</p>
                                 </div>
-                                <button className="w-full sm:w-auto px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors whitespace-nowrap cursor-pointer">
+                                <button
+                                    onClick={handleApply}
+                                    disabled={isCheckingApplication}
+                                    className="w-full sm:w-auto px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors whitespace-nowrap cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    {isCheckingApplication && <Loader2 size={18} className="animate-spin" />}
                                     Candidatar-se à Vaga
                                 </button>
                             </div>
