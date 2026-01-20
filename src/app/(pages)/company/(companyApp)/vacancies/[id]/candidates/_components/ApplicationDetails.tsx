@@ -127,46 +127,87 @@ export function ApplicationDetails({ application }: ApplicationDetailsProps) {
                             <p className="text-sm text-blue-900 leading-relaxed italic">
                                 "{breakdownData.reason || "Nenhuma análise detalhada disponível."}"
                             </p>
+
+                            {/* Matched Skills */}
+                            {breakdownData.matchedSkills && breakdownData.matchedSkills.length > 0 && (
+                                <div className="mt-4">
+                                    <p className="text-[10px] font-bold text-blue-700 uppercase mb-2">Habilidades Identificadas</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {breakdownData.matchedSkills.map((skill: string, i: number) => (
+                                            <span key={i} className="px-2 py-1 bg-white/50 text-blue-700 text-[10px] font-bold rounded-lg border border-blue-200">
+                                                {skill}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                         <div className="bg-emerald-50 rounded-2xl p-6 border border-emerald-100">
                             <h4 className="text-sm font-bold text-emerald-800 mb-3 flex items-center gap-2 uppercase tracking-wider">
                                 <Lightbulb size={18} />
                                 Sugestões de Melhoria
                             </h4>
-                            <p className="text-sm text-emerald-900 leading-relaxed">
-                                {breakdownData.suggestions || "Nenhuma sugestão disponível no momento."}
-                            </p>
+                            {Array.isArray(breakdownData.suggestions) ? (
+                                <ul className="space-y-2">
+                                    {breakdownData.suggestions.map((s: string, i: number) => (
+                                        <li key={i} className="text-sm text-emerald-900 flex items-start gap-2">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0" />
+                                            {s}
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <p className="text-sm text-emerald-900 leading-relaxed">
+                                    {breakdownData.suggestions || "Nenhuma sugestão disponível no momento."}
+                                </p>
+                            )}
                         </div>
                     </div>
 
                     {/* Respostas Detalhadas */}
-                    <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+                    <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
                         <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center gap-2">
                             <MessageSquareText size={18} className="text-slate-500" />
                             <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Respostas da Entrevista</h4>
                         </div>
                         <div className="divide-y divide-slate-100">
-                            {respostaData.responses?.map((resp: any, idx: number) => (
-                                <div key={idx} className="p-6 hover:bg-slate-50/50 transition-colors">
-                                    <div className="flex items-start gap-4 mb-3">
-                                        <span className="shrink-0 w-6 h-6 rounded bg-slate-200 text-slate-600 text-[10px] font-bold flex items-center justify-center">
-                                            {idx + 1}
-                                        </span>
-                                        <p className="text-sm font-bold text-slate-800">{resp.question}</p>
+                            {(() => {
+                                const responses = Array.isArray(respostaData) ? respostaData : (respostaData.responses || []);
+
+                                if (responses.length === 0) {
+                                    return (
+                                        <div className="p-12 text-center text-gray-500 italic">
+                                            Nenhuma resposta detalhada disponível.
+                                        </div>
+                                    );
+                                }
+
+                                return responses.map((resp: any, idx: number) => (
+                                    <div key={idx} className="p-6 hover:bg-slate-50/50 transition-colors">
+                                        <div className="flex items-start gap-4 mb-3">
+                                            <span className="shrink-0 w-6 h-6 rounded bg-slate-200 text-slate-600 text-[10px] font-bold flex items-center justify-center">
+                                                {idx + 1}
+                                            </span>
+                                            <p className="text-sm font-bold text-slate-800 leading-snug">{resp.question || "Pergunta sem título"}</p>
+                                        </div>
+                                        <div className="ml-10 bg-white p-4 rounded-xl border border-slate-100 text-sm text-slate-600 leading-relaxed shadow-sm whitespace-pre-wrap">
+                                            {resp.answer || "Sem resposta."}
+                                        </div>
+                                        <div className="ml-10 mt-3 flex gap-2">
+                                            {resp.category && (
+                                                <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded bg-slate-100 text-slate-400 border border-slate-200">
+                                                    {resp.category}
+                                                </span>
+                                            )}
+                                            {resp.method && resp.method !== "N/A" && (
+                                                <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded bg-blue-50 text-blue-400 border border-blue-100">
+                                                    {resp.method}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="ml-10 bg-white p-4 rounded-xl border border-slate-100 text-sm text-slate-600 leading-relaxed shadow-sm">
-                                        {resp.answer}
-                                    </div>
-                                    <div className="ml-10 mt-2 flex gap-2">
-                                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-400 border border-slate-200">
-                                            {resp.category}
-                                        </span>
-                                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-50 text-blue-400 border border-blue-100">
-                                            {resp.method}
-                                        </span>
-                                    </div>
-                                </div>
-                            ))}
+                                ));
+                            })()}
                         </div>
                     </div>
                 </div>

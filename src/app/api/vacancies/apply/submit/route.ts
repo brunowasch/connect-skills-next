@@ -16,24 +16,43 @@ export async function POST(req: NextRequest) {
         // Buscar detalhes da vaga para contexto da IA
         const vacancy = await prisma.vaga.findUnique({
             where: { id: vaga_id },
-            select: { cargo: true, descricao: true }
+            include: {
+                vaga_soft_skill: {
+                    include: {
+                        soft_skill: true
+                    }
+                }
+            }
         });
 
         if (!vacancy) {
             return NextResponse.json({ error: "Vaga não encontrada" }, { status: 404 });
         }
 
-        // Preparar dados para a IA
+        // Preparar dados para a IA conforme formato esperado
+        // Separar respostas Personalizadas (qa) de Comportamentais (da)
+        const qa = responses
+            .filter((r: any) => r.category === "Personalizada")
+            .map((r: any) => ({
+                question: r.question,
+                answer: r.answer
+            }));
+
+        const da = responses
+            .filter((r: any) => r.category !== "Personalizada")
+            .map((r: any) => ({
+                question: r.question,
+                answer: r.answer
+            }));
+
         const aiPayload = {
-            cargo: vacancy.cargo,
-            descricao_vaga: vacancy.descricao,
-            respostas: responses.map((r: any) => ({
-                pergunta: r.question,
-                resposta: r.answer,
-                categoria: r.category,
-                metodo_disc: r.method
-            })),
-            metadados: {
+            qa: qa,
+            items: vacancy.descricao,
+            skills: vacancy.vaga_soft_skill.map(vss => vss.soft_skill.nome),
+            da: da,
+            // Metadados extras
+            context: {
+                cargo: vacancy.cargo,
                 duracao_segundos: duration,
                 penalidades_saida_tela: penalties
             }
@@ -46,7 +65,8 @@ export async function POST(req: NextRequest) {
             s_score: 0,
             c_score: 0,
             reason: "Erro ao processar com IA",
-            suggestions: ""
+            suggestions: [] as string[],
+            matchedSkills: [] as string[]
         };
 
         if (IA_SUGGEST_URL) {
@@ -59,16 +79,16 @@ export async function POST(req: NextRequest) {
 
                 if (aiResponse.ok) {
                     const data = await aiResponse.json();
-                    // Assumindo que a IA retorna os campos esperados. 
-                    // Se os nomes forem diferentes, ajustamos aqui.
+
                     aiResult = {
-                        general_score: data.Score_geral || data.general_score || 0,
-                        d_score: data.D_Score || data.d_score || 0,
-                        i_score: data.I_Score || data.i_score || 0,
-                        s_score: data.S_Score || data.s_score || 0,
-                        c_score: data.C_Score || data.c_score || 0,
-                        reason: data.motivo || data.reason || "",
-                        suggestions: data.sugestoes || data.suggestions || ""
+                        general_score: data.score || 0,
+                        d_score: data.score_D || 0,
+                        i_score: data.score_I || 0,
+                        s_score: data.score_S || 0,
+                        c_score: data.score_C || 0,
+                        reason: data.explanation || "",
+                        suggestions: data.suggestions || [],
+                        matchedSkills: data.matchedSkills || []
                     };
                 }
             } catch (e) {
@@ -118,7 +138,7 @@ export async function POST(req: NextRequest) {
             }
         });
 
-        return NextResponse.json({ success: true, aiResult });
+        return NextResponse.json({ success: true });
 
     } catch (error) {
         console.error("Erro ao submeter candidatura:", error);

@@ -175,7 +175,7 @@ model vaga_avaliacao {
   vaga_id      String
   candidato_id String
   score        Int
-  resposta     String?
+  resposta     String?  @db.LongText
   breakdown    String?  @db.LongText
   created_at   DateTime @default(now())
   updated_at   DateTime
@@ -184,7 +184,7 @@ model vaga_avaliacao {
 }
 
 model vaga_soft_skill {
-  soft_skill_id Int
+  soft_skill_id Int @db.UnsignedInt
   vaga_id       String
   soft_skill    soft_skill @relation(fields: [soft_skill_id], references: [id])
   vaga          vaga       @relation(fields: [vaga_id], references: [id])
