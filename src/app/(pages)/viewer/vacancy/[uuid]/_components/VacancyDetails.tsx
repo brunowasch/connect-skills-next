@@ -29,6 +29,7 @@ import {
     Trash2,
     Ban,
     ChevronUp,
+    Loader2,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -47,6 +48,7 @@ interface ModalConfig {
 interface VacancyDetailsProps {
     vacancy: {
         id: string;
+        uuid: string;
         cargo: string;
         tipo_local_trabalho: any;
         escala_trabalho: string;
@@ -78,6 +80,12 @@ interface VacancyDetailsProps {
             titulo: string;
             url: string;
         }>;
+        vaga_soft_skill?: Array<{
+            soft_skill: {
+                id: number;
+                nome: string;
+            };
+        }>;
     };
     company: {
         nome_empresa: string;
@@ -91,6 +99,9 @@ interface VacancyDetailsProps {
     applicationCount: number;
     userType?: string;
     isOwner?: boolean;
+    userId?: string;
+    hasApplied?: boolean;
+    applicationResponses?: any;
 }
 
 const tipoLocalTrabalhoMap: Record<string, { label: string; icon: any }> = {
@@ -110,7 +121,7 @@ const vinculoEmpregaticioMap: Record<string, string> = {
     Temporario: "Temporário",
 };
 
-export function VacancyDetails({ vacancy, company, isActive, applicationCount, userType, isOwner }: VacancyDetailsProps) {
+export function VacancyDetails({ vacancy, company, isActive, applicationCount, userType, isOwner, userId, hasApplied, applicationResponses }: VacancyDetailsProps) {
     const router = useRouter();
     const stickyCardRef = useRef<HTMLDivElement>(null);
     const [isStickyVisible, setIsStickyVisible] = useState(true);
@@ -125,6 +136,8 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
         confirmText: '',
         variant: 'info'
     });
+
+    const [showResponsesModal, setShowResponsesModal] = useState(false);
 
     const normalizedUserType = userType?.toUpperCase();
     const isCandidate = normalizedUserType === 'CANDIDATO';
@@ -324,6 +337,63 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                 }
             }
         });
+    };
+
+    const [isCheckingApplication, setIsCheckingApplication] = useState(false);
+
+    const handleApply = async () => {
+        if (!userId) {
+            router.push("/login?redirect=" + window.location.pathname);
+            return;
+        }
+
+        setIsCheckingApplication(true);
+        try {
+            // Verificar se já se candidatou
+            const res = await fetch(`/api/vacancies/${vacancy.id}/check-application`);
+            const data = await res.json();
+
+            if (data.applied) {
+                alert("Você já se candidatou a esta vaga.");
+                return;
+            }
+
+            setModal({
+                isOpen: true,
+                title: 'Confirmar Candidatura',
+                description: (
+                    <div className="space-y-4">
+                        <p>Você está prestes a se candidatar para a vaga de <strong>{vacancy.cargo}</strong>.</p>
+                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 text-sm text-blue-800">
+                            <h4 className="font-bold mb-2 flex items-center gap-2">
+                                <AlertCircle size={16} />
+                                Regras da Avaliação:
+                            </h4>
+                            <ul className="list-disc list-inside space-y-1">
+                                <li>Uma nova guia será aberta para o teste.</li>
+                                <li><strong>Não saia da guia</strong> durante o teste.</li>
+                                <li>O uso de <strong>Control+C e Control+V</strong> está desabilitado.</li>
+                                <li>O seu tempo de resposta será contabilizado.</li>
+                                <li>Se você sair da tela, as perguntas serão alteradas.</li>
+                            </ul>
+                        </div>
+                        <p className="text-sm text-gray-500">Deseja iniciar a entrevista agora?</p>
+                    </div>
+                ),
+                confirmText: 'Iniciar Entrevista',
+                variant: 'info',
+                onConfirm: () => {
+                    const assessmentUrl = `/candidate/vacancies/${vacancy.uuid}/apply`;
+                    window.open(assessmentUrl, '_blank');
+                    setModal(prev => ({ ...prev, isOpen: false }));
+                }
+            });
+        } catch (error) {
+            console.error(error);
+            alert("Erro ao verificar candidatura.");
+        } finally {
+            setIsCheckingApplication(false);
+        }
     };
 
     return (
@@ -613,9 +683,33 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
 
                             {/* CTA Button or Management Actions */}
                             {!isOwner && isActive && (isCandidate || isGuest) && (
-                                <button className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors cursor-pointer">
-                                    Candidatar-se
-                                </button>
+                                hasApplied ? (
+                                    <div className="w-full mt-6 bg-emerald-50 border border-emerald-200 text-emerald-700 py-3 px-4 rounded-lg flex flex-col items-center gap-2 text-center animate-in fade-in slide-in-from-top-2 duration-500">
+                                        <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 mb-1">
+                                            <CheckCircle2 size={24} />
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-sm uppercase tracking-wide">Candidatura Realizada</p>
+                                            <p className="text-[11px] opacity-80 mt-0.5">Sua avaliação foi enviada e está em análise.</p>
+                                        </div>
+                                        <button
+                                            onClick={() => setShowResponsesModal(true)}
+                                            className="mt-3 w-full py-2 bg-white text-emerald-700 text-xs font-bold rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                                        >
+                                            <Eye size={14} />
+                                            Visualizar Minhas Respostas
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={handleApply}
+                                        disabled={isCheckingApplication}
+                                        className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                                    >
+                                        {isCheckingApplication && <Loader2 size={18} className="animate-spin" />}
+                                        Candidatar-se
+                                    </button>
+                                )
                             )}
                         </div>
                     </div>
@@ -740,7 +834,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                 )}
 
                 {/* CTA Button no final da página */}
-                {!isOwner && isActive && hasScroll && !isStickyVisible && (isCandidate || isGuest) && (
+                {!isOwner && isActive && hasScroll && !isStickyVisible && (isCandidate || isGuest) && !hasApplied && (
                     <div className="mt-10">
                         <div className="bg-white rounded-lg border border-gray-200 p-6 lg:p-8 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4">
                             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -748,7 +842,12 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                     <h3 className="text-lg font-semibold text-gray-900 mb-1">Interessado nesta vaga?</h3>
                                     <p className="text-sm text-gray-600">Candidate-se agora e faça parte do time {company?.nome_empresa}!</p>
                                 </div>
-                                <button className="w-full sm:w-auto px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors whitespace-nowrap cursor-pointer">
+                                <button
+                                    onClick={handleApply}
+                                    disabled={isCheckingApplication}
+                                    className="w-full sm:w-auto px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors whitespace-nowrap cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    {isCheckingApplication && <Loader2 size={18} className="animate-spin" />}
                                     Candidatar-se à Vaga
                                 </button>
                             </div>
@@ -756,6 +855,71 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                     </div>
                 )}
             </div>
+
+            {/* Application Responses Modal */}
+            {showResponsesModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]">
+                        {/* Header */}
+                        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-10">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                                    <FileText size={20} />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-slate-900 leading-tight">Suas Respostas</h3>
+                                    <p className="text-xs text-slate-500 font-medium uppercase tracking-wider mt-0.5">{vacancy.cargo}</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setShowResponsesModal(false)}
+                                className="text-slate-400 hover:text-slate-600 transition-colors p-2 hover:bg-slate-50 rounded-lg cursor-pointer"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-6 overflow-y-auto space-y-8 flex-1 bg-slate-50/30 no-scrollbar">
+                            {applicationResponses?.responses?.length > 0 ? (
+                                applicationResponses.responses.map((resp: any, idx: number) => (
+                                    <div key={idx} className="group">
+                                        <div className="flex items-start gap-3 mb-3">
+                                            <span className="flex-shrink-0 w-6 h-6 rounded-md bg-blue-100 text-blue-600 font-bold flex items-center justify-center text-xs">
+                                                {idx + 1}
+                                            </span>
+                                            <p className="text-sm font-bold text-slate-800 leading-snug pt-0.5">
+                                                {resp.question}
+                                            </p>
+                                        </div>
+                                        <div className="ml-9 p-4 bg-white rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
+                                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-l-xl opacity-20" />
+                                            <p className="text-sm text-slate-700 leading-relaxed italic whitespace-pre-wrap">
+                                                "{resp.answer}"
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center py-12">
+                                    <AlertCircle size={40} className="mx-auto text-slate-300 mb-4" />
+                                    <p className="text-slate-500 font-medium">Nenhuma resposta encontrada.</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Footer */}
+                        <div className="p-4 bg-slate-50 border-t border-slate-100 text-center">
+                            <button
+                                onClick={() => setShowResponsesModal(false)}
+                                className="px-8 py-2.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-all active:scale-95 cursor-pointer shadow-lg shadow-slate-200"
+                            >
+                                Fechar Visualização
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

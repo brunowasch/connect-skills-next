@@ -12,12 +12,13 @@ interface AnalysisModalProps {
 }
 
 interface BreakdownData {
-    score_D?: number;
-    score_I?: number;
-    score_S?: number;
-    score_C?: number;
-    compatible_skills?: string[];
-    ai_comment?: string;
+    d_score?: number;
+    i_score?: number;
+    s_score?: number;
+    c_score?: number;
+    matchedSkills?: string[];
+    reason?: string;
+    suggestions?: string[];
 }
 
 export function AnalysisModal({ isOpen, onClose, candidateName, breakdown, score }: AnalysisModalProps) {
@@ -53,10 +54,10 @@ export function AnalysisModal({ isOpen, onClose, candidateName, breakdown, score
     if (!isOpen) return null;
 
     const discScores = [
-        { label: 'Dominância (D)', value: analysisData?.score_D || 0, color: 'bg-purple-500', bgLight: 'bg-purple-50', textColor: 'text-purple-700' },
-        { label: 'Influência (I)', value: analysisData?.score_I || 0, color: 'bg-blue-500', bgLight: 'bg-blue-50', textColor: 'text-blue-700' },
-        { label: 'Estabilidade (S)', value: analysisData?.score_S || 0, color: 'bg-green-500', bgLight: 'bg-green-50', textColor: 'text-green-700' },
-        { label: 'Conformidade (C)', value: analysisData?.score_C || 0, color: 'bg-orange-500', bgLight: 'bg-orange-50', textColor: 'text-orange-700' },
+        { label: 'Dominância (D)', value: analysisData?.d_score || 0, color: 'bg-purple-500', bgLight: 'bg-purple-50', textColor: 'text-purple-700' },
+        { label: 'Influência (I)', value: analysisData?.i_score || 0, color: 'bg-blue-500', bgLight: 'bg-blue-50', textColor: 'text-blue-700' },
+        { label: 'Estabilidade (S)', value: analysisData?.s_score || 0, color: 'bg-green-500', bgLight: 'bg-green-50', textColor: 'text-green-700' },
+        { label: 'Conformidade (C)', value: analysisData?.c_score || 0, color: 'bg-orange-500', bgLight: 'bg-orange-50', textColor: 'text-orange-700' },
     ];
 
     return (
@@ -132,12 +133,12 @@ export function AnalysisModal({ isOpen, onClose, candidateName, breakdown, score
                                 </div>
                             </div>
 
-                            {/* Compatible Skills */}
-                            {analysisData?.compatible_skills && analysisData.compatible_skills.length > 0 && (
+                            {/* Matched Skills */}
+                            {analysisData?.matchedSkills && analysisData.matchedSkills.length > 0 && (
                                 <div>
-                                    <h3 className="text-lg font-bold text-slate-900 mb-3">Habilidades Compatíveis</h3>
+                                    <h3 className="text-lg font-bold text-slate-900 mb-3">Habilidades Encontradas</h3>
                                     <div className="flex flex-wrap gap-2">
-                                        {analysisData.compatible_skills.map((skill, index) => (
+                                        {analysisData.matchedSkills.map((skill, index) => (
                                             <span
                                                 key={index}
                                                 className="px-3 py-1.5 bg-green-50 text-green-700 rounded-full text-sm font-medium border border-green-200"
@@ -149,14 +150,38 @@ export function AnalysisModal({ isOpen, onClose, candidateName, breakdown, score
                                 </div>
                             )}
 
-                            {/* AI Comment */}
-                            {analysisData?.ai_comment && (
+                            {/* AI Comment / Reason */}
+                            {analysisData?.reason && (
                                 <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 border border-indigo-100">
                                     <div className="flex items-start gap-3">
                                         <Brain className="text-indigo-600 flex-shrink-0 mt-1" size={24} />
                                         <div>
                                             <h3 className="text-lg font-bold text-slate-900 mb-2">Comentário da IA</h3>
-                                            <p className="text-gray-700 leading-relaxed">{analysisData.ai_comment}</p>
+                                            <p className="text-gray-700 leading-relaxed italic">"{analysisData.reason}"</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Suggestions */}
+                            {analysisData?.suggestions && (
+                                <div className="bg-emerald-50 rounded-xl p-6 border border-emerald-100">
+                                    <div className="flex items-start gap-3">
+                                        <Brain className="text-emerald-600 flex-shrink-0 mt-1" size={24} />
+                                        <div>
+                                            <h3 className="text-lg font-bold text-slate-900 mb-2">Sugestões de Melhoria</h3>
+                                            {Array.isArray(analysisData.suggestions) ? (
+                                                <ul className="space-y-2">
+                                                    {analysisData.suggestions.map((s, i) => (
+                                                        <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0" />
+                                                            {s}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            ) : (
+                                                <p className="text-gray-700 leading-relaxed">{analysisData.suggestions}</p>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

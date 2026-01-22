@@ -47,10 +47,10 @@ export function RankingList({ candidates, vacancyId }: RankingListProps) {
         try {
             const parsed = JSON.parse(breakdown);
             return {
-                D: parsed.score_D || 0,
-                I: parsed.score_I || 0,
-                S: parsed.score_S || 0,
-                C: parsed.score_C || 0,
+                D: parsed.d_score || 0,
+                I: parsed.i_score || 0,
+                S: parsed.s_score || 0,
+                C: parsed.c_score || 0,
             };
         } catch {
             return { D: 0, I: 0, S: 0, C: 0 };

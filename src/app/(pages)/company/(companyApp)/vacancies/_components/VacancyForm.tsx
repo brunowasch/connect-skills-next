@@ -148,7 +148,6 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
         }));
     };
 
-    // --- Gestão de Anexos ---
     const handleAnexosChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (!files) return;
@@ -289,9 +288,9 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                     softSkills: newSoftSkillIds
                 };
             });
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error generating vacancy:", error);
-            alert("Erro ao gerar conteúdo com IA. Tente novamente.");
+            alert(error.message || "Erro ao gerar conteúdo com IA. Tente novamente.");
         }
     };
 
