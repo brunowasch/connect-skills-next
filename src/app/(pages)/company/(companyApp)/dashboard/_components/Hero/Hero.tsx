@@ -1,16 +1,20 @@
+"use client";
+
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { MapPin, Plus, User, Building2 } from 'lucide-react';
 import { CompanyHeroProps } from '@/src/app/(pages)/company/(companyApp)/types/Hero';
+import { useTranslation } from "react-i18next";
 
 const DEFAULT_AVATAR = "/img/avatar-empresa.png";
 
 export function CompanyHero({ companyData }: CompanyHeroProps) {
+    const { t } = useTranslation();
     const { nomeEmpresa, fotoPerfil, localidade } = companyData;
 
     const fotoUrl = fotoPerfil && fotoPerfil.trim() !== '' ? fotoPerfil : DEFAULT_AVATAR;
-    const localizacao = localidade || 'Localização não informada';
+    const localizacao = localidade || t("location_not_informed");
 
     return (
         <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm p-4 sm:p-6 md:p-10 mb-4 sm:mb-6 border border-slate-100">
@@ -32,14 +36,14 @@ export function CompanyHero({ companyData }: CompanyHeroProps) {
 
                     <div className="flex-1 min-w-0">
                         <h1 className="text-base sm:text-lg md:text-xl font-semibold text-slate-900 m-0 truncate">
-                            Olá, {nomeEmpresa}!
+                            {t("dashboard_hero_welcome_company", { name: nomeEmpresa })}
                         </h1>
                         <div className="flex items-center text-xs sm:text-sm text-slate-500 mt-0.5 sm:mt-1 truncate">
                             <MapPin size={12} className="mr-1 flex-shrink-0 sm:w-3.5 sm:h-3.5" />
                             <span className="truncate">{localizacao}</span>
                         </div>
                         <p className="text-slate-500 text-xs sm:text-sm md:text-base mt-1 hidden sm:block">
-                            Bem-vindo(a) ao seu painel do Connect Skills.
+                            {t("dashboard_hero_desc_panel_company")}
                         </p>
                     </div>
                 </div>
@@ -51,7 +55,7 @@ export function CompanyHero({ companyData }: CompanyHeroProps) {
                         className="flex items-center justify-center gap-1.5 sm:gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors w-full sm:w-auto text-xs sm:text-sm font-medium"
                     >
                         <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />
-                        Publicar vaga
+                        {t("publish_vacancy")}
                     </Link>
 
                     <Link
@@ -59,7 +63,7 @@ export function CompanyHero({ companyData }: CompanyHeroProps) {
                         className="flex items-center justify-center gap-1.5 sm:gap-2 border border-blue-600 text-blue-600 hover:bg-blue-50 px-3 sm:px-4 py-2 rounded-lg transition-colors w-full sm:w-auto text-xs sm:text-sm font-medium"
                     >
                         <User size={16} className="sm:w-[18px] sm:h-[18px]" />
-                        Meu perfil
+                        {t("my_profile")}
                     </Link>
                 </div>
 

@@ -5,28 +5,32 @@ import { MapPin, Briefcase, HeartHandshake, Building2, Star } from "lucide-react
 import Image from 'next/image';
 import Link from 'next/link';
 import { useFavorites } from '../_hooks/useFavorites';
-
-const tipoMap = {
-    Presencial: 'Presencial',
-    Home_Office: 'Home Office',
-    H_brido: 'Híbrido',
-};
-
-const vinculoMap: Record<string, string> = {
-    Estagio: 'Estágio',
-    CLT_Tempo_Integral: 'CLT (integral)',
-    PJ: 'PJ',
-    CLT_Meio_Periodo: 'CLT (meio período)',
-    Trainee: 'Trainee',
-    Aprendiz: 'Aprendiz',
-    Freelancer_Autonomo: 'Freelancer (autônomo)',
-    Temporario: 'Temporário',
-};
+import { useTranslation } from "react-i18next";
 
 const DEFAULT_AVATAR = <Building2 className="w-6 h-6 sm:w-7 sm:h-7 text-slate-500" />;
 
 export function VacancyCard({ vaga }: { vaga: Vacancy }) {
+    const { t } = useTranslation();
     const { isFavorite, toggleFavorite, isInitialized } = useFavorites();
+
+    const tipoMap: Record<string, string> = {
+        Presencial: t("Presencial"),
+        Home_Office: t("Home Office"),
+        H_brido: t("Híbrido"),
+    };
+
+    const vinculoMap: Record<string, string> = {
+        Estagio: t("Estágio"),
+        CLT_Tempo_Integral: t("CLT - Tempo Integral"),
+        PJ: t("PJ"),
+        CLT_Meio_Periodo: t("CLT - Meio Período"),
+        Trainee: t("Trainee"),
+        Aprendiz: t("Aprendiz"),
+        Freelancer_Autonomo: t("Freelancer / Autônomo"),
+        Temporario: t("Temporário"),
+        '': t("not_defined")
+    };
+
     // Se o hook ainda não inicializou (SSR ou primeiro render no cliente), usamos o dado do servidor.
     // Assim que o hook lê os cookies, passamos a usar o estado do hook (que permite updates reativos).
     const favorited = isInitialized ? isFavorite(vaga.id) : !!vaga.isFavorited;
@@ -37,10 +41,10 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
     } catch (e) { }
 
     const affirmativeGroups = [];
-    if (inclusivity?.women) affirmativeGroups.push("Mulheres");
-    if (inclusivity?.blackPeople) affirmativeGroups.push("Pessoas Negras");
-    if (inclusivity?.pcd) affirmativeGroups.push("PcD");
-    if (inclusivity?.lgbt) affirmativeGroups.push("LGBTQIAPN+");
+    if (inclusivity?.women) affirmativeGroups.push(t("Women"));
+    if (inclusivity?.blackPeople) affirmativeGroups.push(t("BlackPeople"));
+    if (inclusivity?.pcd) affirmativeGroups.push(t("PcD"));
+    if (inclusivity?.lgbt) affirmativeGroups.push(t("LGBT"));
 
     const displayCidade = inclusivity?.cidade || vaga.empresa?.cidade;
     const displayEstado = inclusivity?.estado || vaga.empresa?.estado;
@@ -56,7 +60,7 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
                 <div className="absolute -top-2 -right-2 z-10">
                     <span className="bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm flex items-center gap-1 animate-pulse">
                         <MapPin size={10} />
-                        PRÓXIMO A VOCÊ
+                        {t("next_to_you")}
                     </span>
                 </div>
             )}
@@ -97,29 +101,23 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
                     </button>
                 </div>
 
-                <h3 className="font-bold text-slate-900 
-                transition-colors 
-                truncate 
-                group-hover:text-blue-600 mb-3">
+                <h3 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2 mb-2">
                     {vaga.cargo}
                 </h3>
 
                 <div className="space-y-2 mb-4">
-                    <div className="flex items-center text-xs text-gray-500 gap-0.5">
-                        <MapPin className="text-slate-400 relative top-[-1px]" size={15} />
-                        <span>{displayCidade}, {displayEstado} - {tipoMap[vaga.tipo_local_trabalho]}</span>
-                        <span className="ml-auto flex items-center gap-1">
-
-                        </span>
+                    <div className="flex items-center text-xs text-gray-500 gap-0.5 min-w-0">
+                        <MapPin className="text-slate-400 flex-shrink-0" size={15} />
+                        <span className="truncate">{displayCidade ? `${displayCidade}, ${displayEstado}` : t("location_not_informed")} - {tipoMap[vaga.tipo_local_trabalho]}</span>
                     </div>
                     <div className="flex items-center text-xs text-gray-500 gap-0.5">
-                        <Briefcase className="text-slate-400 relative top-[-1px]" size={15} />
+                        <Briefcase className="text-slate-400 flex-shrink-0" size={15} />
                         <span>{vinculoMap[vaga.vinculo_empregaticio || '']}</span>
                     </div>
 
                     {affirmativeGroups.length > 0 && (
                         <div className="flex items-center text-xs text-gray-500 font-medium gap-0.5 mt-1">
-                            <HeartHandshake className="text-slate-400 relative top-[-1px]" size={15} />
+                            <HeartHandshake className="text-slate-400 flex-shrink-0" size={15} />
                             <span>Vaga afirmativa p/ {affirmativeGroups.join(", ")}</span>
                         </div>
                     )}
@@ -127,10 +125,15 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
             </div>
 
             {/* Rodapé do Card (Data) */}
-            <div className="px-5 py-3 border-t border-gray-50 bg-gray-50/30 rounded-b-xl">
+            <div className="px-5 py-3 border-t border-gray-50 bg-gray-50/30 rounded-b-xl flex justify-between items-center">
                 <p className="text-[11px] text-gray-400">
-                    Publicada em: {vaga.created_at ? new Date(vaga.created_at).toLocaleDateString('pt-BR') : '---'}
+                    {t("vacancy_published_at")}: {vaga.created_at ? new Date(vaga.created_at).toLocaleDateString() : '---'}
                 </p>
+                {(vaga.score ?? 0) > 0 && (
+                    <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg">
+                        {vaga.score}% Match
+                    </span>
+                )}
             </div>
         </Link>
     );

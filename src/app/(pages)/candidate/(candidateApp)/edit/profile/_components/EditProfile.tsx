@@ -6,9 +6,11 @@ import {
     FileText, X, Save, AlertTriangle, User, UserCircle, Check, Eye
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import { EditProfileProps } from '@/src/app/(pages)/candidate/(candidateApp)/types/EditProfileProps';
 
 export function EditProfile({ initialData }: EditProfileProps) {
+    const { t } = useTranslation();
     const router = useRouter();
     // Estados do Formulário
     const [formData, setFormData] = useState({
@@ -149,7 +151,7 @@ export function EditProfile({ initialData }: EditProfileProps) {
             if (res.ok) {
                 localStorage.setItem('global_toast', JSON.stringify({
                     type: 'success',
-                    text: 'Perfil atualizado!'
+                    text: t('profile_updated')
                 }));
 
                 router.refresh();
@@ -177,7 +179,7 @@ export function EditProfile({ initialData }: EditProfileProps) {
                         <AlertTriangle size={20} />
                     </div>
                     <div className="flex flex-col">
-                        <span className="font-bold text-gray-900">Erro</span>
+                        <span className="font-bold text-gray-900">{t('edit_profile_error_title')}</span>
                         <span className="text-sm text-gray-600">{message.text}</span>
                     </div>
                     <button onClick={() => setMessage(null)} className="ml-auto p-1 hover:bg-gray-100 rounded-full transition-colors">
@@ -217,7 +219,7 @@ export function EditProfile({ initialData }: EditProfileProps) {
                                     onClick={() => fileInputRef.current?.click()}
                                     className="flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg text-sm font-medium transition cursor-pointer"
                                 >
-                                    <Upload size={16} /> Upload Arquivo
+                                    <Upload size={16} /> {t('edit_profile_upload_file')}
                                 </button>
                                 <input
                                     type="file"
@@ -234,31 +236,31 @@ export function EditProfile({ initialData }: EditProfileProps) {
                                         setFormData(prev => ({ ...prev, fotoPerfil: null }));
                                     }}
                                 >
-                                    Remover foto
+                                    {t('edit_profile_remove_photo')}
                                 </button>
                             </div>
                         )}
                     </div>
 
                     <div className="md:col-span-8 space-y-6">
-                        <h2 className="text-2xl font-bold text-gray-800 border-b pb-4">Editar Perfil</h2>
+                        <h2 className="text-2xl font-bold text-gray-800 border-b pb-4">{t('edit_profile_title')}</h2>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-1">
-                                <label className="text-sm font-semibold text-gray-600">Nome *</label>
+                                <label className="text-sm font-semibold text-gray-600">{t('edit_profile_name_label')}</label>
                                 <input
                                     type="text"
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
-                                    value={formData.nome}
+                                    value={formData.nome || ''}
                                     onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
                                 />
                             </div>
                             <div className="space-y-1">
-                                <label className="text-sm font-semibold text-gray-600">Sobrenome</label>
+                                <label className="text-sm font-semibold text-gray-600">{t('edit_profile_surname_label')}</label>
                                 <input
                                     type="text"
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
-                                    value={formData.sobrenome}
+                                    value={formData.sobrenome || ''}
                                     onChange={(e) => setFormData({ ...formData, sobrenome: e.target.value })}
                                 />
                             </div>
@@ -266,24 +268,24 @@ export function EditProfile({ initialData }: EditProfileProps) {
 
                         {/* Location */}
                         <div className="space-y-1 relative">
-                            <label className="text-sm font-semibold text-gray-600">Localização</label>
+                            <label className="text-sm font-semibold text-gray-600">{t('edit_profile_location_label')}</label>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                 <div className="space-y-1">
                                     <input
                                         type="text"
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
-                                        value={formData.cidade}
+                                        value={formData.cidade || ''}
                                         onChange={(e) => setFormData({ ...formData, cidade: e.target.value })}
-                                        placeholder="Cidade"
+                                        placeholder={t('city_placeholder')}
                                     />
                                 </div>
                                 <div className="space-y-1">
                                     <input
                                         type="text"
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
-                                        value={formData.estado}
+                                        value={formData.estado || ''}
                                         onChange={(e) => setFormData({ ...formData, estado: e.target.value })}
-                                        placeholder="UF"
+                                        placeholder={t('state_placeholder')}
                                         maxLength={2}
                                     />
                                 </div>
@@ -291,9 +293,9 @@ export function EditProfile({ initialData }: EditProfileProps) {
                                     <input
                                         type="text"
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
-                                        value={formData.pais}
+                                        value={formData.pais || ''}
                                         onChange={(e) => setFormData({ ...formData, pais: e.target.value })}
-                                        placeholder="País"
+                                        placeholder={t('country_placeholder')}
                                     />
                                 </div>
                             </div>
@@ -301,56 +303,56 @@ export function EditProfile({ initialData }: EditProfileProps) {
 
                         <div className="flex flex-wrap gap-4">
                             <div className="w-24 space-y-1">
-                                <label className="text-sm font-semibold text-gray-600">DDI</label>
+                                <label className="text-sm font-semibold text-gray-600">{t('ddi_label')}</label>
                                 <div className="relative">
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">+</span>
                                     <input
                                         type="text"
                                         maxLength={3}
                                         className="w-full pl-7 pr-2 py-2 border border-gray-300 rounded-lg text-left focus:ring-2 focus:ring-blue-500 outline-none transition"
-                                        value={formData.ddi}
+                                        value={formData.ddi || ''}
                                         onChange={(e) => setFormData({ ...formData, ddi: e.target.value.replace(/\D/g, '') })}
                                         placeholder="55"
                                     />
                                 </div>
                             </div>
                             <div className="w-20 space-y-1">
-                                <label className="text-sm font-semibold text-gray-600">DDD</label>
-                                <input type="text" maxLength={2} className="w-full px-2 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-blue-500 outline-none" value={formData.ddd} onChange={(e) => setFormData({ ...formData, ddd: e.target.value })} />
+                                <label className="text-sm font-semibold text-gray-600">{t('ddd_label')}</label>
+                                <input type="text" maxLength={2} className="w-full px-2 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-blue-500 outline-none" value={formData.ddd || ''} onChange={(e) => setFormData({ ...formData, ddd: e.target.value })} />
                             </div>
                             <div className="flex-1 min-w-[150px] space-y-1">
-                                <label className="text-sm font-semibold text-gray-600">Número</label>
-                                <input type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" value={formData.numero} onChange={(e) => setFormData({ ...formData, numero: e.target.value })} />
+                                <label className="text-sm font-semibold text-gray-600">{t('number_label')}</label>
+                                <input type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" value={formData.numero || ''} onChange={(e) => setFormData({ ...formData, numero: e.target.value })} />
                             </div>
                         </div>
 
                         <div className="space-y-1">
                             <label className="text-sm font-semibold text-gray-600 flex items-center gap-2">
-                                <UserCircle size={16} /> Descrição (Sobre você)
+                                <UserCircle size={16} /> {t('edit_profile_description_label')}
                             </label>
                             <textarea
                                 rows={4}
                                 maxLength={600}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition resize-none"
-                                placeholder="Conte um pouco sobre você..."
+                                placeholder={t('edit_profile_description_placeholder')}
                                 onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
-                                value={formData.descricao}
+                                value={formData.descricao || ''}
                             />
                             <div className="flex justify-between text-[10px] uppercase font-bold text-gray-400">
-                                <span>Dica: foque nas suas experiências principais</span>
+                                <span>{t('edit_profile_description_tip')}</span>
                                 <span>{formData.descricao?.length || 0}/600</span>
                             </div>
                         </div>
 
                         <div className="space-y-4 pt-4">
                             <div className="flex justify-between items-center">
-                                <label className="text-sm font-semibold text-gray-600">Links do perfil</label>
+                                <label className="text-sm font-semibold text-gray-600">{t('edit_profile_links_label')}</label>
                                 <button
                                     type="button"
                                     onClick={addLink}
                                     className="text-blue-600 flex items-center gap-1 text-sm font-bold hover:text-blue-800 cursor-pointer"
                                 >
-                                    <PlusCircle size={16} /> Adicionar link
+                                    <PlusCircle size={16} /> {t('edit_profile_add_link')}
                                 </button>
                             </div>
                             <div className="space-y-3">
@@ -358,7 +360,7 @@ export function EditProfile({ initialData }: EditProfileProps) {
                                     <div key={idx} className="flex flex-col sm:flex-row gap-2 animate-in slide-in-from-left-2">
                                         <input
                                             type="text"
-                                            placeholder="Título (ex: LinkedIn, GitHub)"
+                                            placeholder={t('edit_profile_link_title_placeholder')}
                                             className="w-full sm:w-1/3 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                                             value={link.label}
                                             onChange={(e) => updateLink(idx, 'label', e.target.value)}
@@ -390,14 +392,14 @@ export function EditProfile({ initialData }: EditProfileProps) {
                 <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200 mt-10">
                     <div className="flex items-center gap-2 mb-4 text-gray-800 font-bold">
                         <FileText size={20} className="text-blue-600" />
-                        <h3>Gestão de Anexos</h3>
+                        <h3>{t('edit_profile_attachments_title')}</h3>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="bg-white p-4 rounded-xl border border-dashed border-gray-300 flex flex-col items-center justify-center py-8">
                             <Upload className="text-gray-300 mb-2" size={32} />
-                            <p className="text-sm font-medium text-gray-600">Clique para enviar arquivos</p>
-                            <p className="text-[10px] text-gray-400 mt-1 text-center">PDF, DOCX ou Imagens (Máx 10MB)</p>
+                            <p className="text-sm font-medium text-gray-600">{t('edit_profile_attachments_click')}</p>
+                            <p className="text-[10px] text-gray-400 mt-1 text-center">{t('edit_profile_attachments_formats')}</p>
                             <input
                                 type="file"
                                 multiple
@@ -406,11 +408,11 @@ export function EditProfile({ initialData }: EditProfileProps) {
                                 onChange={handleAnexosChange}
                                 accept="image/*,.pdf,.doc,.docx"
                             />
-                            <label htmlFor="anexos-upload" className="mt-4 bg-gray-800 text-white px-4 py-2 rounded-lg text-xs font-bold cursor-pointer hover:bg-black transition">Selecionar Arquivos</label>
+                            <label htmlFor="anexos-upload" className="mt-4 bg-gray-800 text-white px-4 py-2 rounded-lg text-xs font-bold cursor-pointer hover:bg-black transition">{t('edit_profile_select_files')}</label>
                         </div>
 
                         <div className="space-y-2">
-                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Arquivos da Empresa ({formData.anexos.length})</h4>
+                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t('edit_profile_my_files')} ({formData.anexos.length})</h4>
                             {formData.anexos.map((a, i) => (
                                 <div key={i} className="flex items-center justify-between bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
                                     <span className="text-sm text-gray-700 truncate max-w-[200px]">{a.nome}</span>
@@ -419,7 +421,7 @@ export function EditProfile({ initialData }: EditProfileProps) {
                                             type="button"
                                             onClick={() => handleViewAttachment(a)}
                                             className="text-blue-500 p-1 hover:bg-blue-50 rounded cursor-pointer"
-                                            title="Visualizar arquivo"
+                                            title={t('edit_profile_view_file')}
                                         >
                                             <Eye size={14} />
                                         </button>
@@ -427,7 +429,7 @@ export function EditProfile({ initialData }: EditProfileProps) {
                                             type="button"
                                             onClick={() => removeAnexo(i)}
                                             className="text-red-500 p-1 hover:bg-red-50 rounded cursor-pointer"
-                                            title="Remover arquivo"
+                                            title={t('edit_profile_remove_file')}
                                         >
                                             <X size={14} />
                                         </button>
@@ -440,12 +442,12 @@ export function EditProfile({ initialData }: EditProfileProps) {
 
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-10 border-t">
                     <button type="button" className="text-red-500 flex items-center gap-2 text-sm font-semibold cursor-pointer hover:bg-red-50 px-4 py-2 rounded-lg transition">
-                        <AlertTriangle size={18} /> Excluir minha conta
+                        <AlertTriangle size={18} /> {t('edit_profile_delete_account')}
                     </button>
 
                     <div className="flex gap-4 w-full md:w-auto">
                         <button type="button" onClick={handleCancel} className="flex-1 md:flex-none px-4 py-2 bg-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-300 transition cursor-pointer">
-                            Cancelar
+                            {t('edit_profile_cancel')}
                         </button>
                         <button
                             type="submit"
@@ -457,7 +459,7 @@ export function EditProfile({ initialData }: EditProfileProps) {
                             ) : (
                                 <Save size={20} />
                             )}
-                            {isLoading ? 'Salvando...' : 'Salvar Alterações'}
+                            {isLoading ? t('edit_profile_saving') : t('edit_profile_save')}
                         </button>
                     </div>
                 </div>

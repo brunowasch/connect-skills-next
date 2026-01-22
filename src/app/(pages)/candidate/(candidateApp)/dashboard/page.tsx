@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
-import { Hero, KPI, RecommendedVacancies, ApplicationHistory, ProfileCompletion } from "@/src/app/(pages)/candidate/(candidateApp)/dashboard/_components/index";
+import { Hero, KPI, RecommendedVacancies, ApplicationHistory, ProfileCompletion, DashboardHeader } from "@/src/app/(pages)/candidate/(candidateApp)/dashboard/_components/index";
 
 export default async function Dashboard() {
     const cookieStore = await cookies();
@@ -314,11 +314,7 @@ export default async function Dashboard() {
 
     return (
         <>
-            <div className="mb-4 sm:mb-6">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-                <p className="text-gray-500">Acompanhe suas candidaturas, visualize vagas recomendadas e avance na sua jornada profissional.</p>
-
-            </div>
+            <DashboardHeader />
             <Hero candidato={candidate} />
             <ProfileCompletion candidato={candidate} usuario={userId} areas={areas} />
             <KPI

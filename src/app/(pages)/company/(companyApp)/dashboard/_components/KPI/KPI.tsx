@@ -1,12 +1,17 @@
+"use client";
+
 import React from 'react';
 import { Briefcase, Users, FileText } from 'lucide-react';
 import { CompanyKPIProps } from '@/src/app/(pages)/company/(companyApp)/types/KPI';
+import { useTranslation } from "react-i18next";
 
 export function CompanyKPI({
     PublishedVacancies,
     ReceivedCandidates,
     OpenVacancies
 }: CompanyKPIProps) {
+    const { t } = useTranslation();
+
     return (
         <div className="w-full grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
 
@@ -16,7 +21,7 @@ export function CompanyKPI({
                     <Briefcase size={24} className="sm:w-7 sm:h-7" />
                 </div>
                 <div className="text-xl sm:text-2xl font-bold text-slate-800">{PublishedVacancies}</div>
-                <div className="text-[11px] sm:text-sm text-slate-500 font-medium uppercase tracking-wide">Vagas publicadas</div>
+                <div className="text-[11px] sm:text-sm text-slate-500 font-medium uppercase tracking-wide">{t("published_vacancies")}</div>
             </div>
 
             {/* KPI: Candidatos Recebidos */}
@@ -25,7 +30,7 @@ export function CompanyKPI({
                     <Users size={24} className="sm:w-7 sm:h-7" />
                 </div>
                 <div className="text-xl sm:text-2xl font-bold text-slate-800">{ReceivedCandidates}</div>
-                <div className="text-[11px] sm:text-sm text-slate-500 font-medium uppercase tracking-wide">Candidatos recebidos</div>
+                <div className="text-[11px] sm:text-sm text-slate-500 font-medium uppercase tracking-wide">{t("received_candidates")}</div>
             </div>
 
             {/* KPI: Vagas Abertas - col-span-2 garante que no mobile ele ocupe a largura total se os outros dois estiverem em cima */}
@@ -34,7 +39,7 @@ export function CompanyKPI({
                     <FileText size={24} className="sm:w-7 sm:h-7" />
                 </div>
                 <div className="text-xl sm:text-2xl font-bold text-slate-800">{OpenVacancies}</div>
-                <div className="text-[11px] sm:text-sm text-slate-500 font-medium uppercase tracking-wide">Vagas abertas</div>
+                <div className="text-[11px] sm:text-sm text-slate-500 font-medium uppercase tracking-wide">{t("open_vacancies")}</div>
             </div>
         </div>
     );

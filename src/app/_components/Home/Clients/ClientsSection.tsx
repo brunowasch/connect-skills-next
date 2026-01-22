@@ -1,7 +1,12 @@
+"use client";
+
 import { ClientLogoCard } from "./ClientLogoCard";
 import { FaWhatsapp } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
 
 export function ClientsSection() {
+  const { t } = useTranslation();
+
   return (
     <>
       <section className="py-16">
@@ -10,18 +15,17 @@ export function ClientsSection() {
             <div className="lg:col-span-4">
               <div className="flex h-full flex-col rounded-2xl bg-white p-6 shadow-md">
                 <h2 className="mb-2 text-2xl font-semibold">
-                  Nossos clientes
+                  {t("clients_title")}
                 </h2>
 
                 <p className="mb-4 text-gray-600">
-                  Empresas que acreditam na nossa tecnologia e crescem com
-                  soluções de contratação mais humanas, rápidas e inteligentes.
+                  {t("clients_desc")}
                 </p>
 
                 <hr className="my-4" />
 
                 <p className="mb-1 font-semibold text-gray-800">
-                  Quer ser nosso cliente?
+                  {t("clients_want_to_be")}
                 </p>
 
                 <a

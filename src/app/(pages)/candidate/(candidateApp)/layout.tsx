@@ -8,6 +8,8 @@ import { usePathname } from "next/navigation";
 import { Footer } from "@/src/app/(pages)/candidate/layout/Footer/Footer";
 import { GlobalToast } from "./_components/GlobalToast";
 
+import { LanguageSwitcher } from "@/src/app/_components/Layout/LanguageSwitcher";
+
 export default function CandidateLayout({
     children,
 }: {
@@ -29,22 +31,27 @@ export default function CandidateLayout({
                 />
 
                 <div className="flex flex-1 flex-col transition-all duration-300 lg:ml-64">
-                    <header className="flex h-16 items-center justify-between bg-white px-4 shadow-sm lg:hidden">
-                        <button
-                            onClick={() => setMobileSidebarOpen(true)}
-                            className="rounded-lg p-2 text-gray-600 hover:bg-gray-100"
-                        >
-                            <FaBars className="text-xl" />
-                        </button>
-                        <Image
-                            src="/img/logos/logo-connect-skills.png"
-                            alt="Connect Skills"
-                            width={160}
-                            height={40}
-                            priority
-                            style={{ height: "auto", width: "12rem" }}
-                        />
-                        <div className="w-8" />
+                    <header className="flex h-16 items-center justify-between bg-white px-4 shadow-sm">
+                        <div className="flex items-center gap-4 lg:hidden">
+                            <button
+                                onClick={() => setMobileSidebarOpen(true)}
+                                className="rounded-lg p-2 text-gray-600 hover:bg-gray-100"
+                            >
+                                <FaBars className="text-xl" />
+                            </button>
+                            <Image
+                                src="/img/logos/logo-connect-skills.png"
+                                alt="Connect Skills"
+                                width={120}
+                                height={30}
+                                priority
+                                style={{ height: "auto", width: "8rem" }}
+                            />
+                        </div>
+
+                        <div className="flex items-center ml-auto">
+                            <LanguageSwitcher />
+                        </div>
                     </header>
 
                     <main className="flex-1 overflow-x-hidden p-4 lg:p-8">

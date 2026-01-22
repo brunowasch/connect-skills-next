@@ -1,5 +1,6 @@
 import { prisma } from "@/src/lib/prisma";
 import { VacancyForm } from "../_components/VacancyForm";
+import { VacancyFormHeader } from "../_components/VacancyFormHeader";
 import { cookies } from "next/headers";
 
 export default async function NewVacancyPage() {
@@ -23,10 +24,7 @@ export default async function NewVacancyPage() {
 
     return (
         <div className="max-w-4xl mx-auto px-4 py-8">
-            <div className="mb-8">
-                <h1 className="text-2xl font-bold text-slate-900">Publicar Vaga</h1>
-                <p className="text-gray-500">Preencha os dados abaixo para publicar uma nova oportunidade.</p>
-            </div>
+            <VacancyFormHeader mode="create" />
 
             <VacancyForm areas={areas} softSkills={softSkills} companyProfile={company} />
         </div>

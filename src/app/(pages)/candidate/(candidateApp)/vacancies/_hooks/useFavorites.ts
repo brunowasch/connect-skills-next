@@ -3,12 +3,14 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 
 let globalFavorites: string[] | null = null;
 let isFetchingGlobal = false;
 const subscribers: Array<(favs: string[]) => void> = [];
 
 export function useFavorites() {
+    const { t } = useTranslation();
     const router = useRouter();
     const [favorites, setFavorites] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -101,15 +103,14 @@ export function useFavorites() {
 
             window.dispatchEvent(new CustomEvent('favorites-updated'));
             router.refresh();
-
-            if (data.favorited) {
-                toast.success("Vaga salva nos favoritos");
+            if (newFavorites.includes(vagaId)) {
+                toast.success(t('vacancy_saved_favorites'));
             } else {
-                toast.info("Vaga removida dos favoritos");
+                toast.info(t('vacancy_removed_favorites'));
             }
         } catch (error) {
             console.error(error);
-            toast.error("Erro ao atualizar favoritos");
+            toast.error(t('error_updating_favorites'));
         } finally {
             setIsLoading(false);
         }

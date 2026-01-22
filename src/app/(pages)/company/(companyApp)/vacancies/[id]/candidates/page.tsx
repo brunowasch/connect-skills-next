@@ -1,9 +1,7 @@
 import { prisma } from "@/src/lib/prisma";
-import Link from 'next/link';
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { ArrowLeft, Mail, Phone, Calendar, User, BrainCircuit } from "lucide-react";
-import { ApplicationDetails } from "./_components/ApplicationDetails";
+import { CandidatesPageContent } from "./_components/CandidatesPageContent";
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -26,15 +24,7 @@ export default async function VacancyCandidatesPage({ params }: Props) {
     });
 
     if (!company) {
-        // Se não for empresa, não deve estar aqui
-        return (
-            <div className="max-w-5xl mx-auto px-4 py-8">
-                <div className="p-12 text-center bg-white rounded-xl border border-gray-200">
-                    <h1 className="text-xl font-bold text-gray-900">Acesso Negado</h1>
-                    <p className="text-gray-500">Apenas empresas podem visualizar esta página.</p>
-                </div>
-            </div>
-        );
+        return <CandidatesPageContent state="access_denied" />;
     }
 
     const vacancy = await prisma.vaga.findUnique({
@@ -42,29 +32,12 @@ export default async function VacancyCandidatesPage({ params }: Props) {
     });
 
     if (!vacancy) {
-        return (
-            <div className="max-w-5xl mx-auto px-4 py-8">
-                <Link href="/company/vacancies" className="inline-flex items-center text-gray-500 hover:text-blue-600 mb-4 transition-colors">
-                    <ArrowLeft size={16} className="mr-2" />
-                    Voltar para Vagas
-                </Link>
-                <div className="p-12 text-center bg-white rounded-xl border border-gray-200">
-                    <h1 className="text-xl font-bold text-gray-900">Vaga não encontrada</h1>
-                </div>
-            </div>
-        );
+        return <CandidatesPageContent state="not_found" />;
     }
 
     // Verificar se a empresa logada é a dona da vaga
     if (vacancy.empresa_id !== company.id) {
-        return (
-            <div className="max-w-5xl mx-auto px-4 py-8">
-                <div className="p-12 text-center bg-white rounded-xl border border-gray-200">
-                    <h1 className="text-xl font-bold text-gray-900">Acesso Negado</h1>
-                    <p className="text-gray-500">Você não tem permissão para visualizar os candidatos desta vaga.</p>
-                </div>
-            </div>
-        );
+        return <CandidatesPageContent state="company_mismatch" />;
     }
 
     const applications = await prisma.vaga_avaliacao.findMany({
@@ -102,80 +75,10 @@ export default async function VacancyCandidatesPage({ params }: Props) {
     }).sort((a, b) => (b.application?.score || 0) - (a.application?.score || 0));
 
     return (
-        <div className="max-w-5xl mx-auto px-4 py-8">
-            <div className="mb-8">
-                <Link href="/company/vacancies" className="inline-flex items-center text-gray-500 hover:text-blue-600 mb-4 transition-colors">
-                    <ArrowLeft size={16} className="mr-2" />
-                    Voltar para Vagas
-                </Link>
-                <div className="mt-4">
-                    <h1 className="text-2xl font-bold text-slate-900">Ranking de Candidatos: <span className="text-blue-600">{vacancy.cargo}</span></h1>
-                    <p className="text-gray-500">Candidatos ordenados por afinidade com a vaga através de análise de IA.</p>
-                </div>
-            </div>
-
-            {candidatesWithApp.length === 0 ? (
-                <div className="bg-white p-12 rounded-xl border border-dashed border-gray-300 text-center">
-                    <p className="text-gray-500">Nenhum candidato aplicou para esta vaga ainda.</p>
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 gap-6">
-                    {candidatesWithApp.map((candidate, index) => (
-                        <div key={candidate.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-                            <div className="p-6">
-                                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                                    <div className="flex items-center gap-4">
-                                        <div className="relative">
-                                            <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xl overflow-hidden flex-shrink-0 border-2 border-white shadow-sm">
-                                                {candidate.foto_perfil || candidate.usuario?.avatarUrl ? (
-                                                    <img src={candidate.foto_perfil || candidate.usuario?.avatarUrl!} alt="" className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <User size={32} className="text-blue-400" />
-                                                )}
-                                            </div>
-                                            <div className="absolute -top-2 -left-2 w-7 h-7 bg-slate-900 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">
-                                                #{index + 1}
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <h3 className="font-bold text-xl text-slate-900">{candidate.nome} {candidate.sobrenome}</h3>
-                                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500 mt-1">
-                                                {candidate.cidade && <span>{candidate.cidade}, {candidate.estado}</span>}
-                                                {candidate.usuario?.email && <span className="flex items-center gap-1"><Mail size={12} /> {candidate.usuario.email}</span>}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex flex-col items-end gap-2 shrink-0">
-                                        <div className="text-xs text-gray-400">Aplicou em {candidate.application?.created_at.toLocaleDateString('pt-BR')}</div>
-                                        <div className="flex flex-col items-end">
-                                            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Match Score</span>
-                                            <div className="inline-flex items-center px-4 py-1.5 rounded-full text-lg font-black bg-blue-600 text-white shadow-lg shadow-blue-100">
-                                                {candidate.application?.score || 0}%
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Justificativa da IA (Preview) */}
-                                {candidate.breakdown?.reason && (
-                                    <div className="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <BrainCircuit size={16} className="text-blue-600" />
-                                            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">Justificativa da IA</span>
-                                        </div>
-                                        <p className="text-sm text-slate-600 leading-relaxed line-clamp-2 italic">
-                                            "{candidate.breakdown.reason}"
-                                        </p>
-                                    </div>
-                                )}
-
-                                <ApplicationDetails application={candidate.application} />
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
-        </div>
+        <CandidatesPageContent
+            state="success"
+            vacancy={{ cargo: vacancy.cargo }}
+            candidates={candidatesWithApp}
+        />
     );
 }

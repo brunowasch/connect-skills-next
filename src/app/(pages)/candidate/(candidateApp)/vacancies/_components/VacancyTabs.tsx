@@ -3,7 +3,10 @@
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Star, LayoutGrid, History } from "lucide-react";
 import { useFavorites } from "../_hooks/useFavorites";
+import { useTranslation } from "react-i18next";
+
 export function VacancyTabs({ initialCount = 0, appliedCount = 0 }: { initialCount?: number, appliedCount?: number }) {
+    const { t } = useTranslation();
     const { count, isInitialized } = useFavorites();
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -32,7 +35,7 @@ export function VacancyTabs({ initialCount = 0, appliedCount = 0 }: { initialCou
                     }`}
             >
                 <LayoutGrid size={18} />
-                Explorar Vagas
+                {t("explore_tab")}
             </button>
             <button
                 onClick={() => setTab("favorites")}
@@ -42,7 +45,7 @@ export function VacancyTabs({ initialCount = 0, appliedCount = 0 }: { initialCou
                     }`}
             >
                 <Star size={18} />
-                Vagas Favoritas
+                {t("favorites_tab")}
                 {displayCount > 0 && (
                     <span className={`ml-1 px-1.5 py-0.5 text-[10px] rounded-full ${currentTab === 'favorites' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
                         {displayCount}
@@ -57,7 +60,7 @@ export function VacancyTabs({ initialCount = 0, appliedCount = 0 }: { initialCou
                     }`}
             >
                 <History size={18} />
-                Histórico de Aplicações
+                {t("history_tab")}
                 {appliedCount > 0 && (
                     <span className={`ml-1 px-1.5 py-0.5 text-[10px] rounded-full ${currentTab === 'history' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
                         {appliedCount}

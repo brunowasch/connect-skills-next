@@ -1,5 +1,6 @@
 import { prisma } from "@/src/lib/prisma";
 import { VacancyForm } from "../../_components/VacancyForm";
+import { VacancyFormHeader } from "../../_components/VacancyFormHeader";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 
@@ -61,10 +62,7 @@ export default async function EditVacancyPage({ params }: Props) {
 
     return (
         <div className="max-w-4xl mx-auto px-4 py-8">
-            <div className="mb-8">
-                <h1 className="text-2xl font-bold text-slate-900">Editar Vaga</h1>
-                <p className="text-gray-500">Atualize os dados da sua oportunidade.</p>
-            </div>
+            <VacancyFormHeader mode="edit" />
 
             <VacancyForm
                 areas={areas}

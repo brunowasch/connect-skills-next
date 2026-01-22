@@ -1,18 +1,23 @@
+"use client";
+
 import React from 'react';
 import Link from 'next/link';
 import { Users, ChevronRight, Calendar, Star } from 'lucide-react';
 import { RecentCandidatesProps } from '@/src/app/(pages)/company/(companyApp)/types/Application';
+import { useTranslation } from "react-i18next";
 
 export function RecentCandidates({ applications }: RecentCandidatesProps) {
+    const { t, i18n } = useTranslation();
+
     if (applications.length === 0) {
         return (
             <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 p-8 text-center h-full flex flex-col items-center justify-center">
                 <div className="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mb-4 text-slate-400">
                     <Users size={32} />
                 </div>
-                <h3 className="text-lg font-bold text-slate-800 mb-2">Sem candidatos recentes</h3>
+                <h3 className="text-lg font-bold text-slate-800 mb-2">{t("no_recent_candidates")}</h3>
                 <p className="text-slate-500 text-sm max-w-xs mx-auto">
-                    Nenhum candidato aplicou para suas vagas recentemente.
+                    {t("no_candidates_desc")}
                 </p>
             </div>
         );
@@ -25,14 +30,8 @@ export function RecentCandidates({ applications }: RecentCandidatesProps) {
                     <div className="bg-indigo-50 p-2 rounded-lg text-indigo-600">
                         <Users size={20} />
                     </div>
-                    <h3 className="font-bold text-slate-800 text-lg">Candidatos Recentes</h3>
+                    <h3 className="font-bold text-slate-800 text-lg">{t("recent_candidates")}</h3>
                 </div>
-                {/* <Link
-                    href="/company/candidates"
-                    className="text-xs sm:text-sm font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 transition-colors px-3 py-1.5 rounded-lg hover:bg-indigo-50"
-                >
-                    Ver todos <ChevronRight size={16} />
-                </Link> */}
             </div>
 
             <div className="divide-y divide-slate-50 overflow-y-auto custom-scrollbar">
@@ -61,7 +60,7 @@ export function RecentCandidates({ applications }: RecentCandidatesProps) {
                                 </h4>
                                 <span className="text-[10px] sm:text-xs font-medium text-slate-400 whitespace-nowrap flex items-center gap-1">
                                     <Calendar size={12} />
-                                    {new Date(app.date).toLocaleDateString('pt-BR', {
+                                    {new Date(app.date).toLocaleDateString(i18n.language === 'en' ? 'en-US' : (i18n.language === 'es' ? 'es-ES' : 'pt-BR'), {
                                         day: '2-digit',
                                         month: 'short'
                                     })}
@@ -70,7 +69,7 @@ export function RecentCandidates({ applications }: RecentCandidatesProps) {
 
                             <div className="flex items-center justify-between gap-4">
                                 <p className="text-xs text-slate-500 truncate">
-                                    Aplicou para: <span className="font-medium text-slate-700">{app.vacancyTitle}</span>
+                                    {t("applied_for")}: <span className="font-medium text-slate-700">{app.vacancyTitle}</span>
                                 </p>
 
                                 {app.score !== undefined && app.score > 0 && (
@@ -94,7 +93,7 @@ export function RecentCandidates({ applications }: RecentCandidatesProps) {
 
             <div className="bg-slate-50 p-3 text-center border-t border-slate-100 mt-auto">
                 <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">
-                    Últimas aplicações recebidas
+                    {t("latest_applications_received")}
                 </p>
             </div>
         </div>

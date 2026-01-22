@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { FaHome, FaBriefcase, FaUser, FaSignOutAlt, FaWhatsapp } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
 
 interface SidebarProps {
     mobileOpen?: boolean;
@@ -12,15 +13,16 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarProps) {
+    const { t } = useTranslation();
     const pathname = usePathname();
     const router = useRouter();
 
     const [logoutOpen, setLogoutOpen] = useState(false);
 
     const navItems = [
-        { label: "Início", href: "/company/dashboard", icon: FaHome },
-        { label: "Vagas", href: "/company/vacancies", icon: FaBriefcase },
-        { label: "Meu Perfil", href: "/company/profile", icon: FaUser },
+        { label: t("sidebar_home"), href: "/company/dashboard", icon: FaHome },
+        { label: t("sidebar_vacancies"), href: "/company/vacancies", icon: FaBriefcase },
+        { label: t("sidebar_profile"), href: "/company/profile", icon: FaUser },
     ];
 
     const handleLogout = () => {
@@ -173,7 +175,7 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarPr
                                 <FaWhatsapp className="text-white" style={{ fontSize: "1rem" }} />
                             </div>
                             <span className="text-green-500 hover:text-green-600 transition">
-                                WhatsApp
+                                {t("whatsapp")}
                             </span>
                         </a>
                     </button>
@@ -213,7 +215,7 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarPr
                             <FaSignOutAlt className="text-white" style={{ fontSize: "1rem" }} />
                         </div>
                         <span className="text-red-500 hover:text-red-600 transition">
-                            Sair
+                            {t("sidebar_logout")}
                         </span>
                     </button>
 
@@ -229,11 +231,11 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarPr
                         onClick={(e) => e.stopPropagation()}
                     >
                         <h2 className="text-lg font-semibold text-slate-900">
-                            Sair da conta
+                            {t("logout_modal_title")}
                         </h2>
 
                         <p className="mt-2 text-sm text-slate-600">
-                            Tem certeza que deseja encerrar sua sessão?
+                            {t("logout_modal_desc")}
                         </p>
 
                         <div className="mt-6 flex gap-3">
@@ -241,14 +243,14 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarPr
                                 onClick={() => setLogoutOpen(false)}
                                 className="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 cursor-pointer hover:bg-slate-100 transition"
                             >
-                                Cancelar
+                                {t("logout_modal_cancel")}
                             </button>
 
                             <button
                                 onClick={handleLogout}
                                 className="flex-1 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white cursor-pointer hover:bg-red-700 transition"
                             >
-                                Sair
+                                {t("logout_modal_confirm")}
                             </button>
                         </div>
                     </div>

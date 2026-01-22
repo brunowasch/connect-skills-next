@@ -3,6 +3,7 @@
 import { X, Search, Briefcase, MapPin } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 
 interface GlobalSearchModalProps {
     isOpen: boolean;
@@ -10,6 +11,7 @@ interface GlobalSearchModalProps {
 }
 
 export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
+    const { t } = useTranslation();
     const router = useRouter();
     const [search, setSearch] = useState("");
     const [location, setLocation] = useState("");
@@ -46,8 +48,8 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
             >
                 <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                     <div>
-                        <h2 className="text-xl font-bold text-slate-900 leading-tight">Procurar em todas as vagas</h2>
-                        <p className="text-sm text-slate-500 mt-0.5">Explore oportunidades além das recomendadas</p>
+                        <h2 className="text-xl font-bold text-slate-900 leading-tight">{t("search_all_vacancies")}</h2>
+                        <p className="text-sm text-slate-500 mt-0.5">{t("explore_beyond_recommended")}</p>
                     </div>
                     <button
                         onClick={onClose}
@@ -63,17 +65,17 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                             <Briefcase size={20} />
                         </div>
                         <p className="text-sm text-blue-800/80 leading-relaxed font-medium">
-                            Ao pesquisar aqui, removeremos o filtro de "Áreas de Interesse" para mostrar absolutamente todas as vagas compatíveis com sua busca.
+                            {t("global_search_hint")}
                         </p>
                     </div>
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700 ml-1">O que você está procurando?</label>
+                            <label className="text-sm font-bold text-slate-700 ml-1">{t("what_are_you_looking_for")}</label>
                             <div className="relative group">
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={20} />
                                 <input
                                     type="text"
-                                    placeholder="Cargo, tecnologia ou empresa..."
+                                    placeholder={t("global_search_placeholder")}
                                     className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium"
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
@@ -84,12 +86,12 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700 ml-1">Onde? (Opcional)</label>
+                            <label className="text-sm font-bold text-slate-700 ml-1">{t("where_optional")}</label>
                             <div className="relative group">
                                 <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={20} />
                                 <input
                                     type="text"
-                                    placeholder="Cidade, Estado ou Remoto"
+                                    placeholder={t("global_location_placeholder")}
                                     className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium"
                                     value={location}
                                     onChange={(e) => setLocation(e.target.value)}
@@ -105,13 +107,13 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                         onClick={onClose}
                         className="flex-1 px-6 py-3 rounded-2xl font-bold text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
                     >
-                        Cancelar
+                        {t("cancel")}
                     </button>
                     <button
                         onClick={handleGlobalSearch}
                         className="flex-[2] bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-blue-700 transition-shadow shadow-lg shadow-blue-500/20 active:scale-[0.98] cursor-pointer"
                     >
-                        Ver resultados globais
+                        {t("see_global_results")}
                     </button>
                 </div>
             </div>

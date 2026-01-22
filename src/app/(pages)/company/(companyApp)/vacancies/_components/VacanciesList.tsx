@@ -5,6 +5,7 @@ import { CompanyVacancyCard } from "./CompanyVacancyCard";
 import Link from "next/link";
 import { Plus, CheckSquare, Square, Trash2, Ban, Unlock, X, AlertCircle, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 
 interface Vacancy {
     id: string;
@@ -20,6 +21,7 @@ interface Vacancy {
 }
 
 export function VacanciesList({ initialVacancies }: { initialVacancies: any[] }) {
+    const { t } = useTranslation();
     const router = useRouter();
     const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -57,9 +59,9 @@ export function VacanciesList({ initialVacancies }: { initialVacancies: any[] })
 
         const config = {
             delete: {
-                title: 'Excluir Selecionadas',
-                description: <>Tem certeza que deseja excluir <strong>{selectedIds.length}</strong> vagas permanentemente? Esta ação não pode ser desfeita.</>,
-                confirmText: 'Excluir Vagas',
+                title: t('bulk_delete_title'),
+                description: <>{t('bulk_delete_desc', { count: selectedIds.length })}</>,
+                confirmText: t('bulk_delete_confirm'),
                 variant: 'danger' as const,
                 action: async () => {
                     for (const id of selectedIds) {
@@ -68,9 +70,9 @@ export function VacanciesList({ initialVacancies }: { initialVacancies: any[] })
                 }
             },
             lock: {
-                title: 'Trancar Selecionadas',
-                description: <>Deseja trancar as <strong>{selectedIds.length}</strong> vagas selecionadas? Elas deixarão de aparecer na busca pública.</>,
-                confirmText: 'Trancar Vagas',
+                title: t('bulk_lock_title'),
+                description: <>{t('bulk_lock_desc', { count: selectedIds.length })}</>,
+                confirmText: t('bulk_lock_confirm'),
                 variant: 'warning' as const,
                 action: async () => {
                     for (const id of selectedIds) {
@@ -83,9 +85,9 @@ export function VacanciesList({ initialVacancies }: { initialVacancies: any[] })
                 }
             },
             unlock: {
-                title: 'Abrir Selecionadas',
-                description: <>Deseja reabrir as <strong>{selectedIds.length}</strong> vagas selecionadas para novas candidaturas?</>,
-                confirmText: 'Abrir Vagas',
+                title: t('bulk_unlock_title'),
+                description: <>{t('bulk_unlock_desc', { count: selectedIds.length })}</>,
+                confirmText: t('bulk_unlock_confirm'),
                 variant: 'success' as const,
                 action: async () => {
                     for (const id of selectedIds) {
@@ -112,7 +114,7 @@ export function VacanciesList({ initialVacancies }: { initialVacancies: any[] })
                     setModal(null);
                 } catch (e) {
                     console.error(e);
-                    alert("Erro ao processar ação em massa.");
+                    alert(t('error_bulk_action'));
                 } finally {
                     setIsActionLoading(false);
                 }
@@ -124,8 +126,8 @@ export function VacanciesList({ initialVacancies }: { initialVacancies: any[] })
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900">Minhas Vagas</h1>
-                    <p className="text-gray-500 mt-1">Gerencie suas oportunidades e visualize candidaturas.</p>
+                    <h1 className="text-2xl font-bold text-slate-900">{t('my_vacancies_title')}</h1>
+                    <p className="text-gray-500 mt-1">{t('my_vacancies_subtitle')}</p>
                 </div>
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                     <button
@@ -136,7 +138,7 @@ export function VacanciesList({ initialVacancies }: { initialVacancies: any[] })
                             }`}
                     >
                         {isSelectionMode ? <X size={18} /> : <CheckSquare size={18} />}
-                        {isSelectionMode ? 'Cancelar Seleção' : 'Selecionar'}
+                        {isSelectionMode ? t('cancel_selection') : t('select')}
                     </button>
                     {!isSelectionMode && (
                         <Link
@@ -144,7 +146,7 @@ export function VacanciesList({ initialVacancies }: { initialVacancies: any[] })
                             className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
                         >
                             <Plus size={20} />
-                            Publicar Vaga
+                            {t('publish_vacancy')}
                         </Link>
                     )}
                 </div>
@@ -158,10 +160,10 @@ export function VacanciesList({ initialVacancies }: { initialVacancies: any[] })
                             className="flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-800 cursor-pointer"
                         >
                             {selectedIds.length === initialVacancies.length ? <CheckSquare size={18} /> : <Square size={18} />}
-                            {selectedIds.length === initialVacancies.length ? 'Desmarcar Tudo' : 'Selecionar Tudo'}
+                            {selectedIds.length === initialVacancies.length ? t('deselect_all') : t('select_all')}
                         </button>
                         <span className="text-sm text-blue-600 font-medium">
-                            {selectedIds.length} selecionada{selectedIds.length !== 1 ? 's' : ''}
+                            {selectedIds.length} {selectedIds.length !== 1 ? t('selected_plural') : t('selected')}
                         </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -171,7 +173,7 @@ export function VacanciesList({ initialVacancies }: { initialVacancies: any[] })
                             className="flex items-center gap-2 px-3 py-1.5 bg-white text-emerald-600 border border-emerald-100 rounded-lg text-sm font-bold hover:bg-emerald-50 transition-colors disabled:opacity-50 cursor-pointer"
                         >
                             <Unlock size={16} />
-                            Abrir
+                            {t('management_open')}
                         </button>
                         <button
                             onClick={() => handleBulkAction('lock')}
@@ -179,7 +181,7 @@ export function VacanciesList({ initialVacancies }: { initialVacancies: any[] })
                             className="flex items-center gap-2 px-3 py-1.5 bg-white text-amber-600 border border-amber-100 rounded-lg text-sm font-bold hover:bg-amber-50 transition-colors disabled:opacity-50 cursor-pointer"
                         >
                             <Ban size={16} />
-                            Trancar
+                            {t('management_close')}
                         </button>
                         <button
                             onClick={() => handleBulkAction('delete')}
@@ -187,7 +189,7 @@ export function VacanciesList({ initialVacancies }: { initialVacancies: any[] })
                             className="flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 border border-red-100 rounded-lg text-sm font-bold hover:bg-red-100 transition-colors disabled:opacity-50 cursor-pointer"
                         >
                             <Trash2 size={16} />
-                            Excluir
+                            {t('management_delete')}
                         </button>
                     </div>
                 </div>
@@ -258,7 +260,7 @@ export function VacanciesList({ initialVacancies }: { initialVacancies: any[] })
                                     onClick={() => !isActionLoading && setModal(null)}
                                     className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-all cursor-pointer"
                                 >
-                                    Cancelar
+                                    {t('cancel')}
                                 </button>
                                 <button
                                     onClick={modal.action}
@@ -268,7 +270,7 @@ export function VacanciesList({ initialVacancies }: { initialVacancies: any[] })
                                             'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/30'
                                         }`}
                                 >
-                                    {isActionLoading ? "Processando..." : modal.confirmText}
+                                    {isActionLoading ? t('processing') : modal.confirmText}
                                 </button>
                             </div>
                         </div>

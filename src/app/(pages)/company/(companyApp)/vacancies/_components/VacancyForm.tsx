@@ -6,6 +6,7 @@ import { ArrowLeft, Check, Loader2, Sparkles, Search, X, FileText, Trash2, Uploa
 import Link from "next/link";
 import { AIGenerationModal } from "./AIGenerationModal";
 import { generateVacancyAI } from "@/src/app/actions/generateVacancyAI";
+import { useTranslation } from "react-i18next";
 
 interface Area {
     id: number;
@@ -48,6 +49,7 @@ interface VacancyFormProps {
 }
 
 export function VacancyForm({ areas, softSkills, initialData, vacancyId, companyProfile }: VacancyFormProps) {
+    const { t } = useTranslation();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [isAIModalOpen, setIsAIModalOpen] = useState(false);
@@ -186,7 +188,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
 
     const handleViewAttachment = (anexo: VacancyFile) => {
         const url = anexo.url || anexo.base64;
-        const name = anexo.nome || 'Arquivo';
+        const name = anexo.nome || t('vacancy_file_name_default');
 
         if (!url) return;
 
@@ -290,7 +292,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
             });
         } catch (error: any) {
             console.error("Error generating vacancy:", error);
-            alert(error.message || "Erro ao gerar conteúdo com IA. Tente novamente.");
+            alert(error.message || t('ai_error_generating'));
         }
     };
 
@@ -321,13 +323,13 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                 body: JSON.stringify(payload)
             });
 
-            if (!res.ok) throw new Error("Falha ao salvar vaga");
+            if (!res.ok) throw new Error(t('error_saving_vacancy'));
 
             router.push("/company/vacancies");
             router.refresh();
         } catch (error) {
             console.error(error);
-            alert("Erro ao publicar vaga.");
+            alert(t('error_publishing_vacancy'));
         } finally {
             setIsLoading(false);
         }
@@ -338,20 +340,20 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
 
             <div className="space-y-4">
                 <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-                    <h3 className="text-lg font-semibold text-gray-900">Informações Principais</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{t('vacancy_main_info')}</h3>
                     <button
                         type="button"
                         onClick={() => setIsAIModalOpen(true)}
                         className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full hover:shadow-lg shadow-blue-500/30 transition-all hover:scale-105 cursor-pointer"
                     >
                         <Sparkles size={14} />
-                        IA Assist
+                        {t('ai_assist_btn')}
                     </button>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">Cargo / Título da Vaga</label>
+                        <label className="text-sm font-medium text-gray-700">{t('vacancy_title_label')}</label>
                         <input
                             type="text"
                             name="cargo"
@@ -359,21 +361,21 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                             value={formData.cargo}
                             onChange={handleChange}
                             className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                            placeholder="Ex: Vendedor de automóveis"
+                            placeholder={t('vacancy_title_placeholder')}
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">Modelo de Trabalho</label>
+                        <label className="text-sm font-medium text-gray-700">{t('work_model_label')}</label>
                         <select
                             name="tipo_local_trabalho"
                             value={formData.tipo_local_trabalho}
                             onChange={handleChange}
                             className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
                         >
-                            <option value="Presencial">Presencial</option>
-                            <option value="Home_Office">Home Office</option>
-                            <option value="H_brido">Híbrido</option>
+                            <option value="Presencial">{t('Presencial')}</option>
+                            <option value="Home_Office">{t('Home Office')}</option>
+                            <option value="H_brido">{t('Híbrido')}</option>
                         </select>
                     </div>
 
@@ -381,7 +383,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                     <div className="md:col-span-2 space-y-4 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
                         <div className="flex items-center justify-between">
                             <label className="text-sm font-bold text-gray-800 flex items-center gap-2">
-                                <Search size={16} className="text-blue-500" /> Localização da Vaga
+                                <Search size={16} className="text-blue-500" /> {t('vacancy_location_label')}
                             </label>
                             {companyProfile && (
                                 <label className="flex items-center gap-2 text-xs font-semibold text-blue-600 cursor-pointer hover:text-blue-700 transition-colors">
@@ -391,7 +393,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                                         onChange={handleUseProfileLocation}
                                         className="appearance-none w-4 h-4 border border-gray-300 rounded checked:bg-blue-600 checked:border-blue-600 focus:ring-2 focus:ring-blue-100 cursor-pointer relative shrink-0 transition-all after:content-[''] after:absolute after:hidden checked:after:block after:left-[5px] after:top-[1px] after:w-[5px] after:h-[9px] after:border-white after:border-r-2 after:border-b-2 after:rotate-45"
                                     />
-                                    Usar localidade definida em meu perfil
+                                    {t('use_profile_location')}
                                 </label>
                             )}
                         </div>
@@ -404,7 +406,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                                     className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition text-sm disabled:bg-gray-50 disabled:text-gray-500"
                                     value={formData.cidade}
                                     onChange={handleChange}
-                                    placeholder="Cidade"
+                                    placeholder={t('city_placeholder')}
                                     disabled={formData.useProfileLocation}
                                 />
                             </div>
@@ -415,7 +417,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                                     className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition text-sm disabled:bg-gray-50 disabled:text-gray-500"
                                     value={formData.estado}
                                     onChange={handleChange}
-                                    placeholder="UF"
+                                    placeholder={t('state_placeholder')}
                                     maxLength={2}
                                     disabled={formData.useProfileLocation}
                                 />
@@ -427,7 +429,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                                     className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition text-sm disabled:bg-gray-50 disabled:text-gray-500"
                                     value={formData.pais}
                                     onChange={handleChange}
-                                    placeholder="País"
+                                    placeholder={t('country_placeholder')}
                                     disabled={formData.useProfileLocation}
                                 />
                             </div>
@@ -435,7 +437,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">Vínculo</label>
+                        <label className="text-sm font-medium text-gray-700">{t('employment_type_label')}</label>
                         <select
                             name="vinculo_empregaticio"
                             value={formData.vinculo_empregaticio}
@@ -455,7 +457,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Salário</label>
+                            <label className="text-sm font-medium text-gray-700">{t('salary_label')}</label>
                             <input
                                 type="number"
                                 name="salario"
@@ -466,7 +468,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Moeda</label>
+                            <label className="text-sm font-medium text-gray-700">{t('currency_label')}</label>
                             <select
                                 name="moeda"
                                 value={formData.moeda}
@@ -483,10 +485,10 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
             </div>
 
             <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-100 pb-2">Detalhes</h3>
+                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-100 pb-2">{t('details_section_title')}</h3>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Descrição da Vaga</label>
+                    <label className="text-sm font-medium text-gray-700">{t('vacancy_description_label')}</label>
                     <textarea
                         name="descricao"
                         required
@@ -494,26 +496,26 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                         onChange={handleChange}
                         rows={6}
                         className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
-                        placeholder="Descreva as responsabilidades, requisitos obrigatórios e desejáveis..."
+                        placeholder={t('vacancy_description_placeholder')}
                     />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Benefícios</label>
+                    <label className="text-sm font-medium text-gray-700">{t('benefits_label')}</label>
                     <textarea
                         name="beneficio"
                         value={formData.beneficio}
                         onChange={handleChange}
                         rows={3}
                         className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
-                        placeholder="Vale refeição, plano de saúde, gympass..."
+                        placeholder={t('benefits_placeholder')}
                     />
                 </div>
             </div>
 
             <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-100 pb-2">Inclusão e Diversidade</h3>
-                <p className="text-sm text-gray-600">Marque as opções abaixo se esta for uma vaga afirmativa ou exclusiva para grupos específicos.</p>
+                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-100 pb-2">{t('inclusion_diversity_title')}</h3>
+                <p className="text-sm text-gray-600">{t('inclusion_diversity_desc')}</p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
@@ -524,7 +526,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                             className="appearance-none w-4 h-4 border border-gray-300 rounded checked:bg-blue-600 checked:border-blue-600 focus:ring-2 focus:ring-blue-100 cursor-pointer relative shrink-0 transition-all after:content-[''] after:absolute after:hidden checked:after:block after:left-[5px] after:top-[1px] after:w-[5px] after:h-[9px] after:border-white after:border-r-2 after:border-b-2 after:rotate-45"
                         />
                         <span className="text-sm font-medium text-gray-700">
-                            Vaga Afirmativa para Mulheres
+                            {t('affirmative_women')}
                         </span>
                     </label>
 
@@ -535,7 +537,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                             onChange={() => toggleInclusivity('blackPeople')}
                             className="appearance-none w-4 h-4 border border-gray-300 rounded checked:bg-blue-600 checked:border-blue-600 focus:ring-2 focus:ring-blue-100 cursor-pointer relative shrink-0 transition-all after:content-[''] after:absolute after:hidden checked:after:block after:left-[5px] after:top-[1px] after:w-[5px] after:h-[9px] after:border-white after:border-r-2 after:border-b-2 after:rotate-45"
                         />
-                        <span className="text-sm font-medium text-gray-700">Vaga Afirmativa para Pessoas Negras</span>
+                        <span className="text-sm font-medium text-gray-700">{t('affirmative_black')}</span>
                     </label>
 
                     <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
@@ -545,7 +547,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                             onChange={() => toggleInclusivity('pcd')}
                             className="appearance-none w-4 h-4 border border-gray-300 rounded checked:bg-blue-600 checked:border-blue-600 focus:ring-2 focus:ring-blue-100 cursor-pointer relative shrink-0 transition-all after:content-[''] after:absolute after:hidden checked:after:block after:left-[5px] after:top-[1px] after:w-[5px] after:h-[9px] after:border-white after:border-r-2 after:border-b-2 after:rotate-45"
                         />
-                        <span className="text-sm font-medium text-gray-700">Vaga para PcD</span>
+                        <span className="text-sm font-medium text-gray-700">{t('affirmative_pcd')}</span>
                     </label>
 
                     <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
@@ -555,7 +557,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                             onChange={() => toggleInclusivity('lgbt')}
                             className="appearance-none w-4 h-4 border border-gray-300 rounded checked:bg-blue-600 checked:border-blue-600 focus:ring-2 focus:ring-blue-100 cursor-pointer relative shrink-0 transition-all after:content-[''] after:absolute after:hidden checked:after:block after:left-[5px] after:top-[1px] after:w-[5px] after:h-[9px] after:border-white after:border-r-2 after:border-b-2 after:rotate-45"
                         />
-                        <span className="text-sm font-medium text-gray-700">Vaga para LGBTQIAPN+</span>
+                        <span className="text-sm font-medium text-gray-700">{t('affirmative_lgbt')}</span>
                     </label>
                 </div>
             </div>
@@ -564,7 +566,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
             <div className="space-y-6 bg-gray-50/50 p-6 rounded-2xl border border-gray-100 shadow-sm shadow-blue-50/50">
                 <div className="flex items-center gap-2 text-gray-900 font-bold border-b border-gray-100 pb-2">
                     <FileText size={18} className="text-blue-600" />
-                    <h3 className="text-base uppercase tracking-wider">Materiais Complementares</h3>
+                    <h3 className="text-base uppercase tracking-wider">{t('complementary_materials_title')}</h3>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -572,7 +574,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <h4 className="text-sm font-bold text-gray-700 uppercase tracking-widest flex items-center gap-1.5">
-                                <Upload size={14} /> Arquivos ({formData.anexos.length})
+                                <Upload size={14} /> {t('files_label')} ({formData.anexos.length})
                             </h4>
                             <input
                                 type="file"
@@ -583,13 +585,13 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                                 accept=".pdf,.doc,.docx,image/*"
                             />
                             <label htmlFor="vaga-anexos" className="text-xs font-bold text-blue-600 hover:text-blue-700 cursor-pointer transition-colors bg-blue-50 px-2 py-1 rounded">
-                                + Adicionar
+                                {t('add_btn')}
                             </label>
                         </div>
 
                         <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                             {formData.anexos.length === 0 && (
-                                <p className="text-xs text-gray-400 italic">Nenhum arquivo anexado.</p>
+                                <p className="text-xs text-gray-400 italic">{t('no_files_attached')}</p>
                             )}
                             {formData.anexos.map((anexo, idx) => (
                                 <div key={idx} className="flex items-center justify-between bg-white p-2 rounded-lg border border-gray-100 shadow-sm animate-in fade-in slide-in-from-left-2 transition-all hover:border-blue-200">
@@ -599,7 +601,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                                             type="button"
                                             onClick={() => handleViewAttachment(anexo)}
                                             className="p-1.5 text-blue-500 hover:bg-blue-50 rounded transition-colors cursor-pointer"
-                                            title="Visualizar"
+                                            title={t('edit_profile_view_file')}
                                         >
                                             <Eye size={14} />
                                         </button>
@@ -607,7 +609,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                                             type="button"
                                             onClick={() => removeAnexo(idx)}
                                             className="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors cursor-pointer"
-                                            title="Remover"
+                                            title={t('edit_profile_remove_file')}
                                         >
                                             <Trash2 size={14} />
                                         </button>
@@ -621,27 +623,27 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <h4 className="text-sm font-bold text-gray-700 uppercase tracking-widest flex items-center gap-1.5">
-                                <LinkIcon size={14} /> Links Úteis ({formData.links.length})
+                                <LinkIcon size={14} /> {t('useful_links_label')} ({formData.links.length})
                             </h4>
                             <button
                                 type="button"
                                 onClick={addLink}
                                 className="text-xs font-bold text-blue-600 hover:text-blue-700 cursor-pointer transition-colors bg-blue-50 px-2 py-1 rounded"
                             >
-                                + Adicionar
+                                {t('add_btn')}
                             </button>
                         </div>
 
                         <div className="space-y-3 max-h-48 overflow-y-auto pr-1">
                             {formData.links.length === 0 && (
-                                <p className="text-xs text-gray-400 italic">Nenhum link adicionado.</p>
+                                <p className="text-xs text-gray-400 italic">{t('no_links_added')}</p>
                             )}
                             {formData.links.map((link, idx) => (
                                 <div key={idx} className="space-y-2 p-3 bg-white rounded-xl border border-gray-100 shadow-sm animate-in fade-in slide-in-from-right-2">
                                     <div className="flex gap-2">
                                         <input
                                             type="text"
-                                            placeholder="Título (ex: Portfólio)"
+                                            placeholder={t('link_title_placeholder')}
                                             className="flex-1 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded text-xs focus:ring-1 focus:ring-blue-500 outline-none"
                                             value={link.titulo}
                                             onChange={(e) => updateLink(idx, 'titulo', e.target.value)}
@@ -669,46 +671,46 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
             </div>
 
             <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-100 pb-2">Recrutamento Inteligente</h3>
+                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-100 pb-2">{t('smart_recruitment_title')}</h3>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Perfil do Candidato Ideal</label>
+                    <label className="text-sm font-medium text-gray-700">{t('ideal_candidate_profile_label')}</label>
                     <textarea
                         name="candidatoIdeal"
                         value={formData.candidatoIdeal}
                         onChange={handleChange}
                         rows={4}
                         className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
-                        placeholder="Ex: O candidato ideal para essa vaga deve ter experiência prévia em vendas de automóveis..."
+                        placeholder={t('ideal_candidate_placeholder')}
                     />
-                    <p className="text-xs text-gray-500">* Este texto será anexado à descrição da vaga ao salvar.</p>
+                    <p className="text-xs text-gray-500">{t('ideal_candidate_hint')}</p>
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Perguntas para Entrevista</label>
+                    <label className="text-sm font-medium text-gray-700">{t('interview_questions_label')}</label>
                     <textarea
                         name="pergunta"
                         value={formData.pergunta}
                         onChange={handleChange}
                         rows={4}
                         className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
-                        placeholder="Perguntas técnicas e comportamentais..."
+                        placeholder={t('interview_questions_placeholder')}
                     />
                 </div>
             </div>
 
             <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-100 pb-2">Segmentação</h3>
+                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-100 pb-2">{t('segmentation_title')}</h3>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">Especialidades requeridas (Selecione ao menos uma)</label>
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">{t('required_specialties_label')}</label>
                     <div className="relative mb-2">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
                         <input
                             type="text"
                             value={searchArea}
                             onChange={(e) => setSearchArea(e.target.value)}
-                            placeholder="Pesquisar especialidade..."
+                            placeholder={t('search_specialty_placeholder')}
                             className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                     </div>
@@ -750,14 +752,14 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">Soft Skills (Desejáveis)</label>
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">{t('soft_skills_label')}</label>
                     <div className="relative mb-2">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
                         <input
                             type="text"
                             value={searchSoftSkill}
                             onChange={(e) => setSearchSoftSkill(e.target.value)}
-                            placeholder="Pesquisar soft skill..."
+                            placeholder={t('search_soft_skill_placeholder')}
                             className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                     </div>
@@ -804,7 +806,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                     href="/company/vacancies"
                     className="px-6 py-2.5 rounded-lg border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
                 >
-                    Cancelar
+                    {t('cancel')}
                 </Link>
                 <button
                     type="submit"
@@ -812,7 +814,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                     className="flex-1 flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-600/20 cursor-pointer"
                 >
                     {isLoading ? <Loader2 className="animate-spin" /> : <Sparkles size={18} />}
-                    <span className="relative top-[1px]">{isEdit ? "Salvar Alterações" : "Publicar Vaga"}</span>
+                    <span className="relative top-[1px]">{isEdit ? t('save_changes') : t('publish_vacancy')}</span>
                 </button>
             </div>
 

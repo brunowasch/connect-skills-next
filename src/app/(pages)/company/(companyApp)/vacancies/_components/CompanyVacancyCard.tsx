@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { selectVacancyForRanking, selectVacancyForEditing } from "../actions";
 import { AlertCircle, X, Lock, Unlock, Ban, Eye, Edit, Users } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export interface CompanyVacancy {
     id: string;
@@ -17,12 +18,6 @@ export interface CompanyVacancy {
         vaga_avaliacao?: number;
     };
 }
-
-const tipoMap = {
-    Presencial: 'Presencial',
-    Home_Office: 'Home Office',
-    H_brido: 'Híbrido',
-};
 
 interface ModalConfig {
     isOpen: boolean;
@@ -40,6 +35,7 @@ export function CompanyVacancyCard({
     vacancy: CompanyVacancy,
     isSelectionMode?: boolean
 }) {
+    const { t } = useTranslation();
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [isUpdating, setIsUpdating] = useState(false);
@@ -52,7 +48,14 @@ export function CompanyVacancyCard({
         variant: 'info'
     });
 
+    const tipoMap: Record<string, string> = {
+        Presencial: t('Presencial'),
+        Home_Office: t('Home Office'),
+        H_brido: t('Híbrido'),
+    };
+
     const applicationCount = vacancy._count?.vaga_avaliacao || 0;
+    const statusLabel = vacancy.status === 'Ativa' ? t('active') : t('inactive');
 
     const handleToggleStatus = async (e: React.MouseEvent) => {
         e.preventDefault();
@@ -63,11 +66,11 @@ export function CompanyVacancyCard({
 
         setModal({
             isOpen: true,
-            title: isClosing ? 'Trancar Vaga' : 'Reabrir Vaga',
+            title: isClosing ? t('lock_vacancy') : t('unlock_vacancy'),
             description: isClosing
-                ? <>Tem certeza que deseja trancar a vaga <strong>{vacancy.cargo}</strong>? Novos candidatos não poderão se inscrever.</>
-                : <>Deseja reabrir a vaga <strong>{vacancy.cargo}</strong> para novas candidaturas?</>,
-            confirmText: isClosing ? 'Trancar Vaga' : 'Abrir Vaga',
+                ? <>{t('lock_vacancy_desc', { cargo: vacancy.cargo })}</>
+                : <>{t('unlock_vacancy_desc', { cargo: vacancy.cargo })}</>,
+            confirmText: isClosing ? t('lock_vacancy') : t('unlock_vacancy'),
             variant: isClosing ? 'warning' : 'success',
             onConfirm: async () => {
                 setIsUpdating(true);
@@ -82,11 +85,11 @@ export function CompanyVacancyCard({
                         router.refresh();
                         setModal(prev => ({ ...prev, isOpen: false }));
                     } else {
-                        alert("Erro ao atualizar status.");
+                        alert(t('error_updating_status'));
                     }
                 } catch (e) {
                     console.error(e);
-                    alert("Erro de conexão.");
+                    alert(t('error_connection'));
                 } finally {
                     setIsUpdating(false);
                 }
@@ -111,7 +114,7 @@ export function CompanyVacancyCard({
                                 ? 'bg-green-100 text-green-800'
                                 : 'bg-gray-100 text-gray-800'
                                 }`}>
-                                {vacancy.status}
+                                {statusLabel}
                             </span>
                         )}
                     </div>
@@ -122,12 +125,12 @@ export function CompanyVacancyCard({
                                     ? 'bg-green-100 text-green-800'
                                     : 'bg-gray-100 text-gray-800'
                                     }`}>
-                                    {vacancy.status}
+                                    {statusLabel}
                                 </span>
                             </div>
                         )}
                         <div className="text-sm text-gray-500">
-                            {tipoMap[vacancy.tipo_local_trabalho]} • Criada em {vacancy.created_at.toLocaleDateString('pt-BR')}
+                            {tipoMap[vacancy.tipo_local_trabalho]} • {t('created_at_label')} {vacancy.created_at.toLocaleDateString()}
                         </div>
                     </div>
                 </div>
@@ -136,7 +139,7 @@ export function CompanyVacancyCard({
                     <div className="flex items-center gap-2">
                         <Users size={16} className="text-blue-500" />
                         <span>
-                            <span className="font-semibold text-slate-900">{applicationCount}</span> Candidatos
+                            <span className="font-semibold text-slate-900">{applicationCount}</span> {t('candidates')}
                         </span>
                     </div>
                 </div>
@@ -152,14 +155,14 @@ export function CompanyVacancyCard({
                     className="flex-1 flex items-center justify-center gap-2 h-10 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold cursor-pointer hover:bg-blue-100 transition-colors whitespace-nowrap"
                 >
                     <Users size={16} />
-                    Ver Candidatos
+                    {t('view_candidates_btn')}
                 </button>
                 <Link
                     href={`/viewer/vacancy/${vacancy.uuid}`}
                     className="flex-1 flex items-center justify-center gap-2 h-10 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold cursor-pointer hover:bg-blue-100 transition-colors whitespace-nowrap"
                 >
                     <Eye size={16} />
-                    Ver Vaga
+                    {t('view_vacancy_btn')}
                 </Link>
                 <button
                     onClick={(e) => {
@@ -167,7 +170,7 @@ export function CompanyVacancyCard({
                         startTransition(() => selectVacancyForEditing(vacancy.id));
                     }}
                     className="flex shrink-0 items-center justify-center w-10 h-10 text-gray-400 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-colors border border-gray-200 cursor-pointer"
-                    title="Editar Vaga"
+                    title={t('edit_vacancy_btn')}
                 >
                     <Edit size={16} />
                 </button>
@@ -178,7 +181,7 @@ export function CompanyVacancyCard({
                         ? 'text-gray-400 hover:text-amber-600 hover:bg-amber-50 border-gray-200'
                         : 'text-amber-600 bg-amber-50 border-amber-100 hover:bg-amber-100'
                         }`}
-                    title={vacancy.status === 'Ativa' ? "Trancar Vaga" : "Abrir Vaga"}
+                    title={vacancy.status === 'Ativa' ? t('lock_vacancy') : t('unlock_vacancy')}
                 >
                     {vacancy.status === 'Ativa' ? <Ban size={16} /> : <Unlock size={16} />}
                 </button>
@@ -222,7 +225,7 @@ export function CompanyVacancyCard({
                                     onClick={() => setModal(prev => ({ ...prev, isOpen: false }))}
                                     className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-all cursor-pointer"
                                 >
-                                    Cancelar
+                                    {t('cancel')}
                                 </button>
                                 <button
                                     onClick={modal.onConfirm}
@@ -232,7 +235,7 @@ export function CompanyVacancyCard({
                                             'bg-blue-600 hover:bg-blue-700 shadow-blue-500/30'
                                         }`}
                                 >
-                                    {isUpdating ? "Processando..." : modal.confirmText}
+                                    {isUpdating ? t('processing') : modal.confirmText}
                                 </button>
                             </div>
                         </div>

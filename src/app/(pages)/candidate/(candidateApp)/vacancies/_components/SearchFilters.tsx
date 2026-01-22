@@ -3,8 +3,10 @@
 import { Search, MapPin, Filter } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export function SearchFilters() {
+    const { t } = useTranslation();
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -35,7 +37,7 @@ export function SearchFilters() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                     <input
                         type="text"
-                        placeholder="Buscar por cargo ou empresa..."
+                        placeholder={t("search_placeholder")}
                         className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
@@ -48,7 +50,7 @@ export function SearchFilters() {
                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                     <input
                         type="text"
-                        placeholder="Cidade ou Estado (Opcional)..."
+                        placeholder={t("location_placeholder")}
                         className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                         value={location}
                         onChange={(e) => setLocation(e.target.value)}
@@ -63,10 +65,10 @@ export function SearchFilters() {
                         value={type}
                         onChange={(e) => setType(e.target.value)}
                     >
-                        <option value="">Todos os tipos</option>
-                        <option value="Presencial">Presencial</option>
-                        <option value="Home_Office">Home Office</option>
-                        <option value="H_brido">Híbrido</option>
+                        <option value="">{t("all_types")}</option>
+                        <option value="Presencial">{t("Presencial")}</option>
+                        <option value="Home_Office">{t("Home Office")}</option>
+                        <option value="H_brido">{t("Híbrido")}</option>
                     </select>
 
                     <button
