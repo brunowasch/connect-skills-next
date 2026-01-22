@@ -1,10 +1,9 @@
 "use client";
 
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { Star, LayoutGrid } from "lucide-react";
+import { Star, LayoutGrid, History } from "lucide-react";
 import { useFavorites } from "../_hooks/useFavorites";
-
-export function VacancyTabs({ initialCount = 0 }: { initialCount?: number }) {
+export function VacancyTabs({ initialCount = 0, appliedCount = 0 }: { initialCount?: number, appliedCount?: number }) {
     const { count, isInitialized } = useFavorites();
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -24,10 +23,10 @@ export function VacancyTabs({ initialCount = 0 }: { initialCount?: number }) {
     };
 
     return (
-        <div className="flex items-center gap-1 mb-6 border-b border-gray-100">
+        <div className="flex items-center gap-1 mb-6 border-b border-gray-100 overflow-x-auto no-scrollbar">
             <button
                 onClick={() => setTab("explore")}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold transition-all border-b-2 cursor-pointer ${currentTab === "explore"
+                className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold transition-all border-b-2 whitespace-nowrap cursor-pointer ${currentTab === "explore"
                     ? "text-blue-600 border-blue-600 bg-blue-50/50"
                     : "text-gray-500 border-transparent hover:text-gray-700 hover:bg-gray-50"
                     }`}
@@ -37,7 +36,7 @@ export function VacancyTabs({ initialCount = 0 }: { initialCount?: number }) {
             </button>
             <button
                 onClick={() => setTab("favorites")}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold transition-all border-b-2 cursor-pointer ${currentTab === "favorites"
+                className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold transition-all border-b-2 whitespace-nowrap cursor-pointer ${currentTab === "favorites"
                     ? "text-blue-600 border-blue-600 bg-blue-50/50"
                     : "text-gray-500 border-transparent hover:text-gray-700 hover:bg-gray-50"
                     }`}
@@ -47,6 +46,21 @@ export function VacancyTabs({ initialCount = 0 }: { initialCount?: number }) {
                 {displayCount > 0 && (
                     <span className={`ml-1 px-1.5 py-0.5 text-[10px] rounded-full ${currentTab === 'favorites' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
                         {displayCount}
+                    </span>
+                )}
+            </button>
+            <button
+                onClick={() => setTab("history")}
+                className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold transition-all border-b-2 whitespace-nowrap cursor-pointer ml-auto ${currentTab === "history"
+                    ? "text-blue-600 border-blue-600 bg-blue-50/50"
+                    : "text-gray-500 border-transparent hover:text-gray-700 hover:bg-gray-50"
+                    }`}
+            >
+                <History size={18} />
+                Histórico de Aplicações
+                {appliedCount > 0 && (
+                    <span className={`ml-1 px-1.5 py-0.5 text-[10px] rounded-full ${currentTab === 'history' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
+                        {appliedCount}
                     </span>
                 )}
             </button>

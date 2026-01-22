@@ -100,6 +100,36 @@ export default async function VacancyDetailsPage({ params }: { params: Promise<{
         }
     }
 
+    // Verificar se o candidato já se candidatou
+    let hasApplied = false;
+    let applicationResponses: any = null;
+    if (userId && userType?.toUpperCase() === 'CANDIDATO') {
+        const candidate = await prisma.candidato.findUnique({
+            where: { usuario_id: userId },
+            select: { id: true }
+        });
+
+        if (candidate) {
+            const application = await prisma.vaga_avaliacao.findUnique({
+                where: {
+                    vaga_id_candidato_id: {
+                        vaga_id: vacancy.id,
+                        candidato_id: candidate.id
+                    }
+                },
+                select: { resposta: true }
+            });
+            hasApplied = !!application;
+            if (application?.resposta) {
+                try {
+                    applicationResponses = JSON.parse(application.resposta);
+                } catch (e) {
+                    console.error("Erro ao fazer parse das respostas");
+                }
+            }
+        }
+    }
+
     // Montar o objeto de vaga com todos os relacionamentos
     // Serializar para evitar erro de Decimal e Date não-POJO
     const vacancyWithRelations = JSON.parse(JSON.stringify({
@@ -130,6 +160,8 @@ export default async function VacancyDetailsPage({ params }: { params: Promise<{
             userType={userType}
             isOwner={isOwner}
             userId={userId}
+            hasApplied={hasApplied}
+            applicationResponses={applicationResponses}
         />
     );
 }
