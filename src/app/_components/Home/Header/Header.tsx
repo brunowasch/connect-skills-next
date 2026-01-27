@@ -53,7 +53,7 @@ export function Header() {
 
   return (
     <nav className="fixed top-0 z-50 w-full bg-[#F2F4F7]">
-      <div className="mx-auto flex min-h-[13vh] max-w-7xl items-center justify-between px-4">
+      <div className="mx-auto flex min-h-[13vh] max-w-7xl items-center justify-between px-4 relative">
         {/* Logo */}
         <Link href="/" onClick={() => window.scrollTo({ top: 0 })}>
           <Image
@@ -69,7 +69,7 @@ export function Header() {
         {/* Menu (Desktop + Mobile) */}
         <div
           className={`${open ? "flex" : "hidden"
-            } absolute left-0 top-full w-full flex-col gap-4 bg-[#F2F4F7] p-4 lg:static lg:flex lg:w-auto lg:flex-row lg:items-center lg:gap-8 lg:bg-transparent lg:p-0`}
+            } absolute left-0 top-full w-full flex-col gap-4 bg-[#F2F4F7] p-4 lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:top-1/2 lg:-translate-y-1/2 lg:w-auto lg:flex lg:flex-row lg:items-center lg:gap-8 lg:bg-transparent lg:p-0`}
         >
           <ul className="flex flex-col gap-3 lg:flex-row lg:gap-6">
             {navItems.map((item) => {
@@ -79,7 +79,12 @@ export function Header() {
                 <li key={item.label}>
                   <Link
                     href={item.href}
-                    onClick={() => setOpen(false)}
+                    onClick={() => {
+                      setOpen(false);
+                      if (item.href === "/") {
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }
+                    }}
                     className={`relative font-medium transition-colors duration-300
                       ${isActive
                         ? "text-blue-500 after:w-full"

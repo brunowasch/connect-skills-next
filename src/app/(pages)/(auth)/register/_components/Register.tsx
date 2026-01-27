@@ -27,7 +27,7 @@ export function RegisterCard() {
             const data = await res.json();
 
             if (!res.ok) {
-                setError(data.error || t("register_error_generic"));
+                setError(t(data.error || "register_error_generic"));
                 return;
             }
 
