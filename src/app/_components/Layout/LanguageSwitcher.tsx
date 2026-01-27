@@ -4,7 +4,11 @@ import { useTranslation } from "react-i18next";
 import { Globe } from "lucide-react";
 import { useState } from "react";
 
-export function LanguageSwitcher() {
+type LanguageSwitcherProps = {
+    align?: "left" | "right";
+};
+
+export function LanguageSwitcher({ align = "right" }: LanguageSwitcherProps) {
     const { i18n } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
 
@@ -29,10 +33,13 @@ export function LanguageSwitcher() {
             {isOpen && (
                 <>
                     <div
-                        className="fixed inset-0 z-40"
+                        className="fixed inset-0 z-[9998]"
                         onClick={() => setIsOpen(false)}
                     ></div>
-                    <div className="absolute right-0 mt-2 min-w-[140px] w-auto rounded-xl bg-white shadow-2xl ring-1 ring-black/5 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                    <div
+                        className={`absolute top-full mt-2 min-w-[140px] w-auto rounded-xl bg-white shadow-2xl ring-1 ring-black/5 z-[9999] overflow-hidden animate-in fade-in zoom-in-95 duration-200 ${align === "left" ? "left-0" : "right-0"
+                            }`}
+                    >
                         <div className="py-1">
                             {languages.map((lang) => (
                                 <button

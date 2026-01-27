@@ -35,7 +35,7 @@ export default function CandidateLayout({
                 <div className="flex flex-1 flex-col transition-all duration-300 lg:ml-64 w-full min-w-0 overflow-x-hidden">
 
                     {/* Header */}
-                    <header className="flex h-20 items-center justify-between bg-white px-4 sm:px-6 shadow-sm sticky top-0 z-40 w-full max-w-full overflow-hidden">
+                    <header className="flex h-20 items-center justify-between bg-white px-4 sm:px-6 shadow-sm sticky top-0 z-40 w-full max-w-full">
                         <div className="flex items-center gap-4 lg:hidden">
                             <button
                                 onClick={() => setMobileSidebarOpen(true)}

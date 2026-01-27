@@ -110,7 +110,7 @@ export function Header() {
             {t("whatsapp")}
           </a>
           <div className="lg:hidden mt-4 pt-4 border-t border-gray-200">
-            <LanguageSwitcher />
+            <LanguageSwitcher align="left" />
           </div>
         </div>
 
