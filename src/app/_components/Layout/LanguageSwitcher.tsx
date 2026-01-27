@@ -20,9 +20,9 @@ export function LanguageSwitcher() {
         <div className="relative inline-block text-left">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 transition-all text-gray-700 border border-gray-200 shadow-sm cursor-pointer"
+                className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 transition-all text-gray-700 border border-gray-200 shadow-sm cursor-pointer"
             >
-                <Globe size={16} className="text-blue-500" />
+                <Globe size={16} className="text-blue-500 flex-shrink-0" />
                 <span className="text-xs font-bold uppercase tracking-wider">{currentLanguage.code}</span>
             </button>
 
@@ -32,7 +32,7 @@ export function LanguageSwitcher() {
                         className="fixed inset-0 z-40"
                         onClick={() => setIsOpen(false)}
                     ></div>
-                    <div className="absolute right-0 mt-2 w-40 rounded-xl bg-white shadow-2xl ring-1 ring-black/5 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                    <div className="absolute right-0 mt-2 min-w-[140px] w-auto rounded-xl bg-white shadow-2xl ring-1 ring-black/5 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                         <div className="py-1">
                             {languages.map((lang) => (
                                 <button

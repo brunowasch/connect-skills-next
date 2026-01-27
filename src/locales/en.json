@@ -499,7 +499,6 @@
     "modal_add_skill_desc": "Enter the name of the skill you want to add.",
     "modal_skill_placeholder": "Ex: React, Design...",
     "cancel_btn": "Cancel",
-    "add_btn": "Add",
     "selected_skills_count": "selected skills",
     "saving_btn": "Saving...",
     "clean_selection_btn": "Clear",

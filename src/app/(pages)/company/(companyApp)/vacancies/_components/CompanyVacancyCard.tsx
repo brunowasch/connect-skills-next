@@ -145,46 +145,48 @@ export function CompanyVacancyCard({
                 </div>
             </Link>
 
-            {/* Botões de ação - não parte do link principal */}
-            <div className="flex items-center gap-2 px-5 pb-5 pt-3 border-t border-gray-50">
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 px-4 py-4 md:px-5 md:py-5 pt-3 border-t border-gray-50">
                 <button
                     onClick={(e) => {
                         e.preventDefault();
                         startTransition(() => selectVacancyForRanking(vacancy.id));
                     }}
-                    className="flex-1 flex items-center justify-center gap-2 h-10 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold cursor-pointer hover:bg-blue-100 transition-colors whitespace-nowrap"
+                    className="w-full sm:w-auto sm:flex-1 flex items-center justify-center gap-2 h-10 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold cursor-pointer hover:bg-blue-100 transition-colors whitespace-nowrap order-1 sm:order-none"
                 >
                     <Users size={16} />
                     {t('view_candidates_btn')}
                 </button>
                 <Link
                     href={`/viewer/vacancy/${vacancy.uuid}`}
-                    className="flex-1 flex items-center justify-center gap-2 h-10 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold cursor-pointer hover:bg-blue-100 transition-colors whitespace-nowrap"
+                    className="w-full sm:w-auto sm:flex-1 flex items-center justify-center gap-2 h-10 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold cursor-pointer hover:bg-blue-100 transition-colors whitespace-nowrap order-2 sm:order-none"
                 >
                     <Eye size={16} />
                     {t('view_vacancy_btn')}
                 </Link>
-                <button
-                    onClick={(e) => {
-                        e.preventDefault();
-                        startTransition(() => selectVacancyForEditing(vacancy.id));
-                    }}
-                    className="flex shrink-0 items-center justify-center w-10 h-10 text-gray-400 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-colors border border-gray-200 cursor-pointer"
-                    title={t('edit_vacancy_btn')}
-                >
-                    <Edit size={16} />
-                </button>
-                <button
-                    onClick={handleToggleStatus}
-                    disabled={isUpdating}
-                    className={`flex shrink-0 items-center justify-center w-10 h-10 rounded-lg transition-colors border cursor-pointer disabled:opacity-50 ${vacancy.status === 'Ativa'
-                        ? 'text-gray-400 hover:text-amber-600 hover:bg-amber-50 border-gray-200'
-                        : 'text-amber-600 bg-amber-50 border-amber-100 hover:bg-amber-100'
-                        }`}
-                    title={vacancy.status === 'Ativa' ? t('lock_vacancy') : t('unlock_vacancy')}
-                >
-                    {vacancy.status === 'Ativa' ? <Ban size={16} /> : <Unlock size={16} />}
-                </button>
+
+                <div className="flex gap-2 w-full sm:w-auto order-3 sm:order-none">
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            startTransition(() => selectVacancyForEditing(vacancy.id));
+                        }}
+                        className="flex-1 sm:flex-none flex shrink-0 items-center justify-center w-full sm:w-10 h-10 text-gray-400 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-colors border border-gray-200 cursor-pointer"
+                        title={t('edit_vacancy_btn')}
+                    >
+                        <Edit size={16} />
+                    </button>
+                    <button
+                        onClick={handleToggleStatus}
+                        disabled={isUpdating}
+                        className={`flex-1 sm:flex-none flex shrink-0 items-center justify-center w-full sm:w-10 h-10 rounded-lg transition-colors border cursor-pointer disabled:opacity-50 ${vacancy.status === 'Ativa'
+                            ? 'text-gray-400 hover:text-amber-600 hover:bg-amber-50 border-gray-200'
+                            : 'text-amber-600 bg-amber-50 border-amber-100 hover:bg-amber-100'
+                            }`}
+                        title={vacancy.status === 'Ativa' ? t('lock_vacancy') : t('unlock_vacancy')}
+                    >
+                        {vacancy.status === 'Ativa' ? <Ban size={16} /> : <Unlock size={16} />}
+                    </button>
+                </div>
             </div>
 
             {/* Modal de Confirmação */}

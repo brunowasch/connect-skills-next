@@ -80,10 +80,6 @@ export default async function EditCompanyProfilePage() {
 
     return (
         <div className="mb-4 sm:mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Editar Perfil da Empresa</h1>
-            <p className="text-gray-500 mb-8">
-                Atualize as informações da sua empresa.
-            </p>
             <EditCompanyProfile initialData={initialData} />
         </div>
     );
