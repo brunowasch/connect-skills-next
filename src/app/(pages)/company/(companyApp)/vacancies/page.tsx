@@ -65,8 +65,6 @@ export default async function VacanciesPage() {
     });
 
     return (
-        <div className="max-w-5xl mx-auto px-4 py-8">
-            <VacanciesList initialVacancies={vacanciesWithCounts} />
-        </div>
+        <VacanciesList initialVacancies={vacanciesWithCounts} />
     );
 }

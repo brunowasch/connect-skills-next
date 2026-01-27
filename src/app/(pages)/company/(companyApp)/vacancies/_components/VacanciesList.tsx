@@ -125,9 +125,9 @@ export function VacanciesList({ initialVacancies }: { initialVacancies: any[] })
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-900">{t('my_vacancies_title')}</h1>
-                    <p className="text-gray-500 mt-1">{t('my_vacancies_subtitle')}</p>
+                <div className="mb-4 sm:mb-6">
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('my_vacancies_title')}</h1>
+                    <p className="text-gray-500">{t('my_vacancies_subtitle')}</p>
                 </div>
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                     <button
