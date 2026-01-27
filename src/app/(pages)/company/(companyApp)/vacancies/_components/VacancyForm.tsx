@@ -719,7 +719,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                         <div className="flex flex-wrap gap-2 mb-3">
                             {areas.filter(a => formData.areas.includes(a.id)).map(area => (
                                 <span key={area.id} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
-                                    {area.nome}
+                                    {t(area.nome || "")}
                                     <button
                                         type="button"
                                         onClick={() => toggleArea(area.id)}
@@ -745,7 +745,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                                         : 'bg-white hover:bg-gray-100 text-gray-700 border-gray-200'
                                         }`}
                                 >
-                                    {area.nome}
+                                    {t(area.nome || "")}
                                 </button>
                             ))}
                     </div>
@@ -768,7 +768,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                         <div className="flex flex-wrap gap-2 mb-3">
                             {softSkills.filter(s => formData.softSkills.includes(s.id)).map(skill => (
                                 <span key={skill.id} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-100">
-                                    {skill.nome}
+                                    {t(skill.nome)}
                                     <button
                                         type="button"
                                         onClick={() => toggleSkill(skill.id)}
@@ -794,7 +794,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                                         : 'bg-white hover:bg-gray-100 text-gray-700 border-gray-200'
                                         }`}
                                 >
-                                    {skill.nome}
+                                    {t(skill.nome)}
                                 </button>
                             ))}
                     </div>

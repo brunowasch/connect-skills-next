@@ -12,7 +12,8 @@ import {
     ShieldAlert,
     Timer
 } from "lucide-react";
-import questionsData from "@/src/data/questions.json";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/src/app/_components/Layout/LanguageSwitcher";
 
 interface Question {
     id: string;
@@ -62,6 +63,7 @@ const softSkillToCategory: Record<string, string> = {
 const DISC_METHODS = ["Dominância", "Influência", "Estabilidade", "Conformidade"];
 
 export default function AssessmentComponent({ vacancy, candidateId }: AssessmentProps) {
+    const { t } = useTranslation();
     const [questions, setQuestions] = useState<Question[]>([]);
     const [answers, setAnswers] = useState<Record<string, string>>({});
     const [startTime, setStartTime] = useState<number | null>(null);
@@ -75,7 +77,8 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
     // Memoized para poder ser chamada dentro do useEffect sem warnings de dependência
     const generateQuestions = useCallback(() => {
         const selectedQuestions: Question[] = [];
-        const banco = (questionsData as any).banco_questoes_disc_full;
+        const questionsData = t('questions', { returnObjects: true }) as any;
+        const banco = questionsData?.banco_questoes_disc_full || {};
 
         const categories = vacancy.vaga_soft_skill
             .map(vss => softSkillToCategory[vss.soft_skill.nome])
@@ -113,7 +116,7 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
         }
 
         setQuestions(selectedQuestions);
-    }, [vacancy]);
+    }, [vacancy, t]);
 
     const handleScreenLeave = useCallback(() => {
         // Bloqueia o reset se a prova já tiver sido finalizada ou estiver enviando ou ainda não começou
@@ -172,7 +175,7 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
     const handleConfirmSubmit = () => {
         const answeredCount = Object.keys(answers).length;
         if (answeredCount < questions.length) {
-            alert(`Por favor, responda todas as ${questions.length} perguntas antes de enviar.`);
+            alert(t('assessment_alert_answer_all', { count: questions.length }));
             return;
         }
         setShowConfirmModal(true);
@@ -207,11 +210,11 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
             if (res.ok) {
                 setIsFinished(true);
             } else {
-                throw new Error("Erro ao enviar respostas.");
+                throw new Error(t('assessment_error_sending'));
             }
         } catch (error) {
             console.error(error);
-            alert("Erro ao enviar candidatura. Tente novamente.");
+            alert(t('assessment_error_generic'));
             setIsSubmitting(false);
         }
     };
@@ -223,15 +226,15 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
                     <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
                         <CheckCircle2 size={40} />
                     </div>
-                    <h1 className="text-3xl font-bold text-slate-900 mb-4">Candidatura Enviada!</h1>
+                    <h1 className="text-3xl font-bold text-slate-900 mb-4">{t('assessment_success_title')}</h1>
                     <p className="text-slate-600 mb-8 leading-relaxed">
-                        Sua entrevista foi concluída com sucesso. Nossos recrutadores e nossa IA analisarão seu perfil e entrarão em contato em breve.
+                        {t('assessment_success_desc')}
                     </p>
                     <button
                         onClick={() => window.close()}
                         className="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all active:scale-95 shadow-xl shadow-slate-200 cursor-pointer"
                     >
-                        Fechar Janela
+                        {t('assessment_success_btn')}
                     </button>
                 </div>
             </div>
@@ -245,27 +248,27 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
                     <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-6">
                         <ShieldAlert size={32} />
                     </div>
-                    <h1 className="text-3xl font-bold text-slate-900 mb-6">Instruções da Entrevista</h1>
+                    <h1 className="text-3xl font-bold text-slate-900 mb-6">{t('assessment_instructions_title')}</h1>
                     <div className="space-y-6 text-slate-600 mb-10">
                         <div className="flex items-start gap-4">
                             <span className="shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-sm font-bold mt-1">1</span>
                             <div>
-                                <p className="font-semibold text-slate-800">Ambiente Restrito</p>
-                                <p className="text-sm">Não saia desta aba ou minimize o navegador. Caso o faça, suas perguntas serão regeradas.</p>
+                                <p className="font-semibold text-slate-800">{t('assessment_rule_1_title')}</p>
+                                <p className="text-sm">{t('assessment_rule_1_desc')}</p>
                             </div>
                         </div>
                         <div className="flex items-start gap-4">
                             <span className="shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-sm font-bold mt-1">2</span>
                             <div>
-                                <p className="font-semibold text-slate-800">Bloqueio de Cópia</p>
-                                <p className="text-sm">Comandos de copiar e colar estão desativados para garantir a originalidade das respostas.</p>
+                                <p className="font-semibold text-slate-800">{t('assessment_rule_2_title')}</p>
+                                <p className="text-sm">{t('assessment_rule_2_desc')}</p>
                             </div>
                         </div>
                         <div className="flex items-start gap-4">
                             <span className="shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-sm font-bold mt-1">3</span>
                             <div>
-                                <p className="font-semibold text-slate-800">Análise por IA</p>
-                                <p className="text-sm">Suas respostas serão analisadas por nossa inteligência artificial para avaliar suas soft skills.</p>
+                                <p className="font-semibold text-slate-800">{t('assessment_rule_3_title')}</p>
+                                <p className="text-sm">{t('assessment_rule_3_desc')}</p>
                             </div>
                         </div>
                     </div>
@@ -276,11 +279,11 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
                         }}
                         className="w-full py-5 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all active:scale-95 shadow-2xl shadow-slate-300 flex items-center justify-center gap-3 cursor-pointer"
                     >
-                        <span>Começar Agora</span>
+                        <span>{t('assessment_start_btn')}</span>
                         <Send size={18} />
                     </button>
                     <p className="text-center text-[10px] text-slate-400 mt-6 uppercase tracking-widest font-medium">
-                        Ao clicar em começar, o cronômetro será iniciado
+                        {t('assessment_timer_hint')}
                     </p>
                 </div>
             </div>
@@ -299,18 +302,21 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
                     <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-6">
                             <div className="flex flex-col">
-                                <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Respondidas</span>
+                                <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">{t('assessment_progress_answered')}</span>
                                 <span className="text-xl font-bold text-slate-900 leading-none">{answeredCount}</span>
                             </div>
                             <div className="w-px h-8 bg-slate-200" />
                             <div className="flex flex-col">
-                                <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Restantes</span>
+                                <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">{t('assessment_progress_remaining')}</span>
                                 <span className="text-xl font-bold text-slate-900 leading-none">{remainingCount}</span>
                             </div>
                         </div>
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full">
-                            <Timer size={14} className="animate-pulse" />
-                            <span className="text-xs font-bold">{Math.round(progressPercentage)}% Concluído</span>
+                        <div className="flex items-center gap-3">
+                            <LanguageSwitcher />
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full">
+                                <Timer size={14} className="animate-pulse" />
+                                <span className="text-xs font-bold">{Math.round(progressPercentage)}% {t('assessment_progress_completed')}</span>
+                            </div>
                         </div>
                     </div>
 
@@ -333,17 +339,17 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
                         <div className="bg-slate-900 p-8 text-white relative overflow-hidden">
                             <div className="relative z-10">
                                 <div className="flex items-center gap-3 mb-4">
-                                    <span className="bg-blue-500 text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md">Entrevista</span>
+                                    <span className="bg-blue-500 text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md">{t('assessment_badge_interview')}</span>
                                 </div>
                                 <h1 className="text-3xl font-bold mb-2">{vacancy.cargo}</h1>
                                 <div className="flex items-center gap-4 text-slate-400 text-sm">
                                     <div className="flex items-center gap-1.5">
                                         <BrainCircuit size={16} />
-                                        <span>{questions.length} Questões</span>
+                                        <span>{questions.length} {t('assessment_header_questions')}</span>
                                     </div>
                                     <div className="flex items-center gap-1.5">
                                         <Lock size={16} />
-                                        <span>Ambiente Seguro</span>
+                                        <span>{t('assessment_header_secure')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -356,8 +362,7 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
                         <div className="bg-amber-50 p-4 border-b border-amber-100 flex items-start gap-4">
                             <AlertTriangle className="text-amber-600 shrink-0 mt-0.5" size={18} />
                             <p className="text-xs text-amber-800 leading-relaxed font-medium">
-                                Não saia desta janela, não troque de aba e não utilize comandos de copiar/colar.
-                                Sair desta tela resultará no reset imediato das suas perguntas.
+                                {t('assessment_warning_box')}
                             </p>
                         </div>
 
@@ -375,7 +380,7 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
                                     </div>
                                     <textarea
                                         className="w-full p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-slate-50 hover:bg-white resize-none min-h-[120px] text-slate-700 leading-relaxed"
-                                        placeholder="Sua resposta..."
+                                        placeholder={t('assessment_answer_placeholder')}
                                         value={answers[q.id] || ""}
                                         onChange={(e) => handleAnswerChange(q.id, e.target.value)}
                                         autoComplete="off"
@@ -388,7 +393,7 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
                         <div className="p-8 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-6">
                             <div className="text-slate-500 text-sm flex items-center gap-2">
                                 <Clock size={16} />
-                                <span>Contabilizando tempo...</span>
+                                <span>{t('assessment_footer_timer')}</span>
                             </div>
                             <button
                                 onClick={handleConfirmSubmit}
@@ -398,11 +403,11 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
                                 {isSubmitting ? (
                                     <>
                                         <Clock className="animate-spin" size={20} />
-                                        <span>Enviando...</span>
+                                        <span>{t('assessment_btn_sending')}</span>
                                     </>
                                 ) : (
                                     <>
-                                        <span>Enviar Candidatura</span>
+                                        <span>{t('assessment_btn_send')}</span>
                                         <Send size={18} />
                                     </>
                                 )}
@@ -418,15 +423,15 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
                             <div className="w-20 h-20 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-6">
                                 <ShieldAlert size={40} />
                             </div>
-                            <h2 className="text-2xl font-bold text-slate-900 mb-4">Ação Bloqueada!</h2>
+                            <h2 className="text-2xl font-bold text-slate-900 mb-4">{t('assessment_penalty_title')}</h2>
                             <p className="text-slate-600 mb-8 leading-relaxed">
-                                Detectamos que você saiu da aba ou minimizou o navegador. Para manter a integridade do processo, <span className="font-bold text-amber-600">suas perguntas foram alteradas</span> e o progresso foi resetado.
+                                {t('assessment_penalty_desc')}
                             </p>
                             <button
                                 onClick={() => setShowPenaltyModal(false)}
                                 className="w-full py-4 bg-amber-600 text-white font-bold rounded-2xl hover:bg-amber-700 transition-all active:scale-95 shadow-xl shadow-amber-200 cursor-pointer"
                             >
-                                Entendi e Vou Continuar
+                                {t('assessment_penalty_btn')}
                             </button>
                         </div>
                     </div>
@@ -439,22 +444,22 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
                         <div className="w-20 h-20 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
                             <Send size={40} />
                         </div>
-                        <h2 className="text-2xl font-bold text-slate-900 mb-4">Confirmar Envio?</h2>
+                        <h2 className="text-2xl font-bold text-slate-900 mb-4">{t('assessment_confirm_title')}</h2>
                         <p className="text-slate-600 mb-8 leading-relaxed">
-                            Você revisou todas as suas respostas? Após o envio, não será possível alterar suas informações nesta candidatura.
+                            {t('assessment_confirm_desc')}
                         </p>
                         <div className="flex flex-col gap-3">
                             <button
                                 onClick={handleSubmit}
                                 className="w-full py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all active:scale-95 shadow-xl shadow-blue-200 cursor-pointer"
                             >
-                                Sim, Enviar Candidatura
+                                {t('assessment_confirm_btn_yes')}
                             </button>
                             <button
                                 onClick={() => setShowConfirmModal(false)}
                                 className="w-full py-4 bg-white text-slate-500 font-bold rounded-2xl hover:bg-slate-50 transition-all active:scale-95 border border-slate-200 cursor-pointer"
                             >
-                                Revisar Respostas
+                                {t('assessment_confirm_btn_no')}
                             </button>
                         </div>
                     </div>
