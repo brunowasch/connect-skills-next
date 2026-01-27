@@ -73,6 +73,7 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
     const [isStarted, setIsStarted] = useState(false);
     const [showPenaltyModal, setShowPenaltyModal] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [showIncompleteModal, setShowIncompleteModal] = useState(false);
 
     // Memoized para poder ser chamada dentro do useEffect sem warnings de dependência
     const generateQuestions = useCallback(() => {
@@ -173,9 +174,9 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
     };
 
     const handleConfirmSubmit = () => {
-        const answeredCount = Object.keys(answers).length;
+        const answeredCount = Object.values(answers).filter(a => a.trim().length > 0).length;
         if (answeredCount < questions.length) {
-            alert(t('assessment_alert_answer_all', { count: questions.length }));
+            setShowIncompleteModal(true);
             return;
         }
         setShowConfirmModal(true);
@@ -290,7 +291,7 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
         );
     }
 
-    const answeredCount = Object.keys(answers).length;
+    const answeredCount = Object.values(answers).filter(a => a.trim().length > 0).length;
     const remainingCount = questions.length - answeredCount;
     const progressPercentage = questions.length > 0 ? (answeredCount / questions.length) * 100 : 0;
 
@@ -415,6 +416,27 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
                         </div>
                     </div>
                 </div>
+
+                {/* Incomplete Answers Modal */}
+                {showIncompleteModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+                        <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl p-8 text-center border border-slate-100 animate-in zoom-in-95 duration-300">
+                            <div className="w-20 h-20 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <AlertTriangle size={40} />
+                            </div>
+                            <h2 className="text-2xl font-bold text-slate-900 mb-4">{t('attention_title')}</h2>
+                            <p className="text-slate-600 mb-8 leading-relaxed">
+                                {t('assessment_alert_answer_all', { count: questions.length })}
+                            </p>
+                            <button
+                                onClick={() => setShowIncompleteModal(false)}
+                                className="w-full py-4 bg-amber-600 text-white font-bold rounded-2xl hover:bg-amber-700 transition-all active:scale-95 shadow-xl shadow-amber-200 cursor-pointer"
+                            >
+                                {t('answers_modal_close')}
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {/* Penalty Modal */}
                 {showPenaltyModal && (

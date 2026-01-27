@@ -1283,5 +1283,11 @@
     "assessment_confirm_title": "Confirmar Envio?",
     "assessment_confirm_desc": "Você revisou todas as suas respostas? Após o envio, não será possível alterar suas informações nesta candidatura.",
     "assessment_confirm_btn_yes": "Sim, Enviar Candidatura",
-    "assessment_confirm_btn_no": "Revisar Respostas"
+    "assessment_confirm_btn_no": "Revisar Respostas",
+    "vacancy_interested_title": "Interessado nesta vaga?",
+    "vacancy_interested_desc": "Candidate-se agora e faça parte do time {{company}}!",
+    "vacancy_apply_action": "Candidatar-se à Vaga",
+    "responses_modal_title": "Suas Respostas",
+    "responses_modal_no_data": "Nenhuma resposta encontrada.",
+    "responses_modal_close": "Fechar Visualização"
 }

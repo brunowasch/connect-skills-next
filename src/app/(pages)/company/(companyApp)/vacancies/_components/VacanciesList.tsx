@@ -7,6 +7,7 @@ import { Plus, CheckSquare, Square, Trash2, Ban, Unlock, X, AlertCircle, Check }
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 
+
 interface Vacancy {
     id: string;
     uuid: string | null;
@@ -121,6 +122,7 @@ export function VacanciesList({ initialVacancies }: { initialVacancies: any[] })
             }
         });
     };
+
 
     return (
         <div className="space-y-6">

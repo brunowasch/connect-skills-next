@@ -1422,5 +1422,8 @@
     "assessment_confirm_title": "¿Confirmar Envío?",
     "assessment_confirm_desc": "¿Ha revisado todas sus respuestas? Después del envío, no podrá cambiar su información en esta solicitud.",
     "assessment_confirm_btn_yes": "Sí, Enviar Solicitud",
-    "assessment_confirm_btn_no": "Revisar Respuestas"
+    "assessment_confirm_btn_no": "Revisar Respuestas",
+    "responses_modal_title": "Sus Respuestas",
+    "responses_modal_no_data": "No se encontraron respuestas.",
+    "responses_modal_close": "Cerrar Vista"
 }

@@ -55,13 +55,13 @@ export function CompanyVacancyCard({
     };
 
     const applicationCount = vacancy._count?.vaga_avaliacao || 0;
-    const statusLabel = vacancy.status === 'Ativa' ? t('active') : t('inactive');
+    const statusLabel = vacancy.status === 'active' ? t('active') : t('inactive');
 
     const handleToggleStatus = async (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
 
-        const isClosing = vacancy.status === 'Ativa';
+        const isClosing = vacancy.status === 'active';
         const newStatus = isClosing ? 'Fechada' : 'Ativa';
 
         setModal({
@@ -110,7 +110,7 @@ export function CompanyVacancyCard({
                             {vacancy.cargo}
                         </h3>
                         {!isSelectionMode && (
-                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold flex-shrink-0 ${vacancy.status === 'Ativa'
+                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold flex-shrink-0 ${vacancy.status === 'active'
                                 ? 'bg-green-100 text-green-800'
                                 : 'bg-gray-100 text-gray-800'
                                 }`}>
@@ -121,7 +121,7 @@ export function CompanyVacancyCard({
                     <div className="flex flex-col gap-1.5">
                         {isSelectionMode && (
                             <div>
-                                <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold inline-block ${vacancy.status === 'Ativa'
+                                <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold inline-block ${vacancy.status === 'active'
                                     ? 'bg-green-100 text-green-800'
                                     : 'bg-gray-100 text-gray-800'
                                     }`}>
@@ -178,13 +178,13 @@ export function CompanyVacancyCard({
                     <button
                         onClick={handleToggleStatus}
                         disabled={isUpdating}
-                        className={`flex-1 sm:flex-none flex shrink-0 items-center justify-center w-full sm:w-10 h-10 rounded-lg transition-colors border cursor-pointer disabled:opacity-50 ${vacancy.status === 'Ativa'
+                        className={`flex-1 sm:flex-none flex shrink-0 items-center justify-center w-full sm:w-10 h-10 rounded-lg transition-colors border cursor-pointer disabled:opacity-50 ${vacancy.status === 'active'
                             ? 'text-gray-400 hover:text-amber-600 hover:bg-amber-50 border-gray-200'
                             : 'text-amber-600 bg-amber-50 border-amber-100 hover:bg-amber-100'
                             }`}
-                        title={vacancy.status === 'Ativa' ? t('lock_vacancy') : t('unlock_vacancy')}
+                        title={vacancy.status === 'active' ? t('lock_vacancy') : t('unlock_vacancy')}
                     >
-                        {vacancy.status === 'Ativa' ? <Ban size={16} /> : <Unlock size={16} />}
+                        {vacancy.status === 'active' ? <Ban size={16} /> : <Unlock size={16} />}
                     </button>
                 </div>
             </div>

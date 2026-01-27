@@ -1421,5 +1421,8 @@
     "assessment_confirm_title": "Confirm Submission?",
     "assessment_confirm_desc": "Have you reviewed all your answers? After submission, you cannot change your information for this application.",
     "assessment_confirm_btn_yes": "Yes, Submit Application",
-    "assessment_confirm_btn_no": "Review Answers"
+    "assessment_confirm_btn_no": "Review Answers",
+    "responses_modal_title": "Your Responses",
+    "responses_modal_no_data": "No responses found.",
+    "responses_modal_close": "Close View"
 }

@@ -144,6 +144,11 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
 
     const [showResponsesModal, setShowResponsesModal] = useState(false);
 
+    // Normalize responses list handling both array (legacy) and object (new) formats
+    const responsesList = Array.isArray(applicationResponses)
+        ? applicationResponses
+        : (applicationResponses?.responses || []);
+
     const normalizedUserType = userType?.toUpperCase();
     const isCandidate = normalizedUserType === 'CANDIDATO';
     const isCompany = normalizedUserType === 'EMPRESA';
@@ -847,8 +852,8 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                         <div className="bg-white rounded-lg border border-gray-200 p-6 lg:p-8 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4">
                             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                                 <div>
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-1">Interessado nesta vaga?</h3>
-                                    <p className="text-sm text-gray-600">Candidate-se agora e faça parte do time {company?.nome_empresa}!</p>
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-1">{t('vacancy_interested_title')}</h3>
+                                    <p className="text-sm text-gray-600">{t('vacancy_interested_desc', { company: company?.nome_empresa })}</p>
                                 </div>
                                 <button
                                     onClick={handleApply}
@@ -856,7 +861,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                     className="w-full sm:w-auto px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors whitespace-nowrap cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                                 >
                                     {isCheckingApplication && <Loader2 size={18} className="animate-spin" />}
-                                    Candidatar-se à Vaga
+                                    {t('vacancy_apply_action')}
                                 </button>
                             </div>
                         </div>
@@ -871,12 +876,12 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                         {/* Header */}
                         <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-10">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
-                                    <FileText size={20} />
+                                <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+                                    <CheckCircle2 size={20} />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-bold text-slate-900 leading-tight">Suas Respostas</h3>
-                                    <p className="text-xs text-slate-500 font-medium uppercase tracking-wider mt-0.5">{vacancy.cargo}</p>
+                                    <h3 className="text-xl font-bold text-slate-900 leading-tight">{t('responses_modal_title')}</h3>
+                                    <p className="text-xs text-slate-500 font-medium mt-0.5">{vacancy.cargo}</p>
                                 </div>
                             </div>
                             <button
@@ -889,15 +894,15 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
 
                         {/* Content */}
                         <div className="p-6 overflow-y-auto space-y-8 flex-1 bg-slate-50/30 no-scrollbar">
-                            {applicationResponses?.responses?.length > 0 ? (
-                                applicationResponses.responses.map((resp: any, idx: number) => (
+                            {responsesList.length > 0 ? (
+                                responsesList.map((resp: any, idx: number) => (
                                     <div key={idx} className="group">
                                         <div className="flex items-start gap-3 mb-3">
                                             <span className="flex-shrink-0 w-6 h-6 rounded-md bg-blue-100 text-blue-600 font-bold flex items-center justify-center text-xs">
                                                 {idx + 1}
                                             </span>
                                             <p className="text-sm font-bold text-slate-800 leading-snug pt-0.5">
-                                                {resp.question}
+                                                {t(resp.question)}
                                             </p>
                                         </div>
                                         <div className="ml-9 p-4 bg-white rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
@@ -911,7 +916,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                             ) : (
                                 <div className="text-center py-12">
                                     <AlertCircle size={40} className="mx-auto text-slate-300 mb-4" />
-                                    <p className="text-slate-500 font-medium">Nenhuma resposta encontrada.</p>
+                                    <p className="text-slate-500 font-medium">{t('responses_modal_no_data')}</p>
                                 </div>
                             )}
                         </div>
@@ -922,7 +927,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                 onClick={() => setShowResponsesModal(false)}
                                 className="px-8 py-2.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-all active:scale-95 cursor-pointer shadow-lg shadow-slate-200"
                             >
-                                Fechar Visualização
+                                {t('responses_modal_close')}
                             </button>
                         </div>
                     </div>
