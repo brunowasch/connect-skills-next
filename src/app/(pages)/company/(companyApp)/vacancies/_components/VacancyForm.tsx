@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Check, Loader2, Sparkles, Search, X, FileText, Trash2, Upload, Eye, Link as LinkIcon } from "lucide-react";
 import Link from "next/link";
@@ -76,6 +76,15 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
         lgbt: false
     });
 
+    const separator = "\n\n### Perfil do Candidato Ideal\n";
+    let initDescription = initialData?.descricao || "";
+    let initIdealCandidate = "";
+    if (initDescription.includes(separator)) {
+        const parts = initDescription.split(separator);
+        initDescription = parts[0];
+        initIdealCandidate = parts.slice(1).join(separator);
+    }
+
     const [formData, setFormData] = useState({
         cargo: initialData?.cargo || "",
         tipo_local_trabalho: initialData?.tipo_local_trabalho || "Presencial",
@@ -84,10 +93,10 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
         dias_home_office: initialData?.dias_home_office || "",
         salario: initialData?.salario || "",
         moeda: initialData?.moeda || "BRL",
-        descricao: initialData?.descricao || "",
+        descricao: initDescription,
         beneficio: initialData?.beneficio || "",
         pergunta: initialData?.pergunta || "",
-        candidatoIdeal: "",
+        candidatoIdeal: initIdealCandidate,
         inclusivity: initialInclusivity,
         vinculo_empregaticio: initialData?.vinculo_empregaticio || "CLT_Tempo_Integral",
         areas: initialData?.vaga_area?.map((va: any) => va.area_interesse_id) || [] as number[],
@@ -296,11 +305,123 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
         }
     };
 
+    const defaultFormData = useMemo(() => {
+        let existingOptions: any = {};
+        try {
+            if (initialData?.opcao) {
+                existingOptions = typeof initialData.opcao === 'string'
+                    ? JSON.parse(initialData.opcao)
+                    : initialData.opcao;
+            }
+        } catch (e) {
+            console.error("Erro ao processar as opções da vaga:", e);
+            existingOptions = {};
+        }
+
+        const initialInclusivity = existingOptions.pcd !== undefined ? existingOptions : (existingOptions.inclusivity || {
+            pcd: false,
+            blackPeople: false,
+            women: false,
+            lgbt: false
+        });
+
+        // Separar descrição do candidato ideal para reset
+        const separator = "\n\n### Perfil do Candidato Ideal\n";
+        let initDescription = initialData?.descricao || "";
+        let initIdealCandidate = "";
+        if (initDescription.includes(separator)) {
+            const parts = initDescription.split(separator);
+            initDescription = parts[0];
+            initIdealCandidate = parts.slice(1).join(separator);
+        }
+
+        return {
+            cargo: initialData?.cargo || "",
+            tipo_local_trabalho: initialData?.tipo_local_trabalho || "Presencial",
+            escala_trabalho: initialData?.escala_trabalho || "Integral",
+            dias_presenciais: initialData?.dias_presenciais || "",
+            dias_home_office: initialData?.dias_home_office || "",
+            salario: initialData?.salario || "",
+            moeda: initialData?.moeda || "BRL",
+            descricao: initDescription,
+            beneficio: initialData?.beneficio || "",
+            pergunta: initialData?.pergunta || "",
+            candidatoIdeal: initIdealCandidate,
+            inclusivity: initialInclusivity,
+            vinculo_empregaticio: initialData?.vinculo_empregaticio || "CLT_Tempo_Integral",
+            areas: initialData?.vaga_area?.map((va: any) => va.area_interesse_id) || [] as number[],
+            softSkills: initialData?.vaga_soft_skill?.map((vss: any) => vss.soft_skill_id) || [] as number[],
+            cidade: existingOptions.cidade || (!isEdit ? (companyProfile?.cidade || "") : ""),
+            estado: existingOptions.estado || (!isEdit ? (companyProfile?.estado || "") : ""),
+            pais: existingOptions.pais || (!isEdit ? (companyProfile?.pais || "Brasil") : "Brasil"),
+            useProfileLocation: !isEdit && !!companyProfile?.cidade,
+            anexos: (initialData?.vaga_arquivo || []) as VacancyFile[],
+            links: (initialData?.vaga_link || []) as VacancyLink[]
+        };
+    }, [initialData, companyProfile, isEdit]);
+
+    const hasChanges = useMemo(() => {
+        const normalize = (val: any) => val === null || val === undefined ? '' : String(val).trim();
+        const compareIdArrays = (a: number[], b: number[]) => {
+            return JSON.stringify([...a].sort()) === JSON.stringify([...b].sort());
+        }
+
+        if (normalize(formData.cargo) !== normalize(defaultFormData.cargo)) return true;
+        if (normalize(formData.tipo_local_trabalho) !== normalize(defaultFormData.tipo_local_trabalho)) return true;
+        if (normalize(formData.escala_trabalho) !== normalize(defaultFormData.escala_trabalho)) return true;
+        if (normalize(formData.dias_presenciais) !== normalize(defaultFormData.dias_presenciais)) return true;
+        if (normalize(formData.dias_home_office) !== normalize(defaultFormData.dias_home_office)) return true;
+        if (normalize(formData.salario) !== normalize(defaultFormData.salario)) return true;
+        if (normalize(formData.moeda) !== normalize(defaultFormData.moeda)) return true;
+        if (normalize(formData.descricao) !== normalize(defaultFormData.descricao)) return true;
+        if (normalize(formData.beneficio) !== normalize(defaultFormData.beneficio)) return true;
+        if (normalize(formData.pergunta) !== normalize(defaultFormData.pergunta)) return true;
+        if (normalize(formData.candidatoIdeal) !== normalize(defaultFormData.candidatoIdeal)) return true;
+        if (normalize(formData.vinculo_empregaticio) !== normalize(defaultFormData.vinculo_empregaticio)) return true;
+        if (normalize(formData.cidade) !== normalize(defaultFormData.cidade)) return true;
+        if (normalize(formData.estado) !== normalize(defaultFormData.estado)) return true;
+        if (normalize(formData.pais) !== normalize(defaultFormData.pais)) return true;
+        if (formData.useProfileLocation !== defaultFormData.useProfileLocation) return true;
+
+        if (JSON.stringify(formData.inclusivity) !== JSON.stringify(defaultFormData.inclusivity)) return true;
+        if (!compareIdArrays(formData.areas, defaultFormData.areas)) return true;
+        if (!compareIdArrays(formData.softSkills, defaultFormData.softSkills)) return true;
+        if (JSON.stringify(formData.anexos) !== JSON.stringify(defaultFormData.anexos)) return true;
+        if (JSON.stringify(formData.links) !== JSON.stringify(defaultFormData.links)) return true;
+
+        return false;
+    }, [formData, defaultFormData]);
+
+    const isFormValid = useMemo(() => {
+        const normalize = (val: any) => val === null || val === undefined ? '' : String(val).trim();
+
+        if (!normalize(formData.cargo)) return false;
+        if (!normalize(formData.tipo_local_trabalho)) return false;
+        if (!normalize(formData.vinculo_empregaticio)) return false;
+        if (!normalize(formData.descricao)) return false;
+        if (!normalize(formData.candidatoIdeal)) return false;
+        if (formData.areas.length === 0) return false;
+        if (formData.softSkills.length === 0) return false;
+
+        return true;
+    }, [formData]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
 
         try {
+            if (formData.areas.length === 0) {
+                alert(t('validation_areas_required'));
+                setIsLoading(false);
+                return;
+            }
+            if (formData.softSkills.length === 0) {
+                alert(t('validation_soft_skills_required'));
+                setIsLoading(false);
+                return;
+            }
+
             const url = isEdit ? `/api/vacancies/${vacancyId}` : "/api/vacancies";
             const method = isEdit ? "PUT" : "POST";
 
@@ -325,6 +446,12 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
 
             if (!res.ok) throw new Error(t('error_saving_vacancy'));
 
+            localStorage.setItem('global_toast', JSON.stringify({
+                type: 'success',
+                text: isEdit ? t('vacancy_updated_title') : t('vacancy_published_title')
+            }));
+            window.dispatchEvent(new Event('storage'));
+
             router.push("/company/vacancies");
             router.refresh();
         } catch (error) {
@@ -338,6 +465,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
     return (
         <form onSubmit={handleSubmit} className="space-y-8 bg-white p-6 md:p-8 rounded-2xl border border-gray-100 shadow-xl shadow-blue-50/50">
 
+            <p className="text-xs text-gray-500 italic mb-2 text-right">{t('mandatory_fields_legend')}</p>
             <div className="space-y-4">
                 <div className="flex items-center justify-between border-b border-gray-100 pb-2">
                     <h3 className="text-lg font-semibold text-gray-900">{t('vacancy_main_info')}</h3>
@@ -353,7 +481,9 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">{t('vacancy_title_label')}</label>
+                        <label className="text-sm font-medium text-gray-700">
+                            {t('vacancy_title_label')} <span className="text-red-500">*</span>
+                        </label>
                         <input
                             type="text"
                             name="cargo"
@@ -366,7 +496,9 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">{t('work_model_label')}</label>
+                        <label className="text-sm font-medium text-gray-700">
+                            {t('work_model_label')} <span className="text-red-500">*</span>
+                        </label>
                         <select
                             name="tipo_local_trabalho"
                             value={formData.tipo_local_trabalho}
@@ -383,7 +515,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                     <div className="md:col-span-2 space-y-4 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
                         <div className="flex items-center justify-between">
                             <label className="text-sm font-bold text-gray-800 flex items-center gap-2">
-                                <Search size={16} className="text-blue-500" /> {t('vacancy_location_label')}
+                                <Search size={16} className="text-blue-500" /> {t('vacancy_location_label')} <span className="text-red-500">*</span>
                             </label>
                             {companyProfile && (
                                 <label className="flex items-center gap-2 text-xs font-semibold text-blue-600 cursor-pointer hover:text-blue-700 transition-colors">
@@ -437,7 +569,9 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">{t('employment_type_label')}</label>
+                        <label className="text-sm font-medium text-gray-700">
+                            {t('employment_type_label')} <span className="text-red-500">*</span>
+                        </label>
                         <select
                             name="vinculo_empregaticio"
                             value={formData.vinculo_empregaticio}
@@ -488,7 +622,9 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                 <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-100 pb-2">{t('details_section_title')}</h3>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">{t('vacancy_description_label')}</label>
+                    <label className="text-sm font-medium text-gray-700">
+                        {t('vacancy_description_label')} <span className="text-red-500">*</span>
+                    </label>
                     <textarea
                         name="descricao"
                         required
@@ -674,8 +810,11 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                 <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-100 pb-2">{t('smart_recruitment_title')}</h3>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">{t('ideal_candidate_profile_label')}</label>
+                    <label className="text-sm font-medium text-gray-700">
+                        {t('ideal_candidate_profile_label')} <span className="text-red-500">*</span>
+                    </label>
                     <textarea
+                        required
                         name="candidatoIdeal"
                         value={formData.candidatoIdeal}
                         onChange={handleChange}
@@ -703,7 +842,9 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                 <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-100 pb-2">{t('segmentation_title')}</h3>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">{t('required_specialties_label')}</label>
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">
+                        {t('required_specialties_label')} <span className="text-red-500">*</span>
+                    </label>
                     <div className="relative mb-2">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
                         <input
@@ -752,7 +893,9 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">{t('soft_skills_label')}</label>
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">
+                        {t('soft_skills_label')} <span className="text-red-500">*</span>
+                    </label>
                     <div className="relative mb-2">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
                         <input
@@ -810,8 +953,13 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                 </Link>
                 <button
                     type="submit"
-                    disabled={isLoading}
-                    className="flex-1 flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-600/20 cursor-pointer"
+                    disabled={isLoading || !hasChanges || (!isEdit && !isFormValid)}
+                    className={`flex-1 flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg font-medium transition-colors shadow-lg cursor-pointer
+                        ${isLoading || !hasChanges || (!isEdit && !isFormValid)
+                            ? "bg-gray-300 text-gray-500 shadow-none opacity-50 cursor-not-allowed"
+                            : "bg-blue-600 text-white hover:bg-blue-700 shadow-blue-600/20"
+                        }`
+                    }
                 >
                     {isLoading ? <Loader2 className="animate-spin" /> : <Sparkles size={18} />}
                     <span className="relative top-[1px]">{isEdit ? t('save_changes') : t('publish_vacancy')}</span>
@@ -823,6 +971,8 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                 onClose={() => setIsAIModalOpen(false)}
                 onGenerate={handleAIGenerate}
             />
+
+
         </form>
     );
 }

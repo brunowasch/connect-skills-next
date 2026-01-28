@@ -97,6 +97,15 @@ export function EditAreas({ initialAreas }: EditAreasProps) {
         t(skill).toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const hasChanges = useMemo(() => {
+        if (selectedSkills.length !== initialAreas.length) return true;
+
+        const sortedSelected = [...selectedSkills].sort();
+        const sortedInitial = [...initialAreas].sort();
+
+        return sortedSelected.some((skill, index) => skill !== sortedInitial[index]);
+    }, [selectedSkills, initialAreas]);
+
     return (
         <div className="flex flex-col items-center justify-start min-h-screen p-6 gap-6 w-full max-w-5xl mx-auto pb-32">
             <div className="w-full flex items-center justify-between mb-2">
@@ -207,8 +216,12 @@ export function EditAreas({ initialAreas }: EditAreasProps) {
                         </button>
                         <button
                             onClick={handleSave}
-                            disabled={isSubmitting}
-                            className="flex items-center gap-2 px-8 py-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-50 transition-all shadow-lg shadow-blue-200 active:scale-95 cursor-pointer"
+                            disabled={isSubmitting || !hasChanges}
+                            className={`flex items-center gap-2 px-8 py-2.5 rounded-xl font-semibold transition-all shadow-lg active:scale-95 cursor-pointer 
+                                ${isSubmitting || !hasChanges
+                                    ? "bg-gray-300 text-gray-500 cursor-not-allowed shadow-none"
+                                    : "bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200"}`
+                            }
                         >
                             {isSubmitting ? (
                                 <>

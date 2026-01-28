@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
     Camera, Upload, Save, AlertTriangle, X, Building2, MapPin, FileText, Eye, PlusCircle, Trash2, Link as LinkIcon
 } from 'lucide-react';
@@ -56,7 +56,7 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
     const [fotoPreview, setFotoPreview] = useState(initialData.foto_perfil || null);
     const [showPhotoOptions, setShowPhotoOptions] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // 1. Gerenciamento de Links (Máx 5)
@@ -179,8 +179,8 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        e.preventDefault();
         setIsLoading(true);
-        setMessage(null);
 
         try {
             const res = await fetch('/api/company/profile', {
@@ -198,15 +198,22 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
                     type: 'success',
                     text: t('profile_updated')
                 }));
-
+                window.dispatchEvent(new Event('storage'));
                 router.refresh();
-                router.back();
-                return;
+                // Removed router.back() to keep user on page with toast
             } else {
-                setMessage({ type: 'error', text: result.error || t('profile_update_error') });
+                localStorage.setItem('global_toast', JSON.stringify({
+                    type: 'error',
+                    text: result.error || t('profile_update_error')
+                }));
+                window.dispatchEvent(new Event('storage'));
             }
         } catch (error) {
-            setMessage({ type: 'error', text: t('connection_error') });
+            localStorage.setItem('global_toast', JSON.stringify({
+                type: 'error',
+                text: t('connection_error')
+            }));
+            window.dispatchEvent(new Event('storage'));
         } finally {
             setIsLoading(false);
         }
@@ -216,22 +223,31 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
         router.back();
     };
 
+    const hasChanges = useMemo(() => {
+        const normalize = (val: any) => val === null || val === undefined ? '' : String(val).trim();
+
+        if (normalize(formData.nome_empresa) !== normalize(initialData.nome_empresa)) return true;
+        if (normalize(formData.descricao) !== normalize(initialData.descricao)) return true;
+        if (normalize(formData.cidade) !== normalize(initialData.cidade)) return true;
+        if (normalize(formData.estado) !== normalize(initialData.estado)) return true;
+        if (normalize(formData.pais) !== normalize(initialData.pais || "Brasil")) return true;
+        if (normalize(formData.ddi) !== normalize(initialData.ddi)) return true;
+        if (normalize(formData.ddd) !== normalize(initialData.ddd)) return true;
+        if (normalize(formData.numero) !== normalize(initialData.numero)) return true;
+
+        if (formData.fotoPerfil !== (initialData.foto_perfil || undefined)) return true;
+
+        if (JSON.stringify(formData.anexos) !== JSON.stringify(initialData.anexos)) return true;
+
+        const initialLinks = initialData.links.length > 0 ? initialData.links : [{ label: '', url: '' }];
+        if (JSON.stringify(formData.links) !== JSON.stringify(initialLinks)) return true;
+
+        return false;
+    }, [formData, initialData]);
+
     return (
         <main className="max-w-5xl mx-auto py-10 px-4">
-            {message && message.type === 'error' && (
-                <div className="fixed top-10 left-1/2 -translate-x-1/2 z-50 min-w-[300px] p-4 rounded-xl flex items-center gap-3 shadow-2xl animate-in fade-in slide-in-from-top-10 transition-all bg-white text-red-700 border-l-4 border-red-500">
-                    <div className="p-2 rounded-full bg-red-100 uppercase">
-                        <AlertTriangle size={20} />
-                    </div>
-                    <div className="flex flex-col">
-                        <span className="font-bold text-gray-900">{t('error')}</span>
-                        <span className="text-sm text-gray-600">{message.text}</span>
-                    </div>
-                    <button onClick={() => setMessage(null)} className="ml-auto p-1 hover:bg-gray-100 rounded-full transition-colors cursor-pointer">
-                        <X size={18} className="text-gray-400" />
-                    </button>
-                </div>
-            )}
+
 
             <form onSubmit={handleSubmit} className="space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
@@ -507,8 +523,12 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
                         </button>
                         <button
                             type="submit"
-                            disabled={isLoading}
-                            className="flex-1 md:flex-none px-4 py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition flex items-center justify-center gap-2 disabled:opacity-70 cursor-pointer disabled:cursor-not-allowed"
+                            disabled={isLoading || !hasChanges}
+                            className={`flex-1 md:flex-none px-4 py-3 rounded-xl font-bold shadow-lg transition flex items-center justify-center gap-2 cursor-pointer 
+                                ${isLoading || !hasChanges
+                                    ? "bg-gray-300 text-gray-500 cursor-not-allowed shadow-none"
+                                    : "bg-blue-600 text-white shadow-blue-200 hover:bg-blue-700"}`
+                            }
                         >
                             {isLoading ? (
                                 <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin" />
