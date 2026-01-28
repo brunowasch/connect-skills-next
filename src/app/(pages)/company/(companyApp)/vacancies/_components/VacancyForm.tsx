@@ -506,8 +506,8 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                             className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
                         >
                             <option value="Presencial">{t('Presencial')}</option>
-                            <option value="Home_Office">{t('Home Office')}</option>
-                            <option value="H_brido">{t('Híbrido')}</option>
+                            <option value="Home_Office">{t('Home_Office')}</option>
+                            <option value="H_brido">{t('H_brido')}</option>
                         </select>
                     </div>
 
@@ -578,14 +578,14 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                             onChange={handleChange}
                             className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
                         >
-                            <option value="CLT_Tempo_Integral">CLT (Integral)</option>
-                            <option value="CLT_Meio_Periodo">CLT (Meio Período)</option>
-                            <option value="PJ">PJ</option>
-                            <option value="Estagio">Estágio</option>
-                            <option value="Trainee">Trainee</option>
-                            <option value="Freelancer_Autonomo">Freelancer</option>
-                            <option value="Temporario">Temporário</option>
-                            <option value="Aprendiz">Aprendiz</option>
+                            <option value="CLT_Tempo_Integral">{t('CLT_Tempo_Integral')}</option>
+                            <option value="CLT_Meio_Periodo">{t('CLT_Meio_Periodo')}</option>
+                            <option value="PJ">{t('PJ')}</option>
+                            <option value="Estagio">{t('Estagio')}</option>
+                            <option value="Trainee">{t('Trainee')}</option>
+                            <option value="Freelancer_Autonomo">{t('Freelancer_Autonomo')}</option>
+                            <option value="Temporario">{t('Temporario')}</option>
+                            <option value="Aprendiz">{t('Aprendiz')}</option>
                         </select>
                     </div>
 
