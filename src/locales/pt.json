@@ -1,4 +1,9 @@
 {
+    "languages": [
+        "Português",
+        "Inglês",
+        "Espanhol"
+    ],
     "welcome": "Bem-vindo ao Connect Skills",
     "hero_welcome": "Bem-vindo(a) ao Connect Skills",
     "hero_title_main": "Conecte-se ao mercado de trabalho",
@@ -506,6 +511,12 @@
     "error_saving_areas": "Ocorreu um erro ao salvar suas especialidades. Tente novamente.",
     "user_not_identified": "Usuário não identificado. Por favor, faça login novamente.",
     "error_saving_skill": "Erro ao salvar {{skill}}",
+    "edit_areas_title": "Editar Especialidades",
+    "edit_areas_subtitle": "Mantenha seu perfil atualizado",
+    "want_to_add": "Deseja adicionar \"{{term}}\"?",
+    "success_areas_update": "Especialidades atualizadas!",
+    "modal_add_skill_custom_desc": "Adicione uma habilidade personalizada que não está na lista.",
+    "selected_suffix": "selecionadas",
     "Análise de Dados": "Análise de Dados",
     "Trabalho em Equipe": "Trabalho em Equipe",
     "questions": {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
-import { Globe } from "lucide-react";
+import { Globe, Languages } from "lucide-react";
 import { useState } from "react";
 
 type LanguageSwitcherProps = {
@@ -9,14 +9,35 @@ type LanguageSwitcherProps = {
 };
 
 export function LanguageSwitcher({ align = "right" }: LanguageSwitcherProps) {
-    const { i18n } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
 
-    const languages = [
-        { code: "pt", name: "Português", flag: "🇧🇷" },
-        { code: "en", name: "English", flag: "🇺🇸" },
-        { code: "es", name: "Español", flag: "🇪🇸" },
-    ];
+    const nativeNames = {
+        pt: "Português",
+        en: "English",
+        es: "Español",
+    };
+
+    const flags = {
+        pt: "BR",
+        en: "US",
+        es: "ES",
+    };
+
+    const codes = ["pt", "en", "es"];
+    const translatedNamesRaw = t('languages', { returnObjects: true });
+    const translatedNames = Array.isArray(translatedNamesRaw) ? translatedNamesRaw : [nativeNames.pt, nativeNames.en, nativeNames.es];
+
+    const languages = codes.map((code, index) => {
+        const native = nativeNames[code as keyof typeof nativeNames];
+        const translated = translatedNames[index] || native;
+
+        return {
+            code,
+            name: translated === native ? translated : `${translated} (${native})`,
+            flag: flags[code as keyof typeof flags],
+        };
+    });
 
     const currentLanguage = languages.find((l) => l.code === i18n.language.split('-')[0]) || languages[0];
 

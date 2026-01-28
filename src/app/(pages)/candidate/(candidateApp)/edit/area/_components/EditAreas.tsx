@@ -2,15 +2,16 @@
 
 import { useState, useMemo, useEffect } from "react";
 import skillsData from "@/src/data/skills.json";
-import { FiSearch, FiArrowLeft, FiSave } from "react-icons/fi";
+import { FiSearch, FiArrowLeft, FiSave, FiX } from "react-icons/fi";
 import { useRouter } from "next/navigation";
-
+import { useTranslation } from "react-i18next";
 
 interface EditAreasProps {
     initialAreas: string[];
 }
 
 export function EditAreas({ initialAreas }: EditAreasProps) {
+    const { t } = useTranslation();
     const router = useRouter();
     const [selectedSkills, setSelectedSkills] = useState<string[]>(initialAreas);
     const [searchTerm, setSearchTerm] = useState("");
@@ -64,12 +65,12 @@ export function EditAreas({ initialAreas }: EditAreasProps) {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.error || "Erro ao salvar especialidades");
+                throw new Error(errorData.error || t("error_saving_areas"));
             }
 
             localStorage.setItem('global_toast', JSON.stringify({
                 type: 'success',
-                text: "Especialidades atualizadas!"
+                text: t("success_areas_update")
             }));
             router.push("/candidate/profile");
             router.refresh();
@@ -78,7 +79,7 @@ export function EditAreas({ initialAreas }: EditAreasProps) {
             // For errors, we can show an alert or a toast immediately if we're not redirecting
             localStorage.setItem('global_toast', JSON.stringify({
                 type: 'error',
-                text: error.message || "Ocorreu um erro ao salvar suas especialidades."
+                text: error.message || t("error_saving_areas")
             }));
             // We might need a small hack to trigger the storage event if it's the same page
             window.dispatchEvent(new Event('storage'));
@@ -93,7 +94,7 @@ export function EditAreas({ initialAreas }: EditAreasProps) {
     }, [customSkills]);
 
     const filteredSkills = allSkills.filter((skill) =>
-        skill.toLowerCase().includes(searchTerm.toLowerCase())
+        t(skill).toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
@@ -103,11 +104,11 @@ export function EditAreas({ initialAreas }: EditAreasProps) {
                     onClick={() => router.back()}
                     className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
                 >
-                    <FiArrowLeft /> Voltar
+                    <FiArrowLeft /> {t("vacancy_back")}
                 </button>
                 <div className="text-right">
-                    <h1 className="text-2xl font-bold text-gray-900">Editar Especialidades</h1>
-                    <p className="text-sm text-gray-500">Mantenha seu perfil atualizado</p>
+                    <h1 className="text-2xl font-bold text-gray-900">{t("edit_areas_title")}</h1>
+                    <p className="text-sm text-gray-500">{t("edit_areas_subtitle")}</p>
                 </div>
             </div>
 
@@ -117,16 +118,37 @@ export function EditAreas({ initialAreas }: EditAreasProps) {
                         <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                         <input
                             type="text"
-                            placeholder="Buscar habilidades..."
+                            placeholder={t("search_skills_placeholder")}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full pl-10 p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-gray-700"
                         />
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-500 bg-gray-50 px-4 py-2 rounded-full border border-gray-100">
-                        <span className="font-bold text-blue-600">{selectedSkills.length}</span> selecionadas
+                        <span className="font-bold text-blue-600">{selectedSkills.length}</span> {t("selected_suffix")}
                     </div>
                 </div>
+
+                {/* Selected Skills Tags */}
+                {selectedSkills.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-2 pb-4 border-b border-gray-100">
+                        {selectedSkills.map((skill) => (
+                            <div
+                                key={skill}
+                                className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium border border-blue-100"
+                            >
+                                {t(skill)}
+                                <button
+                                    onClick={() => toggleSkill(skill)}
+                                    className="hover:bg-blue-200 rounded-full p-0.5 transition-colors cursor-pointer"
+                                    aria-label={`Remove ${skill}`}
+                                >
+                                    <FiX size={14} />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
 
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 w-full">
                     {filteredSkills.map((skill) => (
@@ -138,7 +160,7 @@ export function EditAreas({ initialAreas }: EditAreasProps) {
                                 : "bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:bg-blue-50"
                                 }`}
                         >
-                            {skill}
+                            {t(skill)}
                         </button>
                     ))}
 
@@ -146,13 +168,13 @@ export function EditAreas({ initialAreas }: EditAreasProps) {
                         onClick={() => setIsModalOpen(true)}
                         className="p-3 rounded-xl text-sm text-center transition-all duration-200 border bg-white text-blue-600 border-dashed border-blue-300 cursor-pointer hover:border-blue-500 hover:bg-blue-50 font-bold"
                     >
-                        + Adicionar Outra
+                        {t("add_other_btn")}
                     </button>
                 </div>
 
                 {filteredSkills.length === 0 && searchTerm && (
                     <div className="text-center py-12">
-                        <p className="text-gray-500 mb-4">Nenhuma habilidade encontrada para "{searchTerm}"</p>
+                        <p className="text-gray-500 mb-4">{t("no_skills_found_prefix")} "{searchTerm}"</p>
                         <button
                             onClick={() => {
                                 setNewSkill(searchTerm);
@@ -160,7 +182,7 @@ export function EditAreas({ initialAreas }: EditAreasProps) {
                             }}
                             className="text-blue-600 font-bold hover:underline cursor-pointer"
                         >
-                            Deseja adicionar "{searchTerm}"?
+                            {t("want_to_add", { term: searchTerm })}
                         </button>
                     </div>
                 )}
@@ -174,14 +196,14 @@ export function EditAreas({ initialAreas }: EditAreasProps) {
                         disabled={selectedSkills.length === 0}
                         className="text-sm font-medium text-red-500 hover:text-red-700 disabled:opacity-30 transition-colors cursor-pointer"
                     >
-                        Limpar seleção
+                        {t("clean_selection_btn")}
                     </button>
                     <div className="flex gap-4">
                         <button
                             onClick={() => router.back()}
                             className="px-6 py-2.5 rounded-xl font-semibold text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
                         >
-                            Cancelar
+                            {t("cancel_btn")}
                         </button>
                         <button
                             onClick={handleSave}
@@ -191,11 +213,11 @@ export function EditAreas({ initialAreas }: EditAreasProps) {
                             {isSubmitting ? (
                                 <>
                                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                    Salvando...
+                                    {t("saving_btn")}
                                 </>
                             ) : (
                                 <>
-                                    <FiSave /> Salvar Alterações
+                                    <FiSave /> {t("save_changes")}
                                 </>
                             )}
                         </button>
@@ -208,15 +230,15 @@ export function EditAreas({ initialAreas }: EditAreasProps) {
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                         <div className="p-8">
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">Nova Especialidade</h3>
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">{t("modal_add_skill_title")}</h3>
                             <p className="text-sm text-gray-500 mb-6">
-                                Adicione uma habilidade personalizada que não está na lista.
+                                {t("modal_add_skill_custom_desc")}
                             </p>
                             <input
                                 type="text"
                                 value={newSkill}
                                 onChange={(e) => setNewSkill(e.target.value)}
-                                placeholder="Ex: React, UX Design, Gestão..."
+                                placeholder={t("modal_skill_placeholder")}
                                 className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 mb-6 text-gray-700"
                                 autoFocus
                                 onKeyDown={(e) => e.key === 'Enter' && handleAddCustomSkill()}
@@ -226,14 +248,14 @@ export function EditAreas({ initialAreas }: EditAreasProps) {
                                     onClick={() => setIsModalOpen(false)}
                                     className="px-6 py-2 text-gray-500 hover:bg-gray-100 rounded-xl font-medium transition-colors cursor-pointer"
                                 >
-                                    Cancelar
+                                    {t("cancel_btn")}
                                 </button>
                                 <button
                                     onClick={handleAddCustomSkill}
                                     disabled={!newSkill.trim()}
                                     className="px-6 py-2 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-md"
                                 >
-                                    Adicionar
+                                    {t("add_btn")}
                                 </button>
                             </div>
                         </div>

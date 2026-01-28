@@ -1,4 +1,9 @@
 {
+    "languages": [
+        "Portuguese",
+        "English",
+        "Spanish"
+    ],
     "welcome": "Welcome to Connect Skills",
     "hero_welcome": "Welcome to Connect Skills",
     "hero_title_main": "Connect to the job market",
@@ -505,6 +510,12 @@
     "error_saving_areas": "An error occurred while saving your specialties. Please try again.",
     "user_not_identified": "User not identified. Please log in again.",
     "error_saving_skill": "Error saving {{skill}}",
+    "edit_areas_title": "Edit Specialties",
+    "edit_areas_subtitle": "Keep your profile updated",
+    "want_to_add": "Do you want to add \"{{term}}\"?",
+    "success_areas_update": "Specialties updated!",
+    "modal_add_skill_custom_desc": "Add a custom skill that is not on the list.",
+    "selected_suffix": "selected",
     "Análise de Dados": "Data Analysis",
     "Trabalho em Equipe": "Teamwork",
     "Acabamento de Interiores": "Interior Finishing",
