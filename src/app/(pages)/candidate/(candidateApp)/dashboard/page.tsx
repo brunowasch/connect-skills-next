@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
-import { Hero, KPI, RecommendedVacancies, ApplicationHistory, ProfileCompletion } from "@/src/app/(pages)/candidate/(candidateApp)/dashboard/_components/index";
+import { Hero, KPI, RecommendedVacancies, ApplicationHistory, ProfileCompletion, DashboardHeader } from "@/src/app/(pages)/candidate/(candidateApp)/dashboard/_components/index";
 
 export default async function Dashboard() {
     const cookieStore = await cookies();
@@ -58,9 +58,9 @@ export default async function Dashboard() {
     };
 
     // Extrair áreas de interesse
-    const areasIds = candidateComplete.candidato_area.map(ca => ca.area_interesse.id);
+    const areasIds = candidateComplete.candidato_area.map((ca: any) => ca.area_interesse.id);
     const areas = candidateComplete.candidato_area
-        .map(ca => ca.area_interesse.nome)
+        .map((ca: any) => ca.area_interesse.nome)
         .filter(Boolean) as string[];
 
     // Buscar vagas aplicadas PRIMEIRO (para excluir das recomendações)
@@ -74,7 +74,7 @@ export default async function Dashboard() {
         }
     });
 
-    const appliedVacanciesIds = appliedVacanciesData.map(av => av.vaga_id);
+    const appliedVacanciesIds = appliedVacanciesData.map((av: any) => av.vaga_id);
     const appliedVacanciesCount = appliedVacanciesData.length;
 
     // Buscar vagas recomendadas (baseadas nas áreas de interesse)
@@ -94,7 +94,7 @@ export default async function Dashboard() {
         });
 
         // Garantir que contamos apenas IDs únicos E que NÃO foram aplicadas
-        const uniqueVagaIds = [...new Set(vagasIds.map(v => v.vaga_id))]
+        const uniqueVagaIds = [...new Set(vagasIds.map((v: any) => v.vaga_id))]
             .filter(vagaId => !appliedVacanciesIds.includes(vagaId));
 
         // Contar quantas dessas vagas realmente existem na tabela vaga
@@ -129,7 +129,7 @@ export default async function Dashboard() {
             });
 
             // Buscar dados das empresas
-            const empresaIds = [...new Set(vagas.map(v => v.empresa_id))];
+            const empresaIds = [...new Set(vagas.map((v: any) => v.empresa_id))];
             const empresas = await prisma.empresa.findMany({
                 where: {
                     id: {
@@ -150,7 +150,7 @@ export default async function Dashboard() {
             const vagaAreas = await prisma.vaga_area.findMany({
                 where: {
                     vaga_id: {
-                        in: vagas.map(v => v.id)
+                        in: vagas.map((v: any) => v.id)
                     }
                 },
                 select: {
@@ -160,7 +160,7 @@ export default async function Dashboard() {
             });
 
             // Buscar nomes das áreas
-            const areaIds = [...new Set(vagaAreas.map(va => va.area_interesse_id))];
+            const areaIds = [...new Set(vagaAreas.map((va: any) => va.area_interesse_id))];
             const areasInteresse = await prisma.area_interesse.findMany({
                 where: {
                     id: {
@@ -174,12 +174,12 @@ export default async function Dashboard() {
             });
 
             // Montar os dados completos das vagas
-            recommendedVacancies = vagas.map(vaga => {
-                const empresa = empresas.find(e => e.id === vaga.empresa_id);
+            recommendedVacancies = vagas.map((vaga: any) => {
+                const empresa = empresas.find((e: any) => e.id === vaga.empresa_id);
                 const vagaAreasData = vagaAreas
-                    .filter(va => va.vaga_id === vaga.id)
-                    .map(va => {
-                        const area = areasInteresse.find(a => a.id === va.area_interesse_id);
+                    .filter((va: any) => va.vaga_id === vaga.id)
+                    .map((va: any) => {
+                        const area = areasInteresse.find((a: any) => a.id === va.area_interesse_id);
                         return {
                             area_interesse: {
                                 nome: area?.nome || ''
@@ -211,7 +211,7 @@ export default async function Dashboard() {
     // Buscar dados completos das vagas aplicadas
     let appliedVacancies: any[] = [];
     if (appliedVacanciesData.length > 0) {
-        const appliedVagasIds = appliedVacanciesData.map(av => av.vaga_id);
+        const appliedVagasIds = appliedVacanciesData.map((av: any) => av.vaga_id);
 
         const appliedVagas = await prisma.vaga.findMany({
             where: {
@@ -231,7 +231,7 @@ export default async function Dashboard() {
         });
 
         // Buscar dados das empresas
-        const appliedEmpresaIds = [...new Set(appliedVagas.map(v => v.empresa_id))];
+        const appliedEmpresaIds = [...new Set(appliedVagas.map((v: any) => v.empresa_id))];
         const appliedEmpresas = await prisma.empresa.findMany({
             where: {
                 id: {
@@ -262,7 +262,7 @@ export default async function Dashboard() {
         });
 
         // Buscar nomes das áreas
-        const appliedAreaIds = [...new Set(appliedVagaAreas.map(va => va.area_interesse_id))];
+        const appliedAreaIds = [...new Set(appliedVagaAreas.map((va: any) => va.area_interesse_id))];
         const appliedAreasInteresse = await prisma.area_interesse.findMany({
             where: {
                 id: {
@@ -276,12 +276,12 @@ export default async function Dashboard() {
         });
 
         // Montar os dados completos das vagas aplicadas
-        appliedVacancies = appliedVagas.map(vaga => {
-            const empresa = appliedEmpresas.find(e => e.id === vaga.empresa_id);
+        appliedVacancies = appliedVagas.map((vaga: any) => {
+            const empresa = appliedEmpresas.find((e: any) => e.id === vaga.empresa_id);
             const vagaAreasData = appliedVagaAreas
-                .filter(va => va.vaga_id === vaga.id)
-                .map(va => {
-                    const area = appliedAreasInteresse.find(a => a.id === va.area_interesse_id);
+                .filter((va: any) => va.vaga_id === vaga.id)
+                .map((va: any) => {
+                    const area = appliedAreasInteresse.find((a: any) => a.id === va.area_interesse_id);
                     return {
                         area_interesse: {
                             nome: area?.nome || ''
@@ -289,7 +289,7 @@ export default async function Dashboard() {
                     };
                 });
 
-            const applicationData = appliedVacanciesData.find(av => av.vaga_id === vaga.id);
+            const applicationData = appliedVacanciesData.find((av: any) => av.vaga_id === vaga.id);
 
             return {
                 id: vaga.id,
@@ -314,11 +314,7 @@ export default async function Dashboard() {
 
     return (
         <>
-            <div className="mb-4 sm:mb-6">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-                <p className="text-gray-500">Acompanhe suas candidaturas, visualize vagas recomendadas e avance na sua jornada profissional.</p>
-
-            </div>
+            <DashboardHeader />
             <Hero candidato={candidate} />
             <ProfileCompletion candidato={candidate} usuario={userId} areas={areas} />
             <KPI

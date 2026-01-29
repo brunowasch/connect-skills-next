@@ -1,4 +1,7 @@
+"use client";
+
 import { FeatureCard } from "./FeatureCards";
+import { useTranslation } from "react-i18next";
 
 import {
   HiIdentification,
@@ -8,6 +11,8 @@ import {
 } from "react-icons/hi";
 
 export function About() {
+  const { t } = useTranslation();
+
   return (
     <section id="about" className="py-16">
       <div className="mx-auto max-w-7xl px-4">
@@ -15,11 +20,10 @@ export function About() {
           <div className="lg:col-span-4">
             <div className="h-full rounded-2xl bg-white p-6 shadow-md">
               <h2 className="mb-3 text-2xl font-semibold text-gray-900">
-                Por que usar o Connect Skills?
+                {t("about_why")}
               </h2>
               <p className="text-gray-600">
-                Mais agilidade para encontrar vagas compatíveis, destacar suas
-                soft skills e se posicionar no mercado com segurança.
+                {t("about_desc")}
               </p>
             </div>
           </div>
@@ -29,24 +33,24 @@ export function About() {
             <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
               <FeatureCard
                 icon={<HiIdentification />}
-                title="Perfil personalizado"
-                text="Mostre suas experiências, habilidades e interesses de forma detalhada."
+                title={t("about_card1_title")}
+                text={t("about_card1_text")}
               />
               <FeatureCard
                 icon={<HiUsers />}
-                title="Conexão rápida"
-                text="Encontre empresas e talentos compatíveis."
+                title={t("about_card2_title")}
+                text={t("about_card2_text")}
               />
               <FeatureCard
                 icon={<HiShieldCheck />}
-                title="Soft skills"
-                text="Foco em compatibilidade real."
+                title={t("about_card3_title")}
+                text={t("about_card3_text")}
               />
 
               <FeatureCard
                 icon={<HiOutlineChip />}
-                title="IA treinada"
-                text="Conecta candidatos e empresas às vagas ideais."
+                title={t("about_card4_title")}
+                text={t("about_card4_text")}
               />
             </div>
           </div>

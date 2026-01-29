@@ -6,11 +6,12 @@ import {
     Link as LinkIcon, Paperclip, ExternalLink, Copy, Check
 } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslation } from "react-i18next";
 
 interface PerfilProps {
     candidato: any;
     fotoPerfil?: string;
-    localidade: string;
+    localidade: string | null;
     contato: { ddi?: string; ddd?: string; numero?: string };
     links: { id?: string; label?: string; url: string; ordem?: number }[];
     anexos: { id: string; nome: string; url: string; mime: string; tamanho: number; criadoEm: string }[];
@@ -18,6 +19,7 @@ interface PerfilProps {
 }
 
 export function CandidateProfile({ candidato, fotoPerfil, localidade, contato, links, anexos, perfilShareUrl }: PerfilProps) {
+    const { t, i18n } = useTranslation();
     const [copiado, setCopiado] = useState(false);
 
     const handleCopyLink = () => {
@@ -80,155 +82,164 @@ export function CandidateProfile({ candidato, fotoPerfil, localidade, contato, l
     };
 
     return (
-        <section className="bg-white border border-gray-200 shadow-sm rounded-2xl p-6 md:p-8 mb-6">
-            {/* HEADER DO PERFIL */}
-            <div className="flex flex-col md:flex-row items-center md:items-start gap-6 border-b border-gray-100 pb-8">
-                <div className="relative">
-                    {fotoPerfil ? (
-                        <img
-                            src={fotoPerfil}
-                            alt="Foto de perfil"
-                            className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-md ring-1 ring-gray-200"
-                        />
-                    ) : (
-                        <div className="w-32 h-32 rounded-full bg-slate-100 border-4 border-white shadow-md ring-1 ring-gray-200 flex items-center justify-center">
-                            <User size={64} className="text-slate-400" />
-                        </div>
-                    )}
-                </div>
+        <div>
+            <div className="mb-6">
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">{t("my_profile_title")}</h1>
+                <p className="text-gray-500">
+                    {t("my_profile_subtitle")}
+                </p>
+            </div>
 
-                <div className="flex-grow text-center md:text-left">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900">
-                                {candidato.nome || 'Usuário'} {candidato.sobrenome || ''}
-                            </h1>
-                            <div className="flex flex-wrap justify-center md:justify-start gap-4 mt-2 text-sm text-gray-500">
-                                <span className="flex items-center gap-1"><MapPin size={16} className="text-blue-500" /> {localidade}</span>
-                                <span className="flex items-center gap-1">
-                                    <Phone size={16} className="text-blue-500" />
-                                    {contato.ddi || contato.ddd || contato.numero ? (
-                                        `${contato.ddi ? `+${contato.ddi} ` : ''}${contato.ddd ? `(${contato.ddd}) ` : ''}${contato.numero}`
-                                    ) : 'Não informado'}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                    <Calendar size={16} className="text-blue-500" />
-                                    {candidato.data_nascimento ? `Nascimento: ${new Date(candidato.data_nascimento).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}` : 'Não informada'}
-                                </span>
+            <section className="bg-white border border-gray-200 shadow-sm rounded-2xl p-6 md:p-8 mb-6">
+                {/* HEADER DO PERFIL */}
+                <div className="flex flex-col md:flex-row items-center md:items-start gap-6 border-b border-gray-100 pb-8">
+                    <div className="relative">
+                        {fotoPerfil ? (
+                            <img
+                                src={fotoPerfil}
+                                alt={t("profile_photo_alt")}
+                                className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-md ring-1 ring-gray-200"
+                            />
+                        ) : (
+                            <div className="w-32 h-32 rounded-full bg-slate-100 border-4 border-white shadow-md ring-1 ring-gray-200 flex items-center justify-center">
+                                <User size={64} className="text-slate-400" />
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex-grow text-center md:text-left">
+                        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                            <div>
+                                <h1 className="text-2xl font-bold text-gray-900">
+                                    {candidato.nome || t("user_default_name")} {candidato.sobrenome || ''}
+                                </h1>
+                                <div className="flex flex-wrap justify-center md:justify-start gap-4 mt-2 text-sm text-gray-500">
+                                    <span className="flex items-center gap-1"><MapPin size={16} className="text-blue-500" /> {localidade || t("location_not_informed")}</span>
+                                    <span className="flex items-center gap-1">
+                                        <Phone size={16} className="text-blue-500" />
+                                        {contato.ddi || contato.ddd || contato.numero ? (
+                                            `${contato.ddi ? `+${contato.ddi} ` : ''}${contato.ddd ? `(${contato.ddd}) ` : ''}${contato.numero}`
+                                        ) : t('not_informed')}
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                        <Calendar size={16} className="text-blue-500" />
+                                        {candidato.data_nascimento ? `${t("birth_date_label")}: ${new Date(candidato.data_nascimento).toLocaleDateString(i18n.language, { timeZone: 'UTC' })}` : t('not_informed')}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <Link href="/candidate/edit/profile">
+                                    <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 flex items-center gap-2 transition cursor-pointer">
+                                        <PencilLine size={16} /> {t("edit_profile_btn")}
+                                    </button>
+                                </Link>
+                                <button
+                                    onClick={handleCopyLink}
+                                    className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600 relative cursor-pointer"
+                                    title={t("copy_link_title")}
+                                >
+                                    {copiado ? <Check size={20} className="text-green-500" /> : <LinkIcon size={20} />}
+                                    {copiado && <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] px-2 py-1 rounded">{t("link_copied")}</span>}
+                                </button>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2">
-                            <Link href="/candidate/edit/profile">
-                                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 flex items-center gap-2 transition cursor-pointer">
-                                    <PencilLine size={16} /> Editar perfil
-                                </button>
+                        {/* SOBRE MIM */}
+                        <div className="mt-6">
+                            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2 mb-2">
+                                <User size={14} /> {t("about_me")}
+                            </h3>
+                            <p className="text-gray-700 leading-relaxed italic">
+                                {candidato.descricao || t("no_description")}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                    {/* ÁREAS DE INTERESSE */}
+                    <div className="col-span-1 md:col-span-2">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                                <Target className="text-blue-600" size={18} /> {t("areas_of_interest")}
+                            </h3>
+                            <Link href="/candidate/edit/area">
+                                <button className="text-blue-600 text-sm font-medium cursor-pointer hover:underline">{t("edit_areas")}</button>
                             </Link>
-                            <button
-                                onClick={handleCopyLink}
-                                className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600 relative cursor-pointer"
-                                title="Copiar link do perfil"
-                            >
-                                {copiado ? <Check size={20} className="text-green-500" /> : <LinkIcon size={20} />}
-                                {copiado && <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] px-2 py-1 rounded">Copiado!</span>}
-                            </button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {candidato.candidato_area?.length > 0 ? (
+                                candidato.candidato_area.map((ca: any, idx: number) => (
+                                    <span key={idx} className="bg-blue-50 text-blue-700 border border-blue-100 px-4 py-1.5 rounded-full text-sm font-medium">
+                                        {ca.area_interesse?.nome || t("area_default")}
+                                    </span>
+                                ))
+                            ) : (
+                                <p className="text-gray-400 text-sm italic">{t("no_areas_selected")}</p>
+                            )}
                         </div>
                     </div>
 
-                    {/* SOBRE MIM */}
-                    <div className="mt-6">
-                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2 mb-2">
-                            <User size={14} /> Sobre mim
+                    {/* LINKS */}
+                    <div>
+                        <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <LinkIcon className="text-blue-600" size={18} /> {t("links_network")}
                         </h3>
-                        <p className="text-gray-700 leading-relaxed italic">
-                            {candidato.descricao || "Nenhuma descrição adicionada."}
-                        </p>
+                        <div className="flex flex-col gap-2">
+                            {links.length > 0 ? links.map((link, idx) => (
+                                <a
+                                    key={idx}
+                                    href={link.url.startsWith('http') ? link.url : `https://${link.url}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-between p-3 rounded-xl border border-gray-50 bg-gray-50/30 hover:bg-blue-50 hover:border-blue-100 hover:text-blue-700 transition-all group"
+                                >
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="p-2 rounded-lg bg-white shadow-sm ring-1 ring-gray-100 group-hover:ring-blue-100 group-hover:bg-blue-50 transition-all">
+                                            <ExternalLink size={16} className="text-gray-400 group-hover:text-blue-600" />
+                                        </div>
+                                        <span className="text-sm font-semibold truncate">
+                                            {link.label || t("access_link")}
+                                        </span>
+                                    </div>
+                                    <ExternalLink size={14} className="text-gray-300 group-hover:text-blue-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                                </a>
+                            )) : <p className="text-gray-400 text-sm">{t("no_links")}</p>}
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-                {/* ÁREAS DE INTERESSE */}
-                <div className="col-span-1 md:col-span-2">
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                            <Target className="text-blue-600" size={18} /> Áreas de Interesse
+                    {/* ANEXOS */}
+                    <div>
+                        <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <Paperclip className="text-blue-600" size={18} /> {t("attachments")}
                         </h3>
-                        <Link href="/candidate/edit/area">
-                            <button className="text-blue-600 text-sm font-medium cursor-pointer hover:underline">Editar áreas</button>
-                        </Link>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                        {candidato.candidato_area?.length > 0 ? (
-                            candidato.candidato_area.map((ca: any, idx: number) => (
-                                <span key={idx} className="bg-blue-50 text-blue-700 border border-blue-100 px-4 py-1.5 rounded-full text-sm font-medium">
-                                    {ca.area_interesse?.nome || 'Área'}
-                                </span>
-                            ))
-                        ) : (
-                            <p className="text-gray-400 text-sm italic">Nenhuma área selecionada.</p>
-                        )}
+                        <div className="space-y-3">
+                            {anexos.length > 0 ? anexos.map((a, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => handleViewFile(a.url, a.nome)}
+                                    className="w-full text-left flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 hover:border-blue-200 transition-all group cursor-pointer"
+                                >
+                                    <div className="truncate pr-4 flex items-center gap-3">
+                                        <div className="p-2 rounded-lg bg-white text-gray-400 group-hover:text-blue-600 transition-colors">
+                                            <Paperclip size={18} />
+                                        </div>
+                                        <div className="truncate">
+                                            <p className="text-sm font-medium text-gray-700 truncate group-hover:text-blue-700">{a.nome}</p>
+                                            <p className="text-[10px] text-gray-400 uppercase">{a.mime} • {formatSize(a.tamanho)}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-gray-300 group-hover:text-blue-500 transition-colors">
+                                        <ExternalLink size={18} />
+                                    </div>
+                                </button>
+                            )) : <p className="text-gray-400 text-sm">{t("no_attachments")}</p>}
+                        </div>
                     </div>
                 </div>
-
-                {/* LINKS */}
-                <div>
-                    <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        <LinkIcon className="text-blue-600" size={18} /> Links e Redes
-                    </h3>
-                    <div className="flex flex-col gap-2">
-                        {links.length > 0 ? links.map((link, idx) => (
-                            <a
-                                key={idx}
-                                href={link.url.startsWith('http') ? link.url : `https://${link.url}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center justify-between p-3 rounded-xl border border-gray-50 bg-gray-50/30 hover:bg-blue-50 hover:border-blue-100 hover:text-blue-700 transition-all group"
-                            >
-                                <div className="flex items-center gap-3 min-w-0">
-                                    <div className="p-2 rounded-lg bg-white shadow-sm ring-1 ring-gray-100 group-hover:ring-blue-100 group-hover:bg-blue-50 transition-all">
-                                        <ExternalLink size={16} className="text-gray-400 group-hover:text-blue-600" />
-                                    </div>
-                                    <span className="text-sm font-semibold truncate">
-                                        {link.label || 'Acesse o Link'}
-                                    </span>
-                                </div>
-                                <ExternalLink size={14} className="text-gray-300 group-hover:text-blue-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                            </a>
-                        )) : <p className="text-gray-400 text-sm">Nenhum link adicionado.</p>}
-                    </div>
-                </div>
-
-                {/* ANEXOS */}
-                <div>
-                    <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        <Paperclip className="text-blue-600" size={18} /> Anexos
-                    </h3>
-                    <div className="space-y-3">
-                        {anexos.length > 0 ? anexos.map((a, idx) => (
-                            <button
-                                key={idx}
-                                onClick={() => handleViewFile(a.url, a.nome)}
-                                className="w-full text-left flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 hover:border-blue-200 transition-all group cursor-pointer"
-                            >
-                                <div className="truncate pr-4 flex items-center gap-3">
-                                    <div className="p-2 rounded-lg bg-white text-gray-400 group-hover:text-blue-600 transition-colors">
-                                        <Paperclip size={18} />
-                                    </div>
-                                    <div className="truncate">
-                                        <p className="text-sm font-medium text-gray-700 truncate group-hover:text-blue-700">{a.nome}</p>
-                                        <p className="text-[10px] text-gray-400 uppercase">{a.mime} • {formatSize(a.tamanho)}</p>
-                                    </div>
-                                </div>
-                                <div className="text-gray-300 group-hover:text-blue-500 transition-colors">
-                                    <ExternalLink size={18} />
-                                </div>
-                            </button>
-                        )) : <p className="text-gray-400 text-sm">Nenhum anexo encontrado.</p>}
-                    </div>
-                </div>
-            </div>
-        </section>
+            </section>
+        </div>
     );
 }
 

@@ -38,7 +38,7 @@ export default async function CandidateProfilePage() {
 
     const localidade = candidate.cidade && candidate.estado
         ? `${candidate.cidade} - ${candidate.estado}, ${candidate.pais || 'Brasil'}`
-        : candidate.cidade || candidate.estado || 'Localidade não informada';
+        : candidate.cidade || candidate.estado || null;
 
     const rawTelefone = candidate.telefone || '';
     let ddi = '';
@@ -87,10 +87,6 @@ export default async function CandidateProfilePage() {
 
     return (
         <div className="mb-4 sm:mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Meu Perfil</h1>
-            <p className="text-gray-500 mb-8">
-                Suas informações, habilidades e objetivos profissionais.
-            </p>
             <CandidateProfile
                 candidato={candidate}
                 fotoPerfil={candidate.foto_perfil || undefined}

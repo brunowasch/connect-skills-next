@@ -1,13 +1,14 @@
 import { cookies } from "next/headers";
 import { prisma } from "@/src/lib/prisma";
 import { VacanciesList } from "./_components/VacanciesList";
+import { redirect } from "next/navigation";
 
 export default async function VacanciesPage() {
     const cookieStore = await cookies();
     const userId = cookieStore.get("time_user_id")?.value;
 
     if (!userId) {
-        return <div>Não autorizado</div>;
+        redirect('/login');
     }
 
     const company = await prisma.empresa.findUnique({
@@ -15,7 +16,7 @@ export default async function VacanciesPage() {
     });
 
     if (!company) {
-        return <div>Empresa não encontrada</div>;
+        redirect('/');
     }
 
     const vacancies = await prisma.vaga.findMany({
@@ -53,7 +54,7 @@ export default async function VacanciesPage() {
         const count = applicationCounts.find(c => c.vaga_id === vacancy.id)?._count.vaga_id || 0;
         const statusRecord = statuses.find(s => s.vaga_id === vacancy.id);
         const rawStatus = statusRecord ? statusRecord.situacao.toUpperCase() : 'ATIVA';
-        const status = ['INATIVA', 'FECHADA', 'ENCERRADA'].includes(rawStatus) ? 'Inativa' : 'Ativa';
+        const status = ['INATIVA', 'FECHADA', 'ENCERRADA'].includes(rawStatus) ? 'inactive' : 'active';
 
         return {
             ...vacancy,
@@ -65,8 +66,6 @@ export default async function VacanciesPage() {
     });
 
     return (
-        <div className="max-w-5xl mx-auto px-4 py-8">
-            <VacanciesList initialVacancies={vacanciesWithCounts} />
-        </div>
+        <VacanciesList initialVacancies={vacanciesWithCounts} />
     );
 }

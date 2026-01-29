@@ -1,24 +1,29 @@
+"use client";
+
 import React from 'react';
 import Link from 'next/link';
 import { Briefcase, ChevronRight, Users, Clock, ArrowUpRight } from 'lucide-react';
 import { RecentVacanciesProps } from '@/src/app/(pages)/company/(companyApp)/types/RecentVacancies';
+import { useTranslation } from "react-i18next";
 
 export function RecentVacancies({ vacancies }: RecentVacanciesProps) {
+    const { t, i18n } = useTranslation();
+
     if (vacancies.length === 0) {
         return (
             <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 p-8 text-center">
                 <div className="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
                     <Briefcase size={32} />
                 </div>
-                <h3 className="text-lg font-bold text-slate-800 mb-2">Nenhuma vaga recente</h3>
+                <h3 className="text-lg font-bold text-slate-800 mb-2">{t("no_recent_vacancies")}</h3>
                 <p className="text-slate-500 text-sm mb-6 max-w-md mx-auto">
-                    Você ainda não publicou nenhuma vaga. Comece a contratar agora mesmo publicando sua primeira oportunidade.
+                    {t("no_vacancies_desc")}
                 </p>
                 <Link
                     href="/company/vacancies/new"
                     className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                    Publicar Vaga
+                    {t("publish_vacancy")}
                 </Link>
             </div>
         );
@@ -31,13 +36,13 @@ export function RecentVacancies({ vacancies }: RecentVacanciesProps) {
                     <div className="bg-blue-50 p-2 rounded-lg text-blue-600">
                         <Briefcase size={20} />
                     </div>
-                    <h3 className="font-bold text-slate-800 text-lg">Vagas Recentes</h3>
+                    <h3 className="font-bold text-slate-800 text-lg">{t("recent_vacancies")}</h3>
                 </div>
                 <Link
                     href="/company/vacancies"
                     className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors px-3 py-1.5 rounded-lg hover:bg-blue-50"
                 >
-                    Ver todas <ChevronRight size={16} />
+                    {t("view_all")} <ChevronRight size={16} />
                 </Link>
             </div>
 
@@ -56,14 +61,14 @@ export function RecentVacancies({ vacancies }: RecentVacanciesProps) {
                                     ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
                                     : 'bg-slate-100 text-slate-500 border-slate-200'
                                     }`}>
-                                    {vacancy.status}
+                                    {vacancy.status === 'Ativa' ? t("active") : t("inactive")}
                                 </span>
                             </div>
 
                             <div className="flex items-center gap-4 text-xs text-slate-500 font-medium">
                                 <span className="flex items-center gap-1.5 text-slate-400">
                                     <Clock size={14} className="text-slate-400" />
-                                    {new Date(vacancy.date).toLocaleDateString('pt-BR', {
+                                    {new Date(vacancy.date).toLocaleDateString(i18n.language === 'en' ? 'en-US' : (i18n.language === 'es' ? 'es-ES' : 'pt-BR'), {
                                         day: '2-digit',
                                         month: 'short',
                                         year: 'numeric'
@@ -72,7 +77,7 @@ export function RecentVacancies({ vacancies }: RecentVacanciesProps) {
                                 <span className="flex items-center gap-1.5 text-slate-400">
                                     <Users size={14} className={vacancy.candidatesCount > 0 ? "text-blue-500" : "text-slate-400"} />
                                     <span className={vacancy.candidatesCount > 0 ? "text-slate-600" : ""}>
-                                        {vacancy.candidatesCount} {vacancy.candidatesCount === 1 ? 'candidato' : 'candidatos'}
+                                        {vacancy.candidatesCount} {vacancy.candidatesCount === 1 ? t("candidate") : t("candidates")}
                                     </span>
                                 </span>
                             </div>
@@ -81,7 +86,7 @@ export function RecentVacancies({ vacancies }: RecentVacanciesProps) {
                         <Link
                             href={`/viewer/vacancy/${vacancy.uuid}`}
                             className="bg-white border border-slate-200 text-slate-600 hover:bg-blue-600 hover:text-white hover:border-blue-600 p-2.5 rounded-xl transition-all shadow-sm hover:shadow-md group-hover:scale-105 shrink-0"
-                            title="Ver detalhes"
+                            title={t("view_details")}
                         >
                             <ArrowUpRight size={18} />
                         </Link>
@@ -93,7 +98,7 @@ export function RecentVacancies({ vacancies }: RecentVacanciesProps) {
             {vacancies.length > 0 && (
                 <div className="bg-slate-50 p-3 text-center border-t border-slate-100">
                     <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">
-                        {vacancies.length} mais recentes
+                        {vacancies.length} {t("most_recent")}
                     </p>
                 </div>
             )}

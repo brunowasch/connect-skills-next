@@ -1,9 +1,6 @@
 import { prisma } from "@/src/lib/prisma";
-import { VacancyForm } from "../_components/VacancyForm";
-import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { EditVacancyPageContent } from "./_components/EditVacancyPageContent";
 
 export default async function EditVacancyPage() {
     const cookieStore = await cookies();
@@ -11,18 +8,7 @@ export default async function EditVacancyPage() {
     const userId = cookieStore.get("time_user_id")?.value;
 
     if (!id) {
-        return (
-            <div className="max-w-4xl mx-auto px-4 py-8">
-                <Link href="/company/vacancies" className="inline-flex items-center text-gray-500 hover:text-blue-600 mb-4 transition-colors">
-                    <ArrowLeft size={16} className="mr-2" />
-                    Voltar para Vagas
-                </Link>
-                <div className="p-12 text-center bg-white rounded-xl border border-gray-200">
-                    <h1 className="text-xl font-bold text-gray-900">Nenhuma vaga selecionada</h1>
-                    <p className="text-gray-500 mt-2">Por favor, selecione uma vaga no painel para editar.</p>
-                </div>
-            </div>
-        );
+        return <EditVacancyPageContent state="no_selection" />;
     }
 
     const company = await prisma.empresa.findUnique({
@@ -35,18 +21,7 @@ export default async function EditVacancyPage() {
     });
 
     if (!vacancy) {
-        return (
-            <div className="max-w-4xl mx-auto px-4 py-8">
-                <Link href="/company/vacancies" className="inline-flex items-center text-gray-500 hover:text-blue-600 mb-4 transition-colors">
-                    <ArrowLeft size={16} className="mr-2" />
-                    Voltar para Vagas
-                </Link>
-                <div className="p-12 text-center bg-white rounded-xl border border-gray-200">
-                    <h1 className="text-xl font-bold text-gray-900">Vaga não encontrada</h1>
-                    <p className="text-gray-500 mt-2">A vaga que você está tentando editar não existe ou foi removida.</p>
-                </div>
-            </div>
-        );
+        return <EditVacancyPageContent state="not_found" />;
     }
 
     const vagaAreas = await prisma.vaga_area.findMany({
@@ -86,25 +61,13 @@ export default async function EditVacancyPage() {
     });
 
     return (
-        <div className="max-w-4xl mx-auto px-4 py-8">
-            <div className="mb-8">
-                <Link href="/company/vacancies" className="inline-flex items-center text-gray-500 hover:text-blue-600 mb-4 transition-colors">
-                    <ArrowLeft size={16} className="mr-2" />
-                    Voltar para Vagas
-                </Link>
-                <div className="mt-4">
-                    <h1 className="text-2xl font-bold text-slate-900">Editar Vaga</h1>
-                    <p className="text-gray-500">Atualize os dados da sua oportunidade.</p>
-                </div>
-            </div>
-
-            <VacancyForm
-                areas={areas}
-                softSkills={softSkills}
-                initialData={fullVacancy}
-                vacancyId={id}
-                companyProfile={company}
-            />
-        </div>
+        <EditVacancyPageContent
+            state="success"
+            areas={areas}
+            softSkills={softSkills}
+            initialData={fullVacancy}
+            vacancyId={id}
+            companyProfile={company}
+        />
     );
 }

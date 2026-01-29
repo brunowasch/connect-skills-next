@@ -35,6 +35,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { selectVacancyForRanking, selectVacancyForEditing } from "@/src/app/(pages)/company/(companyApp)/vacancies/actions";
+import { LanguageSwitcher } from "@/src/app/_components/Layout/LanguageSwitcher";
 
 interface ModalConfig {
     isOpen: boolean;
@@ -104,26 +105,30 @@ interface VacancyDetailsProps {
     applicationResponses?: any;
 }
 
-const tipoLocalTrabalhoMap: Record<string, { label: string; icon: any }> = {
-    Presencial: { label: "Presencial", icon: Building2 },
-    Home_Office: { label: "Home Office", icon: Home },
-    H_brido: { label: "Híbrido", icon: Globe },
-};
-
-const vinculoEmpregaticioMap: Record<string, string> = {
-    Estagio: "Estágio",
-    CLT_Tempo_Integral: "CLT - Tempo Integral",
-    CLT_Meio_Periodo: "CLT - Meio Período",
-    Trainee: "Trainee",
-    Aprendiz: "Aprendiz",
-    PJ: "PJ",
-    Freelancer_Autonomo: "Freelancer / Autônomo",
-    Temporario: "Temporário",
-};
+import { useTranslation } from "react-i18next";
 
 export function VacancyDetails({ vacancy, company, isActive, applicationCount, userType, isOwner, userId, hasApplied, applicationResponses }: VacancyDetailsProps) {
+    const { t, i18n } = useTranslation();
     const router = useRouter();
     const stickyCardRef = useRef<HTMLDivElement>(null);
+
+    const tipoLocalTrabalhoMap: Record<string, { label: string; icon: any }> = {
+        Presencial: { label: t("Presencial"), icon: Building2 },
+        Home_Office: { label: t("Home Office"), icon: Home },
+        H_brido: { label: t("Híbrido"), icon: Globe },
+    };
+
+    const vinculoEmpregaticioMap: Record<string, string> = {
+        Estagio: t("Estágio"),
+        CLT_Tempo_Integral: t("CLT - Tempo Integral"),
+        CLT_Meio_Periodo: t("CLT - Meio Período"),
+        Trainee: t("Trainee"),
+        Aprendiz: t("Aprendiz"),
+        PJ: t("PJ"),
+        Freelancer_Autonomo: t("Freelancer / Autônomo"),
+        Temporario: t("Temporário"),
+    };
+
     const [isStickyVisible, setIsStickyVisible] = useState(true);
     const [hasScroll, setHasScroll] = useState(false);
     const [linkCopied, setLinkCopied] = useState(false);
@@ -139,11 +144,16 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
 
     const [showResponsesModal, setShowResponsesModal] = useState(false);
 
+    // Normalize responses list handling both array (legacy) and object (new) formats
+    const responsesList = Array.isArray(applicationResponses)
+        ? applicationResponses
+        : (applicationResponses?.responses || []);
+
     const normalizedUserType = userType?.toUpperCase();
     const isCandidate = normalizedUserType === 'CANDIDATO';
     const isCompany = normalizedUserType === 'EMPRESA';
     const isGuest = !normalizedUserType;
-    const workType = tipoLocalTrabalhoMap[vacancy.tipo_local_trabalho] || tipoLocalTrabalhoMap.Presencial;
+    const workType = tipoLocalTrabalhoMap[vacancy.tipo_local_trabalho] || { label: t("Presencial"), icon: Building2 };
     const WorkTypeIcon = workType.icon;
 
     let inclusivity = null;
@@ -360,27 +370,27 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
 
             setModal({
                 isOpen: true,
-                title: 'Confirmar Candidatura',
+                title: t("modal_apply_title"),
                 description: (
                     <div className="space-y-4">
-                        <p>Você está prestes a se candidatar para a vaga de <strong>{vacancy.cargo}</strong>.</p>
+                        <p>{t("modal_apply_desc_prefix")} <strong>{vacancy.cargo}</strong>.</p>
                         <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 text-sm text-blue-800">
                             <h4 className="font-bold mb-2 flex items-center gap-2">
                                 <AlertCircle size={16} />
-                                Regras da Avaliação:
+                                {t("modal_apply_rules_title")}
                             </h4>
                             <ul className="list-disc list-inside space-y-1">
-                                <li>Uma nova guia será aberta para o teste.</li>
-                                <li><strong>Não saia da guia</strong> durante o teste.</li>
-                                <li>O uso de <strong>Control+C e Control+V</strong> está desabilitado.</li>
-                                <li>O seu tempo de resposta será contabilizado.</li>
-                                <li>Se você sair da tela, as perguntas serão alteradas.</li>
+                                <li>{t("modal_apply_rule_1")}</li>
+                                <li><strong>{t("modal_apply_rule_2")}</strong></li>
+                                <li>{t("modal_apply_rule_3")}</li>
+                                <li>{t("modal_apply_rule_4")}</li>
+                                <li>{t("modal_apply_rule_5")}</li>
                             </ul>
                         </div>
-                        <p className="text-sm text-gray-500">Deseja iniciar a entrevista agora?</p>
+                        <p className="text-sm text-gray-500">{t("modal_apply_start_now")}</p>
                     </div>
                 ),
-                confirmText: 'Iniciar Entrevista',
+                confirmText: t("modal_apply_confirm_btn"),
                 variant: 'info',
                 onConfirm: () => {
                     const assessmentUrl = `/candidate/vacancies/${vacancy.uuid}/apply`;
@@ -401,13 +411,16 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
             {/* Header simplificado */}
             <div className="bg-white border-b border-gray-200">
                 <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                    <button
-                        onClick={() => router.back()}
-                        className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors mb-6 cursor-pointer"
-                    >
-                        <ArrowLeft size={18} />
-                        Voltar
-                    </button>
+                    <div className="flex justify-between items-center mb-6">
+                        <button
+                            onClick={() => router.back()}
+                            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                        >
+                            <ArrowLeft size={18} />
+                            {t("vacancy_back")}
+                        </button>
+                        <LanguageSwitcher />
+                    </div>
 
                     <div className="flex items-start gap-4 mb-6">
                         {/* Logo da empresa */}
@@ -481,7 +494,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                 {isOwner && (
                                     <div className="flex items-center gap-1.5">
                                         <Users size={16} className="text-gray-400" />
-                                        <span>{applicationCount} candidatos</span>
+                                        <span>{applicationCount} {t("candidatos")}</span>
                                     </div>
                                 )}
                             </div>
@@ -499,7 +512,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
 
                         {/* Descrição da vaga */}
                         <div className="bg-white rounded-lg border border-gray-200 p-6">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">Descrição da Vaga</h2>
+                            <h2 className="text-lg font-semibold text-gray-900 mb-4">{t("vacancy_description_title")}</h2>
                             <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
                                 {vacancy.descricao}
                             </p>
@@ -508,7 +521,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                         {/* Benefícios */}
                         {vacancy.beneficio && (
                             <div className="bg-white rounded-lg border border-gray-200 p-6">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-4">Benefícios</h2>
+                                <h2 className="text-lg font-semibold text-gray-900 mb-4">{t("vacancy_benefits_title")}</h2>
                                 <div className="space-y-2">
                                     {vacancy.beneficio.split('\n').filter(b => b.trim()).map((benefit, index) => (
                                         <div key={index} className="flex items-start gap-2">
@@ -523,14 +536,14 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                         {/* Áreas de Interesse (Hard Skills) */}
                         {vacancy.vaga_area && vacancy.vaga_area.length > 0 && (
                             <div className="bg-white rounded-lg border border-gray-200 p-6">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-4">Áreas de Atuação</h2>
+                                <h2 className="text-lg font-semibold text-gray-900 mb-4">{t("vacancy_areas_title")}</h2>
                                 <div className="flex flex-wrap gap-2">
                                     {vacancy.vaga_area.map((area) => (
                                         <span
                                             key={area.area_interesse.id}
                                             className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md text-sm font-medium border border-gray-200"
                                         >
-                                            {area.area_interesse.nome}
+                                            {t(area.area_interesse.nome || '')}
                                         </span>
                                     ))}
                                 </div>
@@ -543,12 +556,12 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                         {((vacancy.vaga_arquivo && vacancy.vaga_arquivo.length > 0) ||
                             (vacancy.vaga_link && vacancy.vaga_link.length > 0)) && (
                                 <div className="bg-white rounded-lg border border-gray-200 p-6">
-                                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Materiais e Links</h2>
+                                    <h2 className="text-lg font-semibold text-gray-900 mb-4">{t("vacancy_materials_title")}</h2>
 
                                     {/* Arquivos */}
                                     {vacancy.vaga_arquivo && vacancy.vaga_arquivo.length > 0 && (
                                         <div className="mb-4">
-                                            <h3 className="text-sm font-medium text-gray-500 mb-3">Arquivos</h3>
+                                            <h3 className="text-sm font-medium text-gray-500 mb-3">{t("vacancy_files")}</h3>
                                             <div className="space-y-2">
                                                 {vacancy.vaga_arquivo.map((file) => (
                                                     <button
@@ -575,7 +588,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                     {/* Links */}
                                     {vacancy.vaga_link && vacancy.vaga_link.length > 0 && (
                                         <div>
-                                            <h3 className="text-sm font-medium text-gray-500 mb-3">Links</h3>
+                                            <h3 className="text-sm font-medium text-gray-500 mb-3">{t("vacancy_links")}</h3>
                                             <div className="space-y-2">
                                                 {vacancy.vaga_link.map((link) => (
                                                     <a
@@ -604,7 +617,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                         {/* Sobre a empresa */}
                         {company && (
                             <div className="bg-white rounded-lg border border-gray-200 p-5">
-                                <h3 className="font-semibold text-gray-900 mb-3">Sobre a Empresa</h3>
+                                <h3 className="font-semibold text-gray-900 mb-3">{t("vacancy_about_company")}</h3>
                                 <p className="text-gray-700 text-sm leading-relaxed mb-3">
                                     {company.descricao}
                                 </p>
@@ -619,22 +632,22 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                     className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors"
                                 >
                                     <Building2 size={16} />
-                                    Ver Perfil Público
+                                    {t("vacancy_view_public_profile")}
                                 </Link>
                             </div>
                         )}
                         {/* Informações da vaga */}
                         <div ref={stickyCardRef} className="bg-white rounded-lg border border-gray-200 p-5">
-                            <h3 className="font-semibold text-gray-900 mb-4">Informações</h3>
+                            <h3 className="font-semibold text-gray-900 mb-4">{t("vacancy_information")}</h3>
 
                             <div className="space-y-4 text-sm">
                                 {/* Publicação */}
                                 <div className="flex items-start gap-3">
                                     <Calendar size={16} className="text-gray-400 mt-0.5" />
                                     <div>
-                                        <p className="text-gray-500 text-xs mb-1">Publicada em</p>
+                                        <p className="text-gray-500 text-xs mb-1">{t("vacancy_published_at")}</p>
                                         <p className="text-gray-900 font-medium">
-                                            {new Date(vacancy.created_at).toLocaleDateString('pt-BR', {
+                                            {new Date(vacancy.created_at).toLocaleDateString(i18n.language === 'pt' ? 'pt-BR' : i18n.language === 'en' ? 'en-US' : 'es-ES', {
                                                 day: '2-digit',
                                                 month: 'long',
                                                 year: 'numeric'
@@ -648,7 +661,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                     <div className="flex items-start gap-3 pt-4 border-t border-gray-100">
                                         <Briefcase size={16} className="text-gray-400 mt-0.5" />
                                         <div>
-                                            <p className="text-gray-500 text-xs mb-1">Vínculo</p>
+                                            <p className="text-gray-500 text-xs mb-1">{t("vacancy_vinculo")}</p>
                                             <p className="text-gray-900 font-medium">
                                                 {vinculoEmpregaticioMap[vacancy.vinculo_empregaticio] || vacancy.vinculo_empregaticio}
                                             </p>
@@ -660,7 +673,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                 <div className="flex items-start gap-3 pt-4 border-t border-gray-100">
                                     <Clock size={16} className="text-gray-400 mt-0.5" />
                                     <div>
-                                        <p className="text-gray-500 text-xs mb-1">Escala</p>
+                                        <p className="text-gray-500 text-xs mb-1">{t("vacancy_scale")}</p>
                                         <p className="text-gray-900 font-medium">
                                             {vacancy.escala_trabalho}
                                         </p>
@@ -672,9 +685,9 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                     <div className="flex items-start gap-3 pt-4 border-t border-gray-100">
                                         <Globe size={16} className="text-gray-400 mt-0.5" />
                                         <div>
-                                            <p className="text-gray-500 text-xs mb-1">Distribuição</p>
+                                            <p className="text-gray-500 text-xs mb-1">{t("vacancy_work_type")}</p>
                                             <p className="text-gray-900 font-medium text-xs">
-                                                {vacancy.dias_presenciais || 0}x presencial • {vacancy.dias_home_office || 0}x remoto
+                                                {vacancy.dias_presenciais || 0}x {t("vacancy_presential")} • {vacancy.dias_home_office || 0}x {t("vacancy_remote")}
                                             </p>
                                         </div>
                                     </div>
@@ -689,15 +702,15 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                             <CheckCircle2 size={24} />
                                         </div>
                                         <div>
-                                            <p className="font-bold text-sm uppercase tracking-wide">Candidatura Realizada</p>
-                                            <p className="text-[11px] opacity-80 mt-0.5">Sua avaliação foi enviada e está em análise.</p>
+                                            <p className="font-bold text-sm uppercase tracking-wide">{t("vacancy_applied_title")}</p>
+                                            <p className="text-[11px] opacity-80 mt-0.5">{t("vacancy_applied_desc")}</p>
                                         </div>
                                         <button
                                             onClick={() => setShowResponsesModal(true)}
                                             className="mt-3 w-full py-2 bg-white text-emerald-700 text-xs font-bold rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
                                         >
                                             <Eye size={14} />
-                                            Visualizar Minhas Respostas
+                                            {t("vacancy_view_responses")}
                                         </button>
                                     </div>
                                 ) : (
@@ -707,7 +720,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                         className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                                     >
                                         {isCheckingApplication && <Loader2 size={18} className="animate-spin" />}
-                                        Candidatar-se
+                                        {t("vacancy_apply_btn")}
                                     </button>
                                 )
                             )}
@@ -718,7 +731,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                 {/* Seção de Gerenciamento para o Dono da Vaga */}
                 {isOwner && (
                     <div className="mt-10 pt-8 border-t border-gray-100">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4">Gerenciamento de vagas</h2>
+                        <h2 className="text-lg font-semibold text-gray-900 mb-4">{t("management_title")}</h2>
                         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
                             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                                 {/* Lado Esquerdo */}
@@ -729,7 +742,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                         className="inline-flex items-center gap-2 px-4 py-2.5 border border-blue-600 text-blue-600 font-medium rounded-lg hover:bg-blue-50 transition-colors cursor-pointer disabled:opacity-50 text-sm"
                                     >
                                         <BarChart3 size={18} />
-                                        Ver ranqueamento
+                                        {t("management_ranking")}
                                     </button>
                                 </div>
 
@@ -741,7 +754,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                         className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors cursor-pointer disabled:opacity-50 text-sm"
                                     >
                                         <Edit size={18} />
-                                        Editar vaga
+                                        {t("management_edit")}
                                     </button>
 
                                     {!isActive ? (
@@ -750,7 +763,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                             className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-600 font-medium rounded-lg hover:bg-gray-50 transition-colors cursor-pointer text-sm"
                                         >
                                             <Unlock size={18} />
-                                            Abrir vaga
+                                            {t("management_open")}
                                         </button>
                                     ) : (
                                         <button
@@ -758,7 +771,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                             className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-600 font-medium rounded-lg hover:bg-gray-50 transition-colors cursor-pointer text-sm"
                                         >
                                             <Ban size={18} />
-                                            Fechar vaga
+                                            {t("management_close")}
                                         </button>
                                     )}
 
@@ -767,7 +780,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                         className="inline-flex items-center gap-2 px-4 py-2.5 border border-red-500 text-red-500 font-medium rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-sm"
                                     >
                                         <Trash2 size={18} />
-                                        Excluir vaga
+                                        {t("management_delete")}
                                     </button>
                                 </div>
                             </div>
@@ -839,8 +852,8 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                         <div className="bg-white rounded-lg border border-gray-200 p-6 lg:p-8 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4">
                             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                                 <div>
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-1">Interessado nesta vaga?</h3>
-                                    <p className="text-sm text-gray-600">Candidate-se agora e faça parte do time {company?.nome_empresa}!</p>
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-1">{t('vacancy_interested_title')}</h3>
+                                    <p className="text-sm text-gray-600">{t('vacancy_interested_desc', { company: company?.nome_empresa })}</p>
                                 </div>
                                 <button
                                     onClick={handleApply}
@@ -848,7 +861,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                     className="w-full sm:w-auto px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors whitespace-nowrap cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                                 >
                                     {isCheckingApplication && <Loader2 size={18} className="animate-spin" />}
-                                    Candidatar-se à Vaga
+                                    {t('vacancy_apply_action')}
                                 </button>
                             </div>
                         </div>
@@ -863,12 +876,12 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                         {/* Header */}
                         <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-10">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
-                                    <FileText size={20} />
+                                <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+                                    <CheckCircle2 size={20} />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-bold text-slate-900 leading-tight">Suas Respostas</h3>
-                                    <p className="text-xs text-slate-500 font-medium uppercase tracking-wider mt-0.5">{vacancy.cargo}</p>
+                                    <h3 className="text-xl font-bold text-slate-900 leading-tight">{t('responses_modal_title')}</h3>
+                                    <p className="text-xs text-slate-500 font-medium mt-0.5">{vacancy.cargo}</p>
                                 </div>
                             </div>
                             <button
@@ -881,15 +894,15 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
 
                         {/* Content */}
                         <div className="p-6 overflow-y-auto space-y-8 flex-1 bg-slate-50/30 no-scrollbar">
-                            {applicationResponses?.responses?.length > 0 ? (
-                                applicationResponses.responses.map((resp: any, idx: number) => (
+                            {responsesList.length > 0 ? (
+                                responsesList.map((resp: any, idx: number) => (
                                     <div key={idx} className="group">
                                         <div className="flex items-start gap-3 mb-3">
                                             <span className="flex-shrink-0 w-6 h-6 rounded-md bg-blue-100 text-blue-600 font-bold flex items-center justify-center text-xs">
                                                 {idx + 1}
                                             </span>
                                             <p className="text-sm font-bold text-slate-800 leading-snug pt-0.5">
-                                                {resp.question}
+                                                {t(resp.question)}
                                             </p>
                                         </div>
                                         <div className="ml-9 p-4 bg-white rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
@@ -903,7 +916,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                             ) : (
                                 <div className="text-center py-12">
                                     <AlertCircle size={40} className="mx-auto text-slate-300 mb-4" />
-                                    <p className="text-slate-500 font-medium">Nenhuma resposta encontrada.</p>
+                                    <p className="text-slate-500 font-medium">{t('responses_modal_no_data')}</p>
                                 </div>
                             )}
                         </div>
@@ -914,7 +927,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                 onClick={() => setShowResponsesModal(false)}
                                 className="px-8 py-2.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-all active:scale-95 cursor-pointer shadow-lg shadow-slate-200"
                             >
-                                Fechar Visualização
+                                {t('responses_modal_close')}
                             </button>
                         </div>
                     </div>

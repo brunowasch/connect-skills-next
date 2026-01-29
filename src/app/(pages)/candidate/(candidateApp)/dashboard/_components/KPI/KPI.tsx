@@ -1,12 +1,16 @@
+"use client";
+
 import Link from 'next/link';
 import { Search, Send, LayoutGrid, PencilLine } from 'lucide-react';
 import { KPIProps } from '@/src/app/(pages)/candidate/(candidateApp)/types/KPIProps';
+import { useTranslation } from "react-i18next";
 
 export function KPI({
     recommendedVacanciesCount,
     appliedVacanciesCount,
     areas
 }: KPIProps) {
+    const { t } = useTranslation();
 
     const limitAreas = 8;
     const hasAreas = areas && areas.length > 0;
@@ -18,7 +22,7 @@ export function KPI({
                     <Search size={24} className="sm:w-7 sm:h-7" />
                 </div>
                 <div className="text-xl sm:text-2xl font-bold text-slate-800">{recommendedVacanciesCount}</div>
-                <div className="text-[11px] sm:text-sm text-slate-500 font-medium uppercase tracking-wide">Vagas encontradas</div>
+                <div className="text-[11px] sm:text-sm text-slate-500 font-medium uppercase tracking-wide">{t("dashboard_kpi_matching")}</div>
             </div>
 
             {/* KPI: Vagas Aplicadas */}
@@ -27,7 +31,7 @@ export function KPI({
                     <Send size={24} className="sm:w-7 sm:h-7" />
                 </div>
                 <div className="text-xl sm:text-2xl font-bold text-slate-800">{appliedVacanciesCount}</div>
-                <div className="text-[11px] sm:text-sm text-slate-500 font-medium uppercase tracking-wide">Vagas aplicadas</div>
+                <div className="text-[11px] sm:text-sm text-slate-500 font-medium uppercase tracking-wide">{t("dashboard_kpi_applied")}</div>
             </div>
 
             {/* Card: Áreas de Interesse */}
@@ -37,9 +41,9 @@ export function KPI({
                 <div className="flex justify-between items-center mb-3 sm:mb-4 w-full">
                     <div className="flex items-center gap-1.5 sm:gap-2 font-semibold text-slate-700 text-sm sm:text-base">
                         <LayoutGrid size={16} className="text-slate-400 sm:w-[18px] sm:h-[18px]" />
-                        Áreas de interesse
+                        {t("dashboard_kpi_areas")}
                     </div>
-                    <Link href="/candidate/profile" className="text-slate-400 hover:text-blue-600 transition-colors" title="Editar áreas">
+                    <Link href="/candidate/profile" className="text-slate-400 hover:text-blue-600 transition-colors" title={t("edit_profile")}>
                         <PencilLine size={16} className="sm:w-[18px] sm:h-[18px]" />
                     </Link>
                 </div>
@@ -48,12 +52,12 @@ export function KPI({
                 <div className="flex-grow flex flex-col justify-center items-center">
                     {!hasAreas ? (
                         <div className="bg-slate-50 p-3 sm:p-4 rounded-xl text-center w-full border border-dashed border-slate-200">
-                            <p className="text-xs sm:text-sm text-slate-500 mb-2 sm:mb-3">Nenhuma área selecionada</p>
+                            <p className="text-xs sm:text-sm text-slate-500 mb-2 sm:mb-3">{t("dashboard_kpi_no_areas")}</p>
                             <Link
                                 href="/candidate/profile"
                                 className="inline-block bg-blue-600 text-white text-[11px] sm:text-xs font-bold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full hover:bg-blue-700 transition-colors"
                             >
-                                Configurar
+                                {t("dashboard_kpi_setup")}
                             </Link>
                         </div>
                     ) : (
@@ -63,7 +67,7 @@ export function KPI({
                                     key={index}
                                     className="bg-slate-100 text-slate-600 text-[10px] sm:text-[11px] font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full uppercase tracking-tight"
                                 >
-                                    {area}
+                                    {t(area)}
                                 </span>
                             ))}
 

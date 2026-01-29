@@ -1,18 +1,21 @@
 "use client";
 
 import { FaWhatsapp, FaEnvelope } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
 
 export function Contact() {
+  const { t } = useTranslation();
+
   return (
     <section id="contact" className="py-16">
       <div className="mx-auto max-w-6xl px-4">
         {/* Header */}
         <div className="mb-10 text-center">
           <h2 className="mb-2 text-3xl font-semibold">
-            Entre em contato
+            {t("contact_get_in_touch")}
           </h2>
           <p className="text-gray-500">
-            Canais oficiais de atendimento e suporte.
+            {t("contact_official_channels")}
           </p>
         </div>
 
@@ -22,9 +25,9 @@ export function Contact() {
           <div className="flex h-full flex-col items-center rounded-2xl bg-white p-6 text-center shadow-md">
             <FaWhatsapp className="mb-3 text-4xl text-green-500" />
 
-            <h6 className="mb-1 font-semibold">WhatsApp</h6>
+            <h6 className="mb-1 font-semibold">{t("whatsapp")}</h6>
             <p className="mb-4 text-sm text-gray-500">
-              Tire dúvidas ou fale com o suporte.
+              {t("contact_whatsapp_desc")}
             </p>
 
             <a
@@ -41,7 +44,7 @@ export function Contact() {
               className="inline-flex items-center gap-2 rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-600"
             >
               <FaWhatsapp />
-              Abrir WhatsApp
+              {t("contact_whatsapp_btn")}
             </a>
           </div>
 
@@ -51,7 +54,7 @@ export function Contact() {
 
             <h6 className="mb-1 font-semibold">E-mail</h6>
             <p className="mb-4 text-sm text-gray-500">
-              Envie sugestões ou solicitações.
+              {t("contact_email_desc")}
             </p>
 
             <a
@@ -66,7 +69,7 @@ export function Contact() {
               className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
             >
               <FaEnvelope />
-              Enviar e-mail
+              {t("contact_email_btn")}
             </a>
           </div>
         </div>

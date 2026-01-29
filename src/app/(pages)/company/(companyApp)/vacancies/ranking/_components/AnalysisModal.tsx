@@ -2,6 +2,7 @@
 
 import { X, Brain, Loader2, TrendingUp, Award } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 interface AnalysisModalProps {
     isOpen: boolean;
@@ -22,6 +23,7 @@ interface BreakdownData {
 }
 
 export function AnalysisModal({ isOpen, onClose, candidateName, breakdown, score }: AnalysisModalProps) {
+    const { t } = useTranslation();
     const [analysisData, setAnalysisData] = useState<BreakdownData | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -54,10 +56,10 @@ export function AnalysisModal({ isOpen, onClose, candidateName, breakdown, score
     if (!isOpen) return null;
 
     const discScores = [
-        { label: 'Dominância (D)', value: analysisData?.d_score || 0, color: 'bg-purple-500', bgLight: 'bg-purple-50', textColor: 'text-purple-700' },
-        { label: 'Influência (I)', value: analysisData?.i_score || 0, color: 'bg-blue-500', bgLight: 'bg-blue-50', textColor: 'text-blue-700' },
-        { label: 'Estabilidade (S)', value: analysisData?.s_score || 0, color: 'bg-green-500', bgLight: 'bg-green-50', textColor: 'text-green-700' },
-        { label: 'Conformidade (C)', value: analysisData?.c_score || 0, color: 'bg-orange-500', bgLight: 'bg-orange-50', textColor: 'text-orange-700' },
+        { label: t('disc_dominance'), value: analysisData?.d_score || 0, color: 'bg-purple-500', bgLight: 'bg-purple-50', textColor: 'text-purple-700' },
+        { label: t('disc_influence'), value: analysisData?.i_score || 0, color: 'bg-blue-500', bgLight: 'bg-blue-50', textColor: 'text-blue-700' },
+        { label: t('disc_stability'), value: analysisData?.s_score || 0, color: 'bg-green-500', bgLight: 'bg-green-50', textColor: 'text-green-700' },
+        { label: t('disc_compliance'), value: analysisData?.c_score || 0, color: 'bg-orange-500', bgLight: 'bg-orange-50', textColor: 'text-orange-700' },
     ];
 
     return (
@@ -70,7 +72,7 @@ export function AnalysisModal({ isOpen, onClose, candidateName, breakdown, score
                             <Brain size={24} />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-bold text-slate-900">Análise da IA</h2>
+                            <h2 className="text-2xl font-bold text-slate-900">{t('analysis_modal_title')}</h2>
                             <p className="text-sm text-gray-600 mt-1">{candidateName}</p>
                         </div>
                     </div>
@@ -94,7 +96,7 @@ export function AnalysisModal({ isOpen, onClose, candidateName, breakdown, score
                             <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-100">
                                 <div className="flex items-center gap-3 mb-4">
                                     <Award className="text-blue-600" size={24} />
-                                    <h3 className="text-lg font-bold text-slate-900">Score Geral</h3>
+                                    <h3 className="text-lg font-bold text-slate-900">{t('analysis_modal_score_title')}</h3>
                                 </div>
                                 <div className="flex items-center gap-4">
                                     <div className="text-5xl font-bold text-blue-600">{score}%</div>
@@ -113,7 +115,7 @@ export function AnalysisModal({ isOpen, onClose, candidateName, breakdown, score
                             <div>
                                 <div className="flex items-center gap-2 mb-4">
                                     <TrendingUp className="text-purple-600" size={20} />
-                                    <h3 className="text-lg font-bold text-slate-900">Perfil DISC</h3>
+                                    <h3 className="text-lg font-bold text-slate-900">{t('analysis_modal_disc_title')}</h3>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {discScores.map((disc) => (
@@ -136,7 +138,7 @@ export function AnalysisModal({ isOpen, onClose, candidateName, breakdown, score
                             {/* Matched Skills */}
                             {analysisData?.matchedSkills && analysisData.matchedSkills.length > 0 && (
                                 <div>
-                                    <h3 className="text-lg font-bold text-slate-900 mb-3">Habilidades Encontradas</h3>
+                                    <h3 className="text-lg font-bold text-slate-900 mb-3">{t('analysis_modal_skills_title')}</h3>
                                     <div className="flex flex-wrap gap-2">
                                         {analysisData.matchedSkills.map((skill, index) => (
                                             <span
@@ -156,7 +158,7 @@ export function AnalysisModal({ isOpen, onClose, candidateName, breakdown, score
                                     <div className="flex items-start gap-3">
                                         <Brain className="text-indigo-600 flex-shrink-0 mt-1" size={24} />
                                         <div>
-                                            <h3 className="text-lg font-bold text-slate-900 mb-2">Comentário da IA</h3>
+                                            <h3 className="text-lg font-bold text-slate-900 mb-2">{t('analysis_modal_comment_title')}</h3>
                                             <p className="text-gray-700 leading-relaxed italic">"{analysisData.reason}"</p>
                                         </div>
                                     </div>
@@ -169,7 +171,7 @@ export function AnalysisModal({ isOpen, onClose, candidateName, breakdown, score
                                     <div className="flex items-start gap-3">
                                         <Brain className="text-emerald-600 flex-shrink-0 mt-1" size={24} />
                                         <div>
-                                            <h3 className="text-lg font-bold text-slate-900 mb-2">Sugestões de Melhoria</h3>
+                                            <h3 className="text-lg font-bold text-slate-900 mb-2">{t('analysis_modal_suggestions_title')}</h3>
                                             {Array.isArray(analysisData.suggestions) ? (
                                                 <ul className="space-y-2">
                                                     {analysisData.suggestions.map((s, i) => (
@@ -189,7 +191,7 @@ export function AnalysisModal({ isOpen, onClose, candidateName, breakdown, score
 
                             {!analysisData && (
                                 <div className="text-center py-12">
-                                    <p className="text-gray-500">Análise não disponível para este candidato.</p>
+                                    <p className="text-gray-500">{t('analysis_modal_not_available')}</p>
                                 </div>
                             )}
                         </div>
@@ -202,7 +204,7 @@ export function AnalysisModal({ isOpen, onClose, candidateName, breakdown, score
                         onClick={onClose}
                         className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors cursor-pointer"
                     >
-                        Fechar
+                        {t('analysis_modal_close')}
                     </button>
                 </div>
             </div>

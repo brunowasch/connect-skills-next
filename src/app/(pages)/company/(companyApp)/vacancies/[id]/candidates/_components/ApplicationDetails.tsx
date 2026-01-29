@@ -12,12 +12,14 @@ import {
     TrendingUp,
     Lightbulb
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface ApplicationDetailsProps {
     application: any;
 }
 
 export function ApplicationDetails({ application }: ApplicationDetailsProps) {
+    const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
 
     if (!application || !application.resposta) return null;
@@ -38,10 +40,10 @@ export function ApplicationDetails({ application }: ApplicationDetailsProps) {
     const seconds = duration % 60;
 
     const discScores = [
-        { label: 'Dominância (D)', score: breakdownData.d_score || 0, color: 'bg-red-500' },
-        { label: 'Influência (I)', score: breakdownData.i_score || 0, color: 'bg-yellow-400' },
-        { label: 'Estabilidade (S)', score: breakdownData.s_score || 0, color: 'bg-green-500' },
-        { label: 'Conformidade (C)', score: breakdownData.c_score || 0, color: 'bg-blue-500' },
+        { label: t('disc_dominance'), score: breakdownData.d_score || 0, color: 'bg-red-500' },
+        { label: t('disc_influence'), score: breakdownData.i_score || 0, color: 'bg-yellow-400' },
+        { label: t('disc_stability'), score: breakdownData.s_score || 0, color: 'bg-green-500' },
+        { label: t('disc_compliance'), score: breakdownData.c_score || 0, color: 'bg-blue-500' },
     ];
 
     return (
@@ -51,7 +53,7 @@ export function ApplicationDetails({ application }: ApplicationDetailsProps) {
                 className="flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
             >
                 {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                {isOpen ? "Ocultar Detalhes da Entrevista" : "Visualizar Detalhes da Entrevista"}
+                {isOpen ? t('application_details_hide') : t('application_details_show')}
             </button>
 
             {isOpen && (
@@ -62,7 +64,7 @@ export function ApplicationDetails({ application }: ApplicationDetailsProps) {
                         <div className="md:col-span-2 bg-slate-50 rounded-2xl p-6 border border-slate-100">
                             <h4 className="text-sm font-bold text-slate-800 mb-6 flex items-center gap-2 uppercase tracking-wider">
                                 <TrendingUp size={18} className="text-blue-500" />
-                                Perfil DISC (IA)
+                                {t('application_details_disc_profile')}
                             </h4>
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                                 {discScores.map((item) => (
@@ -99,17 +101,17 @@ export function ApplicationDetails({ application }: ApplicationDetailsProps) {
                         <div className="bg-slate-900 rounded-2xl p-6 text-white overflow-hidden relative">
                             <h4 className="text-sm font-bold mb-4 flex items-center gap-2 uppercase tracking-wider text-slate-400">
                                 <Clock size={18} />
-                                Métricas
+                                {t('application_details_metrics')}
                             </h4>
                             <div className="space-y-4 relative z-10">
                                 <div>
-                                    <p className="text-xs text-slate-400 mb-1">Tempo Total</p>
+                                    <p className="text-xs text-slate-400 mb-1">{t('application_details_total_time')}</p>
                                     <p className="text-2xl font-bold">{minutes}m {seconds}s</p>
                                 </div>
                                 <div>
-                                    <p className="text-xs text-slate-400 mb-1">Saídas da Tela</p>
+                                    <p className="text-xs text-slate-400 mb-1">{t('application_details_screen_exits')}</p>
                                     <p className={`text-2xl font-bold ${penalties > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
-                                        {penalties} {penalties === 1 ? 'vez' : 'vezes'}
+                                        {penalties} {penalties === 1 ? t('application_details_time') : t('application_details_times')}
                                     </p>
                                 </div>
                             </div>
@@ -122,16 +124,16 @@ export function ApplicationDetails({ application }: ApplicationDetailsProps) {
                         <div className="bg-blue-50 rounded-2xl p-6 border border-blue-100">
                             <h4 className="text-sm font-bold text-blue-800 mb-3 flex items-center gap-2 uppercase tracking-wider">
                                 <BrainCircuit size={18} />
-                                Análise Comportamental
+                                {t('application_details_behavioral_analysis')}
                             </h4>
                             <p className="text-sm text-blue-900 leading-relaxed italic">
-                                "{breakdownData.reason || "Nenhuma análise detalhada disponível."}"
+                                "{breakdownData.reason || t('application_details_no_analysis')}"
                             </p>
 
                             {/* Matched Skills */}
                             {breakdownData.matchedSkills && breakdownData.matchedSkills.length > 0 && (
                                 <div className="mt-4">
-                                    <p className="text-[10px] font-bold text-blue-700 uppercase mb-2">Habilidades Identificadas</p>
+                                    <p className="text-[10px] font-bold text-blue-700 uppercase mb-2">{t('application_details_skills_identified')}</p>
                                     <div className="flex flex-wrap gap-2">
                                         {breakdownData.matchedSkills.map((skill: string, i: number) => (
                                             <span key={i} className="px-2 py-1 bg-white/50 text-blue-700 text-[10px] font-bold rounded-lg border border-blue-200">
@@ -145,7 +147,7 @@ export function ApplicationDetails({ application }: ApplicationDetailsProps) {
                         <div className="bg-emerald-50 rounded-2xl p-6 border border-emerald-100">
                             <h4 className="text-sm font-bold text-emerald-800 mb-3 flex items-center gap-2 uppercase tracking-wider">
                                 <Lightbulb size={18} />
-                                Sugestões de Melhoria
+                                {t('application_details_improvement_suggestions')}
                             </h4>
                             {Array.isArray(breakdownData.suggestions) ? (
                                 <ul className="space-y-2">
@@ -158,7 +160,7 @@ export function ApplicationDetails({ application }: ApplicationDetailsProps) {
                                 </ul>
                             ) : (
                                 <p className="text-sm text-emerald-900 leading-relaxed">
-                                    {breakdownData.suggestions || "Nenhuma sugestão disponível no momento."}
+                                    {breakdownData.suggestions || t('application_details_no_suggestions')}
                                 </p>
                             )}
                         </div>
@@ -168,7 +170,7 @@ export function ApplicationDetails({ application }: ApplicationDetailsProps) {
                     <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
                         <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center gap-2">
                             <MessageSquareText size={18} className="text-slate-500" />
-                            <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Respostas da Entrevista</h4>
+                            <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider">{t('application_details_interview_answers')}</h4>
                         </div>
                         <div className="divide-y divide-slate-100">
                             {(() => {
@@ -177,7 +179,7 @@ export function ApplicationDetails({ application }: ApplicationDetailsProps) {
                                 if (responses.length === 0) {
                                     return (
                                         <div className="p-12 text-center text-gray-500 italic">
-                                            Nenhuma resposta detalhada disponível.
+                                            {t('application_details_no_detailed_answers')}
                                         </div>
                                     );
                                 }
@@ -188,10 +190,10 @@ export function ApplicationDetails({ application }: ApplicationDetailsProps) {
                                             <span className="shrink-0 w-6 h-6 rounded bg-slate-200 text-slate-600 text-[10px] font-bold flex items-center justify-center">
                                                 {idx + 1}
                                             </span>
-                                            <p className="text-sm font-bold text-slate-800 leading-snug">{resp.question || "Pergunta sem título"}</p>
+                                            <p className="text-sm font-bold text-slate-800 leading-snug">{resp.question || t('application_details_untitled_question')}</p>
                                         </div>
                                         <div className="ml-10 bg-white p-4 rounded-xl border border-slate-100 text-sm text-slate-600 leading-relaxed shadow-sm whitespace-pre-wrap">
-                                            {resp.answer || "Sem resposta."}
+                                            {resp.answer || t('application_details_no_answer')}
                                         </div>
                                         <div className="ml-10 mt-3 flex gap-2">
                                             {resp.category && (

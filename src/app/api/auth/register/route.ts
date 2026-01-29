@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     // 1. Validação básica de campos obrigatórios
     if (!email || !senha || !tipo) {
       return NextResponse.json(
-        { error: "Dados obrigatórios ausentes." },
+        { error: "register_error_missing_fields" },
         { status: 400 }
       );
     }
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
 
     if (existingUser) {
       return NextResponse.json(
-        { error: "Usuário já cadastrado." },
+        { error: "register_error_user_exists" },
         { status: 409 }
       );
     }
@@ -99,7 +99,7 @@ export async function POST(req: Request) {
   } catch (err) {
     console.error("Erro no POST /api/auth/register:", err);
     return NextResponse.json(
-      { error: "Erro interno do servidor." },
+      { error: "register_error_internal" },
       { status: 500 }
     );
   }

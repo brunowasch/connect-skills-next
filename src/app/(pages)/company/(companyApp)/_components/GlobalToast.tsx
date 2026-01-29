@@ -4,7 +4,10 @@ import React, { useEffect, useState } from 'react';
 import { Check, X, AlertTriangle } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
+import { useTranslation } from 'react-i18next';
+
 export function GlobalToast() {
+    const { t } = useTranslation();
     const pathname = usePathname();
     const [visible, setVisible] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -49,7 +52,7 @@ export function GlobalToast() {
 
                 <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-gray-900 leading-none mb-1">
-                        {message.type === 'success' ? 'Sucesso!' : 'Atenção'}
+                        {message.type === 'success' ? t('success_title') : t('attention_title')}
                     </p>
                     <p className="text-xs text-gray-600 truncate">
                         {message.text}
@@ -58,7 +61,7 @@ export function GlobalToast() {
 
                 <button
                     onClick={() => setVisible(false)}
-                    className="p-1 hover:bg-gray-100 rounded-full transition-colors text-gray-400"
+                    className="p-1 hover:bg-gray-100 rounded-full transition-colors text-gray-400 cursor-pointer"
                 >
                     <X size={18} />
                 </button>

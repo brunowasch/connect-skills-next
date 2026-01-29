@@ -1,8 +1,12 @@
+"use client";
+
 import Link from 'next/link';
 import { Clock, ChevronRight } from 'lucide-react';
 import { ApplicationHistoryProps } from '@/src/app/(pages)/candidate/(candidateApp)/types/ApplicationHistory';
+import { useTranslation } from "react-i18next";
 
 export function ApplicationHistory({ historicoAplicacoes }: ApplicationHistoryProps) {
+    const { t, i18n } = useTranslation();
 
     {/* Helper para formatar o status (será usado futuramente)
     const formatStatus = (status: string) => {
@@ -20,14 +24,14 @@ export function ApplicationHistory({ historicoAplicacoes }: ApplicationHistoryPr
             <div className="flex justify-between items-center mb-3 sm:mb-4">
                 <h2 className="flex items-center gap-1.5 sm:gap-2 font-bold text-slate-800 text-base sm:text-lg">
                     <Clock className="text-slate-400" size={18} />
-                    <span className="hidden xs:inline">Histórico</span>
-                    <span className="xs:hidden">Aplicações</span>
+                    <span className="hidden xs:inline">{t("dashboard_history_title")}</span>
+                    <span className="xs:hidden">{t("dashboard_kpi_applied")}</span>
                 </h2>
                 <Link
                     href="/candidate/vacancies"
                     className="text-[11px] sm:text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors whitespace-nowrap"
                 >
-                    Ver <span className="hidden sm:inline">completo</span><span className="sm:hidden">tudo</span>
+                    {t("view_all")}
                 </Link>
             </div>
 
@@ -35,7 +39,7 @@ export function ApplicationHistory({ historicoAplicacoes }: ApplicationHistoryPr
                 {historicoAplicacoes.length === 0 ? (
                     <div className="bg-slate-50 border border-dashed border-slate-200 p-4 sm:p-6 rounded-xl sm:rounded-2xl text-center">
                         <p className="text-xs sm:text-sm text-slate-500">
-                            Você ainda não se candidatou a nenhuma vaga.
+                            {t("dashboard_history_empty")}
                         </p>
                     </div>
                 ) : (
@@ -51,13 +55,13 @@ export function ApplicationHistory({ historicoAplicacoes }: ApplicationHistoryPr
                                 >
                                     <div className="flex-1 min-w-0">
                                         <div className="font-semibold text-slate-800 text-xs sm:text-sm truncate">
-                                            {item?.cargo || 'Vaga'}
+                                            {item?.cargo || t("vacancy")}
                                         </div>
                                         <div className="text-[11px] sm:text-xs text-slate-500 truncate mt-0.5">
-                                            {item?.empresa?.nome_empresa || 'Empresa'}
+                                            {item?.empresa?.nome_empresa || t("company")}
                                         </div>
                                         <div className="text-[10px] text-slate-400 mt-1">
-                                            {dataAplicacao.toLocaleDateString('pt-BR', {
+                                            {dataAplicacao.toLocaleDateString(i18n.language === 'en' ? 'en-US' : (i18n.language === 'es' ? 'es-ES' : 'pt-BR'), {
                                                 day: '2-digit',
                                                 month: '2-digit',
                                                 year: 'numeric',
@@ -69,7 +73,7 @@ export function ApplicationHistory({ historicoAplicacoes }: ApplicationHistoryPr
 
                                     <div className="flex flex-col items-end gap-1.5 sm:gap-2 flex-shrink-0">
                                         <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-white border border-slate-200 text-[9px] sm:text-[10px] font-bold text-slate-600 shadow-sm">
-                                            Pendente
+                                            {t("pending")}
                                         </span>
                                         <ChevronRight size={12} className="text-slate-300 group-hover:text-blue-500 transition-colors sm:w-3.5 sm:h-3.5" />
                                     </div>

@@ -4,6 +4,7 @@ import { Building2, MapPin, Phone, Mail, Edit, FileText, ExternalLink } from "lu
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 interface CompanyProfileProps {
     company: {
@@ -36,6 +37,7 @@ interface CompanyProfileProps {
 }
 
 export function CompanyProfile({ company, fotoPerfil, localidade, contato, email, anexos, links }: CompanyProfileProps) {
+    const { t } = useTranslation();
     const [formData, setFormData] = useState({
         anexos: [] as { nome: string, base64: string, size: number, type: string }[]
     });
@@ -45,74 +47,33 @@ export function CompanyProfile({ company, fotoPerfil, localidade, contato, email
             ? `(${contato.ddd}) ${contato.numero}`
             : contato.numero;
 
-    const handleAnexosChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files;
-        if (!files) return;
-
-        const newAnexos = [...formData.anexos];
-
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            const reader = new FileReader();
-
-            const filePromise = new Promise<{ nome: string, base64: string, size: number, type: string }>((resolve) => {
-                reader.onloadend = () => {
-                    resolve({
-                        nome: file.name,
-                        base64: reader.result as string,
-                        size: file.size,
-                        type: file.type
-                    });
-                };
-            });
-
-            reader.readAsDataURL(file);
-            const result = await filePromise;
-            newAnexos.push(result);
-        }
-
-        setFormData(prev => ({ ...prev, anexos: newAnexos }));
-    };
     const handleViewFile = async (anexo: any) => {
         const url = anexo.url || anexo.base64;
-        const nome = anexo.nome || 'Arquivo';
-
-        // console.log('[handleViewFile] Iniciando visualização:', { nome, url: url?.substring(0, 100), anexo });
+        const nome = anexo.nome || t('vacancy_file_name_default');
 
         if (!url) {
             console.error('[handleViewFile] URL vazia!');
-            alert('Erro: URL do arquivo não encontrada');
+            alert(t('file_url_not_found_error'));
             return;
         }
 
-        // Verifica se é PDF para aplicar lógica especial
         const mime = anexo.mime || anexo.type || '';
         const isPdf = mime.includes('pdf') || url.toLowerCase().includes('.pdf');
 
-        // console.log('[handleViewFile] Tipo de arquivo:', { mime, isPdf });
-
         if (isPdf) {
             try {
-                // console.log('[handleViewFile] É PDF, abrindo viewer com proxy...');
-
-                // Usa a API proxy diretamente no viewer
                 const proxyUrl = `/api/pdf-proxy?url=${encodeURIComponent(url)}`;
                 const viewerUrl = `/viewer?url=${encodeURIComponent(proxyUrl)}&title=${encodeURIComponent(nome)}&type=application/pdf`;
-
-                // console.log('[handleViewFile] Proxy URL:', proxyUrl);
-                // console.log('[handleViewFile] Abrindo viewer:', viewerUrl);
                 window.open(viewerUrl, '_blank');
                 return;
             } catch (error) {
                 console.error("[handleViewFile] Erro ao abrir PDF:", error);
-                alert(`Erro ao carregar PDF: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+                alert(`${t('pdf_load_error')}: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
             }
         }
 
-        // Para outros tipos de arquivo ou fallback
         const mimeType = anexo.mime || anexo.type || '';
         const viewerUrl = `/viewer?url=${encodeURIComponent(url)}&title=${encodeURIComponent(nome)}&type=${encodeURIComponent(mimeType)}`;
-        console.log('[handleViewFile] Abrindo viewer (não-PDF ou fallback):', viewerUrl);
         window.open(viewerUrl, '_blank');
     };
 
@@ -126,7 +87,7 @@ export function CompanyProfile({ company, fotoPerfil, localidade, contato, email
                         {fotoPerfil ? (
                             <Image
                                 src={fotoPerfil}
-                                alt={company.nome_empresa || "Empresa"}
+                                alt={company.nome_empresa || t('default_company_name') || "Empresa"}
                                 fill
                                 className="object-cover"
                             />
@@ -140,7 +101,7 @@ export function CompanyProfile({ company, fotoPerfil, localidade, contato, email
                     {/* Company Info */}
                     <div className="flex-1">
                         <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
-                            {company.nome_empresa || "Nome da Empresa"}
+                            {company.nome_empresa || t('default_company_name') || "Nome da Empresa"}
                         </h2>
                         <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
                             <div className="flex items-center gap-1.5">
@@ -156,7 +117,7 @@ export function CompanyProfile({ company, fotoPerfil, localidade, contato, email
                         className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20"
                     >
                         <Edit size={18} />
-                        Editar Perfil
+                        {t('edit_profile_btn')}
                     </Link>
                 </div>
             </div>
@@ -169,7 +130,7 @@ export function CompanyProfile({ company, fotoPerfil, localidade, contato, email
                     <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
                         <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
                             <Building2 size={20} className="text-blue-600" />
-                            Sobre a Empresa
+                            {t('about_company')}
                         </h3>
                         {company.descricao ? (
                             <p className="text-gray-700 leading-relaxed whitespace-pre-line">
@@ -177,7 +138,7 @@ export function CompanyProfile({ company, fotoPerfil, localidade, contato, email
                             </p>
                         ) : (
                             <p className="text-gray-400 italic">
-                                Nenhuma descrição adicionada ainda.
+                                {t('no_description')}
                             </p>
                         )}
                     </div>
@@ -187,7 +148,7 @@ export function CompanyProfile({ company, fotoPerfil, localidade, contato, email
                         <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
                             <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
                                 <FileText size={20} className="text-blue-600" />
-                                Documentos e Anexos
+                                {t('docs_and_attachments')}
                             </h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {anexos.map((arquivo) => (
@@ -219,13 +180,13 @@ export function CompanyProfile({ company, fotoPerfil, localidade, contato, email
                 <div className="space-y-6">
                     {/* Contact Information */}
                     <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-                        <h3 className="text-lg font-bold text-slate-900 mb-4">Contato</h3>
+                        <h3 className="text-lg font-bold text-slate-900 mb-4">{t('contact')}</h3>
                         <div className="space-y-3">
                             {email && (
                                 <div className="flex items-start gap-3">
                                     <Mail size={18} className="text-blue-600 mt-0.5 flex-shrink-0" />
                                     <div>
-                                        <p className="text-xs text-gray-500 mb-0.5">E-mail</p>
+                                        <p className="text-xs text-gray-500 mb-0.5">{t('email')}</p>
                                         <a
                                             href={`mailto:${email}`}
                                             className="text-sm text-gray-900 hover:text-blue-600 transition-colors break-all"
@@ -239,7 +200,7 @@ export function CompanyProfile({ company, fotoPerfil, localidade, contato, email
                                 <div className="flex items-start gap-3">
                                     <Phone size={18} className="text-green-600 mt-0.5 flex-shrink-0" />
                                     <div>
-                                        <p className="text-xs text-gray-500 mb-0.5">Telefone</p>
+                                        <p className="text-xs text-gray-500 mb-0.5">{t('phone')}</p>
                                         <a
                                             href={`tel:${telefoneCompleto}`}
                                             className="text-sm text-gray-900 hover:text-green-600 transition-colors"
@@ -257,7 +218,7 @@ export function CompanyProfile({ company, fotoPerfil, localidade, contato, email
                         <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm animate-in fade-in slide-in-from-right-4">
                             <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
                                 <ExternalLink size={20} className="text-blue-600" />
-                                Links e Redes
+                                {t('links_and_socials')}
                             </h3>
                             <div className="flex flex-col gap-2">
                                 {links.map((link) => (
@@ -273,7 +234,7 @@ export function CompanyProfile({ company, fotoPerfil, localidade, contato, email
                                                 <ExternalLink size={16} className="text-gray-400 group-hover:text-blue-600" />
                                             </div>
                                             <span className="text-sm font-semibold truncate">
-                                                {link.label || 'Acesse o Link'}
+                                                {link.label || t('visit_link')}
                                             </span>
                                         </div>
                                         <ExternalLink size={14} className="text-gray-300 group-hover:text-blue-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />

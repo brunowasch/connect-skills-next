@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { X, Sparkles, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface AIGenerationModalProps {
     isOpen: boolean;
@@ -8,6 +9,7 @@ interface AIGenerationModalProps {
 }
 
 export function AIGenerationModal({ isOpen, onClose, onGenerate }: AIGenerationModalProps) {
+    const { t } = useTranslation();
     const [shortDesc, setShortDesc] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
@@ -32,7 +34,7 @@ export function AIGenerationModal({ isOpen, onClose, onGenerate }: AIGenerationM
                 <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-blue-50 to-white">
                     <div className="flex items-center gap-2 text-blue-700">
                         <Sparkles size={20} />
-                        <h2 className="font-semibold">Assistente de IA</h2>
+                        <h2 className="font-semibold">{t('ai_assistant_title')}</h2>
                     </div>
                     <button
                         onClick={onClose}
@@ -44,15 +46,15 @@ export function AIGenerationModal({ isOpen, onClose, onGenerate }: AIGenerationM
 
                 <div className="p-6 space-y-4">
                     <p className="text-gray-600 text-sm">
-                        Descreva brevemente a vaga e deixe nossa IA sugerir o título, descrição completa, perguntas e habilidades ideais para a vaga.
+                        {t('ai_assistant_description')}
                     </p>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">Contexto da Vaga</label>
+                        <label className="text-sm font-medium text-gray-700">{t('ai_context_label')}</label>
                         <textarea
                             value={shortDesc}
                             onChange={(e) => setShortDesc(e.target.value)}
-                            placeholder="Ex: Vaga para vendedor de automóveis."
+                            placeholder={t('ai_context_placeholder')}
                             className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[120px] resize-none text-sm"
                         />
                     </div>
@@ -63,7 +65,7 @@ export function AIGenerationModal({ isOpen, onClose, onGenerate }: AIGenerationM
                         onClick={onClose}
                         className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
                     >
-                        Cancelar
+                        {t('cancel')}
                     </button>
                     <button
                         onClick={handleGenerate}
@@ -71,7 +73,7 @@ export function AIGenerationModal({ isOpen, onClose, onGenerate }: AIGenerationM
                         className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-blue-600/20 transition-all cursor-pointer"
                     >
                         {isLoading ? <Loader2 className="animate-spin" size={16} /> : <Sparkles size={16} />}
-                        {isLoading ? "Gerando (Isso pode levar até 1 minuto)" : "Gerar Conteúdo"}
+                        {isLoading ? t('ai_generating_btn') : t('ai_generate_btn')}
 
                     </button>
                 </div>

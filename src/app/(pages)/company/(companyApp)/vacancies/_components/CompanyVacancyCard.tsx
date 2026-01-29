@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { selectVacancyForRanking, selectVacancyForEditing } from "../actions";
 import { AlertCircle, X, Lock, Unlock, Ban, Eye, Edit, Users } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export interface CompanyVacancy {
     id: string;
@@ -17,12 +18,6 @@ export interface CompanyVacancy {
         vaga_avaliacao?: number;
     };
 }
-
-const tipoMap = {
-    Presencial: 'Presencial',
-    Home_Office: 'Home Office',
-    H_brido: 'Híbrido',
-};
 
 interface ModalConfig {
     isOpen: boolean;
@@ -40,6 +35,7 @@ export function CompanyVacancyCard({
     vacancy: CompanyVacancy,
     isSelectionMode?: boolean
 }) {
+    const { t } = useTranslation();
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [isUpdating, setIsUpdating] = useState(false);
@@ -52,22 +48,29 @@ export function CompanyVacancyCard({
         variant: 'info'
     });
 
+    const tipoMap: Record<string, string> = {
+        Presencial: t('Presencial'),
+        Home_Office: t('Home Office'),
+        H_brido: t('Híbrido'),
+    };
+
     const applicationCount = vacancy._count?.vaga_avaliacao || 0;
+    const statusLabel = vacancy.status === 'active' ? t('active') : t('inactive');
 
     const handleToggleStatus = async (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
 
-        const isClosing = vacancy.status === 'Ativa';
+        const isClosing = vacancy.status === 'active';
         const newStatus = isClosing ? 'Fechada' : 'Ativa';
 
         setModal({
             isOpen: true,
-            title: isClosing ? 'Trancar Vaga' : 'Reabrir Vaga',
+            title: isClosing ? t('lock_vacancy') : t('unlock_vacancy'),
             description: isClosing
-                ? <>Tem certeza que deseja trancar a vaga <strong>{vacancy.cargo}</strong>? Novos candidatos não poderão se inscrever.</>
-                : <>Deseja reabrir a vaga <strong>{vacancy.cargo}</strong> para novas candidaturas?</>,
-            confirmText: isClosing ? 'Trancar Vaga' : 'Abrir Vaga',
+                ? <>{t('lock_vacancy_desc', { cargo: vacancy.cargo })}</>
+                : <>{t('unlock_vacancy_desc', { cargo: vacancy.cargo })}</>,
+            confirmText: isClosing ? t('lock_vacancy') : t('unlock_vacancy'),
             variant: isClosing ? 'warning' : 'success',
             onConfirm: async () => {
                 setIsUpdating(true);
@@ -82,11 +85,11 @@ export function CompanyVacancyCard({
                         router.refresh();
                         setModal(prev => ({ ...prev, isOpen: false }));
                     } else {
-                        alert("Erro ao atualizar status.");
+                        alert(t('error_updating_status'));
                     }
                 } catch (e) {
                     console.error(e);
-                    alert("Erro de conexão.");
+                    alert(t('error_connection'));
                 } finally {
                     setIsUpdating(false);
                 }
@@ -107,27 +110,27 @@ export function CompanyVacancyCard({
                             {vacancy.cargo}
                         </h3>
                         {!isSelectionMode && (
-                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold flex-shrink-0 ${vacancy.status === 'Ativa'
+                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold flex-shrink-0 ${vacancy.status === 'active'
                                 ? 'bg-green-100 text-green-800'
                                 : 'bg-gray-100 text-gray-800'
                                 }`}>
-                                {vacancy.status}
+                                {statusLabel}
                             </span>
                         )}
                     </div>
                     <div className="flex flex-col gap-1.5">
                         {isSelectionMode && (
                             <div>
-                                <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold inline-block ${vacancy.status === 'Ativa'
+                                <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold inline-block ${vacancy.status === 'active'
                                     ? 'bg-green-100 text-green-800'
                                     : 'bg-gray-100 text-gray-800'
                                     }`}>
-                                    {vacancy.status}
+                                    {statusLabel}
                                 </span>
                             </div>
                         )}
                         <div className="text-sm text-gray-500">
-                            {tipoMap[vacancy.tipo_local_trabalho]} • Criada em {vacancy.created_at.toLocaleDateString('pt-BR')}
+                            {tipoMap[vacancy.tipo_local_trabalho]} • {t('created_at_label')} {vacancy.created_at.toLocaleDateString()}
                         </div>
                     </div>
                 </div>
@@ -136,52 +139,54 @@ export function CompanyVacancyCard({
                     <div className="flex items-center gap-2">
                         <Users size={16} className="text-blue-500" />
                         <span>
-                            <span className="font-semibold text-slate-900">{applicationCount}</span> Candidatos
+                            <span className="font-semibold text-slate-900">{applicationCount}</span> {t('candidates')}
                         </span>
                     </div>
                 </div>
             </Link>
 
-            {/* Botões de ação - não parte do link principal */}
-            <div className="flex items-center gap-2 px-5 pb-5 pt-3 border-t border-gray-50">
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 px-4 py-4 md:px-5 md:py-5 pt-3 border-t border-gray-50">
                 <button
                     onClick={(e) => {
                         e.preventDefault();
                         startTransition(() => selectVacancyForRanking(vacancy.id));
                     }}
-                    className="flex-1 flex items-center justify-center gap-2 h-10 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold cursor-pointer hover:bg-blue-100 transition-colors whitespace-nowrap"
+                    className="w-full sm:w-auto sm:flex-1 flex items-center justify-center gap-2 h-10 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold cursor-pointer hover:bg-blue-100 transition-colors whitespace-nowrap order-1 sm:order-none"
                 >
                     <Users size={16} />
-                    Ver Candidatos
+                    {t('view_candidates_btn')}
                 </button>
                 <Link
                     href={`/viewer/vacancy/${vacancy.uuid}`}
-                    className="flex-1 flex items-center justify-center gap-2 h-10 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold cursor-pointer hover:bg-blue-100 transition-colors whitespace-nowrap"
+                    className="w-full sm:w-auto sm:flex-1 flex items-center justify-center gap-2 h-10 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold cursor-pointer hover:bg-blue-100 transition-colors whitespace-nowrap order-2 sm:order-none"
                 >
                     <Eye size={16} />
-                    Ver Vaga
+                    {t('view_vacancy_btn')}
                 </Link>
-                <button
-                    onClick={(e) => {
-                        e.preventDefault();
-                        startTransition(() => selectVacancyForEditing(vacancy.id));
-                    }}
-                    className="flex shrink-0 items-center justify-center w-10 h-10 text-gray-400 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-colors border border-gray-200 cursor-pointer"
-                    title="Editar Vaga"
-                >
-                    <Edit size={16} />
-                </button>
-                <button
-                    onClick={handleToggleStatus}
-                    disabled={isUpdating}
-                    className={`flex shrink-0 items-center justify-center w-10 h-10 rounded-lg transition-colors border cursor-pointer disabled:opacity-50 ${vacancy.status === 'Ativa'
-                        ? 'text-gray-400 hover:text-amber-600 hover:bg-amber-50 border-gray-200'
-                        : 'text-amber-600 bg-amber-50 border-amber-100 hover:bg-amber-100'
-                        }`}
-                    title={vacancy.status === 'Ativa' ? "Trancar Vaga" : "Abrir Vaga"}
-                >
-                    {vacancy.status === 'Ativa' ? <Ban size={16} /> : <Unlock size={16} />}
-                </button>
+
+                <div className="flex gap-2 w-full sm:w-auto order-3 sm:order-none">
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            startTransition(() => selectVacancyForEditing(vacancy.id));
+                        }}
+                        className="flex-1 sm:flex-none flex shrink-0 items-center justify-center w-full sm:w-10 h-10 text-gray-400 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-colors border border-gray-200 cursor-pointer"
+                        title={t('edit_vacancy_btn')}
+                    >
+                        <Edit size={16} />
+                    </button>
+                    <button
+                        onClick={handleToggleStatus}
+                        disabled={isUpdating}
+                        className={`flex-1 sm:flex-none flex shrink-0 items-center justify-center w-full sm:w-10 h-10 rounded-lg transition-colors border cursor-pointer disabled:opacity-50 ${vacancy.status === 'active'
+                            ? 'text-gray-400 hover:text-amber-600 hover:bg-amber-50 border-gray-200'
+                            : 'text-amber-600 bg-amber-50 border-amber-100 hover:bg-amber-100'
+                            }`}
+                        title={vacancy.status === 'active' ? t('lock_vacancy') : t('unlock_vacancy')}
+                    >
+                        {vacancy.status === 'active' ? <Ban size={16} /> : <Unlock size={16} />}
+                    </button>
+                </div>
             </div>
 
             {/* Modal de Confirmação */}
@@ -222,7 +227,7 @@ export function CompanyVacancyCard({
                                     onClick={() => setModal(prev => ({ ...prev, isOpen: false }))}
                                     className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-all cursor-pointer"
                                 >
-                                    Cancelar
+                                    {t('cancel')}
                                 </button>
                                 <button
                                     onClick={modal.onConfirm}
@@ -232,7 +237,7 @@ export function CompanyVacancyCard({
                                             'bg-blue-600 hover:bg-blue-700 shadow-blue-500/30'
                                         }`}
                                 >
-                                    {isUpdating ? "Processando..." : modal.confirmText}
+                                    {isUpdating ? t('processing') : modal.confirmText}
                                 </button>
                             </div>
                         </div>

@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 interface AnswersModalProps {
     isOpen: boolean;
@@ -11,6 +12,7 @@ interface AnswersModalProps {
 }
 
 export function AnswersModal({ isOpen, onClose, candidateName, answers }: AnswersModalProps) {
+    const { t } = useTranslation();
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
@@ -37,12 +39,12 @@ export function AnswersModal({ isOpen, onClose, candidateName, answers }: Answer
                 {/* Header */}
                 <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-blue-50 to-purple-50">
                     <div>
-                        <h2 className="text-2xl font-bold text-slate-900">Respostas do Candidato</h2>
+                        <h2 className="text-2xl font-bold text-slate-900">{t('answers_modal_title')}</h2>
                         <p className="text-sm text-gray-600 mt-1">{candidateName}</p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-white/50 rounded-lg transition-colors"
+                        className="p-2 hover:bg-white/50 rounded-lg transition-colors cursor-pointer"
                     >
                         <X size={24} className="text-gray-600" />
                     </button>
@@ -52,7 +54,7 @@ export function AnswersModal({ isOpen, onClose, candidateName, answers }: Answer
                 <div className="p-6 overflow-y-auto flex-1">
                     {!parsedAnswers ? (
                         <div className="text-center py-12">
-                            <p className="text-gray-500">Nenhum dado de resposta encontrado.</p>
+                            <p className="text-gray-500">{t('answers_modal_no_data')}</p>
                         </div>
                     ) : (() => {
                         const responses = Array.isArray(parsedAnswers) ? parsedAnswers : parsedAnswers.responses;
@@ -61,7 +63,7 @@ export function AnswersModal({ isOpen, onClose, candidateName, answers }: Answer
                         if (!responses || !Array.isArray(responses) || responses.length === 0) {
                             return (
                                 <div className="text-center py-12">
-                                    <p className="text-gray-500">Nenhuma resposta disponível para este candidato.</p>
+                                    <p className="text-gray-500">{t('answers_modal_no_responses')}</p>
                                 </div>
                             );
                         }
@@ -72,15 +74,15 @@ export function AnswersModal({ isOpen, onClose, candidateName, answers }: Answer
                                 {metrics && (
                                     <div className="grid grid-cols-2 gap-4 bg-slate-900 rounded-2xl p-5 text-white shadow-xl">
                                         <div>
-                                            <p className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-wider text-blue-300">Duração do Teste</p>
+                                            <p className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-wider text-blue-300">{t('answers_modal_duration')}</p>
                                             <p className="text-lg font-bold">
                                                 {Math.floor(metrics.duration / 60)}m {metrics.duration % 60}s
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-wider text-amber-300">Saídas da Tela</p>
+                                            <p className="text-[10px] text-slate-400 uppercase font-bold mb-1 tracking-wider text-amber-300">{t('answers_modal_penalties')}</p>
                                             <p className={`text-lg font-bold ${metrics.penalties > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
-                                                {metrics.penalties} {metrics.penalties === 1 ? 'vez' : 'vezes'}
+                                                {metrics.penalties} {metrics.penalties === 1 ? t('answers_modal_time') : t('answers_modal_times')}
                                             </p>
                                         </div>
                                     </div>
@@ -94,20 +96,20 @@ export function AnswersModal({ isOpen, onClose, candidateName, answers }: Answer
                                                     {index + 1}
                                                 </div>
                                                 <div className="flex-1">
-                                                    <h3 className="font-bold text-slate-800 mb-3 leading-snug">{resp.question || "Pergunta sem título"}</h3>
+                                                    <h3 className="font-bold text-slate-800 mb-3 leading-snug">{resp.question || t('answers_modal_untitled_question')}</h3>
                                                     <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                                                        <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{resp.answer || "Sem resposta."}</p>
+                                                        <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{resp.answer || t('answers_modal_no_answer')}</p>
                                                     </div>
                                                     {(resp.category || resp.method) && (
                                                         <div className="mt-4 flex gap-2">
                                                             {resp.category && (
                                                                 <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded bg-slate-100 text-slate-500">
-                                                                    {resp.category}
+                                                                    {t(resp.category)}
                                                                 </span>
                                                             )}
                                                             {resp.method && resp.method !== "N/A" && (
                                                                 <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded bg-blue-50 text-blue-500">
-                                                                    {resp.method}
+                                                                    {t(resp.method)}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -128,7 +130,7 @@ export function AnswersModal({ isOpen, onClose, candidateName, answers }: Answer
                         onClick={onClose}
                         className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors cursor-pointer"
                     >
-                        Fechar
+                        {t('answers_modal_close')}
                     </button>
                 </div>
             </div>
