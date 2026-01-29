@@ -28,7 +28,7 @@ export default async function EditProfilePage() {
     });
 
     if (!candidate) {
-        redirect("/pages/auth/login");
+        redirect("/login");
     }
 
     const localidade = candidate.cidade && candidate.estado
@@ -72,8 +72,8 @@ export default async function EditProfilePage() {
         numero: numero,
         descricao: candidate.descricao || '',
         fotoPerfil: candidate.foto_perfil || undefined,
-        links: candidate.candidato_link.map(l => ({ id: l.id, label: l.label, url: l.url, ordem: l.ordem })),
-        anexos: candidate.candidato_arquivo.map(a => ({
+        links: candidate.candidato_link.map((l: any) => ({ id: l.id, label: l.label, url: l.url, ordem: l.ordem })),
+        anexos: candidate.candidato_arquivo.map((a: any) => ({
             id: a.id,
             nome: a.nome,
             url: a.url,
