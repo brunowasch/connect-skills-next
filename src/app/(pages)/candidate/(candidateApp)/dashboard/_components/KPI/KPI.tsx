@@ -67,7 +67,7 @@ export function KPI({
                                     key={index}
                                     className="bg-slate-100 text-slate-600 text-[10px] sm:text-[11px] font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full uppercase tracking-tight"
                                 >
-                                    {area}
+                                    {t(area)}
                                 </span>
                             ))}
 

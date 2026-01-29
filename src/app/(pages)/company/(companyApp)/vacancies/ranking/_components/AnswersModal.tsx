@@ -44,7 +44,7 @@ export function AnswersModal({ isOpen, onClose, candidateName, answers }: Answer
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-white/50 rounded-lg transition-colors"
+                        className="p-2 hover:bg-white/50 rounded-lg transition-colors cursor-pointer"
                     >
                         <X size={24} className="text-gray-600" />
                     </button>
@@ -104,12 +104,12 @@ export function AnswersModal({ isOpen, onClose, candidateName, answers }: Answer
                                                         <div className="mt-4 flex gap-2">
                                                             {resp.category && (
                                                                 <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded bg-slate-100 text-slate-500">
-                                                                    {resp.category}
+                                                                    {t(resp.category)}
                                                                 </span>
                                                             )}
                                                             {resp.method && resp.method !== "N/A" && (
                                                                 <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded bg-blue-50 text-blue-500">
-                                                                    {resp.method}
+                                                                    {t(resp.method)}
                                                                 </span>
                                                             )}
                                                         </div>

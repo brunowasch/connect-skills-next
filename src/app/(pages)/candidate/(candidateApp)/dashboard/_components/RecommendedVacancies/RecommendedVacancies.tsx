@@ -10,8 +10,8 @@ export function RecommendedVacancies({ vacanciesRecommended }: RecommendedVacanc
   const { t, i18n } = useTranslation();
   const typeMap = {
     Presencial: t("Presencial"),
-    Home_Office: t("Home Office"),
-    H_brido: t("Híbrido"),
+    Home_Office: t("Home_Office"),
+    H_brido: t("H_brido"),
   };
 
   return (
@@ -64,7 +64,7 @@ export function RecommendedVacancies({ vacanciesRecommended }: RecommendedVacanc
 
                 <div className="flex-grow min-w-0">
                   <h3 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors truncate">
-                    {vacancy.empresa?.nome_empresa || vacancy.empresa?.nome || 'Empresa'}
+                    {vacancy.empresa?.nome_empresa || vacancy.empresa?.nome || t('company')}
                   </h3>
 
                   <p className="text-xs text-slate-500 leading-tight">
@@ -96,7 +96,7 @@ export function RecommendedVacancies({ vacanciesRecommended }: RecommendedVacanc
                     <div className="mt-3 flex flex-wrap gap-1">
                       {vacancy.vaga_area.map((rel, idx) => (
                         <span key={idx} className="text-[10px] bg-blue-50 text-blue-500 px-2 py-0.5 rounded-md font-medium">
-                          {rel.area_interesse?.nome || rel.nome}
+                          {t(rel.area_interesse?.nome || rel.nome || '')}
                         </span>
                       ))}
                     </div>

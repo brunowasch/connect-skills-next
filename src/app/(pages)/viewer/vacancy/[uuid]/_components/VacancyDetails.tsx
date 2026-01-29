@@ -543,7 +543,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                             key={area.area_interesse.id}
                                             className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md text-sm font-medium border border-gray-200"
                                         >
-                                            {area.area_interesse.nome}
+                                            {t(area.area_interesse.nome || '')}
                                         </span>
                                     ))}
                                 </div>

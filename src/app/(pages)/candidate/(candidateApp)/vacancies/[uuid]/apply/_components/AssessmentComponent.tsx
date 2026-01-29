@@ -21,6 +21,7 @@ interface Question {
     category: string;
     method: string;
     isCustom?: boolean;
+    originalIndex?: number;
 }
 
 interface AssessmentProps {
@@ -63,7 +64,7 @@ const softSkillToCategory: Record<string, string> = {
 const DISC_METHODS = ["Dominância", "Influência", "Estabilidade", "Conformidade"];
 
 export default function AssessmentComponent({ vacancy, candidateId }: AssessmentProps) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [questions, setQuestions] = useState<Question[]>([]);
     const [answers, setAnswers] = useState<Record<string, string>>({});
     const [startTime, setStartTime] = useState<number | null>(null);
@@ -74,6 +75,7 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
     const [showPenaltyModal, setShowPenaltyModal] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [showIncompleteModal, setShowIncompleteModal] = useState(false);
+    const initializedRef = useRef(false);
 
     // Memoized para poder ser chamada dentro do useEffect sem warnings de dependência
     const generateQuestions = useCallback(() => {
@@ -91,12 +93,14 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
                 DISC_METHODS.forEach(method => {
                     const pool = banco[cat][method];
                     if (pool && pool.length > 0) {
-                        const randomQuestion = pool[Math.floor(Math.random() * pool.length)];
+                        const randomIndex = Math.floor(Math.random() * pool.length);
+                        const randomQuestion = pool[randomIndex];
                         selectedQuestions.push({
                             id: `${cat}-${method}-${Math.random()}`,
                             text: randomQuestion,
                             category: cat,
-                            method: method
+                            method: method,
+                            originalIndex: randomIndex
                         });
                     }
                 });
@@ -119,6 +123,24 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
         setQuestions(selectedQuestions);
     }, [vacancy, t]);
 
+    // Effect to update question text when language changes
+    useEffect(() => {
+        if (questions.length === 0) return;
+
+        const questionsData = t('questions', { returnObjects: true }) as any;
+        const banco = questionsData?.banco_questoes_disc_full || {};
+
+        setQuestions(prevQuestions => prevQuestions.map(q => {
+            if (q.isCustom || q.originalIndex === undefined) return q;
+
+            const newText = banco[q.category]?.[q.method]?.[q.originalIndex];
+            if (newText && newText !== q.text) {
+                return { ...q, text: newText };
+            }
+            return q;
+        }));
+    }, [t, i18n.language]);
+
     const handleScreenLeave = useCallback(() => {
         // Bloqueia o reset se a prova já tiver sido finalizada ou estiver enviando ou ainda não começou
         if (isFinished || isSubmitting || !isStarted) return;
@@ -130,8 +152,9 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
     }, [isFinished, isSubmitting, isStarted, generateQuestions]);
 
     useEffect(() => {
-        if (isStarted) {
+        if (isStarted && !initializedRef.current) {
             generateQuestions();
+            initializedRef.current = true;
         }
 
         // 1. Bloqueio de Comandos de Cópia e Context Menu
