@@ -8,7 +8,7 @@ export default async function EditAreasPage() {
     const userId = cookieStore.get("time_user_id")?.value;
 
     if (!userId) {
-        redirect("/pages/auth/login");
+        redirect("/login");
     }
 
     const candidate = await prisma.candidato.findUnique({
@@ -23,10 +23,10 @@ export default async function EditAreasPage() {
     });
 
     if (!candidate) {
-        redirect("/pages/auth/login");
+        redirect("/login");
     }
 
-    const initialAreas = candidate.candidato_area.map(ca => ca.area_interesse.nome || '');
+    const initialAreas = candidate.candidato_area.map((ca: any) => ca.area_interesse.nome || '');
 
     return <EditAreas initialAreas={initialAreas} />;
 }
