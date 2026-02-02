@@ -1,8 +1,8 @@
 "use client";
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 
-export default function ViewerPage() {
+function ViewerContent() {
     const searchParams = useSearchParams();
     const [fileUrl, setFileUrl] = useState<string | null>(null);
     const title = searchParams.get('title') || 'Visualizador';
@@ -30,7 +30,6 @@ export default function ViewerPage() {
 
     if (isPdf) {
         const finalUrl = fileUrl;
-        const isExternal = finalUrl.startsWith('http');
 
         // Renderiza PDF nativo via iframe
         return (
@@ -78,5 +77,13 @@ export default function ViewerPage() {
                 <img src={fileUrl} alt="Preview" className="max-w-full max-h-full" />
             </div>
         </div>
+    );
+}
+
+export default function ViewerPage() {
+    return (
+        <Suspense fallback={<div className="p-10 text-center">Carregando viewer...</div>}>
+            <ViewerContent />
+        </Suspense>
     );
 }
