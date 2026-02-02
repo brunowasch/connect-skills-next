@@ -50,15 +50,23 @@ interface CompanyProfileProps {
 export function PublicCompanyProfile({ company, fotoPerfil, localidade, contato, email, anexos, links, vagas }: CompanyProfileProps) {
     const { t, i18n } = useTranslation();
     const router = useRouter();
+    const [showBackButton, setShowBackButton] = useState(false);
 
-
-    const handleBack = () => {
-        if (window.history.length > 2) {
-            router.back();
-        } else {
-            window.close();
+    useEffect(() => {
+        if (typeof window !== 'undefined' && document.referrer) {
+            try {
+                const referrerUrl = new URL(document.referrer);
+                if (referrerUrl.host === window.location.host) {
+                    setShowBackButton(true);
+                }
+            } catch (e) {
+                // Invalid URL
+            }
         }
-    };
+    }, []);
+
+
+
 
     const telefoneCompleto = contato.ddi
         ? `+${contato.ddi} (${contato.ddd}) ${contato.numero}`
@@ -100,13 +108,21 @@ export function PublicCompanyProfile({ company, fotoPerfil, localidade, contato,
         <div className="h-full max-w-7xl mx-auto">
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-4">
-                    <button
-                        onClick={handleBack}
-                        className="p-2 rounded-full hover:bg-gray-100 text-gray-600 transition-colors cursor-pointer"
-                        title={t('back_btn')}
-                    >
-                        <ArrowLeft size={24} />
-                    </button>
+                    {showBackButton && (
+                        <button
+                            onClick={() => {
+                                if (typeof window !== 'undefined' && window.history.length > 1) {
+                                    router.back();
+                                } else {
+                                    window.close();
+                                }
+                            }}
+                            className="p-2 rounded-full hover:bg-gray-100 text-gray-600 transition-colors cursor-pointer"
+                            title={t('back_btn')}
+                        >
+                            <ArrowLeft size={24} />
+                        </button>
+                    )}
                     <h1 className="text-2xl font-bold text-gray-800">
                         {t('public_profile_of')} {company.nome_empresa}
                     </h1>

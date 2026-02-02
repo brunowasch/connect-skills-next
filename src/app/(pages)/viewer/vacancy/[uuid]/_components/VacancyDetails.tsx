@@ -144,6 +144,20 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
     });
 
     const [showResponsesModal, setShowResponsesModal] = useState(false);
+    const [showBackButton, setShowBackButton] = useState(false);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && document.referrer) {
+            try {
+                const referrerUrl = new URL(document.referrer);
+                if (referrerUrl.host === window.location.host) {
+                    setShowBackButton(true);
+                }
+            } catch (e) {
+                // Invalid URL
+            }
+        }
+    }, []);
 
     // Normalize responses list handling both array (legacy) and object (new) formats
     const responsesList = Array.isArray(applicationResponses)
@@ -413,19 +427,21 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
             <div className="bg-white border-b border-gray-200">
                 <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                     <div className="flex justify-between items-center mb-6">
-                        <button
-                            onClick={() => {
-                                if (window.history.length > 2) {
-                                    router.back();
-                                } else {
-                                    window.close();
-                                }
-                            }}
-                            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                        >
-                            <ArrowLeft size={18} />
-                            {t("vacancy_back")}
-                        </button>
+                        {showBackButton && (
+                            <button
+                                onClick={() => {
+                                    if (typeof window !== 'undefined' && window.history.length > 1) {
+                                        router.back();
+                                    } else {
+                                        window.close();
+                                    }
+                                }}
+                                className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                            >
+                                <ArrowLeft size={18} />
+                                {t("vacancy_back")}
+                            </button>
+                        )}
                         <LanguageSwitcher />
                     </div>
 

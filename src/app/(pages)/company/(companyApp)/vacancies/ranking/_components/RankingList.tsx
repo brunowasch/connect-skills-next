@@ -206,8 +206,7 @@ export function RankingList({ candidates, vacancyId }: RankingListProps) {
                                             {candidate.uuid && (
                                                 <a
                                                     href={`/viewer/candidate/${candidate.uuid}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
+                                                    rel="noopener"
                                                     className="flex items-center gap-1 px-3 py-1.5 bg-gray-50 text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-100 transition-colors cursor-pointer border border-gray-200"
                                                 >
                                                     <ExternalLink size={14} />

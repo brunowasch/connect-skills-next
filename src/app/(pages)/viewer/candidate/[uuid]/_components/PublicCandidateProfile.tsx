@@ -24,11 +24,24 @@ export function PublicCandidateProfile({ candidato, fotoPerfil, localidade, cont
     const [showBackButton, setShowBackButton] = useState(false);
 
     useEffect(() => {
-        setShowBackButton(window.history.length > 1);
+        if (typeof window !== 'undefined' && document.referrer) {
+            try {
+                const referrerUrl = new URL(document.referrer);
+                if (referrerUrl.host === window.location.host) {
+                    setShowBackButton(true);
+                }
+            } catch (e) {
+                // Invalid URL
+            }
+        }
     }, []);
 
     const handleBack = () => {
-        router.back();
+        if (typeof window !== 'undefined' && window.history.length > 1) {
+            router.back();
+        } else {
+            window.close();
+        }
     };
 
     const handleViewFile = async (url: string, nome: string) => {
