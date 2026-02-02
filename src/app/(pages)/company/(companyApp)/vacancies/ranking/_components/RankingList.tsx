@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Mail, FileText, Brain, User } from "lucide-react";
+import { Mail, FileText, Brain, User, ExternalLink } from "lucide-react";
 import { AnswersModal } from "./AnswersModal";
 import { AnalysisModal } from "./AnalysisModal";
 import { useTranslation } from "react-i18next";
@@ -16,6 +16,7 @@ interface Application {
 
 interface Candidate {
     id: string;
+    uuid: string | null;
     nome: string | null;
     sobrenome: string | null;
     cidade: string | null;
@@ -202,6 +203,16 @@ export function RankingList({ candidates, vacancyId }: RankingListProps) {
 
                                         {/* Action Buttons */}
                                         <div className="flex gap-2 mt-2">
+                                            {candidate.uuid && (
+                                                <a
+                                                    href={`/viewer/candidate/${candidate.uuid}`}
+                                                    rel="noopener"
+                                                    className="flex items-center gap-1 px-3 py-1.5 bg-gray-50 text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-100 transition-colors cursor-pointer border border-gray-200"
+                                                >
+                                                    <ExternalLink size={14} />
+                                                    {t('vacancy_view_public_profile')}
+                                                </a>
+                                            )}
                                             <button
                                                 onClick={() => handleShowAnswers(candidate.id)}
                                                 className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium hover:bg-blue-100 transition-colors cursor-pointer"

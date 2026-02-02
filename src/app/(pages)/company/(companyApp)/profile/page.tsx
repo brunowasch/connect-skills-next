@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
 import { CompanyProfilePageContent } from "./_components/CompanyProfilePageContent";
+import { randomUUID } from "node:crypto";
 
 export default async function CompanyProfilePage() {
     const cookieStore = await cookies();
@@ -34,6 +35,15 @@ export default async function CompanyProfilePage() {
 
     if (!company) {
         redirect("/auth/login");
+    }
+
+    let companyUUID = company.uuid;
+    if (!companyUUID) {
+        companyUUID = randomUUID();
+        await prisma.empresa.update({
+            where: { id: company.id },
+            data: { uuid: companyUUID }
+        });
     }
 
     const localidade = company.cidade && company.estado
@@ -80,6 +90,7 @@ export default async function CompanyProfilePage() {
             company={company}
             localidade={localidade}
             contato={contato}
+            perfilShareUrl={`/viewer/company/${companyUUID}`}
         />
     );
 }

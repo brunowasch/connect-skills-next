@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from 'react';
 import {
-    MapPin, Phone, Calendar, User, PencilLine,
-    Link as LinkIcon, Paperclip, ExternalLink, Copy, Check
+    MapPin, Phone, Calendar, User,
+    Link as LinkIcon, Paperclip, ExternalLink, FileText, ArrowLeft
 } from 'lucide-react';
-import Link from 'next/link';
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { LanguageSwitcher } from "@/src/app/_components/Layout/LanguageSwitcher";
 import { useTranslation } from "react-i18next";
 
 interface PerfilProps {
@@ -15,53 +16,53 @@ interface PerfilProps {
     contato: { ddi?: string; ddd?: string; numero?: string };
     links: { id?: string; label?: string; url: string; ordem?: number }[];
     anexos: { id: string; nome: string; url: string; mime: string; tamanho: number; criadoEm: string }[];
-    perfilShareUrl: string;
 }
 
-export function CandidateProfile({ candidato, fotoPerfil, localidade, contato, links, anexos, perfilShareUrl }: PerfilProps) {
+export function PublicCandidateProfile({ candidato, fotoPerfil, localidade, contato, links, anexos }: PerfilProps) {
     const { t, i18n } = useTranslation();
-    const [copiado, setCopiado] = useState(false);
+    const router = useRouter();
+    const [showBackButton, setShowBackButton] = useState(false);
 
-    const handleCopyLink = () => {
-        const origin = typeof window !== 'undefined' ? window.location.origin : '';
-        const fullUrl = perfilShareUrl.startsWith('http') ? perfilShareUrl : `${origin}${perfilShareUrl}`;
-        navigator.clipboard.writeText(fullUrl);
-        setCopiado(true);
-        setTimeout(() => setCopiado(false), 2000);
+    useEffect(() => {
+        if (typeof window !== 'undefined' && document.referrer) {
+            try {
+                const referrerUrl = new URL(document.referrer);
+                if (referrerUrl.host === window.location.host) {
+                    setShowBackButton(true);
+                }
+            } catch (e) {
+                // Invalid URL
+            }
+        }
+    }, []);
+
+    const handleBack = () => {
+        if (typeof window !== 'undefined' && window.history.length > 1) {
+            router.back();
+        } else {
+            window.close();
+        }
     };
 
-
     const handleViewFile = async (url: string, nome: string) => {
-        // console.log('[handleViewFile] Iniciando visualização:', { nome, url: url?.substring(0, 100) });
-
         if (!url) {
-            console.error('[handleViewFile] URL vazia!');
-            alert('Erro: URL do arquivo não encontrada');
+            alert(t('error_file_url_missing') || 'Erro: URL do arquivo não encontrada');
             return;
         }
 
-        // Verifica se é PDF para aplicar essa lógica
         const lowerUrl = url.toLowerCase();
         const lowerName = nome?.toLowerCase() || '';
         const isPdf = lowerUrl.includes('.pdf') ||
             lowerUrl.includes('/pdf') ||
             lowerName.endsWith('.pdf');
 
-        // console.log('[handleViewFile] Tipo de arquivo:', { isPdf, lowerUrl, lowerName });
-
         if (isPdf) {
             try {
-                console.log('[handleViewFile] É PDF, abrindo viewer com proxy...');
-
                 let finalUrl = url;
-                // Usa a API proxy se for Cloudinary para resolver CORS e Content-Type
                 if (url.includes('cloudinary.com')) {
                     finalUrl = `/api/pdf-proxy?url=${encodeURIComponent(url)}`;
                 }
-
                 const viewerUrl = `/viewer?url=${encodeURIComponent(finalUrl)}&title=${encodeURIComponent(nome)}&type=application/pdf`;
-
-                // console.log('[handleViewFile] Abrindo viewer:', viewerUrl);
                 window.open(viewerUrl, '_blank');
                 return;
             } catch (error) {
@@ -71,7 +72,6 @@ export function CandidateProfile({ candidato, fotoPerfil, localidade, contato, l
         }
 
         const viewerUrl = `/viewer?url=${encodeURIComponent(url)}&title=${encodeURIComponent(nome)}`;
-        // console.log('[handleViewFile] Abrindo viewer (não-PDF ou fallback):', viewerUrl);
         window.open(viewerUrl, '_blank');
     };
 
@@ -84,15 +84,30 @@ export function CandidateProfile({ candidato, fotoPerfil, localidade, contato, l
     };
 
     return (
-        <div>
-            <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">{t("my_profile_title")}</h1>
-                <p className="text-gray-500">
-                    {t("my_profile_subtitle")}
-                </p>
+        <div className="max-w-6xl mx-auto">
+            <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-4">
+                    {showBackButton && (
+                        <button
+                            onClick={handleBack}
+                            className="p-2 rounded-full hover:bg-gray-100 text-gray-600 transition-colors cursor-pointer"
+                            title={t('back_btn')}
+                        >
+                            <ArrowLeft size={24} />
+                        </button>
+                    )}
+                    <h1 className="text-2xl font-bold text-gray-800">
+                        {t('public_profile_of')} {candidato.nome} {candidato.sobrenome}
+                    </h1>
+                </div>
+
+                {/* Language Switcher */}
+                <LanguageSwitcher align="right" />
             </div>
 
-            <section className="bg-white border border-gray-200 shadow-sm rounded-2xl p-6 md:p-8 mb-6">
+            <section className="bg-white border border-gray-200 shadow-lg rounded-2xl p-6 md:p-8 mb-6 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 to-purple-600"></div>
+
                 {/* HEADER DO PERFIL */}
                 <div className="flex flex-col md:flex-row items-center md:items-start gap-6 border-b border-gray-100 pb-8">
                     <div className="relative">
@@ -112,7 +127,7 @@ export function CandidateProfile({ candidato, fotoPerfil, localidade, contato, l
                     <div className="flex-grow text-center md:text-left">
                         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                             <div>
-                                <h1 className="text-2xl font-bold text-gray-900">
+                                <h1 className="text-3xl font-bold text-gray-900">
                                     {candidato.nome || t("user_default_name")} {candidato.sobrenome || ''}
                                 </h1>
                                 <div className="flex flex-wrap justify-center md:justify-start gap-4 mt-2 text-sm text-gray-500">
@@ -123,31 +138,16 @@ export function CandidateProfile({ candidato, fotoPerfil, localidade, contato, l
                                             `${contato.ddi ? `+${contato.ddi} ` : ''}${contato.ddd ? `(${contato.ddd}) ` : ''}${contato.numero}`
                                         ) : t('not_informed')}
                                     </span>
-                                    <span className="flex items-center gap-1">
-                                        <Calendar size={16} className="text-blue-500" />
-                                        {candidato.data_nascimento ? `${t("birth_date_label")}: ${new Date(candidato.data_nascimento).toLocaleDateString(i18n.language, { timeZone: 'UTC' })}` : t('not_informed')}
-                                    </span>
+                                    {candidato.data_nascimento && (
+                                        <span className="flex items-center gap-1">
+                                            <Calendar size={16} className="text-blue-500" />
+                                            {new Date(candidato.data_nascimento).toLocaleDateString(i18n.language, { timeZone: 'UTC' })}
+                                        </span>
+                                    )}
                                 </div>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <Link href="/candidate/edit/profile">
-                                    <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 flex items-center gap-2 transition cursor-pointer">
-                                        <PencilLine size={16} /> {t("edit_profile_btn")}
-                                    </button>
-                                </Link>
-                                <button
-                                    onClick={handleCopyLink}
-                                    className="flex items-center gap-2 px-4 py-2 bg-white text-gray-700 border border-gray-200 rounded-lg font-medium hover:bg-gray-50 transition-colors shadow-sm cursor-pointer"
-                                    title={t("copy_link_title")}
-                                >
-                                    {copiado ? <Check size={18} className="text-green-500" /> : <LinkIcon size={18} />}
-                                    {copiado ? t("link_copied") : t("copy_link_btn") || "Link"}
-                                </button>
                             </div>
                         </div>
 
-                        {/* SOBRE MIM */}
                         <div className="mt-6">
                             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2 mb-2">
                                 <User size={14} /> {t("about_me")}
@@ -160,21 +160,17 @@ export function CandidateProfile({ candidato, fotoPerfil, localidade, contato, l
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-                    {/* ÁREAS DE INTERESSE */}
                     <div className="col-span-1 md:col-span-2">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="font-bold text-gray-800 flex items-center gap-2">
                                 <Target className="text-blue-600" size={18} /> {t("areas_of_interest")}
                             </h3>
-                            <Link href="/candidate/edit/area">
-                                <button className="text-blue-600 text-sm font-medium cursor-pointer hover:underline">{t("edit_areas")}</button>
-                            </Link>
                         </div>
                         <div className="flex flex-wrap gap-2">
                             {candidato.candidato_area?.length > 0 ? (
                                 candidato.candidato_area.map((ca: any, idx: number) => (
                                     <span key={idx} className="bg-blue-50 text-blue-700 border border-blue-100 px-4 py-1.5 rounded-full text-sm font-medium">
-                                        {ca.area_interesse?.nome || t("area_default")}
+                                        {t(ca.area_interesse?.nome) || t("area_default")}
                                     </span>
                                 ))
                             ) : (
@@ -183,8 +179,7 @@ export function CandidateProfile({ candidato, fotoPerfil, localidade, contato, l
                         </div>
                     </div>
 
-                    {/* LINKS */}
-                    <div>
+                    <div className="col-span-1 md:col-span-2">
                         <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
                             <LinkIcon className="text-blue-600" size={18} /> {t("links_network")}
                         </h3>
@@ -211,32 +206,61 @@ export function CandidateProfile({ candidato, fotoPerfil, localidade, contato, l
                         </div>
                     </div>
 
-                    {/* ANEXOS */}
-                    <div>
+                    <div className="col-span-1 md:col-span-2">
                         <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
                             <Paperclip className="text-blue-600" size={18} /> {t("attachments")}
                         </h3>
-                        <div className="space-y-3">
-                            {anexos.length > 0 ? anexos.map((a, idx) => (
-                                <button
-                                    key={idx}
-                                    onClick={() => handleViewFile(a.url, a.nome)}
-                                    className="w-full text-left flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 hover:border-blue-200 transition-all group cursor-pointer"
-                                >
-                                    <div className="truncate pr-4 flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-white text-gray-400 group-hover:text-blue-600 transition-colors">
-                                            <Paperclip size={18} />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {anexos.length > 0 ? anexos.map((a, idx) => {
+                                const isImage = a.mime?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(a.url);
+                                const isPdf = a.mime?.includes('pdf') || /\.pdf$/i.test(a.url);
+
+                                return (
+                                    <button
+                                        key={idx}
+                                        onClick={() => handleViewFile(a.url, a.nome)}
+                                        className="group relative flex flex-col w-full bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg hover:border-blue-300 transition-all text-left h-48 cursor-pointer"
+                                    >
+                                        <div className="flex-grow w-full bg-gray-50 relative flex items-center justify-center overflow-hidden">
+                                            {isImage ? (
+                                                <img
+                                                    src={a.url}
+                                                    alt={a.nome}
+                                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                                />
+                                            ) : (
+                                                <div className={`w-full h-full flex flex-col items-center justify-center gap-2 transition-colors ${isPdf ? 'bg-red-50/50 group-hover:bg-red-50' : 'bg-gray-50 group-hover:bg-gray-100'}`}>
+                                                    <div className={`p-3 rounded-xl shadow-sm ${isPdf ? 'bg-white text-red-500' : 'bg-white text-blue-500'}`}>
+                                                        {isPdf ? <FileText size={32} /> : <Paperclip size={32} />}
+                                                    </div>
+                                                    <span className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+                                                        {a.mime?.split('/')[1] || 'FILE'}
+                                                    </span>
+                                                </div>
+                                            )}
+
+                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                                <div className="bg-white/90 p-2 rounded-full shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                                                    <ExternalLink size={20} className="text-blue-600" />
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="truncate">
-                                            <p className="text-sm font-medium text-gray-700 truncate group-hover:text-blue-700">{a.nome}</p>
-                                            <p className="text-[10px] text-gray-400 uppercase">{a.mime} • {formatSize(a.tamanho)}</p>
+
+                                        <div className="p-3 border-t border-gray-100 bg-white relative z-10">
+                                            <div className="flex items-start justify-between gap-2">
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-semibold text-gray-800 truncate" title={a.nome}>{a.nome}</p>
+                                                    <p className="text-xs text-gray-500 mt-0.5">{formatSize(a.tamanho)}</p>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="text-gray-300 group-hover:text-blue-500 transition-colors">
-                                        <ExternalLink size={18} />
-                                    </div>
-                                </button>
-                            )) : <p className="text-gray-400 text-sm">{t("no_attachments")}</p>}
+                                    </button>
+                                );
+                            }) : (
+                                <div className="col-span-full py-8 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                                    <p className="text-gray-400 text-sm">{t("no_attachments")}</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -245,7 +269,6 @@ export function CandidateProfile({ candidato, fotoPerfil, localidade, contato, l
     );
 }
 
-// Ícone de alvo (Target) não importado do Lucide no exemplo acima, adicionar se desejar:
 const Target = ({ className, size }: { className?: string, size?: number }) => (
     <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></svg>
 );
