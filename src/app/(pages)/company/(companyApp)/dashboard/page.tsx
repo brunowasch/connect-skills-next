@@ -8,7 +8,7 @@ export default async function Dashboard() {
     const userId = cookieStore.get("time_user_id")?.value;
 
     if (!userId) {
-        redirect("/pages/auth/login");
+        redirect("/login");
     }
 
     const companyData = await prisma.empresa.findUnique({
@@ -28,7 +28,7 @@ export default async function Dashboard() {
     });
 
     if (!companyData) {
-        redirect("/pages/auth/login");
+        redirect("/login");
     }
 
     // Buscar KPIs

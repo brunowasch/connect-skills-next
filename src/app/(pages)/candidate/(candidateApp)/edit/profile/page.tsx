@@ -8,7 +8,7 @@ export default async function EditProfilePage() {
     const userId = cookieStore.get("time_user_id")?.value;
 
     if (!userId) {
-        redirect("/pages/auth/login");
+        redirect("/login");
     }
 
     const candidate = await prisma.candidato.findUnique({

@@ -8,7 +8,7 @@ export default async function Dashboard() {
     const userId = cookieStore.get("time_user_id")?.value;
 
     if (!userId) {
-        redirect("/pages/auth/login");
+        redirect("/login");
     }
 
     // Buscar dados do candidato com áreas de interesse
@@ -41,7 +41,7 @@ export default async function Dashboard() {
     });
 
     if (!candidateComplete) {
-        redirect("/pages/auth/login");
+        redirect("/login");
     }
 
     // Extrair dados do candidato para o Hero

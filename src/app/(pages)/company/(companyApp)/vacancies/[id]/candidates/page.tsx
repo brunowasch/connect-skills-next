@@ -14,7 +14,7 @@ export default async function VacancyCandidatesPage({ params }: Props) {
     const userId = cookieStore.get("time_user_id")?.value;
 
     if (!userId) {
-        redirect("/pages/auth/login");
+        redirect("/login");
     }
 
     // Verificar se o usuário é uma empresa e qual seu ID
