@@ -178,7 +178,8 @@ export default async function Dashboard() {
             vacancyTitle: vacancy?.cargo || 'Vaga Desconhecida',
             date: app.created_at,
             score: app.score,
-            candidateId: app.candidato_id
+            candidateId: app.candidato_id,
+            vacancyId: app.vaga_id
         };
     });
 

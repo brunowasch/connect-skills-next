@@ -1,19 +1,12 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
-import { CandidateProfile } from "@/src/app/(pages)/candidate/(candidateApp)/profile/_components/CandidateProfile";
-import { randomUUID } from "crypto";
+import { PublicCandidateProfile } from "./_components/PublicCandidateProfile";
 
-export default async function CandidateProfilePage() {
-    const cookieStore = await cookies();
-    const userId = cookieStore.get("time_user_id")?.value;
-
-    if (!userId) {
-        redirect("/login");
-    }
+export default async function CandidatePublicProfilePage({ params }: { params: Promise<{ uuid: string }> }) {
+    const { uuid } = await params;
 
     const candidate = await prisma.candidato.findUnique({
-        where: { usuario_id: userId },
+        where: { uuid },
         include: {
             candidato_area: {
                 include: {
@@ -34,16 +27,7 @@ export default async function CandidateProfilePage() {
     });
 
     if (!candidate) {
-        redirect("/auth/login");
-    }
-
-    let candidateUUID = candidate.uuid;
-    if (!candidateUUID) {
-        candidateUUID = randomUUID();
-        await prisma.candidato.update({
-            where: { id: candidate.id },
-            data: { uuid: candidateUUID }
-        });
+        notFound();
     }
 
     const localidade = candidate.cidade && candidate.estado
@@ -76,7 +60,7 @@ export default async function CandidateProfilePage() {
         }
     }
 
-    // Formatar número com hífen se for celular ou fixo
+    // Formatar número com hífen
     if (numero.length === 9) {
         numero = `${numero.substring(0, 5)}-${numero.substring(5)}`;
     } else if (numero.length === 8) {
@@ -95,16 +79,18 @@ export default async function CandidateProfilePage() {
         criadoEm: a.criadoEm.toISOString(),
     }));
 
+    // Serialize object to avoid server component errors with Date objects
+    const candidateSerialized = JSON.parse(JSON.stringify(candidate));
+
     return (
-        <div className="mb-4 sm:mb-6">
-            <CandidateProfile
-                candidato={candidate}
+        <div className="container mx-auto px-4 py-8">
+            <PublicCandidateProfile
+                candidato={candidateSerialized}
                 fotoPerfil={candidate.foto_perfil || undefined}
                 localidade={localidade}
                 contato={contato}
                 links={links}
                 anexos={anexos}
-                perfilShareUrl={`/viewer/candidate/${candidateUUID}`}
             />
         </div>
     );

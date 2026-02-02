@@ -90,6 +90,7 @@ interface VacancyDetailsProps {
     };
     company: {
         nome_empresa: string;
+        uuid: string;
         foto_perfil?: string | null;
         cidade?: string | null;
         estado?: string | null;
@@ -413,7 +414,13 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                 <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                     <div className="flex justify-between items-center mb-6">
                         <button
-                            onClick={() => router.back()}
+                            onClick={() => {
+                                if (window.history.length > 2) {
+                                    router.back();
+                                } else {
+                                    window.close();
+                                }
+                            }}
                             className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
                         >
                             <ArrowLeft size={18} />
@@ -550,8 +557,6 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                             </div>
                         )}
 
-
-
                         {/* Anexos e Links */}
                         {((vacancy.vaga_arquivo && vacancy.vaga_arquivo.length > 0) ||
                             (vacancy.vaga_link && vacancy.vaga_link.length > 0)) && (
@@ -628,7 +633,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                     </div>
                                 )}
                                 <Link
-                                    href="#"
+                                    href={`/viewer/company/${company?.uuid}`}
                                     className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors"
                                 >
                                     <Building2 size={16} />

@@ -1,13 +1,15 @@
 "use client";
 
-import React from 'react';
+import React, { useTransition } from 'react';
 import Link from 'next/link';
 import { Users, ChevronRight, Calendar, Star } from 'lucide-react';
 import { RecentCandidatesProps } from '@/src/app/(pages)/company/(companyApp)/types/Application';
 import { useTranslation } from "react-i18next";
+import { selectVacancyForRanking } from '@/src/app/(pages)/company/(companyApp)/vacancies/actions';
 
 export function RecentCandidates({ applications }: RecentCandidatesProps) {
     const { t, i18n } = useTranslation();
+    const [isPending, startTransition] = useTransition();
 
     if (applications.length === 0) {
         return (
@@ -81,12 +83,13 @@ export function RecentCandidates({ applications }: RecentCandidatesProps) {
                             </div>
                         </div>
 
-                        <Link
-                            href={`#`}
-                            className="text-slate-300 hover:text-indigo-600 p-2 hover:bg-indigo-50 rounded-lg transition-colors"
+                        <button
+                            onClick={() => startTransition(() => selectVacancyForRanking(app.vacancyId))}
+                            disabled={isPending}
+                            className={`text-slate-300 hover:text-indigo-600 p-2 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer ${isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             <ChevronRight size={20} />
-                        </Link>
+                        </button>
                     </div>
                 ))}
             </div>

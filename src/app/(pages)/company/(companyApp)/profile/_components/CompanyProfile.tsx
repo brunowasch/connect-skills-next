@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, MapPin, Phone, Mail, Edit, FileText, ExternalLink } from "lucide-react";
+import { Building2, MapPin, Phone, Mail, Edit, FileText, ExternalLink, Link as LinkIcon, Copy, Check } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
@@ -34,13 +34,24 @@ interface CompanyProfileProps {
         url: string;
         ordem: number;
     }[];
+    perfilShareUrl?: string; // Optional to stay compatible if not passed yet, but we will pass it.
 }
 
-export function CompanyProfile({ company, fotoPerfil, localidade, contato, email, anexos, links }: CompanyProfileProps) {
+export function CompanyProfile({ company, fotoPerfil, localidade, contato, email, anexos, links, perfilShareUrl }: CompanyProfileProps) {
     const { t } = useTranslation();
+    const [copiado, setCopiado] = useState(false);
     const [formData, setFormData] = useState({
         anexos: [] as { nome: string, base64: string, size: number, type: string }[]
     });
+
+    const handleCopyLink = () => {
+        if (!perfilShareUrl) return;
+        const origin = typeof window !== 'undefined' ? window.location.origin : '';
+        const fullUrl = perfilShareUrl.startsWith('http') ? perfilShareUrl : `${origin}${perfilShareUrl}`;
+        navigator.clipboard.writeText(fullUrl);
+        setCopiado(true);
+        setTimeout(() => setCopiado(false), 2000);
+    };
     const telefoneCompleto = contato.ddi
         ? `+${contato.ddi} (${contato.ddd}) ${contato.numero}`
         : contato.ddd
@@ -119,6 +130,17 @@ export function CompanyProfile({ company, fotoPerfil, localidade, contato, email
                         <Edit size={18} />
                         {t('edit_profile_btn')}
                     </Link>
+
+                    {perfilShareUrl && (
+                        <button
+                            onClick={handleCopyLink}
+                            className="flex items-center gap-2 px-4 py-2 bg-white text-gray-700 border border-gray-200 rounded-lg font-medium hover:bg-gray-50 transition-colors shadow-sm cursor-pointer"
+                            title={t("copy_link_title")}
+                        >
+                            {copiado ? <Check size={18} className="text-green-500" /> : <LinkIcon size={18} />}
+                            {copiado ? t("link_copied") : t("copy_link_btn") || "Link"}
+                        </button>
+                    )}
                 </div>
             </div>
 

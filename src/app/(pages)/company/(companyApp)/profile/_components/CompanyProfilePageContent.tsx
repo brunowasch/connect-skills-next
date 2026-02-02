@@ -7,9 +7,10 @@ interface CompanyProfilePageContentProps {
     company: any;
     localidade: string;
     contato: any;
+    perfilShareUrl?: string;
 }
 
-export function CompanyProfilePageContent({ company, localidade, contato }: CompanyProfilePageContentProps) {
+export function CompanyProfilePageContent({ company, localidade, contato, perfilShareUrl }: CompanyProfilePageContentProps) {
     const { t } = useTranslation();
 
     return (
@@ -24,6 +25,7 @@ export function CompanyProfilePageContent({ company, localidade, contato }: Comp
                 localidade={localidade}
                 contato={contato}
                 email={company.usuario?.email}
+                perfilShareUrl={perfilShareUrl}
                 anexos={company.empresa_arquivo.map((a: any) => ({
                     id: a.id,
                     nome: a.nome,
