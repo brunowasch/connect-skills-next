@@ -51,7 +51,7 @@ export default async function ApplyPage({ params }: { params: Promise<{ uuid: st
         uuid: vacancy.uuid,
         cargo: vacancy.cargo,
         pergunta: vacancy.pergunta,
-        vaga_soft_skill: vacancy.vaga_soft_skill.map((vss) => ({
+        vaga_soft_skill: vacancy.vaga_soft_skill.map((vss: any) => ({
             soft_skill: {
                 nome: vss.soft_skill.nome
             }
