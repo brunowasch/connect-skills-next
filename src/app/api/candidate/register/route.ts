@@ -33,9 +33,11 @@ export async function POST(req: Request) {
           data_nascimento: new Date(data_nascimento),
         },
       });
-      
+
       return candidate;
     });
+
+
 
     // 3. Retorno de sucesso
     return NextResponse.json(result, { status: 201 });

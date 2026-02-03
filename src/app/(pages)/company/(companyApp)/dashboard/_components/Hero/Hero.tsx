@@ -51,7 +51,7 @@ export function CompanyHero({ companyData }: CompanyHeroProps) {
                 {/* Lado Direito: Ações */}
                 <div className="flex flex-col sm:flex-row md:justify-end gap-2 sm:gap-3 w-full md:w-auto">
                     <Link
-                        href="/company/vacancies"
+                        href="/company/vacancies/new"
                         className="flex items-center justify-center gap-1.5 sm:gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors w-full sm:w-auto text-xs sm:text-sm font-medium"
                     >
                         <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />
@@ -63,7 +63,7 @@ export function CompanyHero({ companyData }: CompanyHeroProps) {
                         className="flex items-center justify-center gap-1.5 sm:gap-2 border border-blue-600 text-blue-600 hover:bg-blue-50 px-3 sm:px-4 py-2 rounded-lg transition-colors w-full sm:w-auto text-xs sm:text-sm font-medium"
                     >
                         <User size={16} className="sm:w-[18px] sm:h-[18px]" />
-                        {t("my_profile")}
+                        {t("my_profile_title")}
                     </Link>
                 </div>
 

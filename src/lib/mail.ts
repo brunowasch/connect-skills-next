@@ -53,3 +53,35 @@ export async function sendVerificationEmail(email: string, code: string) {
         return false;
     }
 }
+
+export async function sendLoginCodeEmail(email: string, code: string) {
+    const mailOptions = {
+        from: process.env.EMAIL_FROM,
+        to: email,
+        subject: 'Código de Acesso - Connect Skills',
+        html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+        <h2 style="color: #4F46E5; text-align: center;">Verificação de Segurança</h2>
+        <p style="text-align: center; color: #555;">Detectamos um novo acesso à sua conta. Use o código abaixo para completar o login:</p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <span style="background-color: #f3f4f6; color: #1f2937; padding: 12px 24px; border-radius: 8px; font-size: 24px; font-weight: bold; letter-spacing: 4px; border: 1px solid #e5e7eb;">
+            ${code}
+          </span>
+        </div>
+
+        <p style="text-align: center; font-size: 14px; color: #666;">
+          Se você não solicitou este acesso, recomendamos alterar sua senha.
+        </p>
+        <p style="text-align: center; font-size: 12px; color: #999; margin-top: 20px;">Este código expira em 30 minutos.</p>
+      </div>
+    `,
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        return true;
+    } catch (error) {
+        return false;
+    }
+}

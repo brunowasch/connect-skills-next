@@ -234,7 +234,7 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
                     text: 'Conta excluída com sucesso.'
                 }));
                 window.dispatchEvent(new Event('storage'));
-                window.location.href = '/login';
+                window.location.href = '/';
             } else {
                 const data = await res.json();
                 alert(data.error || 'Erro ao excluir conta');

@@ -1462,6 +1462,9 @@
     "assessment_confirm_desc": "¿Ha revisado todas sus respuestas? Después del envío, no podrá cambiar su información en esta solicitud.",
     "assessment_confirm_btn_yes": "Sí, Enviar Solicitud",
     "assessment_confirm_btn_no": "Revisar Respuestas",
+    "vacancy_interested_title": "¿Interesado en esta vacante?",
+    "vacancy_interested_desc": "¡Postúlate ahora y forma parte del equipo de {{company}}!",
+    "vacancy_apply_action": "Postularse a la Vacante",
     "responses_modal_title": "Sus Respuestas",
     "responses_modal_no_data": "No se encontraron respuestas.",
     "responses_modal_close": "Cerrar Vista"

@@ -60,10 +60,9 @@ export async function POST(req: Request) {
         );
 
         response.cookies.set("time_user_id", user.id, {
-            httpOnly: false,
+            httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "lax",
-            maxAge: 60 * 60,
             path: "/"
         });
 

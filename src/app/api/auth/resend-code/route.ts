@@ -7,7 +7,7 @@ import { randomUUID } from "crypto";
 
 export async function POST(req: Request) {
     try {
-        const { email } = await req.json();
+        const { email, type } = await req.json();
 
         if (!email) {
             return NextResponse.json(
@@ -27,7 +27,8 @@ export async function POST(req: Request) {
             );
         }
 
-        if (user.email_verificado) {
+        // Se for cadastro e já estiver verificado, avisa. Se for login, ignora.
+        if (type !== 'login' && user.email_verificado) {
             return NextResponse.json(
                 { error: "Email already verified" },
                 { status: 400 }
@@ -38,9 +39,6 @@ export async function POST(req: Request) {
         const verificationToken = generateVerificationCode();
 
         // Salva novo token no banco
-        // Usamos (prisma as any) para evitar erro de tipo caso o client não esteja atualizado
-
-        // Vamos remover os antigos para não poluir o banco
         await (prisma as any).verification_token.deleteMany({
             where: { usuario_id: user.id }
         });

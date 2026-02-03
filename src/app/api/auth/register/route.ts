@@ -45,13 +45,44 @@ export async function POST(req: Request) {
     // 2. Verificação de existência do usuário
     const existingUser = await prisma.usuario.findUnique({
       where: { email },
+      include: { candidato: true, empresa: true }
     });
 
     if (existingUser) {
-      return NextResponse.json(
-        { error: "register_error_user_exists" },
-        { status: 409 }
-      );
+      const isCandidateComplete = existingUser.candidato && existingUser.candidato.nome;
+      const isCompanyComplete = existingUser.empresa && existingUser.empresa.nome_empresa && existingUser.empresa.nome_empresa !== "";
+      const isRegistrationComplete = isCandidateComplete || isCompanyComplete;
+
+      if (isRegistrationComplete) {
+        return NextResponse.json(
+          { error: "register_error_user_exists" },
+          { status: 409 }
+        );
+      } else {
+        // Usuário existe mas cadastro não foi completado. Permitimos sobrescrever.
+        // Primeiramente limpamos os dados antigos para evitar conflitos ou dados parciais.
+        try {
+          await prisma.verification_token.deleteMany({
+            where: { usuario_id: existingUser.id }
+          });
+
+          // Tentamos deletar registros dependentes se existirem
+          try {
+            await prisma.candidato.delete({ where: { usuario_id: existingUser.id } });
+          } catch { }
+
+          try {
+            await prisma.empresa.delete({ where: { usuario_id: existingUser.id } });
+          } catch { }
+
+          // Deletamos o usuário antigo
+          await prisma.usuario.delete({ where: { id: existingUser.id } });
+
+        } catch (cleanupError) {
+          console.error("Erro ao limpar usuário incompleto:", cleanupError);
+          // Se falhar a limpeza, provavelmente falhará a criação, mas deixamos fluir
+        }
+      }
     }
 
     // 3. Preparação de IDs
