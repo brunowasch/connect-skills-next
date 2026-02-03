@@ -3,10 +3,12 @@ import { RegisterCompany } from "@/src/app/(pages)/company/(register)/register/_
 
 export default function CompanyName() {
     return (
-        <>
+        <div className="flex flex-col min-h-screen">
             <Header />
-            <RegisterCompany />
+            <main className="flex grow items-center justify-center">
+                <RegisterCompany />
+            </main>
             <Footer />
-        </>
+        </div>
     )
 }

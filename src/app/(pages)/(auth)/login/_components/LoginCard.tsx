@@ -37,7 +37,7 @@ export function LoginCard() {
     }
 
     return (
-        <div className="flex justify-center items-center min-h-screen">
+        <div className="flex justify-center items-center min-h-[calc(100vh-12rem)]">
             <form
                 onSubmit={handleSubmit}
                 className="bg-white p-8 rounded-xl shadow-md w-full max-w-md"

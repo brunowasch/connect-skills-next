@@ -44,7 +44,7 @@ export function RegisterCompany() {
     }
 
     return (
-        <div className="flex justify-center items-center w-full px-4 py-8 md:py-16">
+        <div className="flex justify-center items-center w-full px-4 py-24 md:py-48">
             <form
                 onSubmit={handleSubmit}
                 className="bg-white p-6 md:p-8 rounded-xl shadow-md w-full max-w-lg"

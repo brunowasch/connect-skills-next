@@ -41,7 +41,7 @@ export async function sendVerificationEmail(email: string, code: string) {
         <p style="text-align: center; font-size: 14px; color: #666;">
           Se você não solicitou este código, ignore este email.
         </p>
-        <p style="text-align: center; font-size: 12px; color: #999; margin-top: 20px;">Este código expira em 24 horas.</p>
+        <p style="text-align: center; font-size: 12px; color: #999; margin-top: 20px;">Este código expira em 30 minutos.</p>
       </div>
     `,
     };

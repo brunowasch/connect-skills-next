@@ -76,6 +76,8 @@
     "register_verify_btn": "Verificar e Continuar",
     "register_wrong_code": "Código inválido. Por favor evite espaços.",
     "vacancy_back": "Voltar",
+    "resend_code_btn": "Reenviar código",
+    "error_sending_code": "Erro ao enviar código. Tente novamente.",
     "vacancy_applied_title": "Candidatura Realizada",
     "vacancy_applied_desc": "Sua avaliação foi enviada e está em análise.",
     "vacancy_view_responses": "Visualizar Minhas Respostas",

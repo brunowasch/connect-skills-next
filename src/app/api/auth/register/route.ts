@@ -100,7 +100,7 @@ export async function POST(req: Request) {
           id: randomUUID(),
           token: verificationToken,
           usuario_id: userId,
-          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 horas
+          expires_at: new Date(Date.now() + 30 * 60 * 1000), // 30 minutos
         },
       });
 

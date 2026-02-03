@@ -76,6 +76,8 @@
     "register_verify_btn": "Verify and Continue",
     "register_wrong_code": "Invalid code. Please avoid spaces.",
     "vacancy_back": "Back",
+    "resend_code_btn": "Resend code",
+    "error_sending_code": "Error sending code. Please try again.",
     "vacancy_applied_title": "Application Submitted",
     "vacancy_applied_desc": "Your assessment has been sent and is under review.",
     "vacancy_view_responses": "View My Responses",
