@@ -1,6 +1,5 @@
 generator client {
-    provider = "prisma-client-js"
-    url      = env("DATABASE_URL")
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -33,7 +32,7 @@ model candidato {
   candidato_area    candidato_area[]
   candidato_arquivo candidato_arquivo[]
   candidato_link    candidato_link[]
-  vaga_favorita     vaga_favorita[]
+  // vaga_favorita     vaga_favorita[]
 }
 
 model candidato_area {
@@ -141,6 +140,7 @@ model usuario {
   candidato        candidato?
   empresa          empresa?
   verification_tokens verification_token[]
+  password_reset_token password_reset_token[]
 }
 
 model vaga {
@@ -160,7 +160,7 @@ model vaga {
   opcao                String?                    @db.Text
   created_at           DateTime                   @default(now())
   vinculo_empregaticio vaga_vinculo_empregaticio?
-  vaga_favorita        vaga_favorita[]
+  // vaga_favorita        vaga_favorita[]
   vaga_soft_skill      vaga_soft_skill[]
   vaga_area            vaga_area[]
 }
@@ -227,16 +227,16 @@ model vaga_link {
   criadoEm DateTime @default(now())
 }
 
-model vaga_favorita {
-  id           String    @id
-  vaga_id      String
-  candidato_id String
-  created_at   DateTime  @default(now())
-  candidato    candidato @relation(fields: [candidato_id], references: [id])
-  vaga         vaga      @relation(fields: [vaga_id], references: [id])
+// model vaga_favorita {
+//   id           String    @id
+//   vaga_id      String
+//   candidato_id String
+//   created_at   DateTime  @default(now())
+//   candidato    candidato @relation(fields: [candidato_id], references: [id])
+//   vaga         vaga      @relation(fields: [vaga_id], references: [id])
 
-  @@unique([vaga_id, candidato_id])
-}
+//   @@unique([vaga_id, candidato_id])
+// }
 
 enum vaga_tipo_local_trabalho {
   Presencial
@@ -257,6 +257,17 @@ enum vaga_vinculo_empregaticio {
 
 model verification_token {
   id         String   @id
+  token      String   @unique
+  usuario_id String
+  expires_at DateTime
+  created_at DateTime @default(now())
+  usuario    usuario  @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+
+  @@index([usuario_id])
+}
+
+model password_reset_token {
+  id         String   @id @default(uuid())
   token      String   @unique
   usuario_id String
   expires_at DateTime

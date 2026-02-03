@@ -85,3 +85,79 @@ export async function sendLoginCodeEmail(email: string, code: string) {
         return false;
     }
 }
+
+export async function sendPasswordResetEmail(email: string, token: string) {
+    const resetLink = `${process.env.APP_URL}/reset-password?token=${token}`;
+
+    const mailOptions = {
+        from: process.env.EMAIL_FROM,
+        to: email,
+        subject: 'Recuperação de Senha - Connect Skills',
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+                <h2 style="color: #4F46E5; text-align: center;">Recuperação de Senha</h2>
+                <p style="text-align: center; color: #555;">Você solicitou a redefinição de sua senha. Clique no botão abaixo para criar uma nova senha:</p>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="${resetLink}" style="background-color: #4F46E5; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+                        Redefinir Senha
+                    </a>
+                </div>
+
+                <p style="text-align: center; color: #555;">ou copie o link abaixo:</p>
+                <p style="text-align: center; word-break: break-all; color: #4F46E5;">${resetLink}</p>
+
+                <p style="text-align: center; font-size: 14px; color: #666;">
+                    Se você não solicitou a redefinição, ignore este email.
+                </p>
+                <p style="text-align: center; font-size: 12px; color: #999; margin-top: 20px;">Este link expira em 1 hora.</p>
+            </div>
+        `,
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        return true;
+    } catch (error) {
+        console.error("Erro ao enviar email de reset:", error);
+        return false;
+    }
+}
+
+export async function sendPasswordResetCodeEmail(email: string, code: string) {
+    const resetLink = `${process.env.APP_URL}/reset-password?email=${encodeURIComponent(email)}&token=${code}`;
+    
+    const mailOptions = {
+        from: process.env.EMAIL_FROM,
+        to: email,
+        subject: 'Código de Recuperação - Connect Skills',
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+                <h2 style="color: #4F46E5; text-align: center;">Recuperação de Senha</h2>
+                <p style="text-align: center; color: #555;">Você solicitou a redefinição de sua senha. Clique no botão abaixo para criar uma nova senha:</p>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="${resetLink}" style="background-color: #4F46E5; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+                        Redefinir Senha
+                    </a>
+                </div>
+
+                <p style="text-align: center; color: #555;">ou copie o link abaixo:</p>
+                <p style="text-align: center; word-break: break-all; color: #4F46E5;">${resetLink}</p>
+
+                <p style="text-align: center; font-size: 14px; color: #666;">
+                    Se você não solicitou a redefinição, ignorar este email.
+                </p>
+                <p style="text-align: center; font-size: 12px; color: #999; margin-top: 20px;">Este link expira em 1 hora.</p>
+            </div>
+        `,
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        return true;
+    } catch (error) {
+        console.error("Erro ao enviar email de reset (código):", error);
+        return false;
+    }
+}

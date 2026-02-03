@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { VerificationModal } from "@/src/app/_components/VerificationModal";
+import { Eye, EyeOff, Check, X } from "lucide-react";
+import { validatePassword, PASSWORD_REQUIREMENTS } from "@/src/lib/password-validation";
 
 export function RegisterCard() {
     const { t } = useTranslation();
@@ -14,6 +16,9 @@ export function RegisterCard() {
 
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
+    const [confirmSenha, setConfirmSenha] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [tipo, setTipo] = useState<"CANDIDATO" | "EMPRESA">("CANDIDATO");
     const [code, setCode] = useState("");
 
@@ -60,6 +65,19 @@ export function RegisterCard() {
     async function handleRegisterSubmit(e: React.FormEvent) {
         e.preventDefault();
         setError("");
+        
+        const { isValid, errors: passwordErrors } = validatePassword(senha);
+        if (!isValid) {
+            // Can show generic or specific error. Since we will have a checklist, maybe just generic toast/error here if they bypass?
+            setError(t("register_error_password_requirements") || "A senha não atende aos requisitos.");
+            return;
+        }
+
+        if (senha !== confirmSenha) {
+            setError(t("register_error_password_mismatch") || "As senhas não coincidem.");
+            return;
+        }
+
         setIsLoading(true);
 
         try {
@@ -187,14 +205,75 @@ export function RegisterCard() {
 
                 <div className="mb-6">
                     <label className="block text-gray-700 mb-2">{t("register_password")}</label>
-                    <input
-                        type="password"
-                        value={senha}
-                        onChange={(e) => setSenha(e.target.value)}
-                        required
-                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder={t("register_password_placeholder")}
-                    />
+                    <div className="relative">
+                        <input
+                            type={showPassword ? "text" : "password"}
+                            value={senha}
+                            onChange={(e) => setSenha(e.target.value)}
+                            required
+                            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                            placeholder={t("register_password_placeholder")}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 cursor-pointer"
+                        >
+                            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </button>
+                    </div>
+                    {/* Password Requirements Checklist - Show only when typing */}
+                    {senha.length > 0 && (
+                     <div className="mt-2 p-3 bg-gray-50 rounded-lg text-xs text-gray-600">
+                        <p className="font-semibold mb-2">{t("password_requirements_title")}</p>
+                        <ul className="space-y-1">
+                            <li className={`flex items-center gap-2 ${senha.length >= PASSWORD_REQUIREMENTS.minLength ? "text-green-600" : "text-gray-500"}`}>
+                                {senha.length >= PASSWORD_REQUIREMENTS.minLength ? <Check size={12} /> : <div className="w-3 h-3 rounded-full border border-gray-400" />}
+                                {t("password_min_length")}
+                            </li>
+                            <li className={`flex items-center gap-2 ${PASSWORD_REQUIREMENTS.hasUpperCase.test(senha) ? "text-green-600" : "text-gray-500"}`}>
+                                {PASSWORD_REQUIREMENTS.hasUpperCase.test(senha) ? <Check size={12} /> : <div className="w-3 h-3 rounded-full border border-gray-400" />}
+                                {t("password_uppercase")}
+                            </li>
+                            <li className={`flex items-center gap-2 ${PASSWORD_REQUIREMENTS.hasLowerCase.test(senha) ? "text-green-600" : "text-gray-500"}`}>
+                                {PASSWORD_REQUIREMENTS.hasLowerCase.test(senha) ? <Check size={12} /> : <div className="w-3 h-3 rounded-full border border-gray-400" />}
+                                {t("password_lowercase")}
+                            </li>
+                            <li className={`flex items-center gap-2 ${PASSWORD_REQUIREMENTS.hasNumber.test(senha) ? "text-green-600" : "text-gray-500"}`}>
+                                {PASSWORD_REQUIREMENTS.hasNumber.test(senha) ? <Check size={12} /> : <div className="w-3 h-3 rounded-full border border-gray-400" />}
+                                {t("password_number")}
+                            </li>
+                            <li className={`flex items-center gap-2 ${PASSWORD_REQUIREMENTS.hasSpecialChar.test(senha) ? "text-green-600" : "text-gray-500"}`}>
+                                {PASSWORD_REQUIREMENTS.hasSpecialChar.test(senha) ? <Check size={12} /> : <div className="w-3 h-3 rounded-full border border-gray-400" />}
+                                {t("password_special")}
+                            </li>
+                        </ul>
+                    </div>
+                    )}
+                </div>
+
+                <div className="mb-6">
+                    <label className="block text-gray-700 mb-2">{t("register_confirm_password")}</label>
+                    <div className="relative">
+                        <input
+                            type={showConfirmPassword ? "text" : "password"}
+                            value={confirmSenha}
+                            onChange={(e) => setConfirmSenha(e.target.value)}
+                            required
+                            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                            placeholder={t("register_password_placeholder")}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 cursor-pointer"
+                        >
+                            {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </button>
+                    </div>
+                    {senha && confirmSenha && senha !== confirmSenha && (
+                        <p className="text-red-500 text-xs mt-1">As senhas não coincidem.</p>
+                    )}
                 </div>
 
                 <button
