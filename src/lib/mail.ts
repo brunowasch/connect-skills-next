@@ -134,8 +134,16 @@ export async function sendPasswordResetCodeEmail(email: string, code: string) {
         html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
                 <h2 style="color: #4F46E5; text-align: center;">Recuperação de Senha</h2>
-                <p style="text-align: center; color: #555;">Você solicitou a redefinição de sua senha. Clique no botão abaixo para criar uma nova senha:</p>
+                <p style="text-align: center; color: #555;">Você solicitou a redefinição de sua senha. Use o código abaixo para redefinir:</p>
                 
+                <div style="text-align: center; margin: 30px 0;">
+                  <span style="background-color: #f3f4f6; color: #1f2937; padding: 12px 24px; border-radius: 8px; font-size: 24px; font-weight: bold; letter-spacing: 4px; border: 1px solid #e5e7eb;">
+                    ${code}
+                  </span>
+                </div>
+
+                <p style="text-align: center; color: #555;">Ou se preferir, clique no botão abaixo:</p>
+
                 <div style="text-align: center; margin: 30px 0;">
                     <a href="${resetLink}" style="background-color: #4F46E5; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
                         Redefinir Senha
@@ -148,7 +156,7 @@ export async function sendPasswordResetCodeEmail(email: string, code: string) {
                 <p style="text-align: center; font-size: 14px; color: #666;">
                     Se você não solicitou a redefinição, ignorar este email.
                 </p>
-                <p style="text-align: center; font-size: 12px; color: #999; margin-top: 20px;">Este link expira em 1 hora.</p>
+                <p style="text-align: center; font-size: 12px; color: #999; margin-top: 20px;">Este link/código expira em 1 hora.</p>
             </div>
         `,
     };

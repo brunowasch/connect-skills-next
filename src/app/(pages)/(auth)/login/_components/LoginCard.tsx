@@ -99,24 +99,25 @@ export function LoginCard() {
                             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                         </button>
                     </div>
-                     <div className="text-right mt-1">
-                        <Link href="/forgot-password" className="text-sm text-blue-600 hover:underline">
-                            {t("login_forgot_password")}
-                        </Link>
-                    </div>
                 </div>
 
-                <div className="flex items-center mb-6">
-                    <input
-                        id="remember-me"
-                        type="checkbox"
-                        checked={rememberMe}
-                        onChange={(e) => setRememberMe(e.target.checked)}
-                        className="appearance-none w-4 h-4 border border-gray-300 rounded checked:bg-blue-600 checked:border-blue-600 focus:ring-2 focus:ring-blue-100 cursor-pointer relative shrink-0 transition-all after:content-[''] after:absolute after:hidden checked:after:block after:left-[5px] after:top-[1px] after:w-[5px] after:h-[9px] after:border-white after:border-r-2 after:border-b-2 after:rotate-45"
-                    />
-                    <label htmlFor="remember-me" className="ml-2 text-sm font-medium text-gray-900 select-none cursor-pointer">
-                        {t("login_keep_logged_in")}
-                    </label>
+                <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center">
+                        <input
+                            id="remember-me"
+                            type="checkbox"
+                            checked={rememberMe}
+                            onChange={(e) => setRememberMe(e.target.checked)}
+                            className="appearance-none w-4 h-4 border border-gray-300 rounded checked:bg-blue-600 checked:border-blue-600 focus:ring-2 focus:ring-blue-100 cursor-pointer relative shrink-0 transition-all after:content-[''] after:absolute after:hidden checked:after:block after:left-[5px] after:top-[1px] after:w-[5px] after:h-[9px] after:border-white after:border-r-2 after:border-b-2 after:rotate-45"
+                        />
+                        <label htmlFor="remember-me" className="ml-2 text-sm font-medium text-gray-900 select-none cursor-pointer">
+                            {t("login_keep_logged_in")}
+                        </label>
+                    </div>
+
+                    <Link href="/forgot-password" className="text-sm text-blue-600 hover:underline">
+                        {t("login_forgot_password")}
+                    </Link>
                 </div>
 
                 <button
