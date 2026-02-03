@@ -21,6 +21,7 @@ export function EditProfile({ initialData }: EditProfileProps) {
     const [fotoPreview, setFotoPreview] = useState(initialData.fotoPerfil || null);
     const [showPhotoOptions, setShowPhotoOptions] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // 1. Gerenciamento de Links (Máx 5)
@@ -174,6 +175,30 @@ export function EditProfile({ initialData }: EditProfileProps) {
 
     const handleCancel = () => {
         router.back();
+    };
+
+    const handleDeleteAccount = async () => {
+        setIsLoading(true);
+        try {
+            const res = await fetch('/api/auth/delete', { method: 'DELETE' });
+            if (res.ok) {
+                localStorage.setItem('global_toast', JSON.stringify({
+                    type: 'success',
+                    text: 'Conta excluída com sucesso.'
+                }));
+                window.dispatchEvent(new Event('storage'));
+                window.location.href = '/login';
+            } else {
+                const data = await res.json();
+                alert(data.error || 'Erro ao excluir conta');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Erro de conexão');
+        } finally {
+            setIsLoading(false);
+            setShowDeleteModal(false);
+        }
     };
 
     const hasChanges = useMemo(() => {
@@ -456,7 +481,11 @@ export function EditProfile({ initialData }: EditProfileProps) {
                 </div>
 
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-10 border-t">
-                    <button type="button" className="text-red-500 flex items-center gap-2 text-sm font-semibold cursor-pointer hover:bg-red-50 px-4 py-2 rounded-lg transition">
+                    <button
+                        type="button"
+                        onClick={() => setShowDeleteModal(true)}
+                        className="text-red-500 flex items-center gap-2 text-sm font-semibold cursor-pointer hover:bg-red-50 px-4 py-2 rounded-lg transition"
+                    >
                         <AlertTriangle size={18} /> {t('edit_profile_delete_account')}
                     </button>
 
@@ -483,6 +512,44 @@ export function EditProfile({ initialData }: EditProfileProps) {
                     </div>
                 </div>
             </form>
+
+            {/* Modal de Exclusão */}
+            {showDeleteModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-in zoom-in-95 duration-200">
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4 text-red-600">
+                                <AlertTriangle size={24} />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">{t('delete_account_modal_title')}</h3>
+                            <p className="text-gray-500 mb-6 font-medium">
+                                {t('delete_account_modal_desc')}
+                            </p>
+                            <div className="flex gap-3 w-full">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowDeleteModal(false)}
+                                    className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-bold hover:bg-gray-200 transition cursor-pointer"
+                                >
+                                    {t('delete_account_modal_cancel')}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleDeleteAccount}
+                                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition flex items-center justify-center gap-2 cursor-pointer"
+                                    disabled={isLoading}
+                                >
+                                    {isLoading ? (
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                        t('delete_account_modal_confirm')
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </main>
     );
 }

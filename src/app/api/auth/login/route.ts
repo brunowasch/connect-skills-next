@@ -37,6 +37,14 @@ export async function POST(req: Request) {
             );
         }
 
+        // 3.1 Verifica se o email foi verificado
+        if (!user.email_verificado) {
+            return NextResponse.json(
+                { error: "Por favor, verifique seu email antes de fazer login." },
+                { status: 403 }
+            );
+        }
+
         // 4. Retorno de sucesso (padrão igual ao register)
         const response = NextResponse.json(
             {

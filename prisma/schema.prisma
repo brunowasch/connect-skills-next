@@ -140,6 +140,7 @@ model usuario {
   sobrenome        String?    @db.VarChar(255)
   candidato        candidato?
   empresa          empresa?
+  verification_tokens verification_token[]
 }
 
 model vaga {
@@ -252,4 +253,15 @@ enum vaga_vinculo_empregaticio {
   PJ
   Freelancer_Autonomo
   Temporario
+}
+
+model verification_token {
+  id         String   @id
+  token      String   @unique
+  usuario_id String
+  expires_at DateTime
+  created_at DateTime @default(now())
+  usuario    usuario  @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+
+  @@index([usuario_id])
 }
