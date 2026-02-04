@@ -22,11 +22,11 @@ export async function POST(req: Request) {
         // 2. Busca usuário pelo email
         const user = await prisma.usuario.findUnique({
             where: { email },
-            include: { 
+            include: {
                 candidato: {
                     include: { candidato_area: true }
-                }, 
-                empresa: true 
+                },
+                empresa: true
             }
         });
 
@@ -57,11 +57,11 @@ export async function POST(req: Request) {
 
         let isRegistrationComplete = false;
         const userType = user.tipo.toUpperCase();
-        
+
         if (userType === "CANDIDATO") {
             const hasName = !!(user.candidato && user.candidato.nome && user.candidato.nome.trim() !== "");
             const hasAreas = user.candidato && user.candidato.candidato_area && user.candidato.candidato_area.length > 0;
-            
+
             isRegistrationComplete = !!(hasName && hasAreas);
         } else if (userType === "EMPRESA") {
             isRegistrationComplete = !!(user.empresa && user.empresa.nome_empresa && user.empresa.nome_empresa.trim() !== "");
@@ -76,14 +76,14 @@ export async function POST(req: Request) {
 
             if (!isRegistrationComplete) {
                 if (user.tipo.toLowerCase() === 'candidato') {
-                     const hasName = !!(user.candidato && user.candidato.nome && user.candidato.nome.trim() !== "");
-                     if (hasName) {
-                         redirectTo = "/candidate/area";
-                     } else {
-                         redirectTo = "/candidate/register";
-                     }
+                    const hasName = !!(user.candidato && user.candidato.nome && user.candidato.nome.trim() !== "");
+                    if (hasName) {
+                        redirectTo = "/candidate/area";
+                    } else {
+                        redirectTo = "/candidate/register";
+                    }
                 } else {
-                     redirectTo = "/company/register";
+                    redirectTo = "/company/register";
                 }
             }
 
@@ -107,8 +107,6 @@ export async function POST(req: Request) {
 
             const shouldKeepLogin = keepLogin === true;
 
-            console.log(`[LOGIN] User: ${user.email}, KeepLogin: ${keepLogin}, ShouldKeep: ${shouldKeepLogin}`);
-
             let cookieValue = user.id;
 
             if (shouldKeepLogin) {
@@ -123,7 +121,6 @@ export async function POST(req: Request) {
                     secure: process.env.NODE_ENV === "production"
                 });
             } else {
-                console.log("[LOGIN] Setting session cookie (no maxAge)");
                 cookieOptions.maxAge = undefined;
                 cookieOptions.expires = undefined;
 
