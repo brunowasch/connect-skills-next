@@ -35,16 +35,20 @@ export async function POST(req: Request) {
         if (!user) return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
 
         // Verifica registro completo
-        // @ts-ignore
-        const isCandidateComplete = user.candidato && user.candidato.nome;
-        // @ts-ignore
-        const isCompanyComplete = user.empresa && user.empresa.nome_empresa && user.empresa.nome_empresa !== "";
-        const isRegistrationComplete = isCandidateComplete || isCompanyComplete;
+        // Verifica registro completo baseado no tipo do usuário
+        let isRegistrationComplete = false;
+        const userType = user.tipo.toUpperCase();
+        
+        if (userType === "CANDIDATO") {
+            isRegistrationComplete = !!(user.candidato && user.candidato.nome && user.candidato.nome.trim() !== "");
+        } else if (userType === "EMPRESA") {
+            isRegistrationComplete = !!(user.empresa && user.empresa.nome_empresa && user.empresa.nome_empresa.trim() !== "");
+        }
 
-        let redirectTo = user.tipo.toLowerCase() === 'candidato' ? "/candidate/dashboard" : "/company/dashboard";
+        let redirectTo = userType === 'CANDIDATO' ? "/candidate/dashboard" : "/company/dashboard";
 
         if (!isRegistrationComplete) {
-            redirectTo = user.tipo.toLowerCase() === 'candidato' ? "/candidate/register" : "/company/register";
+            redirectTo = userType === 'CANDIDATO' ? "/candidate/register" : "/company/register";
         }
 
         const response = NextResponse.json({

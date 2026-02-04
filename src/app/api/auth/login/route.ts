@@ -22,7 +22,12 @@ export async function POST(req: Request) {
         // 2. Busca usuário pelo email
         const user = await prisma.usuario.findUnique({
             where: { email },
-            include: { candidato: true, empresa: true }
+            include: { 
+                candidato: {
+                    include: { candidato_area: true }
+                }, 
+                empresa: true 
+            }
         });
 
         if (!user) {
@@ -50,23 +55,36 @@ export async function POST(req: Request) {
             );
         }
 
-        // Verifica registro completo
-        // @ts-ignore
-        const isCandidateComplete = user.candidato && user.candidato.nome;
-        // @ts-ignore
-        const isCompanyComplete = user.empresa && user.empresa.nome_empresa && user.empresa.nome_empresa !== "";
-        const isRegistrationComplete = isCandidateComplete || isCompanyComplete;
+        let isRegistrationComplete = false;
+        const userType = user.tipo.toUpperCase();
+        
+        if (userType === "CANDIDATO") {
+            const hasName = !!(user.candidato && user.candidato.nome && user.candidato.nome.trim() !== "");
+            const hasAreas = user.candidato && user.candidato.candidato_area && user.candidato.candidato_area.length > 0;
+            
+            isRegistrationComplete = !!(hasName && hasAreas);
+        } else if (userType === "EMPRESA") {
+            isRegistrationComplete = !!(user.empresa && user.empresa.nome_empresa && user.empresa.nome_empresa.trim() !== "");
+        }
 
         // 4. Verificação de Dispositivo Confiável
         const cookieStore = await cookies();
         const trustedDeviceCookie = cookieStore.get(`trusted_device_${user.id}`);
 
         if (trustedDeviceCookie) {
-            // Dispositivo confiável, login direto
             let redirectTo = user.tipo.toLocaleLowerCase() === 'candidato' ? "/candidate/dashboard" : "/company/dashboard";
 
             if (!isRegistrationComplete) {
-                redirectTo = user.tipo.toLocaleLowerCase() === 'candidato' ? "/candidate/register" : "/company/register";
+                if (user.tipo.toLowerCase() === 'candidato') {
+                     const hasName = !!(user.candidato && user.candidato.nome && user.candidato.nome.trim() !== "");
+                     if (hasName) {
+                         redirectTo = "/candidate/area";
+                     } else {
+                         redirectTo = "/candidate/register";
+                     }
+                } else {
+                     redirectTo = "/company/register";
+                }
             }
 
             const response = NextResponse.json(
@@ -87,7 +105,6 @@ export async function POST(req: Request) {
                 path: "/"
             };
 
-            // keepLogin vem do client (LoginCard)
             const shouldKeepLogin = keepLogin === true;
 
             console.log(`[LOGIN] User: ${user.email}, KeepLogin: ${keepLogin}, ShouldKeep: ${shouldKeepLogin}`);
@@ -107,7 +124,6 @@ export async function POST(req: Request) {
                 });
             } else {
                 console.log("[LOGIN] Setting session cookie (no maxAge)");
-                // Explicitly undefined to ensure clarity
                 cookieOptions.maxAge = undefined;
                 cookieOptions.expires = undefined;
 

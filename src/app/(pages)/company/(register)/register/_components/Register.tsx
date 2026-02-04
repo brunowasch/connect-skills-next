@@ -17,7 +17,6 @@ export function RegisterCompany() {
         e.preventDefault();
 
         try {
-            const userId = Cookies.get("time_user_id");
             const res = await fetch("/api/company/register", {
                 method: "POST",
                 headers: {
@@ -26,7 +25,6 @@ export function RegisterCompany() {
                 body: JSON.stringify({
                     nome: nome,
                     descricao: decricao,
-                    usuario_id: userId,
                 }),
             });
             const data = await res.json();

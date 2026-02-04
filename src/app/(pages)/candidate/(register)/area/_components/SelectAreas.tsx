@@ -41,13 +41,6 @@ export function SelectAreas() {
         if (selectedSkills.length === 0) return;
 
         setIsSubmitting(true);
-        const userId = Cookies.get("time_user_id");
-
-        if (!userId) {
-            alert(t("user_not_identified"));
-            setIsSubmitting(false);
-            return;
-        }
 
         try {
             const promises = selectedSkills.map(async (skill) => {
@@ -57,8 +50,7 @@ export function SelectAreas() {
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                        nome: skill, // Keeps raw Portuguese value
-                        usuario_id: userId,
+                        nome: skill,
                     }),
                 });
 
@@ -82,7 +74,6 @@ export function SelectAreas() {
 
     const allSkills = useMemo(() => [...skillsData.Skills, ...customSkills].sort(), [customSkills]);
 
-    // Filtragem baseada no valor traduzido (EXIBIÇÃO) mas mantém o valor original (LÓGICA)
     const filteredSkills = allSkills.filter((skill) =>
         t(skill).toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -111,7 +102,6 @@ export function SelectAreas() {
                 </div>
             </div>
 
-            {/* Grid de habilidades */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full p-4">
                 {filteredSkills.map((skill) => (
                     <button
@@ -140,7 +130,6 @@ export function SelectAreas() {
                 </p>
             )}
 
-            {/* Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">

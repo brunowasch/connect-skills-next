@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
+import { cookies } from "next/headers";
 
 interface RegisterCompany {
     nome: string;
     descricao: string;
-    usuario_id: string;
+    usuario_id?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -12,7 +13,11 @@ export async function POST(request: NextRequest) {
         const body: RegisterCompany = await request.json();
         const { nome, descricao, usuario_id } = body;
 
-        if (!nome || !descricao || !usuario_id) {
+        const cookieStore = await cookies();
+        const userIdFromCookie = cookieStore.get("time_user_id")?.value;
+        const finalUserId = userIdFromCookie || usuario_id;
+
+        if (!nome || !descricao || !finalUserId) {
             return NextResponse.json(
                 { error: "Dados da empresa ausentes." },
                 { status: 400 }
@@ -21,7 +26,7 @@ export async function POST(request: NextRequest) {
 
         const company = await prisma.empresa.update({
             where: {
-                usuario_id,
+                usuario_id: finalUserId,
             },
             data: {
                 nome_empresa: nome,
