@@ -1,4 +1,3 @@
-
 export function generateVerificationCode(length: number = 6): string {
     const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     let result = '';
