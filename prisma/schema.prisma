@@ -32,7 +32,7 @@ model candidato {
   candidato_area    candidato_area[]
   candidato_arquivo candidato_arquivo[]
   candidato_link    candidato_link[]
-  // vaga_favorita     vaga_favorita[]
+  vaga_favorita     vaga_favorita[]
 }
 
 model candidato_area {
@@ -227,16 +227,16 @@ model vaga_link {
   criadoEm DateTime @default(now())
 }
 
-// model vaga_favorita {
-//   id           String    @id
-//   vaga_id      String
-//   candidato_id String
-//   created_at   DateTime  @default(now())
-//   candidato    candidato @relation(fields: [candidato_id], references: [id])
-//   vaga         vaga      @relation(fields: [vaga_id], references: [id])
+model vaga_favorita {
+  id           String    @id
+  vaga_id      String
+  candidato_id String
+  created_at   DateTime  @default(now())
+  candidato    candidato @relation(fields: [candidato_id], references: [id])
+  vaga         vaga      @relation(fields: [vaga_id], references: [id])
 
-//   @@unique([vaga_id, candidato_id])
-// }
+  @@unique([vaga_id, candidato_id])
+}
 
 enum vaga_tipo_local_trabalho {
   Presencial
