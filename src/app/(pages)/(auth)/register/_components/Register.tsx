@@ -26,7 +26,6 @@ export function RegisterCard() {
     const [resendCooldown, setResendCooldown] = useState(0);
     const [isResending, setIsResending] = useState(false);
 
-    // Timer for cooldown
     useEffect(() => {
         let interval: NodeJS.Timeout;
         if (resendCooldown > 0) {
@@ -53,7 +52,7 @@ export function RegisterCard() {
                 const data = await res.json();
                 setError(data.error || t("error_sending_code"));
             } else {
-                setResendCooldown(60); // 1 minute cooldown
+                setResendCooldown(60);
             }
         } catch {
             setError(t("register_error_connection"));
@@ -68,7 +67,6 @@ export function RegisterCard() {
         
         const { isValid, errors: passwordErrors } = validatePassword(senha);
         if (!isValid) {
-            // Can show generic or specific error. Since we will have a checklist, maybe just generic toast/error here if they bypass?
             setError(t("register_error_password_requirements") || "A senha não atende aos requisitos.");
             return;
         }
@@ -222,7 +220,6 @@ export function RegisterCard() {
                             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                         </button>
                     </div>
-                    {/* Password Requirements Checklist - Show only when typing */}
                     {senha.length > 0 && (
                      <div className="mt-2 p-3 bg-gray-50 rounded-lg text-xs text-gray-600">
                         <p className="font-semibold mb-2">{t("password_requirements_title")}</p>

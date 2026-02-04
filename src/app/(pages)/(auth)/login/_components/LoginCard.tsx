@@ -36,7 +36,6 @@ export function LoginCard() {
             }
 
             if (data.requireVerification) {
-                // Redireciona para tela de verificação
                 const params = new URLSearchParams({
                     uid: data.userId,
                     email: data.email,
@@ -46,7 +45,6 @@ export function LoginCard() {
                 return;
             }
 
-            // Direct login success (Trusted Device)
             if (!rememberMe) {
                 sessionStorage.setItem("cs_session_active", "true");
             } else {

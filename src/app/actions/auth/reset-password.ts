@@ -12,22 +12,13 @@ export async function requestPasswordReset(email: string) {
         });
 
         if (!user) {
-            // Retorna sucesso para não revelar se o email existe
             return { success: true, message: "Se o e-mail estiver cadastrado, você receberá um código de recuperação." };
         }
-
-        /* 
-           Opcional: Verificar se email_verificado. 
-           Se quiser bloquear reset de conta não verificada:
-           if (!user.email_verificado) return { success: false, error: "E-mail não confirmado." };
-        */
         
-        // Deleta tokens antigos deste usuario
         await prisma.password_reset_token.deleteMany({
             where: { usuario_id: user.id }
         });
 
-        // Gera código de 6 caracteres e garante unicidade (tentativa simples)
         let code = generateVerificationCode(6);
         let isUnique = false;
         let attempts = 0;
@@ -46,7 +37,7 @@ export async function requestPasswordReset(email: string) {
              return { success: false, error: "Erro ao gerar código. Tente novamente." };
         }
 
-        const expiresAt = new Date(Date.now() + 1000 * 60 * 60); // 1 hora
+        const expiresAt = new Date(Date.now() + 1000 * 60 * 60);    
 
         await prisma.password_reset_token.create({
             data: {
@@ -116,19 +107,17 @@ export async function resetPassword(email: string, code: string, newPassword: st
         }
 
         if (new Date() > resetToken.expires_at) {
-            await prisma.password_reset_token.delete({ where: { id: resetToken.id } }); // Delete by ID safely
+            await prisma.password_reset_token.delete({ where: { id: resetToken.id } }); 
             return { success: false, error: "Código expirado. Solicite um novo." };
         }
 
         const hashedPassword = await hashPassword(newPassword);
 
-        // Atualiza senha do usuario
         await prisma.usuario.update({
             where: { id: user.id },
             data: { senha: hashedPassword },
         });
 
-        // Remove o token usado
         await prisma.password_reset_token.delete({
             where: { id: resetToken.id },
         });

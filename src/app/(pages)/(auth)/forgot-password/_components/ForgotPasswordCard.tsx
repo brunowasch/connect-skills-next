@@ -19,18 +19,15 @@ export function ForgotPasswordCard() {
 
     const [email, setEmail] = useState("");
     
-    // Step 2: Code
     const [code, setCode] = useState("");
     const [resendCooldown, setResendCooldown] = useState(0);
     const [isResending, setIsResending] = useState(false);
 
-    // Step 3: Password
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    // Timer for cooldown
     useEffect(() => {
         let interval: NodeJS.Timeout;
         if (resendCooldown > 0) {
@@ -40,9 +37,8 @@ export function ForgotPasswordCard() {
         }
         return () => clearInterval(interval);
     }, [resendCooldown]);
-
+    
     // HANDLERS
-
     async function handleEmailSubmit(e: React.FormEvent) {
         e.preventDefault();
         setStatus("loading");
@@ -80,7 +76,7 @@ export function ForgotPasswordCard() {
     async function handleResendCode() {
         if (resendCooldown > 0) return;
         setIsResending(true);
-        setMessage(""); // clear main error if any specific to code
+        setMessage("");
 
         const res = await requestPasswordReset(email);
 
@@ -124,8 +120,6 @@ export function ForgotPasswordCard() {
             setMessage(res.error || "Erro ao alterar senha.");
         }
     }
-
-    // RENDER
 
     if (step === "verify") {
         return (
@@ -187,7 +181,7 @@ export function ForgotPasswordCard() {
                             </button>
                         </div>
                         
-                         {/* Password Requirements Checklist - Show only when typing */}
+                         {}
                         {password.length > 0 && (
                         <div className="mt-2 p-3 bg-gray-50 rounded-lg text-xs text-gray-600">
                             <p className="font-semibold mb-2">{t("password_requirements_title")}</p>

@@ -21,7 +21,7 @@ function ResetPasswordForm() {
     const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
     const [message, setMessage] = useState("");
 
-    // Validation
+
     const { isValid: isPasswordValid } = validatePassword(password);
     const doPasswordsMatch = password === confirmPassword && password.length > 0;
     const canSubmit = isPasswordValid && doPasswordsMatch;
@@ -47,7 +47,6 @@ function ResetPasswordForm() {
         if (res.success) {
             setStatus("success");
             setMessage(res.message || "Senha alterada com sucesso!");
-            // Redirect after a delay
             setTimeout(() => {
                 router.push("/login");
             }, 3000);
@@ -113,7 +112,7 @@ function ResetPasswordForm() {
                                 </button>
                             </div>
                             
-                            {/* Checklist for Password Requirements */}
+                            {}
                             <div className="mt-2 p-3 bg-gray-50 rounded-lg text-xs text-gray-600">
                                 <p className="font-semibold mb-2">Requisitos da senha:</p>
                                 <ul className="space-y-1">
