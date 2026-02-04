@@ -2,7 +2,7 @@
 
 import Cookies from "js-cookie";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 
@@ -13,9 +13,27 @@ export function RegisterCandidateName() {
     const [sobrenome, setSobrenome] = useState("");
     const [data_nascimento, setDataNascimento] = useState("");
     const [error, setError] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (!isSubmitting) {
+                e.preventDefault();
+                e.returnValue = t("confirm_leave_page");
+                return t("confirm_leave_page");
+            }
+        };
+
+        window.addEventListener("beforeunload", handleBeforeUnload);
+
+        return () => {
+            window.removeEventListener("beforeunload", handleBeforeUnload);
+        };
+    }, [t, isSubmitting]);
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
+        setIsSubmitting(true);
 
         try {
             const userId = Cookies.get("time_user_id");
@@ -42,6 +60,7 @@ export function RegisterCandidateName() {
             }
         } catch {
             setError(t("error_connection"));
+            setIsSubmitting(false);
         }
     }
 

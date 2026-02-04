@@ -12,9 +12,9 @@ export async function requestPasswordReset(email: string) {
         });
 
         if (!user) {
-            return { success: true, message: "Se o e-mail estiver cadastrado, você receberá um código de recuperação." };
+            return { success: true, message: "recovery_code_sent_if_exists" };
         }
-        
+
         await prisma.password_reset_token.deleteMany({
             where: { usuario_id: user.id }
         });
@@ -22,7 +22,7 @@ export async function requestPasswordReset(email: string) {
         let code = generateVerificationCode(6);
         let isUnique = false;
         let attempts = 0;
-        
+
         while (!isUnique && attempts < 3) {
             const existing = await prisma.password_reset_token.findUnique({ where: { token: code } });
             if (!existing) {
@@ -34,10 +34,10 @@ export async function requestPasswordReset(email: string) {
         }
 
         if (!isUnique) {
-             return { success: false, error: "Erro ao gerar código. Tente novamente." };
+            return { success: false, error: "error_generating_code" };
         }
 
-        const expiresAt = new Date(Date.now() + 1000 * 60 * 60);    
+        const expiresAt = new Date(Date.now() + 1000 * 60 * 60);
 
         await prisma.password_reset_token.create({
             data: {
@@ -50,23 +50,23 @@ export async function requestPasswordReset(email: string) {
         const emailSent = await sendPasswordResetCodeEmail(email, code);
 
         if (!emailSent) {
-            return { success: false, error: "Erro ao enviar e-mail. Tente novamente mais tarde." };
+            return { success: false, error: "error_sending_email" };
         }
 
-        return { success: true, message: "Código enviado com sucesso!" };
+        return { success: true, message: "code_sent_success" };
 
     } catch (error) {
         console.error("Erro ao solicitar recuperação de senha:", error);
-        return { success: false, error: "Erro interno do servidor." };
+        return { success: false, error: "internal_server_error" };
     }
 }
 
 export async function verifyResetCode(email: string, code: string) {
     try {
-        if (!email || !code) return { success: false, error: "Email e código são obrigatórios." };
+        if (!email || !code) return { success: false, error: "email_code_required" };
 
         const user = await prisma.usuario.findUnique({ where: { email } });
-        if (!user) return { success: false, error: "Email inválido." };
+        if (!user) return { success: false, error: "email_invalid" };
 
         const resetToken = await prisma.password_reset_token.findFirst({
             where: {
@@ -76,39 +76,39 @@ export async function verifyResetCode(email: string, code: string) {
         });
 
         if (!resetToken) {
-            return { success: false, error: "Código inválido." };
+            return { success: false, error: "invalid_code" };
         }
 
         if (new Date() > resetToken.expires_at) {
-            return { success: false, error: "Código expirado." };
+            return { success: false, error: "code_expired" };
         }
 
-        return { success: true, message: "Código válido." };
+        return { success: true, message: "code_valid" };
     } catch (error) {
         console.error("Erro ao verificar código:", error);
-        return { success: false, error: "Erro ao verificar código." };
+        return { success: false, error: "error_verifying_code" };
     }
 }
 
 export async function resetPassword(email: string, code: string, newPassword: string) {
     try {
         const user = await prisma.usuario.findUnique({ where: { email } });
-        if (!user) return { success: false, error: "Usuário não encontrado." };
+        if (!user) return { success: false, error: "user_not_found" };
 
         const resetToken = await prisma.password_reset_token.findFirst({
-            where: { 
+            where: {
                 token: code,
                 usuario_id: user.id
             }
         });
 
         if (!resetToken) {
-            return { success: false, error: "Código inválido ou expirado." };
+            return { success: false, error: "invalid_or_expired_code" };
         }
 
         if (new Date() > resetToken.expires_at) {
-            await prisma.password_reset_token.delete({ where: { id: resetToken.id } }); 
-            return { success: false, error: "Código expirado. Solicite um novo." };
+            await prisma.password_reset_token.delete({ where: { id: resetToken.id } });
+            return { success: false, error: "code_expired_new" };
         }
 
         const hashedPassword = await hashPassword(newPassword);
@@ -122,10 +122,10 @@ export async function resetPassword(email: string, code: string, newPassword: st
             where: { id: resetToken.id },
         });
 
-        return { success: true, message: "Senha redefinida com sucesso!" };
+        return { success: true, message: "password_reset_success" };
 
     } catch (error) {
         console.error("Erro ao redefinir senha:", error);
-        return { success: false, error: "Erro ao redefinir senha." };
+        return { success: false, error: "password_reset_error" };
     }
 }

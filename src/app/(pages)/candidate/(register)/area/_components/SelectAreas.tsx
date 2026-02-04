@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import skillsData from "@/src/data/skills.json";
 import { FiSearch } from "react-icons/fi";
 import { useRouter } from "next/navigation";
@@ -16,6 +16,22 @@ export function SelectAreas() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [newSkill, setNewSkill] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (!isSubmitting) {
+                e.preventDefault();
+                e.returnValue = t("confirm_leave_page");
+                return t("confirm_leave_page");
+            }
+        };
+
+        window.addEventListener("beforeunload", handleBeforeUnload);
+
+        return () => {
+            window.removeEventListener("beforeunload", handleBeforeUnload);
+        };
+    }, [t, isSubmitting]);
 
     const toggleSkill = (skill: string) => {
         setSelectedSkills((prev) =>

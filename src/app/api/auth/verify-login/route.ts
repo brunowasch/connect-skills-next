@@ -30,17 +30,23 @@ export async function POST(req: Request) {
         // Get User
         const user = await prisma.usuario.findUnique({
             where: { id: userId },
-            include: { candidato: true, empresa: true }
+            include: {
+                candidato: {
+                    include: { candidato_area: true }
+                },
+                empresa: true
+            }
         });
-        if (!user) return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
+        if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
         // Verifica registro completo
-        // Verifica registro completo baseado no tipo do usuário
         let isRegistrationComplete = false;
         const userType = user.tipo.toUpperCase();
-        
+
         if (userType === "CANDIDATO") {
-            isRegistrationComplete = !!(user.candidato && user.candidato.nome && user.candidato.nome.trim() !== "");
+            const hasName = !!(user.candidato && user.candidato.nome && user.candidato.nome.trim() !== "");
+            const hasAreas = user.candidato && user.candidato.candidato_area && user.candidato.candidato_area.length > 0;
+            isRegistrationComplete = !!(hasName && hasAreas);
         } else if (userType === "EMPRESA") {
             isRegistrationComplete = !!(user.empresa && user.empresa.nome_empresa && user.empresa.nome_empresa.trim() !== "");
         }
@@ -48,7 +54,16 @@ export async function POST(req: Request) {
         let redirectTo = userType === 'CANDIDATO' ? "/candidate/dashboard" : "/company/dashboard";
 
         if (!isRegistrationComplete) {
-            redirectTo = userType === 'CANDIDATO' ? "/candidate/register" : "/company/register";
+            if (userType === 'CANDIDATO') {
+                const hasName = !!(user.candidato && user.candidato.nome && user.candidato.nome.trim() !== "");
+                if (hasName) {
+                    redirectTo = "/candidate/area";
+                } else {
+                    redirectTo = "/candidate/register";
+                }
+            } else {
+                redirectTo = "/company/register";
+            }
         }
 
         const response = NextResponse.json({

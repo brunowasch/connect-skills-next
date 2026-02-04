@@ -18,7 +18,7 @@ export function ForgotPasswordCard() {
     const [message, setMessage] = useState("");
 
     const [email, setEmail] = useState("");
-    
+
     const [code, setCode] = useState("");
     const [resendCooldown, setResendCooldown] = useState(0);
     const [isResending, setIsResending] = useState(false);
@@ -37,7 +37,7 @@ export function ForgotPasswordCard() {
         }
         return () => clearInterval(interval);
     }, [resendCooldown]);
-    
+
     // HANDLERS
     async function handleEmailSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -52,7 +52,7 @@ export function ForgotPasswordCard() {
             setResendCooldown(60);
         } else {
             setStatus("error");
-            setMessage(res.error || "Ocorreu um erro.");
+            setMessage(res.error || t("error_occurred"));
         }
     }
 
@@ -68,7 +68,7 @@ export function ForgotPasswordCard() {
             setStep("reset");
         } else {
             setStatus("error");
-            setMessage(res.error || "Código inválido.");
+            setMessage(res.error || t("invalid_code"));
             // Keep in verify step
         }
     }
@@ -83,23 +83,23 @@ export function ForgotPasswordCard() {
         if (res.success) {
             setResendCooldown(60);
             setStatus("success");
-            setMessage("Novo código enviado!");
+            setMessage(t("new_code_sent"));
             setTimeout(() => {
-                 if (step === "verify") {
-                     setStatus("idle"); 
-                     setMessage("");
-                 }
+                if (step === "verify") {
+                    setStatus("idle");
+                    setMessage("");
+                }
             }, 3000);
         } else {
             setStatus("error");
-            setMessage(res.error || "Erro ao reenviar código.");
+            setMessage(res.error || t("error_resend_code"));
         }
         setIsResending(false);
     }
 
     async function handleResetPasswordSubmit(e: React.FormEvent) {
         e.preventDefault();
-        
+
         const { isValid } = validatePassword(password);
         if (!isValid) return;
         if (password !== confirmPassword) return;
@@ -111,13 +111,13 @@ export function ForgotPasswordCard() {
 
         if (res.success) {
             setStatus("success");
-            setMessage(res.message || "Senha alterada com sucesso!");
+            setMessage(res.message || t("password_reset_success"));
             setTimeout(() => {
                 router.push("/login");
             }, 3000);
         } else {
             setStatus("error");
-            setMessage(res.error || "Erro ao alterar senha.");
+            setMessage(res.error || t("password_reset_error"));
         }
     }
 
@@ -134,9 +134,9 @@ export function ForgotPasswordCard() {
                 error={status === "error" ? message : ""}
                 resendCooldown={resendCooldown}
                 isResending={isResending}
-                title="Verificar Email"
-                description={`Enviamos um código para ${email}. Digite-o abaixo para redefinir sua senha.`}
-                buttonText="Verificar e Continuar"
+                title={t("register_verify_title")}
+                description={t("verify_email_desc_reset", { email })}
+                buttonText={t("register_verify_btn")}
             />
         );
     }
@@ -152,8 +152,8 @@ export function ForgotPasswordCard() {
                     onSubmit={handleResetPasswordSubmit}
                     className="bg-white p-8 rounded-xl shadow-md w-full max-w-md animate-in fade-in zoom-in duration-300"
                 >
-                    <h2 className="text-2xl font-bold mb-6 text-center">Redefinir Senha</h2>
-                    
+                    <h2 className="text-2xl font-bold mb-6 text-center">{t("reset_password_title")}</h2>
+
                     {message && (
                         <div className={`mb-4 p-3 rounded text-sm text-center ${status === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                             {message}
@@ -161,7 +161,7 @@ export function ForgotPasswordCard() {
                     )}
 
                     <div className="mb-4">
-                        <label className="block text-gray-700 mb-2">Nova Senha</label>
+                        <label className="block text-gray-700 mb-2">{t("new_password_label")}</label>
                         <div className="relative">
                             <input
                                 type={showPassword ? "text" : "password"}
@@ -180,39 +180,39 @@ export function ForgotPasswordCard() {
                                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                             </button>
                         </div>
-                        
-                         {}
+
+                        { }
                         {password.length > 0 && (
-                        <div className="mt-2 p-3 bg-gray-50 rounded-lg text-xs text-gray-600">
-                            <p className="font-semibold mb-2">{t("password_requirements_title")}</p>
-                            <ul className="space-y-1">
-                                <li className={`flex items-center gap-2 ${password.length >= PASSWORD_REQUIREMENTS.minLength ? "text-green-600" : "text-gray-500"}`}>
-                                    {password.length >= PASSWORD_REQUIREMENTS.minLength ? <Check size={12} /> : <div className="w-3 h-3 rounded-full border border-gray-400" />}
-                                    {t("password_min_length")}
-                                </li>
-                                <li className={`flex items-center gap-2 ${PASSWORD_REQUIREMENTS.hasUpperCase.test(password) ? "text-green-600" : "text-gray-500"}`}>
-                                    {PASSWORD_REQUIREMENTS.hasUpperCase.test(password) ? <Check size={12} /> : <div className="w-3 h-3 rounded-full border border-gray-400" />}
-                                    {t("password_uppercase")}
-                                </li>
-                                <li className={`flex items-center gap-2 ${PASSWORD_REQUIREMENTS.hasLowerCase.test(password) ? "text-green-600" : "text-gray-500"}`}>
-                                    {PASSWORD_REQUIREMENTS.hasLowerCase.test(password) ? <Check size={12} /> : <div className="w-3 h-3 rounded-full border border-gray-400" />}
-                                    {t("password_lowercase")}
-                                </li>
-                                <li className={`flex items-center gap-2 ${PASSWORD_REQUIREMENTS.hasNumber.test(password) ? "text-green-600" : "text-gray-500"}`}>
-                                    {PASSWORD_REQUIREMENTS.hasNumber.test(password) ? <Check size={12} /> : <div className="w-3 h-3 rounded-full border border-gray-400" />}
-                                    {t("password_number")}
-                                </li>
-                                <li className={`flex items-center gap-2 ${PASSWORD_REQUIREMENTS.hasSpecialChar.test(password) ? "text-green-600" : "text-gray-500"}`}>
-                                    {PASSWORD_REQUIREMENTS.hasSpecialChar.test(password) ? <Check size={12} /> : <div className="w-3 h-3 rounded-full border border-gray-400" />}
-                                    {t("password_special")}
-                                </li>
-                            </ul>
-                        </div>
+                            <div className="mt-2 p-3 bg-gray-50 rounded-lg text-xs text-gray-600">
+                                <p className="font-semibold mb-2">{t("password_requirements_title")}</p>
+                                <ul className="space-y-1">
+                                    <li className={`flex items-center gap-2 ${password.length >= PASSWORD_REQUIREMENTS.minLength ? "text-green-600" : "text-gray-500"}`}>
+                                        {password.length >= PASSWORD_REQUIREMENTS.minLength ? <Check size={12} /> : <div className="w-3 h-3 rounded-full border border-gray-400" />}
+                                        {t("password_min_length")}
+                                    </li>
+                                    <li className={`flex items-center gap-2 ${PASSWORD_REQUIREMENTS.hasUpperCase.test(password) ? "text-green-600" : "text-gray-500"}`}>
+                                        {PASSWORD_REQUIREMENTS.hasUpperCase.test(password) ? <Check size={12} /> : <div className="w-3 h-3 rounded-full border border-gray-400" />}
+                                        {t("password_uppercase")}
+                                    </li>
+                                    <li className={`flex items-center gap-2 ${PASSWORD_REQUIREMENTS.hasLowerCase.test(password) ? "text-green-600" : "text-gray-500"}`}>
+                                        {PASSWORD_REQUIREMENTS.hasLowerCase.test(password) ? <Check size={12} /> : <div className="w-3 h-3 rounded-full border border-gray-400" />}
+                                        {t("password_lowercase")}
+                                    </li>
+                                    <li className={`flex items-center gap-2 ${PASSWORD_REQUIREMENTS.hasNumber.test(password) ? "text-green-600" : "text-gray-500"}`}>
+                                        {PASSWORD_REQUIREMENTS.hasNumber.test(password) ? <Check size={12} /> : <div className="w-3 h-3 rounded-full border border-gray-400" />}
+                                        {t("password_number")}
+                                    </li>
+                                    <li className={`flex items-center gap-2 ${PASSWORD_REQUIREMENTS.hasSpecialChar.test(password) ? "text-green-600" : "text-gray-500"}`}>
+                                        {PASSWORD_REQUIREMENTS.hasSpecialChar.test(password) ? <Check size={12} /> : <div className="w-3 h-3 rounded-full border border-gray-400" />}
+                                        {t("password_special")}
+                                    </li>
+                                </ul>
+                            </div>
                         )}
                     </div>
 
                     <div className="mb-6">
-                        <label className="block text-gray-700 mb-2">Confirmar Nova Senha</label>
+                        <label className="block text-gray-700 mb-2">{t("confirm_new_password_label")}</label>
                         <div className="relative">
                             <input
                                 type={showConfirmPassword ? "text" : "password"}
@@ -222,7 +222,7 @@ export function ForgotPasswordCard() {
                                 className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
                                 placeholder="••••••••"
                             />
-                             <button
+                            <button
                                 type="button"
                                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 cursor-pointer"
@@ -232,20 +232,19 @@ export function ForgotPasswordCard() {
                             </button>
                         </div>
                         {password && confirmPassword && password !== confirmPassword && (
-                            <p className="text-red-500 text-xs mt-1">As senhas não coincidem.</p>
+                            <p className="text-red-500 text-xs mt-1">{t("password_mismatch")}</p>
                         )}
                     </div>
 
                     <button
                         type="submit"
                         disabled={status === "loading" || !canSubmit}
-                        className={`w-full py-2 rounded-lg text-white transition-colors cursor-pointer ${
-                            status === "loading" || !canSubmit
-                            ? "bg-gray-400 cursor-not-allowed" 
+                        className={`w-full py-2 rounded-lg text-white transition-colors cursor-pointer ${status === "loading" || !canSubmit
+                            ? "bg-gray-400 cursor-not-allowed"
                             : "bg-blue-600 hover:bg-blue-700"
-                        }`}
+                            }`}
                     >
-                        {status === "loading" ? "Redefinindo..." : "Redefinir Senha"}
+                        {status === "loading" ? t("resetting") : t("reset_password_btn")}
                     </button>
                 </form>
             </div>
@@ -253,15 +252,15 @@ export function ForgotPasswordCard() {
     }
 
     return (
-         <div className="flex justify-center items-center min-h-[calc(100vh-12rem)]">
+        <div className="flex justify-center items-center min-h-[calc(100vh-12rem)]">
             <form
                 onSubmit={handleEmailSubmit}
                 className="bg-white p-8 rounded-xl shadow-md w-full max-w-md animate-in fade-in zoom-in duration-300"
             >
-                <h2 className="text-2xl font-bold mb-6 text-center">Recuperação de Senha</h2>
-                
+                <h2 className="text-2xl font-bold mb-6 text-center">{t("forgot_password_title")}</h2>
+
                 <p className="text-gray-600 mb-6 text-center text-sm">
-                    Informe seu e-mail para receber um código de recuperação.
+                    {t("forgot_password_instruction")}
                 </p>
 
                 {message && (
@@ -271,14 +270,14 @@ export function ForgotPasswordCard() {
                 )}
 
                 <div className="mb-6">
-                    <label className="block text-gray-700 mb-2">E-mail</label>
+                    <label className="block text-gray-700 mb-2">{t("login_email")}</label>
                     <input
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
                         className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="seu@email.com"
+                        placeholder={t("login_email_placeholder")}
                         disabled={status === "loading"}
                     />
                 </div>
@@ -288,12 +287,12 @@ export function ForgotPasswordCard() {
                     disabled={status === "loading"}
                     className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-300 cursor-pointer"
                 >
-                    {status === "loading" ? "Enviando..." : "Enviar Código"}
+                    {status === "loading" ? t("sending") : t("send_code_btn")}
                 </button>
 
                 <div className="mt-6 text-center">
                     <Link href="/login" className="text-blue-600 hover:underline text-sm">
-                        Voltar para o Login
+                        {t("back_to_login")}
                     </Link>
                 </div>
             </form>

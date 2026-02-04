@@ -8,15 +8,16 @@ datasource db {
 
 model area_interesse {
   id             Int              @id @default(autoincrement())
+  uuid           String?          @unique @db.VarChar(36)
   nome           String?          @unique @db.VarChar(100)
   padrao         Boolean?         @default(false)
-  uuid           String?          @unique @db.VarChar(36)
   candidato_area candidato_area[]
   vaga_area      vaga_area[]
 }
 
 model candidato {
   id                String              @id
+  uuid              String?             @unique @db.VarChar(36)
   usuario_id        String              @unique
   nome              String?
   sobrenome         String?
@@ -27,7 +28,6 @@ model candidato {
   cidade            String?
   telefone          String?
   foto_perfil       String?
-  uuid              String?             @unique @db.VarChar(36)
   usuario           usuario             @relation(fields: [usuario_id], references: [id])
   candidato_area    candidato_area[]
   candidato_arquivo candidato_arquivo[]
@@ -47,13 +47,13 @@ model candidato_area {
 
 model candidato_arquivo {
   id           String    @id
+  uuid         String?   @unique @db.VarChar(36)
   candidato_id String
   nome         String
   url          String
   mime         String
   tamanho      Int
   criadoEm     DateTime  @default(now())
-  uuid         String?   @unique @db.VarChar(36)
   candidato    candidato @relation(fields: [candidato_id], references: [id])
 
   @@index([candidato_id], map: "candidato_arquivo_candidato_id_fkey")
@@ -61,11 +61,11 @@ model candidato_arquivo {
 
 model candidato_link {
   id           String    @id
+  uuid         String?   @unique @db.VarChar(36)
   candidato_id String
   label        String    @db.VarChar(50)
   url          String    @db.VarChar(255)
   ordem        Int       @default(0)
-  uuid         String?   @unique @db.VarChar(36)
   candidato    candidato @relation(fields: [candidato_id], references: [id], onDelete: Cascade)
 
   @@index([candidato_id], map: "candidato_link_candidato_id_fkey")
@@ -73,6 +73,7 @@ model candidato_link {
 
 model empresa {
   id              String            @id
+  uuid            String?           @unique @db.VarChar(36)
   usuario_id      String            @unique
   nome_empresa    String
   descricao       String
@@ -81,7 +82,6 @@ model empresa {
   estado          String?
   cidade          String?
   foto_perfil     String?
-  uuid            String?           @unique @db.VarChar(36)
   usuario         usuario           @relation(fields: [usuario_id], references: [id])
   empresa_arquivo empresa_arquivo[]
   empresa_link    empresa_link[]
@@ -89,13 +89,13 @@ model empresa {
 
 model empresa_arquivo {
   id         String   @id
+  uuid       String?  @unique @db.VarChar(36)
   empresa_id String
   nome       String
   url        String
   mime       String?
   tamanho    Int?
   criadoEm   DateTime @default(now())
-  uuid       String?  @unique @db.VarChar(36)
   empresa    empresa  @relation(fields: [empresa_id], references: [id], onDelete: Cascade)
 
   @@index([empresa_id], map: "empresa_arquivo_empresa_id_fkey")
@@ -103,11 +103,11 @@ model empresa_arquivo {
 
 model empresa_link {
   id         String  @id
+  uuid       String? @unique @db.VarChar(36)
   empresa_id String
   label      String  @db.VarChar(100)
   url        String  @db.VarChar(255)
   ordem      Int     @default(0)
-  uuid       String? @unique @db.VarChar(36)
   empresa    empresa @relation(fields: [empresa_id], references: [id], onDelete: Cascade)
 
   @@index([empresa_id], map: "empresa_link_empresa_id_fkey")
@@ -126,25 +126,26 @@ model soft_skill {
 }
 
 model usuario {
-  id                   String                 @id
-  email                String                 @unique
-  senha                String
-  tipo                 String
-  email_verificado     Boolean                @default(false)
-  created_at           DateTime               @default(now())
-  googleId             String?                @unique(map: "googleId")
-  avatarUrl            String?
-  nome                 String?                @db.VarChar(255)
-  sobrenome            String?                @db.VarChar(255)
-  uuid                 String?                @unique @db.VarChar(36)
-  candidato            candidato?
-  empresa              empresa?
+  id               String     @id
+  uuid             String?    @unique @db.VarChar(36)
+  email            String     @unique
+  senha            String
+  tipo             String
+  email_verificado Boolean    @default(false)
+  created_at       DateTime   @default(now())
+  googleId         String?    @unique(map: "googleId")
+  avatarUrl        String?
+  nome             String?    @db.VarChar(255)
+  sobrenome        String?    @db.VarChar(255)
+  candidato        candidato?
+  empresa          empresa?
+  verification_tokens verification_token[]
   password_reset_token password_reset_token[]
-  verification_tokens  verification_token[]
 }
 
 model vaga {
   id                   String                     @id
+  uuid                 String?                    @unique @db.VarChar(36)
   empresa_id           String
   cargo                String
   tipo_local_trabalho  vaga_tipo_local_trabalho
@@ -159,16 +160,16 @@ model vaga {
   opcao                String?                    @db.Text
   created_at           DateTime                   @default(now())
   vinculo_empregaticio vaga_vinculo_empregaticio?
-  uuid                 String?                    @unique @db.VarChar(36)
-  vaga_area            vaga_area[]
+  vaga_favorita        vaga_favorita[]
   vaga_soft_skill      vaga_soft_skill[]
+  vaga_area            vaga_area[]
 }
 
 model vaga_area {
   vaga_id           String
   area_interesse_id Int
-  area_interesse    area_interesse @relation(fields: [area_interesse_id], references: [id])
   vaga              vaga           @relation(fields: [vaga_id], references: [id])
+  area_interesse    area_interesse @relation(fields: [area_interesse_id], references: [id])
 
   @@id([vaga_id, area_interesse_id])
   @@index([area_interesse_id], map: "vaga_area_area_interesse_id_fkey")
@@ -176,6 +177,7 @@ model vaga_area {
 
 model vaga_avaliacao {
   id           String   @id
+  uuid         String?  @unique @db.VarChar(36)
   vaga_id      String
   candidato_id String
   score        Int
@@ -183,48 +185,46 @@ model vaga_avaliacao {
   breakdown    String?  @db.LongText
   created_at   DateTime @default(now())
   updated_at   DateTime
-  uuid         String?  @unique @db.VarChar(36)
 
   @@unique([vaga_id, candidato_id])
 }
 
 model vaga_soft_skill {
-  soft_skill_id Int        @db.UnsignedInt
+  soft_skill_id Int @db.UnsignedInt
   vaga_id       String
   soft_skill    soft_skill @relation(fields: [soft_skill_id], references: [id])
   vaga          vaga       @relation(fields: [vaga_id], references: [id])
 
   @@id([soft_skill_id, vaga_id])
-  @@index([vaga_id], map: "vaga_soft_skill_vaga_id_fkey")
 }
 
 model vaga_status {
   id        String   @id
+  uuid      String?  @unique @db.VarChar(36)
   vaga_id   String
   situacao  String   @db.VarChar(10)
   criado_em DateTime @default(now())
-  uuid      String?  @unique @db.VarChar(36)
 }
 
 model vaga_arquivo {
   id       String   @id
+  uuid     String?  @unique @db.VarChar(36)
   vaga_id  String
   nome     String   @db.VarChar(255)
   mime     String   @db.VarChar(100)
   tamanho  Int
   url      String   @db.Text
   criadoEm DateTime @default(now())
-  uuid     String?  @unique @db.VarChar(36)
 }
 
 model vaga_link {
   id       String   @id
+  uuid     String?  @unique @db.VarChar(36)
   vaga_id  String
   titulo   String   @db.VarChar(120)
   url      String   @db.VarChar(1024)
   ordem    Int      @default(1)
   criadoEm DateTime @default(now())
-  uuid     String?  @unique @db.VarChar(36)
 }
 
 model vaga_favorita {
@@ -233,9 +233,26 @@ model vaga_favorita {
   candidato_id String
   created_at   DateTime  @default(now())
   candidato    candidato @relation(fields: [candidato_id], references: [id])
+  vaga         vaga      @relation(fields: [vaga_id], references: [id])
 
   @@unique([vaga_id, candidato_id])
-  @@index([candidato_id], map: "vaga_favorita_candidato_id_fkey")
+}
+
+enum vaga_tipo_local_trabalho {
+  Presencial
+  Home_Office @map("Home Office")
+  H_brido     @map("Híbrido")
+}
+
+enum vaga_vinculo_empregaticio {
+  Estagio
+  CLT_Tempo_Integral
+  CLT_Meio_Periodo
+  Trainee
+  Aprendiz
+  PJ
+  Freelancer_Autonomo
+  Temporario
 }
 
 model verification_token {
@@ -258,21 +275,4 @@ model password_reset_token {
   usuario    usuario  @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
 
   @@index([usuario_id])
-}
-
-enum vaga_tipo_local_trabalho {
-  Presencial
-  Home_Office @map("Home Office")
-  H_brido     @map("Híbrido")
-}
-
-enum vaga_vinculo_empregaticio {
-  Estagio
-  CLT_Tempo_Integral
-  CLT_Meio_Periodo
-  Trainee
-  Aprendiz
-  PJ
-  Freelancer_Autonomo
-  Temporario
 }
