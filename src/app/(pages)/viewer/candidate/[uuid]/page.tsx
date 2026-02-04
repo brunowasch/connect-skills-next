@@ -26,7 +26,7 @@ export default async function CandidatePublicProfilePage({ params }: { params: P
         }
     });
 
-    if (!candidate) {
+    if (!candidate || candidate.candidato_area.length === 0) {
         notFound();
     }
 

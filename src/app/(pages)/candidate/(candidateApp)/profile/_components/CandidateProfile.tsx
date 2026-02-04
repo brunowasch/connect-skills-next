@@ -177,7 +177,7 @@ export function CandidateProfile({ candidato, fotoPerfil, localidade, contato, l
 
                 {/* LINKS */}
                 <div>
-                    <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-4 mt-4">
                         <LinkIcon className="text-blue-600" size={18} /> {t("links_network")}
                     </h3>
                     <div className="flex flex-col gap-2">
@@ -205,7 +205,7 @@ export function CandidateProfile({ candidato, fotoPerfil, localidade, contato, l
 
                 {/* ANEXOS */}
                 <div>
-                    <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-4 mt-4">
                         <Paperclip className="text-blue-600" size={18} /> {t("attachments")}
                     </h3>
                     <div className="space-y-3">

@@ -13,14 +13,14 @@ export function LanguageSwitcher({ align = "right" }: LanguageSwitcherProps) {
     const [isOpen, setIsOpen] = useState(false);
 
     const nativeNames = {
-        pt: "Português",
         en: "English",
+        pt: "Português",
         es: "Español",
     };
 
     const flags = {
-        pt: "BR",
         en: "US",
+        pt: "BR",
         es: "ES",
     };
 
@@ -39,7 +39,16 @@ export function LanguageSwitcher({ align = "right" }: LanguageSwitcherProps) {
         };
     });
 
-    const currentLanguage = languages.find((l) => l.code === i18n.language.split('-')[0]) || languages[0];
+    const activeCode = codes.includes(i18n.language?.split('-')[0])
+        ? i18n.language.split('-')[0]
+        : codes[0];
+
+    const currentLanguage = languages.find((l) => l.code === activeCode) || languages[0];
+
+    const sortedLanguages = [
+        ...languages.filter(l => l.code === activeCode),
+        ...languages.filter(l => l.code !== activeCode)
+    ];
 
     return (
         <div className="relative inline-block text-left">
@@ -62,7 +71,7 @@ export function LanguageSwitcher({ align = "right" }: LanguageSwitcherProps) {
                             }`}
                     >
                         <div className="py-1">
-                            {languages.map((lang) => (
+                            {sortedLanguages.map((lang) => (
                                 <button
                                     key={lang.code}
                                     onClick={() => {

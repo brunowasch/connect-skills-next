@@ -28,9 +28,8 @@ export default async function Layout({ children }: { children: React.ReactNode }
     }
 
     const hasSocialReason = empresa.nome_empresa && empresa.nome_empresa.trim() !== "";
-    const hasDescription = empresa.descricao && empresa.descricao.trim() !== "";
 
-    if (!hasSocialReason || !hasDescription) {
+    if (!hasSocialReason) {
         redirect("/company/register");
     }
 

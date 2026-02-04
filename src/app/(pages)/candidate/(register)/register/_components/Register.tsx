@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 
 export function RegisterCandidateName() {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const router = useRouter();
     const [nome, setNome] = useState("");
     const [sobrenome, setSobrenome] = useState("");
@@ -44,7 +44,7 @@ export function RegisterCandidateName() {
                 },
                 body: JSON.stringify({
                     nome: nome,
-                    sobrenome: sobrenome,
+                    sobrenome: sobrenome || undefined,
                     data_nascimento: data_nascimento,
                     usuario_id: userId,
                 }),
@@ -53,6 +53,7 @@ export function RegisterCandidateName() {
 
             if (!res.ok) {
                 setError(data.error || t("error_unknown"));
+                setIsSubmitting(false);
                 return;
             }
             if (res.ok) {
@@ -70,12 +71,15 @@ export function RegisterCandidateName() {
                 onSubmit={handleSubmit}
                 className="bg-white p-6 md:p-8 rounded-xl shadow-md w-full max-w-lg"
             >
-                <h2 className="text-2xl font-semibold mb-6 text-center">
+                <h2 className="text-2xl font-semibold mb-2 text-center">
                     {t("candidate_register_title")}
                 </h2>
+                <p className="text-sm text-gray-500 mb-6 text-center italic">
+                    {t("mandatory_fields_legend")}
+                </p>
                 {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
                 <div className="mb-4">
-                    <label className="block text-gray-700 mb-2">{t("candidate_name_label")}</label>
+                    <label className="block text-gray-700 mb-2">{t("candidate_name_label")} *</label>
                     <input
                         type="text"
                         value={nome}
@@ -92,19 +96,19 @@ export function RegisterCandidateName() {
                         type="text"
                         value={sobrenome}
                         onChange={(e) => setSobrenome(e.target.value)}
-                        required
                         className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder={t("candidate_surname_placeholder")}
                     />
                 </div>
                 <div className="mb-4">
-                    <label className="block text-gray-700 mb-2">{t("candidate_birthdate_label")}</label>
+                    <label className="block text-gray-700 mb-2">{t("candidate_birthdate_label")} *</label>
                     <input
                         type="date"
                         value={data_nascimento}
                         onChange={(e) => setDataNascimento(e.target.value)}
                         required
                         className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        lang={i18n.language?.startsWith('pt') ? 'pt-BR' : i18n.language?.startsWith('es') ? 'es-ES' : 'en-US'}
                     />
                 </div>
                 <button

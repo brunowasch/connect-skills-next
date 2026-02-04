@@ -15,7 +15,7 @@ export function EditProfile({ initialData }: EditProfileProps) {
     // Estados do Formulário
     const [formData, setFormData] = useState({
         ...initialData,
-        pais: initialData.pais || "Brasil"
+        pais: initialData.pais
     });
     const [links, setLinks] = useState(initialData.links.length > 0 ? initialData.links : [{ label: '', url: '' }]);
     const [fotoPreview, setFotoPreview] = useState(initialData.fotoPerfil || null);
@@ -134,6 +134,16 @@ export function EditProfile({ initialData }: EditProfileProps) {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
+        if (!formData.nome?.trim()) {
+            localStorage.setItem('global_toast', JSON.stringify({
+                type: 'error',
+                text: t('validation_name_required') || 'Nome é obrigatório.'
+            }));
+            window.dispatchEvent(new Event('storage'));
+            return;
+        }
+
         setIsLoading(true);
 
         try {
@@ -154,7 +164,7 @@ export function EditProfile({ initialData }: EditProfileProps) {
                 }));
                 window.dispatchEvent(new Event('storage'));
                 router.refresh();
-                // Removed router.back()
+                router.back();
             } else {
                 localStorage.setItem('global_toast', JSON.stringify({
                     type: 'error',
@@ -187,7 +197,7 @@ export function EditProfile({ initialData }: EditProfileProps) {
                     text: 'Conta excluída com sucesso.'
                 }));
                 window.dispatchEvent(new Event('storage'));
-                window.location.href = '/login';
+                window.location.href = '/';
             } else {
                 const data = await res.json();
                 alert(data.error || 'Erro ao excluir conta');
@@ -208,7 +218,7 @@ export function EditProfile({ initialData }: EditProfileProps) {
         if (normalize(formData.sobrenome) !== normalize(initialData.sobrenome)) return true;
         if (normalize(formData.cidade) !== normalize(initialData.cidade)) return true;
         if (normalize(formData.estado) !== normalize(initialData.estado)) return true;
-        if (normalize(formData.pais) !== normalize(initialData.pais || "Brasil")) return true;
+        if (normalize(formData.pais) !== normalize(initialData.pais)) return true;
         if (normalize(formData.ddi) !== normalize(initialData.ddi)) return true;
         if (normalize(formData.ddd) !== normalize(initialData.ddd)) return true;
         if (normalize(formData.numero) !== normalize(initialData.numero)) return true;
@@ -290,6 +300,7 @@ export function EditProfile({ initialData }: EditProfileProps) {
                                 <label className="text-sm font-semibold text-gray-600">{t('edit_profile_name_label')}</label>
                                 <input
                                     type="text"
+                                    required
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
                                     value={formData.nome || ''}
                                     onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
@@ -352,17 +363,25 @@ export function EditProfile({ initialData }: EditProfileProps) {
                                         className="w-full pl-7 pr-2 py-2 border border-gray-300 rounded-lg text-left focus:ring-2 focus:ring-blue-500 outline-none transition"
                                         value={formData.ddi || ''}
                                         onChange={(e) => setFormData({ ...formData, ddi: e.target.value.replace(/\D/g, '') })}
-                                        placeholder="55"
+                                        placeholder="00"
                                     />
                                 </div>
                             </div>
                             <div className="w-20 space-y-1">
                                 <label className="text-sm font-semibold text-gray-600">{t('ddd_label')}</label>
-                                <input type="text" maxLength={2} className="w-full px-2 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-blue-500 outline-none" value={formData.ddd || ''} onChange={(e) => setFormData({ ...formData, ddd: e.target.value })} />
+                                <input type="text" maxLength={2}
+                                    className="w-full px-2 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-blue-500 outline-none"
+                                    value={formData.ddd || ''}
+                                    onChange={(e) => setFormData({ ...formData, ddd: e.target.value })}
+                                    placeholder="00" />
                             </div>
                             <div className="flex-1 min-w-[150px] space-y-1">
                                 <label className="text-sm font-semibold text-gray-600">{t('number_label')}</label>
-                                <input type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" value={formData.numero || ''} onChange={(e) => setFormData({ ...formData, numero: e.target.value })} />
+                                <input type="text"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    value={formData.numero || ''}
+                                    onChange={(e) => setFormData({ ...formData, numero: e.target.value })}
+                                    placeholder="00000-0000" />
                             </div>
                         </div>
 
@@ -495,9 +514,9 @@ export function EditProfile({ initialData }: EditProfileProps) {
                         </button>
                         <button
                             type="submit"
-                            disabled={isLoading || !hasChanges}
+                            disabled={isLoading || !hasChanges || !formData.nome?.trim()}
                             className={`flex-1 md:flex-none px-4 py-3 rounded-xl font-bold shadow-lg transition flex items-center justify-center gap-2 cursor-pointer 
-                                ${isLoading || !hasChanges
+                                ${isLoading || !hasChanges || !formData.nome?.trim()
                                     ? "bg-gray-300 text-gray-500 cursor-not-allowed shadow-none"
                                     : "bg-blue-600 text-white shadow-blue-200 hover:bg-blue-700"}`
                             }

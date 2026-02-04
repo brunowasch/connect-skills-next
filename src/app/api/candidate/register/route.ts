@@ -7,7 +7,7 @@ interface RegisterCandidate {
   nome: string;
   sobrenome: string;
   data_nascimento: string;
-  usuario_id?: string; 
+  usuario_id?: string;
 }
 
 export async function POST(req: Request) {
@@ -21,9 +21,9 @@ export async function POST(req: Request) {
     const finalUserId = userIdFromCookie || usuario_id;
 
     // 1. Validação básica de campos obrigatórios
-    if (!nome || !sobrenome || !data_nascimento || !finalUserId) {
+    if (!nome || !data_nascimento || !finalUserId) {
       return NextResponse.json(
-        { error: "Dados do candidato ausentes: nome, sobrenome, data_nascimento ou usuario_id." },
+        { error: "Dados do candidato ausentes: nome, data_nascimento ou usuario_id." },
         { status: 400 }
       );
     }

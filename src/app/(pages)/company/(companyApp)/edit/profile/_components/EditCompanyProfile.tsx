@@ -47,7 +47,7 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
         numero: initialData.numero || "",
         cidade: initialData.cidade || "",
         estado: initialData.estado || "",
-        pais: initialData.pais || "Brasil",
+        pais: initialData.pais || "",
         fotoPerfil: initialData.foto_perfil || undefined,
         anexos: initialData.anexos || [],
         links: initialData.links.length > 0 ? initialData.links : [{ label: '', url: '' }],
@@ -201,7 +201,7 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
                 }));
                 window.dispatchEvent(new Event('storage'));
                 router.refresh();
-                // Removed router.back() to keep user on page with toast
+                router.back();
             } else {
                 localStorage.setItem('global_toast', JSON.stringify({
                     type: 'error',
@@ -255,7 +255,7 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
         if (normalize(formData.descricao) !== normalize(initialData.descricao)) return true;
         if (normalize(formData.cidade) !== normalize(initialData.cidade)) return true;
         if (normalize(formData.estado) !== normalize(initialData.estado)) return true;
-        if (normalize(formData.pais) !== normalize(initialData.pais || "Brasil")) return true;
+        if (normalize(formData.pais) !== normalize(initialData.pais)) return true;
         if (normalize(formData.ddi) !== normalize(initialData.ddi)) return true;
         if (normalize(formData.ddd) !== normalize(initialData.ddd)) return true;
         if (normalize(formData.numero) !== normalize(initialData.numero)) return true;
@@ -556,9 +556,9 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
                         </button>
                         <button
                             type="submit"
-                            disabled={isLoading || !hasChanges}
+                            disabled={isLoading || !hasChanges || !formData.nome_empresa?.trim()}
                             className={`flex-1 md:flex-none px-4 py-3 rounded-xl font-bold shadow-lg transition flex items-center justify-center gap-2 cursor-pointer 
-                                ${isLoading || !hasChanges
+                                ${isLoading || !hasChanges || !formData.nome_empresa?.trim()
                                     ? "bg-gray-300 text-gray-500 cursor-not-allowed shadow-none"
                                     : "bg-blue-600 text-white shadow-blue-200 hover:bg-blue-700"}`
                             }

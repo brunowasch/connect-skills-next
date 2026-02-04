@@ -75,7 +75,7 @@ model empresa {
   id              String            @id
   usuario_id      String            @unique
   nome_empresa    String
-  descricao       String
+  descricao       String?
   telefone        String?
   pais            String?
   estado          String?

@@ -30,11 +30,10 @@ export default async function Layout({ children }: { children: React.ReactNode }
     }
 
     const hasName = candidato.nome && candidato.nome.trim() !== "";
-    const hasSurname = candidato.sobrenome && candidato.sobrenome.trim() !== "";
     const hasBirthDate = !!candidato.data_nascimento;
     const hasAreas = candidato.candidato_area && candidato.candidato_area.length > 0;
 
-    if (!hasName || !hasSurname || !hasBirthDate) {
+    if (!hasName || !hasBirthDate) {
         redirect("/candidate/register");
     }
 

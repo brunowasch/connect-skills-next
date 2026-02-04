@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
         const userIdFromCookie = cookieStore.get("time_user_id")?.value;
         const finalUserId = userIdFromCookie || usuario_id;
 
-        if (!nome || !descricao || !finalUserId) {
+        if (!nome || !finalUserId) {
             return NextResponse.json(
                 { error: "Dados da empresa ausentes." },
                 { status: 400 }

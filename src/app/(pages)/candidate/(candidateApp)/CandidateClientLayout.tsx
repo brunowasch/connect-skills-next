@@ -39,7 +39,7 @@ export default function CandidateLayout({
                         <div className="flex items-center gap-4 lg:hidden">
                             <button
                                 onClick={() => setMobileSidebarOpen(true)}
-                                className="rounded-lg p-2.5 text-gray-600 hover:bg-gray-100 active:bg-gray-200 transition-colors"
+                                className="rounded-lg p-2.5 text-gray-600 hover:bg-gray-100 active:bg-gray-200 transition-colors cursor-pointer"
                             >
                                 <FaBars className="text-2xl" />
                             </button>

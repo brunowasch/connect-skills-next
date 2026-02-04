@@ -45,11 +45,18 @@ export async function POST(req: Request) {
     // 2. Verificação de existência do usuário
     const existingUser = await prisma.usuario.findUnique({
       where: { email },
-      include: { candidato: true, empresa: true }
+      include: {
+        candidato: {
+          include: {
+            candidato_area: true
+          }
+        },
+        empresa: true
+      }
     });
 
     if (existingUser) {
-      const isCandidateComplete = existingUser.candidato && existingUser.candidato.nome;
+      const isCandidateComplete = existingUser.candidato && existingUser.candidato.nome && existingUser.candidato.candidato_area.length > 0;
       const isCompanyComplete = existingUser.empresa && existingUser.empresa.nome_empresa && existingUser.empresa.nome_empresa !== "";
       const isRegistrationComplete = isCandidateComplete || isCompanyComplete;
 
