@@ -52,7 +52,7 @@ export function ForgotPasswordCard() {
             setResendCooldown(60);
         } else {
             setStatus("error");
-            setMessage(res.error || t("error_occurred"));
+            setMessage(res.error || "error_occurred");
         }
     }
 
@@ -68,7 +68,7 @@ export function ForgotPasswordCard() {
             setStep("reset");
         } else {
             setStatus("error");
-            setMessage(res.error || t("invalid_code"));
+            setMessage(res.error || "invalid_code");
             // Keep in verify step
         }
     }
@@ -83,7 +83,7 @@ export function ForgotPasswordCard() {
         if (res.success) {
             setResendCooldown(60);
             setStatus("success");
-            setMessage(t("new_code_sent"));
+            setMessage(res.message || "new_code_sent");
             setTimeout(() => {
                 if (step === "verify") {
                     setStatus("idle");
@@ -92,7 +92,7 @@ export function ForgotPasswordCard() {
             }, 3000);
         } else {
             setStatus("error");
-            setMessage(res.error || t("error_resend_code"));
+            setMessage(res.error || "error_resend_code");
         }
         setIsResending(false);
     }
@@ -111,13 +111,13 @@ export function ForgotPasswordCard() {
 
         if (res.success) {
             setStatus("success");
-            setMessage(res.message || t("password_reset_success"));
+            setMessage(res.message || "password_reset_success");
             setTimeout(() => {
                 router.push("/login");
             }, 3000);
         } else {
             setStatus("error");
-            setMessage(res.error || t("password_reset_error"));
+            setMessage(res.error || "password_reset_error");
         }
     }
 
@@ -131,7 +131,7 @@ export function ForgotPasswordCard() {
                 onResend={handleResendCode}
                 onBack={() => setStep("email")}
                 isLoading={status === "loading"}
-                error={status === "error" ? message : ""}
+                error={status === "error" ? (message ? t(message) : "") : ""}
                 resendCooldown={resendCooldown}
                 isResending={isResending}
                 title={t("register_verify_title")}
@@ -156,7 +156,7 @@ export function ForgotPasswordCard() {
 
                     {message && (
                         <div className={`mb-4 p-3 rounded text-sm text-center ${status === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                            {message}
+                            {t(message)}
                         </div>
                     )}
 
@@ -265,7 +265,7 @@ export function ForgotPasswordCard() {
 
                 {message && (
                     <div className={`mb-4 p-3 rounded text-sm text-center ${status === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                        {message}
+                        {t(message)}
                     </div>
                 )}
 

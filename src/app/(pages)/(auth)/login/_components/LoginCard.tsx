@@ -124,6 +124,13 @@ export function LoginCard() {
                 >
                     {t("login_btn")}
                 </button>
+
+                <div className="mt-6 text-center text-sm">
+                    <span className="text-gray-600">{t("dont_have_account")}</span>{" "}
+                    <Link href="/register" className="text-blue-600 hover:underline font-medium">
+                        {t("register_now")}
+                    </Link>
+                </div>
             </form>
         </div>
     );

@@ -12,7 +12,7 @@ export async function requestPasswordReset(email: string) {
         });
 
         if (!user) {
-            return { success: true, message: "recovery_code_sent_if_exists" };
+            return { success: false, error: "user_not_found" };
         }
 
         await prisma.password_reset_token.deleteMany({

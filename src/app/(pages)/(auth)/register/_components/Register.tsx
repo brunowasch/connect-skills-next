@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { VerificationModal } from "@/src/app/_components/VerificationModal";
 import { Eye, EyeOff, Check, X } from "lucide-react";
@@ -284,6 +285,13 @@ export function RegisterCard() {
                         t("register_btn")
                     )}
                 </button>
+
+                <div className="mt-6 text-center text-sm">
+                    <span className="text-gray-600">{t("already_have_account")}</span>{" "}
+                    <Link href="/login" className="text-blue-600 hover:underline font-medium">
+                        {t("login_now")}
+                    </Link>
+                </div>
             </form>
         </div>
     );
