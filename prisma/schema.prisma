@@ -160,7 +160,7 @@ model vaga {
   opcao                String?                    @db.Text
   created_at           DateTime                   @default(now())
   vinculo_empregaticio vaga_vinculo_empregaticio?
-  // vaga_favorita        vaga_favorita[]
+  vaga_favorita        vaga_favorita[]
   vaga_soft_skill      vaga_soft_skill[]
   vaga_area            vaga_area[]
 }
