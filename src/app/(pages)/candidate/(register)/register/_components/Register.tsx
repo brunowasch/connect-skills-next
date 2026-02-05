@@ -4,7 +4,8 @@ import Cookies from "js-cookie";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslation } from "react-i18next";
+import Link from "next/link";
+import { useTranslation, Trans } from "react-i18next";
 
 export function RegisterCandidateName() {
     const { t, i18n } = useTranslation();
@@ -12,6 +13,8 @@ export function RegisterCandidateName() {
     const [nome, setNome] = useState("");
     const [sobrenome, setSobrenome] = useState("");
     const [data_nascimento, setDataNascimento] = useState("");
+    const [age, setAge] = useState<number | null>(null);
+    const [consentimentoParental, setConsentimentoParental] = useState(false);
     const [error, setError] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -31,9 +34,42 @@ export function RegisterCandidateName() {
         };
     }, [t, isSubmitting]);
 
+    useEffect(() => {
+        if (data_nascimento) {
+            const birthDate = new Date(data_nascimento);
+            const today = new Date();
+            let calculatedAge = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                calculatedAge--;
+            }
+            setAge(calculatedAge);
+        } else {
+            setAge(null);
+        }
+    }, [data_nascimento]);
+
+    const isUnder16 = age !== null && age < 16;
+    const isMinor = age !== null && age >= 16 && age < 18;
+
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
+        setError("");
         setIsSubmitting(true);
+
+        if (isUnder16) {
+            setError(t("candidate_age_error_under_16"));
+            setIsSubmitting(false);
+            return;
+        }
+
+        if (isMinor) {
+            if (!consentimentoParental) {
+                setError(t("parental_consent_required_error"));
+                setIsSubmitting(false);
+                return;
+            }
+        }
 
         try {
             const userId = Cookies.get("time_user_id");
@@ -47,6 +83,7 @@ export function RegisterCandidateName() {
                     sobrenome: sobrenome || undefined,
                     data_nascimento: data_nascimento,
                     usuario_id: userId,
+                    consentimento_parental: isMinor ? consentimentoParental : undefined,
                 }),
             });
             const data = await res.json();
@@ -111,9 +148,44 @@ export function RegisterCandidateName() {
                         lang={i18n.language?.startsWith('pt') ? 'pt-BR' : i18n.language?.startsWith('es') ? 'es-ES' : 'en-US'}
                     />
                 </div>
+
+                {isUnder16 && (
+                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm text-center">
+                        {t("candidate_age_error_under_16")}
+                    </div>
+                )}
+
+                {isMinor && (
+                    <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <h3 className="text-md font-medium text-blue-800 mb-2">{t("parental_consent_title")}</h3>
+                        <p className="text-sm text-blue-600 mb-4">{t("parental_consent_desc")}</p>
+                        
+                        <div className="flex items-start gap-3">
+                            <input 
+                                id="parental-consent"
+                                type="checkbox" 
+                                checked={consentimentoParental}
+                                onChange={(e) => setConsentimentoParental(e.target.checked)}
+                                className="appearance-none w-4 h-4 border border-gray-300 rounded checked:bg-blue-600 checked:border-blue-600 focus:ring-2 focus:ring-blue-100 cursor-pointer relative shrink-0 transition-all mt-0.5 after:content-[''] after:absolute after:hidden checked:after:block after:left-[5px] after:top-[1px] after:w-[5px] after:h-[9px] after:border-white after:border-r-2 after:border-b-2 after:rotate-45"
+                            />
+                            <label htmlFor="parental-consent" className="text-sm text-gray-700 select-none cursor-pointer">
+                                <Trans
+                                    i18nKey="parental_consent_label"
+                                    components={[
+                                        <Link href="#" className="text-blue-600 hover:underline font-medium" key="terms" />,
+                                        <Link href="#" className="text-blue-600 hover:underline font-medium" key="privacy" />
+                                    ]}
+                                />
+                            </label>
+                        </div>
+                    </div>
+                )}
                 <button
                     type="submit"
-                    className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
+                    disabled={isUnder16 || isSubmitting}
+                    className={`w-full text-white py-2 rounded-lg transition-colors cursor-pointer ${
+                        isUnder16 || isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+                    }`}
                 >
                     {t("continue_btn")}
                 </button>

@@ -1390,5 +1390,13 @@
     "vacancy_apply_action": "Candidatar-se à Vaga",
     "responses_modal_title": "Suas Respostas",
     "responses_modal_no_data": "Nenhuma resposta encontrada.",
-    "responses_modal_close": "Fechar Visualização"
+    "responses_modal_close": "Fechar Visualização",
+    "candidate_age_error_under_16": "Você precisa ter pelo menos 16 anos para se cadastrar.",
+    "parental_consent_title": "Consentimento do Responsável Legal",
+    "parental_consent_desc": "Como você é menor de 18 anos, é necessário o consentimento do seu responsável legal para utilizar a plataforma.",
+    "parental_consent_label": "Declaro que possuo autorização do meu responsável legal para utilizar esta plataforma e concordo com os <0>Termos de Uso</0> e <1>Política de Privacidade</1>.",
+    "parent_email_label": "E-mail do Responsável",
+    "parent_email_placeholder": "Digite o e-mail do responsável",
+    "parental_consent_required_error": "É necessário confirmar o consentimento do responsável legal.",
+    "parent_email_required_error": "O e-mail do responsável é obrigatório."
 }
