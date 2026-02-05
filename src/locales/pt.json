@@ -1392,6 +1392,8 @@
     "responses_modal_no_data": "Nenhuma resposta encontrada.",
     "responses_modal_close": "Fechar Visualização",
     "candidate_age_error_under_16": "Você precisa ter pelo menos 16 anos para se cadastrar.",
+    "candidate_age_error_invalid_date": "Data de nascimento inválida.",
+    "candidate_age_error_too_old": "Idade improvável. Verifique sua data de nascimento.",
     "parental_consent_title": "Consentimento do Responsável Legal",
     "parental_consent_desc": "Como você é menor de 18 anos, é necessário o consentimento do seu responsável legal para utilizar a plataforma.",
     "parental_consent_label": "Declaro que possuo autorização do meu responsável legal para utilizar esta plataforma e concordo com os <0>Termos de Uso</0> e <1>Política de Privacidade</1>.",

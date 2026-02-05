@@ -49,13 +49,28 @@ export function RegisterCandidateName() {
         }
     }, [data_nascimento]);
 
-    const isUnder16 = age !== null && age < 16;
-    const isMinor = age !== null && age >= 16 && age < 18;
+    const birthYear = data_nascimento ? new Date(data_nascimento).getFullYear() : null;
+    const isFutureDate = birthYear !== null && birthYear > 2026;
+    const isTooOld = birthYear !== null && birthYear <= 1900;
+    const isUnder16 = age !== null && age < 16 && !isFutureDate && !isTooOld;
+    const isMinor = age !== null && age >= 16 && age < 18 && !isFutureDate && !isTooOld;
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         setError("");
         setIsSubmitting(true);
+
+        if (isFutureDate) {
+            setError(t("candidate_age_error_invalid_date"));
+            setIsSubmitting(false);
+            return;
+        }
+
+        if (isTooOld) {
+            setError(t("candidate_age_error_too_old"));
+            setIsSubmitting(false);
+            return;
+        }
 
         if (isUnder16) {
             setError(t("candidate_age_error_under_16"));
@@ -144,10 +159,24 @@ export function RegisterCandidateName() {
                         value={data_nascimento}
                         onChange={(e) => setDataNascimento(e.target.value)}
                         required
+                        min="1900-01-01"
+                        max="2026-12-31"
                         className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         lang={i18n.language?.startsWith('pt') ? 'pt-BR' : i18n.language?.startsWith('es') ? 'es-ES' : 'en-US'}
                     />
                 </div>
+
+                {isFutureDate && (
+                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm text-center">
+                        {t("candidate_age_error_invalid_date")}
+                    </div>
+                )}
+
+                {isTooOld && (
+                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm text-center">
+                        {t("candidate_age_error_too_old")}
+                    </div>
+                )}
 
                 {isUnder16 && (
                     <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm text-center">
@@ -166,6 +195,7 @@ export function RegisterCandidateName() {
                                 type="checkbox" 
                                 checked={consentimentoParental}
                                 onChange={(e) => setConsentimentoParental(e.target.checked)}
+                                required
                                 className="appearance-none w-4 h-4 border border-gray-300 rounded checked:bg-blue-600 checked:border-blue-600 focus:ring-2 focus:ring-blue-100 cursor-pointer relative shrink-0 transition-all mt-0.5 after:content-[''] after:absolute after:hidden checked:after:block after:left-[5px] after:top-[1px] after:w-[5px] after:h-[9px] after:border-white after:border-r-2 after:border-b-2 after:rotate-45"
                             />
                             <label htmlFor="parental-consent" className="text-sm text-gray-700 select-none cursor-pointer">
@@ -182,9 +212,9 @@ export function RegisterCandidateName() {
                 )}
                 <button
                     type="submit"
-                    disabled={isUnder16 || isSubmitting}
+                    disabled={isFutureDate || isTooOld || isUnder16 || isSubmitting || (isMinor && !consentimentoParental)}
                     className={`w-full text-white py-2 rounded-lg transition-colors cursor-pointer ${
-                        isUnder16 || isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+                        isFutureDate || isTooOld || isUnder16 || isSubmitting || (isMinor && !consentimentoParental) ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
                     }`}
                 >
                     {t("continue_btn")}

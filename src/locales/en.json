@@ -1529,5 +1529,7 @@
     "parent_email_label": "Guardian's Email",
     "parent_email_placeholder": "Enter guardian's email",
     "parental_consent_required_error": "Legal guardian consent confirmation is required.",
-    "parent_email_required_error": "Guardian's email is required."
+    "parent_email_required_error": "Guardian's email is required.",
+    "candidate_age_error_invalid_date": "Invalid date of birth.",
+    "candidate_age_error_too_old": "Unlikely age. Check your date of birth."
 }

@@ -1519,5 +1519,7 @@
     "parent_email_label": "Correo electrónico del tutor",
     "parent_email_placeholder": "Ingrese el correo del tutor",
     "parental_consent_required_error": "Se requiere confirmación del consentimiento del responsable legal.",
-    "parent_email_required_error": "El correo del tutor es obligatorio."
+    "parent_email_required_error": "El correo del tutor es obligatorio.",
+    "candidate_age_error_invalid_date": "Fecha de nacimiento inválida.",
+    "candidate_age_error_too_old": "Edad improbable. Verifica tu fecha de nacimiento."
 }

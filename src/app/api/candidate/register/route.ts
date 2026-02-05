@@ -48,9 +48,9 @@ export async function POST(req: Request) {
 
     // Valida consentimento parental para menores entre 16 e 18 anos
     if (age >= 16 && age < 18) {
-      if (!consentimento_parental) {
+      if (consentimento_parental !== true) {
         return NextResponse.json(
-          { error: "É necessário confirmar o consentimento do responsável legal." },
+          { error: "É necessário confirmar o consentimento do responsável legal para menores de 18 anos." },
           { status: 400 }
         );
       }
