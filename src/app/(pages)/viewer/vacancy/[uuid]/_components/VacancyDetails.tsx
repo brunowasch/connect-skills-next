@@ -95,7 +95,7 @@ interface VacancyDetailsProps {
         cidade?: string | null;
         estado?: string | null;
         pais?: string | null;
-        descricao: string;
+        descricao?: string | null;
     } | null;
     isActive: boolean;
     applicationCount: number;

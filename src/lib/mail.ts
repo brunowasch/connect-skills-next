@@ -161,3 +161,35 @@ export async function sendPasswordResetCodeEmail(email: string, code: string) {
         return false;
     }
 }
+
+export async function sendParentalConsentEmail(email: string, candidateName: string) {
+    const mailOptions = {
+        from: process.env.EMAIL_FROM,
+        to: email,
+        subject: 'Aviso de Cadastro de Menor - Connect Skills',
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+                <h2 style="color: #4F46E5; text-align: center;">Aviso de Cadastro</h2>
+                <p style="text-align: center; color: #555;">Olá,</p>
+                <p style="text-align: center; color: #555;">
+                    Informamos que o menor <strong>${candidateName}</strong> iniciou o processo de cadastro na plataforma <strong>Connect Skills</strong>.
+                </p>
+                <p style="text-align: center; color: #555;">
+                    Durante o cadastro, foi indicado que você é o responsável legal e que houve consentimento para o uso da plataforma.
+                </p>
+                
+                <p style="text-align: center; font-size: 14px; color: #666; margin-top: 30px;">
+                    Se você não reconhece este cadastro ou não autorizou, por favor entre em contato conosco imediatamente.
+                </p>
+            </div>
+        `,
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        return true;
+    } catch (error) {
+        console.error("Erro ao enviar email de consentimento parental:", error);
+        return false;
+    }
+}

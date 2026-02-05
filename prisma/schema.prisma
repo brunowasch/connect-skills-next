@@ -22,6 +22,8 @@ model candidato {
   sobrenome         String?
   data_nascimento   DateTime?
   pais              String?
+  consentimento_parental Boolean?       @default(false)
+  email_responsavel String?
   descricao         String?             @db.Text
   estado            String?
   cidade            String?

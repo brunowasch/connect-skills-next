@@ -1521,5 +1521,15 @@
     "vacancy_apply_action": "Apply for Job",
     "responses_modal_title": "Your Responses",
     "responses_modal_no_data": "No responses found.",
-    "responses_modal_close": "Close View"
+    "responses_modal_close": "Close View",
+    "candidate_age_error_under_16": "You must be at least 16 years old to register.",
+    "parental_consent_title": "Legal Guardian Consent",
+    "parental_consent_desc": "As you are under 18 years old, consent from your legal guardian is required to use the platform.",
+    "parental_consent_label": "I declare that I have authorization from my legal guardian to use this platform and agree to the <0>Terms of Use</0> and <1>Privacy Policy</1>.",
+    "parent_email_label": "Guardian's Email",
+    "parent_email_placeholder": "Enter guardian's email",
+    "parental_consent_required_error": "Legal guardian consent confirmation is required.",
+    "parent_email_required_error": "Guardian's email is required.",
+    "candidate_age_error_invalid_date": "Invalid date of birth.",
+    "candidate_age_error_too_old": "Unlikely age. Check your date of birth."
 }

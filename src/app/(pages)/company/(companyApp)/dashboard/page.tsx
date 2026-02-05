@@ -38,7 +38,7 @@ export default async function Dashboard() {
         where: { empresa_id: companyId },
         select: { id: true }
     });
-    const vacancyIds = companyVacancies.map(v => v.id);
+    const vacancyIds = companyVacancies.map((v: { id: string }) => v.id);
 
     const [PublishedVacancies, ReceivedCandidates] = await Promise.all([
         prisma.vaga.count({
@@ -58,7 +58,7 @@ export default async function Dashboard() {
     const closedVagaIds = new Set<string>();
     const processedVagas = new Set<string>();
 
-    latestStatuses.forEach(status => {
+    latestStatuses.forEach((status: { vaga_id: string; situacao: string }) => {
         if (!processedVagas.has(status.vaga_id)) {
             processedVagas.add(status.vaga_id);
             if (['INATIVA', 'FECHADA', 'ENCERRADA'].includes(status.situacao.toUpperCase())) {
@@ -67,7 +67,7 @@ export default async function Dashboard() {
         }
     });
 
-    const OpenVacancies = vacancyIds.filter(id => !closedVagaIds.has(id)).length;
+    const OpenVacancies = vacancyIds.filter((id: string) => !closedVagaIds.has(id)).length;
 
     const heroData = {
         nomeEmpresa: companyData.nome_empresa,
@@ -75,7 +75,7 @@ export default async function Dashboard() {
         localidade: [companyData.cidade, companyData.estado, companyData.pais]
             .filter(Boolean)
             .join(", "),
-        descricao: companyData.descricao,
+        descricao: companyData.descricao || undefined,
     };
 
     // Buscar vagas recentes sem usar include para evitar erros de relação
@@ -85,7 +85,7 @@ export default async function Dashboard() {
         take: 5
     });
 
-    const recentVacancyIds = recentVacanciesRaw.map(v => v.id);
+    const recentVacancyIds = recentVacanciesRaw.map((v: { id: string }) => v.id);
 
     // Fetch Candidate Counts for recent vacancies
     const candidateCounts = await prisma.vaga_avaliacao.groupBy({
@@ -96,7 +96,7 @@ export default async function Dashboard() {
         }
     });
 
-    const candidateCountMap = new Map(candidateCounts.map(c => [c.vaga_id, c._count.vaga_id]));
+    const candidateCountMap = new Map(candidateCounts.map((c: { vaga_id: string; _count: { vaga_id: number } }) => [c.vaga_id, c._count.vaga_id]));
 
     // Fetch Latest Statuses for recent vacancies
     // We could reuse 'latestStatuses' but that might contain stale data if we fetched all? 
@@ -109,14 +109,14 @@ export default async function Dashboard() {
     const processedStatusVagas = new Set<string>();
 
     // latestStatuses is already ordered by date desc
-    latestStatuses.forEach(status => {
+    latestStatuses.forEach((status: { vaga_id: string; situacao: string }) => {
         if (!processedStatusVagas.has(status.vaga_id)) {
             processedStatusVagas.add(status.vaga_id);
             statusMap.set(status.vaga_id, status.situacao);
         }
     });
 
-    const recentVacancies = recentVacanciesRaw.map(v => {
+    const recentVacancies = recentVacanciesRaw.map((v: any) => {
         const status = statusMap.get(v.id);
         // Treat anything that matches Inativa/Fechada (legacy) as Inactiv
         const isInactive = ['INATIVA', 'FECHADA', 'ENCERRADA'].includes(status?.toUpperCase() || '');
@@ -141,8 +141,8 @@ export default async function Dashboard() {
     });
 
     // Buscar detalhes dos candidatos e vagas para as aplicações
-    const appCandidateIds = recentApplicationsRaw.map(a => a.candidato_id);
-    const appVacancyIds = recentApplicationsRaw.map(a => a.vaga_id);
+    const appCandidateIds = recentApplicationsRaw.map((a: { candidato_id: string }) => a.candidato_id);
+    const appVacancyIds = recentApplicationsRaw.map((a: { vaga_id: string }) => a.vaga_id);
 
     // Fetch Candidates and Vacancies manually since relations might be missing/partial
     const [appCandidates, appVacancies] = await Promise.all([
@@ -164,12 +164,12 @@ export default async function Dashboard() {
         })
     ]);
 
-    const appCandidateMap = new Map(appCandidates.map(c => [c.id, c]));
-    const appVacancyMap = new Map(appVacancies.map(v => [v.id, v]));
+    const appCandidateMap = new Map(appCandidates.map((c: any) => [c.id, c]));
+    const appVacancyMap = new Map(appVacancies.map((v: any) => [v.id, v]));
 
-    const applications = recentApplicationsRaw.map(app => {
-        const candidate = appCandidateMap.get(app.candidato_id);
-        const vacancy = appVacancyMap.get(app.vaga_id);
+    const applications = recentApplicationsRaw.map((app: any) => {
+        const candidate: any = appCandidateMap.get(app.candidato_id);
+        const vacancy: any = appVacancyMap.get(app.vaga_id);
 
         return {
             id: app.id,

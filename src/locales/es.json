@@ -1511,5 +1511,15 @@
     "vacancy_apply_action": "Postularse a la Vacante",
     "responses_modal_title": "Sus Respuestas",
     "responses_modal_no_data": "No se encontraron respuestas.",
-    "responses_modal_close": "Cerrar Vista"
+    "responses_modal_close": "Cerrar Vista",
+    "candidate_age_error_under_16": "Debes tener al menos 16 años para registrarte.",
+    "parental_consent_title": "Consentimiento del Responsable Legal",
+    "parental_consent_desc": "Como eres menor de 18 años, es necesario el consentimiento de tu responsable legal para utilizar la plataforma.",
+    "parental_consent_label": "Declaro que poseo autorización de mi responsable legal para utilizar esta plataforma y acepto los <0>Términos de Uso</0> y <1>Política de Privacidad</1>.",
+    "parent_email_label": "Correo electrónico del tutor",
+    "parent_email_placeholder": "Ingrese el correo del tutor",
+    "parental_consent_required_error": "Se requiere confirmación del consentimiento del responsable legal.",
+    "parent_email_required_error": "El correo del tutor es obligatorio.",
+    "candidate_age_error_invalid_date": "Fecha de nacimiento inválida.",
+    "candidate_age_error_too_old": "Edad improbable. Verifica tu fecha de nacimiento."
 }
