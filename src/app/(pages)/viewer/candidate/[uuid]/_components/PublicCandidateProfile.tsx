@@ -1,5 +1,6 @@
 "use client";
 
+import { AreasList } from "@/src/app/_components/Shared/AreasList";
 import {
     MapPin, Phone, Calendar, User,
     Link as LinkIcon, Paperclip, ExternalLink, FileText, ArrowLeft
@@ -166,17 +167,7 @@ export function PublicCandidateProfile({ candidato, fotoPerfil, localidade, cont
                                 <Target className="text-blue-600" size={18} /> {t("areas_of_interest")}
                             </h3>
                         </div>
-                        <div className="flex flex-wrap gap-2">
-                            {candidato.candidato_area?.length > 0 ? (
-                                candidato.candidato_area.map((ca: any, idx: number) => (
-                                    <span key={idx} className="bg-blue-50 text-blue-700 border border-blue-100 px-4 py-1.5 rounded-full text-sm font-medium">
-                                        {t(ca.area_interesse?.nome) || t("area_default")}
-                                    </span>
-                                ))
-                            ) : (
-                                <p className="text-gray-400 text-sm italic">{t("no_areas_selected")}</p>
-                            )}
-                        </div>
+                        <AreasList areas={candidato.candidato_area} />
                     </div>
 
                     <div className="col-span-1 md:col-span-2">

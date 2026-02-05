@@ -47,7 +47,7 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
         numero: initialData.numero || "",
         cidade: initialData.cidade || "",
         estado: initialData.estado || "",
-        pais: initialData.pais || "Brasil",
+        pais: initialData.pais || "",
         fotoPerfil: initialData.foto_perfil || undefined,
         anexos: initialData.anexos || [],
         links: initialData.links.length > 0 ? initialData.links : [{ label: '', url: '' }],
@@ -56,6 +56,7 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
     const [fotoPreview, setFotoPreview] = useState(initialData.foto_perfil || null);
     const [showPhotoOptions, setShowPhotoOptions] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -200,7 +201,7 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
                 }));
                 window.dispatchEvent(new Event('storage'));
                 router.refresh();
-                // Removed router.back() to keep user on page with toast
+                router.back();
             } else {
                 localStorage.setItem('global_toast', JSON.stringify({
                     type: 'error',
@@ -223,6 +224,30 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
         router.back();
     };
 
+    const handleDeleteAccount = async () => {
+        setIsLoading(true);
+        try {
+            const res = await fetch('/api/auth/delete', { method: 'DELETE' });
+            if (res.ok) {
+                localStorage.setItem('global_toast', JSON.stringify({
+                    type: 'success',
+                    text: 'Conta excluída com sucesso.'
+                }));
+                window.dispatchEvent(new Event('storage'));
+                window.location.href = '/';
+            } else {
+                const data = await res.json();
+                alert(data.error || 'Erro ao excluir conta');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Erro de conexão');
+        } finally {
+            setIsLoading(false);
+            setShowDeleteModal(false);
+        }
+    };
+
     const hasChanges = useMemo(() => {
         const normalize = (val: any) => val === null || val === undefined ? '' : String(val).trim();
 
@@ -230,7 +255,7 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
         if (normalize(formData.descricao) !== normalize(initialData.descricao)) return true;
         if (normalize(formData.cidade) !== normalize(initialData.cidade)) return true;
         if (normalize(formData.estado) !== normalize(initialData.estado)) return true;
-        if (normalize(formData.pais) !== normalize(initialData.pais || "Brasil")) return true;
+        if (normalize(formData.pais) !== normalize(initialData.pais)) return true;
         if (normalize(formData.ddi) !== normalize(initialData.ddi)) return true;
         if (normalize(formData.ddd) !== normalize(initialData.ddd)) return true;
         if (normalize(formData.numero) !== normalize(initialData.numero)) return true;
@@ -513,7 +538,15 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
 
                 {/* Action Buttons */}
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-10 border-t">
-                    <div className="flex gap-4 w-full md:w-auto md:ml-auto">
+                    <button
+                        type="button"
+                        onClick={() => setShowDeleteModal(true)}
+                        className="text-red-500 flex items-center gap-2 text-sm font-semibold cursor-pointer hover:bg-red-50 px-4 py-2 rounded-lg transition"
+                    >
+                        <AlertTriangle size={18} /> {t('edit_profile_delete_account')}
+                    </button>
+
+                    <div className="flex gap-4 w-full md:w-auto">
                         <button
                             type="button"
                             onClick={handleCancel}
@@ -523,9 +556,9 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
                         </button>
                         <button
                             type="submit"
-                            disabled={isLoading || !hasChanges}
+                            disabled={isLoading || !hasChanges || !formData.nome_empresa?.trim()}
                             className={`flex-1 md:flex-none px-4 py-3 rounded-xl font-bold shadow-lg transition flex items-center justify-center gap-2 cursor-pointer 
-                                ${isLoading || !hasChanges
+                                ${isLoading || !hasChanges || !formData.nome_empresa?.trim()
                                     ? "bg-gray-300 text-gray-500 cursor-not-allowed shadow-none"
                                     : "bg-blue-600 text-white shadow-blue-200 hover:bg-blue-700"}`
                             }
@@ -540,6 +573,44 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
                     </div>
                 </div>
             </form>
+
+            {/* Modal de Exclusão */}
+            {showDeleteModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-in zoom-in-95 duration-200">
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4 text-red-600">
+                                <AlertTriangle size={24} />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">{t('delete_account_modal_title')}</h3>
+                            <p className="text-gray-500 mb-6 font-medium">
+                                {t('delete_account_modal_desc')}
+                            </p>
+                            <div className="flex gap-3 w-full">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowDeleteModal(false)}
+                                    className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-bold hover:bg-gray-200 transition cursor-pointer"
+                                >
+                                    {t('delete_account_modal_cancel')}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleDeleteAccount}
+                                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition flex items-center justify-center gap-2 cursor-pointer"
+                                    disabled={isLoading}
+                                >
+                                    {isLoading ? (
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                        t('delete_account_modal_confirm')
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </main>
     );
 }

@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslation } from "react-i18next";
+import { AreasList } from "@/src/app/_components/Shared/AreasList";
 
 interface PerfilProps {
     candidato: any;
@@ -170,74 +171,64 @@ export function CandidateProfile({ candidato, fotoPerfil, localidade, contato, l
                                 <button className="text-blue-600 text-sm font-medium cursor-pointer hover:underline">{t("edit_areas")}</button>
                             </Link>
                         </div>
-                        <div className="flex flex-wrap gap-2">
-                            {candidato.candidato_area?.length > 0 ? (
-                                candidato.candidato_area.map((ca: any, idx: number) => (
-                                    <span key={idx} className="bg-blue-50 text-blue-700 border border-blue-100 px-4 py-1.5 rounded-full text-sm font-medium">
-                                        {ca.area_interesse?.nome || t("area_default")}
+                        <AreasList areas={candidato.candidato_area} />
+                    </div>
+                </div>
+
+                {/* LINKS */}
+                <div>
+                    <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-4 mt-4">
+                        <LinkIcon className="text-blue-600" size={18} /> {t("links_network")}
+                    </h3>
+                    <div className="flex flex-col gap-2">
+                        {links.length > 0 ? links.map((link, idx) => (
+                            <a
+                                key={idx}
+                                href={link.url.startsWith('http') ? link.url : `https://${link.url}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center justify-between p-3 rounded-xl border border-gray-50 bg-gray-50/30 hover:bg-blue-50 hover:border-blue-100 hover:text-blue-700 transition-all group"
+                            >
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <div className="p-2 rounded-lg bg-white shadow-sm ring-1 ring-gray-100 group-hover:ring-blue-100 group-hover:bg-blue-50 transition-all">
+                                        <ExternalLink size={16} className="text-gray-400 group-hover:text-blue-600" />
+                                    </div>
+                                    <span className="text-sm font-semibold truncate">
+                                        {link.label || t("access_link")}
                                     </span>
-                                ))
-                            ) : (
-                                <p className="text-gray-400 text-sm italic">{t("no_areas_selected")}</p>
-                            )}
-                        </div>
+                                </div>
+                                <ExternalLink size={14} className="text-gray-300 group-hover:text-blue-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                            </a>
+                        )) : <p className="text-gray-400 text-sm">{t("no_links")}</p>}
                     </div>
+                </div>
 
-                    {/* LINKS */}
-                    <div>
-                        <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                            <LinkIcon className="text-blue-600" size={18} /> {t("links_network")}
-                        </h3>
-                        <div className="flex flex-col gap-2">
-                            {links.length > 0 ? links.map((link, idx) => (
-                                <a
-                                    key={idx}
-                                    href={link.url.startsWith('http') ? link.url : `https://${link.url}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center justify-between p-3 rounded-xl border border-gray-50 bg-gray-50/30 hover:bg-blue-50 hover:border-blue-100 hover:text-blue-700 transition-all group"
-                                >
-                                    <div className="flex items-center gap-3 min-w-0">
-                                        <div className="p-2 rounded-lg bg-white shadow-sm ring-1 ring-gray-100 group-hover:ring-blue-100 group-hover:bg-blue-50 transition-all">
-                                            <ExternalLink size={16} className="text-gray-400 group-hover:text-blue-600" />
-                                        </div>
-                                        <span className="text-sm font-semibold truncate">
-                                            {link.label || t("access_link")}
-                                        </span>
+                {/* ANEXOS */}
+                <div>
+                    <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-4 mt-4">
+                        <Paperclip className="text-blue-600" size={18} /> {t("attachments")}
+                    </h3>
+                    <div className="space-y-3">
+                        {anexos.length > 0 ? anexos.map((a, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => handleViewFile(a.url, a.nome)}
+                                className="w-full text-left flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 hover:border-blue-200 transition-all group cursor-pointer"
+                            >
+                                <div className="truncate pr-4 flex items-center gap-3">
+                                    <div className="p-2 rounded-lg bg-white text-gray-400 group-hover:text-blue-600 transition-colors">
+                                        <Paperclip size={18} />
                                     </div>
-                                    <ExternalLink size={14} className="text-gray-300 group-hover:text-blue-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                                </a>
-                            )) : <p className="text-gray-400 text-sm">{t("no_links")}</p>}
-                        </div>
-                    </div>
-
-                    {/* ANEXOS */}
-                    <div>
-                        <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                            <Paperclip className="text-blue-600" size={18} /> {t("attachments")}
-                        </h3>
-                        <div className="space-y-3">
-                            {anexos.length > 0 ? anexos.map((a, idx) => (
-                                <button
-                                    key={idx}
-                                    onClick={() => handleViewFile(a.url, a.nome)}
-                                    className="w-full text-left flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 hover:border-blue-200 transition-all group cursor-pointer"
-                                >
-                                    <div className="truncate pr-4 flex items-center gap-3">
-                                        <div className="p-2 rounded-lg bg-white text-gray-400 group-hover:text-blue-600 transition-colors">
-                                            <Paperclip size={18} />
-                                        </div>
-                                        <div className="truncate">
-                                            <p className="text-sm font-medium text-gray-700 truncate group-hover:text-blue-700">{a.nome}</p>
-                                            <p className="text-[10px] text-gray-400 uppercase">{a.mime} • {formatSize(a.tamanho)}</p>
-                                        </div>
+                                    <div className="truncate">
+                                        <p className="text-sm font-medium text-gray-700 truncate group-hover:text-blue-700">{a.nome}</p>
+                                        <p className="text-[10px] text-gray-400 uppercase">{a.mime} • {formatSize(a.tamanho)}</p>
                                     </div>
-                                    <div className="text-gray-300 group-hover:text-blue-500 transition-colors">
-                                        <ExternalLink size={18} />
-                                    </div>
-                                </button>
-                            )) : <p className="text-gray-400 text-sm">{t("no_attachments")}</p>}
-                        </div>
+                                </div>
+                                <div className="text-gray-300 group-hover:text-blue-500 transition-colors">
+                                    <ExternalLink size={18} />
+                                </div>
+                            </button>
+                        )) : <p className="text-gray-400 text-sm">{t("no_attachments")}</p>}
                     </div>
                 </div>
             </section>

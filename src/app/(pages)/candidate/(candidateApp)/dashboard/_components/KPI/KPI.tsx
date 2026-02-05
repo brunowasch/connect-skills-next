@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Search, Send, LayoutGrid, PencilLine } from 'lucide-react';
 import { KPIProps } from '@/src/app/(pages)/candidate/(candidateApp)/types/KPIProps';
 import { useTranslation } from "react-i18next";
+import { AreasList } from "@/src/app/_components/Shared/AreasList";
 
 export function KPI({
     recommendedVacanciesCount,
@@ -61,22 +62,7 @@ export function KPI({
                             </Link>
                         </div>
                     ) : (
-                        <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-center">
-                            {areas.slice(0, limitAreas).map((area, index) => (
-                                <span
-                                    key={index}
-                                    className="bg-slate-100 text-slate-600 text-[10px] sm:text-[11px] font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full uppercase tracking-tight"
-                                >
-                                    {t(area)}
-                                </span>
-                            ))}
-
-                            {areas.length > limitAreas && (
-                                <span className="bg-blue-50 text-blue-600 text-[10px] sm:text-[11px] font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full">
-                                    +{areas.length - limitAreas}
-                                </span>
-                            )}
-                        </div>
+                        <AreasList areas={areas} />
                     )}
                 </div>
             </div>
