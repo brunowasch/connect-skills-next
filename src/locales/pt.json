@@ -120,6 +120,8 @@
     "register_error_connection": "Erro de conexão. Tente novamente.",
     "register_error_missing_fields": "Dados obrigatórios ausentes.",
     "register_error_user_exists": "Usuário já cadastrado.",
+    "register_terms_label": "Li e aceito os <0>Termos de Uso</0> e a <1>Política de Privacidade</1> do Connect Skills.",
+    "register_error_terms_required": "O aceite dos Termos de Uso é obrigatório.",
     "register_error_internal": "Erro interno do servidor.",
     "register_verify_title": "Verificar Email",
     "register_verify_desc": "Enviamos um código para {{email}}. Digite-o abaixo para ativar sua conta.",

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import { VerificationModal } from "@/src/app/_components/VerificationModal";
 import { Eye, EyeOff, Check, X } from "lucide-react";
 import { validatePassword, PASSWORD_REQUIREMENTS } from "@/src/lib/password-validation";
@@ -22,6 +22,7 @@ export function RegisterCard() {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [tipo, setTipo] = useState<"CANDIDATO" | "EMPRESA">("CANDIDATO");
     const [code, setCode] = useState("");
+    const [acceptedTerms, setAcceptedTerms] = useState(false);
 
     const [error, setError] = useState("");
     const [resendCooldown, setResendCooldown] = useState(0);
@@ -77,13 +78,18 @@ export function RegisterCard() {
             return;
         }
 
+        if (!acceptedTerms) {
+            setError(t("register_error_terms_required"));
+            return;
+        }
+
         setIsLoading(true);
 
         try {
             const res = await fetch("/api/auth/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, senha, tipo }),
+                body: JSON.stringify({ email, senha, tipo, acceptedTerms }),
             });
 
             const data = await res.json();
@@ -272,12 +278,37 @@ export function RegisterCard() {
                     {senha && confirmSenha && senha !== confirmSenha && (
                         <p className="text-red-500 text-xs mt-1">{t("password_mismatch")}</p>
                     )}
+                    {senha && confirmSenha && senha !== confirmSenha && (
+                        <p className="text-red-500 text-xs mt-1">{t("password_mismatch")}</p>
+                    )}
+                </div>
+
+                <div className="mb-6 flex items-start gap-3">
+                    <input
+                        id="terms-consent"
+                        type="checkbox"
+                        required
+                        checked={acceptedTerms}
+                        onChange={(e) => setAcceptedTerms(e.target.checked)}
+                        className="appearance-none w-4 h-4 border border-gray-300 rounded checked:bg-blue-600 checked:border-blue-600 focus:ring-2 focus:ring-blue-100 cursor-pointer relative shrink-0 transition-all mt-0.5 after:content-[''] after:absolute after:hidden checked:after:block after:left-[5px] after:top-[1px] after:w-[5px] after:h-[9px] after:border-white after:border-r-2 after:border-b-2 after:rotate-45"
+                    />
+                    <label htmlFor="terms-consent" className="text-sm text-gray-700 select-none cursor-pointer">
+                        <Trans
+                            i18nKey="register_terms_label"
+                            components={[
+                                <Link href="/terms" target="_blank" className="text-blue-600 hover:underline font-medium" key="terms" />,
+                                <Link href="/privacy" target="_blank" className="text-blue-600 hover:underline font-medium" key="privacy" />
+                            ]}
+                        />
+                    </label>
                 </div>
 
                 <button
                     type="submit"
-                    disabled={isLoading}
-                    className={`w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer flex justify-center items-center ${isLoading ? "opacity-70 cursor-not-allowed" : ""}`}
+                    disabled={isLoading || !acceptedTerms}
+                    className={`w-full text-white py-2 rounded-lg transition-colors cursor-pointer flex justify-center items-center ${
+                        isLoading || !acceptedTerms ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+                    }`}
                 >
                     {isLoading ? (
                         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

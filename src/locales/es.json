@@ -113,6 +113,8 @@
     "register_error_connection": "Error de conexión. Inténtelo de nuevo.",
     "register_error_missing_fields": "Datos obligatorios ausentes.",
     "register_error_user_exists": "Usuario ya registrado.",
+    "register_terms_label": "He leído y acepto los <0>Términos de Uso</0> y la <1>Política de Privacidad</1> de Connect Skills.",
+    "register_error_terms_required": "La aceptación de los Términos de Uso es obligatoria.",
     "register_error_internal": "Error interno del servidor.",
     "vacancy_back": "Volver",
     "vacancy_applied_title": "Candidatura Realizada",
