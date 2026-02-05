@@ -113,6 +113,8 @@
     "register_error_connection": "Connection error. Try again.",
     "register_error_missing_fields": "Missing required fields.",
     "register_error_user_exists": "User already registered.",
+    "register_terms_label": "I have read and accept the <0>Terms of Use</0> and <1>Privacy Policy</1> of Connect Skills.",
+    "register_error_terms_required": "Acceptance of Terms of Use is required.",
     "register_error_internal": "Internal server error.",
     "register_verify_title": "Verify Email",
     "register_verify_desc": "We sent a code to {{email}}. Enter it below to activate your account.",

@@ -10,17 +10,26 @@ interface RegisterRequest {
   email: string;
   senha: string;
   tipo: "CANDIDATO" | "EMPRESA";
+  acceptedTerms: boolean;
 }
 
 export async function POST(req: Request) {
   try {
     const body: RegisterRequest = await req.json();
-    const { email, senha, tipo } = body;
+    const { email, senha, tipo, acceptedTerms } = body;
 
     // 1. Validação básica de campos obrigatórios
     if (!email || !senha || !tipo) {
       return NextResponse.json(
         { error: "register_error_missing_fields" },
+        { status: 400 }
+      );
+    }
+
+    // 1.0 Validação de aceite dos termos (Anti-bypass)
+    if (acceptedTerms !== true) {
+      return NextResponse.json(
+        { error: "register_error_terms_required" },
         { status: 400 }
       );
     }
