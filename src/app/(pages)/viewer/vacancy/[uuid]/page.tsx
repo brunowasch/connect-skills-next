@@ -16,10 +16,11 @@ export default async function VacancyDetailsPage({ params }: { params: Promise<{
     }
 
     // Buscar informações da empresa
-    const company = await prisma.empresa.findUnique({
+    const companyData = await prisma.empresa.findUnique({
         where: { id: vacancy.empresa_id },
         select: {
             nome_empresa: true,
+            uuid: true,
             foto_perfil: true,
             cidade: true,
             estado: true,
@@ -27,6 +28,11 @@ export default async function VacancyDetailsPage({ params }: { params: Promise<{
             descricao: true,
         }
     });
+
+    const company = companyData ? {
+        ...companyData,
+        uuid: companyData.uuid ?? ""
+    } : null;
 
     // Buscar áreas de interesse
     const vagaAreas = await prisma.vaga_area.findMany({

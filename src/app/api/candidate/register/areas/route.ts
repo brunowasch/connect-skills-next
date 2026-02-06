@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 
+import { cookies } from "next/headers";
+
 interface RegisterArea {
     id: number;
     nome: string;
-    usuario_id: string;
+    usuario_id?: string;
 }
 
 export async function POST(req: Request) {
@@ -12,8 +14,12 @@ export async function POST(req: Request) {
         const body: RegisterArea = await req.json();
         const { nome, usuario_id } = body;
 
+        const cookieStore = await cookies();
+        const userIdFromCookie = cookieStore.get("time_user_id")?.value;
+        const finalUserId = userIdFromCookie || usuario_id;
+
         // 1. Validação
-        if (!nome || !usuario_id) {
+        if (!nome || !finalUserId) {
             return NextResponse.json(
                 { error: "Dados inválidos. 'nome' e 'usuario_id' são obrigatórios." },
                 { status: 400 }
@@ -22,7 +28,7 @@ export async function POST(req: Request) {
 
         // 2. Buscar o Candidato
         const candidato = await prisma.candidato.findUnique({
-            where: { usuario_id: usuario_id as any },
+            where: { usuario_id: finalUserId as any },
         });
 
         if (!candidato) {

@@ -15,12 +15,13 @@ export function EditProfile({ initialData }: EditProfileProps) {
     // Estados do Formulário
     const [formData, setFormData] = useState({
         ...initialData,
-        pais: initialData.pais || "Brasil"
+        pais: initialData.pais
     });
     const [links, setLinks] = useState(initialData.links.length > 0 ? initialData.links : [{ label: '', url: '' }]);
     const [fotoPreview, setFotoPreview] = useState(initialData.fotoPerfil || null);
     const [showPhotoOptions, setShowPhotoOptions] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // 1. Gerenciamento de Links (Máx 5)
@@ -133,6 +134,16 @@ export function EditProfile({ initialData }: EditProfileProps) {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
+        if (!formData.nome?.trim()) {
+            localStorage.setItem('global_toast', JSON.stringify({
+                type: 'error',
+                text: t('validation_name_required') || 'Nome é obrigatório.'
+            }));
+            window.dispatchEvent(new Event('storage'));
+            return;
+        }
+
         setIsLoading(true);
 
         try {
@@ -153,7 +164,7 @@ export function EditProfile({ initialData }: EditProfileProps) {
                 }));
                 window.dispatchEvent(new Event('storage'));
                 router.refresh();
-                // Removed router.back()
+                router.back();
             } else {
                 localStorage.setItem('global_toast', JSON.stringify({
                     type: 'error',
@@ -176,6 +187,30 @@ export function EditProfile({ initialData }: EditProfileProps) {
         router.back();
     };
 
+    const handleDeleteAccount = async () => {
+        setIsLoading(true);
+        try {
+            const res = await fetch('/api/auth/delete', { method: 'DELETE' });
+            if (res.ok) {
+                localStorage.setItem('global_toast', JSON.stringify({
+                    type: 'success',
+                    text: 'Conta excluída com sucesso.'
+                }));
+                window.dispatchEvent(new Event('storage'));
+                window.location.href = '/';
+            } else {
+                const data = await res.json();
+                alert(data.error || 'Erro ao excluir conta');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Erro de conexão');
+        } finally {
+            setIsLoading(false);
+            setShowDeleteModal(false);
+        }
+    };
+
     const hasChanges = useMemo(() => {
         const normalize = (val: any) => val === null || val === undefined ? '' : String(val).trim();
 
@@ -183,7 +218,7 @@ export function EditProfile({ initialData }: EditProfileProps) {
         if (normalize(formData.sobrenome) !== normalize(initialData.sobrenome)) return true;
         if (normalize(formData.cidade) !== normalize(initialData.cidade)) return true;
         if (normalize(formData.estado) !== normalize(initialData.estado)) return true;
-        if (normalize(formData.pais) !== normalize(initialData.pais || "Brasil")) return true;
+        if (normalize(formData.pais) !== normalize(initialData.pais)) return true;
         if (normalize(formData.ddi) !== normalize(initialData.ddi)) return true;
         if (normalize(formData.ddd) !== normalize(initialData.ddd)) return true;
         if (normalize(formData.numero) !== normalize(initialData.numero)) return true;
@@ -265,6 +300,7 @@ export function EditProfile({ initialData }: EditProfileProps) {
                                 <label className="text-sm font-semibold text-gray-600">{t('edit_profile_name_label')}</label>
                                 <input
                                     type="text"
+                                    required
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
                                     value={formData.nome || ''}
                                     onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
@@ -327,17 +363,25 @@ export function EditProfile({ initialData }: EditProfileProps) {
                                         className="w-full pl-7 pr-2 py-2 border border-gray-300 rounded-lg text-left focus:ring-2 focus:ring-blue-500 outline-none transition"
                                         value={formData.ddi || ''}
                                         onChange={(e) => setFormData({ ...formData, ddi: e.target.value.replace(/\D/g, '') })}
-                                        placeholder="55"
+                                        placeholder="00"
                                     />
                                 </div>
                             </div>
                             <div className="w-20 space-y-1">
                                 <label className="text-sm font-semibold text-gray-600">{t('ddd_label')}</label>
-                                <input type="text" maxLength={2} className="w-full px-2 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-blue-500 outline-none" value={formData.ddd || ''} onChange={(e) => setFormData({ ...formData, ddd: e.target.value })} />
+                                <input type="text" maxLength={2}
+                                    className="w-full px-2 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-blue-500 outline-none"
+                                    value={formData.ddd || ''}
+                                    onChange={(e) => setFormData({ ...formData, ddd: e.target.value })}
+                                    placeholder="00" />
                             </div>
                             <div className="flex-1 min-w-[150px] space-y-1">
                                 <label className="text-sm font-semibold text-gray-600">{t('number_label')}</label>
-                                <input type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" value={formData.numero || ''} onChange={(e) => setFormData({ ...formData, numero: e.target.value })} />
+                                <input type="text"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    value={formData.numero || ''}
+                                    onChange={(e) => setFormData({ ...formData, numero: e.target.value })}
+                                    placeholder="00000-0000" />
                             </div>
                         </div>
 
@@ -456,7 +500,11 @@ export function EditProfile({ initialData }: EditProfileProps) {
                 </div>
 
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-10 border-t">
-                    <button type="button" className="text-red-500 flex items-center gap-2 text-sm font-semibold cursor-pointer hover:bg-red-50 px-4 py-2 rounded-lg transition">
+                    <button
+                        type="button"
+                        onClick={() => setShowDeleteModal(true)}
+                        className="text-red-500 flex items-center gap-2 text-sm font-semibold cursor-pointer hover:bg-red-50 px-4 py-2 rounded-lg transition"
+                    >
                         <AlertTriangle size={18} /> {t('edit_profile_delete_account')}
                     </button>
 
@@ -466,9 +514,9 @@ export function EditProfile({ initialData }: EditProfileProps) {
                         </button>
                         <button
                             type="submit"
-                            disabled={isLoading || !hasChanges}
+                            disabled={isLoading || !hasChanges || !formData.nome?.trim()}
                             className={`flex-1 md:flex-none px-4 py-3 rounded-xl font-bold shadow-lg transition flex items-center justify-center gap-2 cursor-pointer 
-                                ${isLoading || !hasChanges
+                                ${isLoading || !hasChanges || !formData.nome?.trim()
                                     ? "bg-gray-300 text-gray-500 cursor-not-allowed shadow-none"
                                     : "bg-blue-600 text-white shadow-blue-200 hover:bg-blue-700"}`
                             }
@@ -483,6 +531,44 @@ export function EditProfile({ initialData }: EditProfileProps) {
                     </div>
                 </div>
             </form>
+
+            {/* Modal de Exclusão */}
+            {showDeleteModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-in zoom-in-95 duration-200">
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4 text-red-600">
+                                <AlertTriangle size={24} />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">{t('delete_account_modal_title')}</h3>
+                            <p className="text-gray-500 mb-6 font-medium">
+                                {t('delete_account_modal_desc')}
+                            </p>
+                            <div className="flex gap-3 w-full">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowDeleteModal(false)}
+                                    className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-bold hover:bg-gray-200 transition cursor-pointer"
+                                >
+                                    {t('delete_account_modal_cancel')}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleDeleteAccount}
+                                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition flex items-center justify-center gap-2 cursor-pointer"
+                                    disabled={isLoading}
+                                >
+                                    {isLoading ? (
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                        t('delete_account_modal_confirm')
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </main>
     );
 }

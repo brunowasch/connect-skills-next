@@ -14,6 +14,7 @@ export const metadata: Metadata = {
 };
 
 import { Toaster } from "sonner";
+import { SessionWatcher } from "./_components/SessionWatcher";
 import { I18nProvider } from "./_components/Providers/I18nProvider";
 
 export default function RootLayout({
@@ -24,6 +25,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className={montserrat.variable}>
       <body className={montserrat.className}>
+        <SessionWatcher />
         <I18nProvider>
           {children}
         </I18nProvider>

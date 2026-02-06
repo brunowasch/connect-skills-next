@@ -8,7 +8,6 @@ import { useTranslation } from "react-i18next";
 
 export function ProfileCompletion({ company }: CompanyProfileProps) {
     const { t } = useTranslation();
-    // Lógica de validação baseada no seu código EJS
     const hasNome = !!company.nome_empresa && company.nome_empresa.trim() !== '';
     const hasLocal = !!(company.cidade || company.estado || company.pais);
     const hasTel = !!(company.telefone && company.telefone.trim() !== '');

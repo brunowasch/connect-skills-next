@@ -6,6 +6,7 @@ export interface Application {
     date: Date;
     score?: number;
     candidateId: string;
+    vacancyId: string;
 }
 
 export interface RecentCandidatesProps {

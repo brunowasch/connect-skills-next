@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
 import { CandidateProfile } from "@/src/app/(pages)/candidate/(candidateApp)/profile/_components/CandidateProfile";
+import { randomUUID } from "crypto";
 
 export default async function CandidateProfilePage() {
     const cookieStore = await cookies();
@@ -34,6 +35,15 @@ export default async function CandidateProfilePage() {
 
     if (!candidate) {
         redirect("/auth/login");
+    }
+
+    let candidateUUID = candidate.uuid;
+    if (!candidateUUID) {
+        candidateUUID = randomUUID();
+        await prisma.candidato.update({
+            where: { id: candidate.id },
+            data: { uuid: candidateUUID }
+        });
     }
 
     const localidade = candidate.cidade && candidate.estado
@@ -94,7 +104,7 @@ export default async function CandidateProfilePage() {
                 contato={contato}
                 links={links}
                 anexos={anexos}
-                perfilShareUrl={`/candidate/profile/${candidate.id}`}
+                perfilShareUrl={`/viewer/candidate/${candidateUUID}`}
             />
         </div>
     );

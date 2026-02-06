@@ -25,7 +25,12 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarPr
         { label: t("sidebar_profile"), href: "/company/profile", icon: FaUser },
     ];
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        try {
+            await fetch("/api/auth/logout", { method: "POST" });
+        } catch (error) {
+            console.error("Logout failed", error);
+        }
         localStorage.clear();
         setLogoutOpen(false);
         setMobileOpen?.(false);

@@ -40,16 +40,26 @@ export function Footer() {
             <h5 className="mb-2 text-lg font-semibold">{t("footer_links")}</h5>
             <ul className="space-y-1 text-sm">
               <li>
+                <Link href="/terms" className="hover:underline">
+                  {t("footer_terms")}
+                </Link>
+              </li>
+              <li>
                 <Link
-                  href="/politica-privacidade"
+                  href="/privacy"
                   className="hover:underline"
                 >
                   {t("footer_privacy")}
                 </Link>
               </li>
               <li>
-                <Link href="/termos" className="hover:underline">
-                  {t("footer_terms")}
+                <Link href="/cookies" className="hover:underline">
+                  {t("footer_cookies")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/help" className="hover:underline">
+                  {t("footer_help")}
                 </Link>
               </li>
             </ul>
