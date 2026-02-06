@@ -14,6 +14,7 @@ function VerifyLoginContent() {
     const uid = searchParams.get("uid");
     const email = searchParams.get("email");
     const keepParam = searchParams.get("keep");
+    const redirectParam = searchParams.get("redirect");
     const keepLogin = keepParam === "true";
 
     const [code, setCode] = useState("");
@@ -93,7 +94,13 @@ function VerifyLoginContent() {
                 sessionStorage.removeItem("cs_session_active");
             }
 
-            router.push(data.redirectTo || "/candidate/dashboard");
+            const isRegistrationFlow = data.redirectTo.includes("/register") || data.redirectTo.includes("/area");
+
+            if (redirectParam && !isRegistrationFlow) {
+                router.push(redirectParam);
+            } else {
+                router.push(data.redirectTo || "/candidate/dashboard");
+            }
         } catch {
             setError(t("login_error_connection"));
             setLoading(false);

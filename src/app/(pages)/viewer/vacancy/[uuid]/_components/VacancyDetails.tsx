@@ -30,12 +30,16 @@ import {
     Ban,
     ChevronUp,
     Loader2,
+    Video,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { selectVacancyForRanking, selectVacancyForEditing } from "@/src/app/(pages)/company/(companyApp)/vacancies/actions";
 import { LanguageSwitcher } from "@/src/app/_components/Layout/LanguageSwitcher";
+
+import { uploadVideoAction } from "../actions";
+import { toast } from "sonner";
 
 interface ModalConfig {
     isOpen: boolean;
@@ -103,12 +107,14 @@ interface VacancyDetailsProps {
     isOwner?: boolean;
     userId?: string;
     hasApplied?: boolean;
+
     applicationResponses?: any;
+    applicationBreakdown?: any;
 }
 
 import { useTranslation } from "react-i18next";
 
-export function VacancyDetails({ vacancy, company, isActive, applicationCount, userType, isOwner, userId, hasApplied, applicationResponses }: VacancyDetailsProps) {
+export function VacancyDetails({ vacancy, company, isActive, applicationCount, userType, isOwner, userId, hasApplied, applicationResponses, applicationBreakdown }: VacancyDetailsProps) {
     const { t, i18n } = useTranslation();
     const router = useRouter();
     const stickyCardRef = useRef<HTMLDivElement>(null);
@@ -147,19 +153,28 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
     const [showBackButton, setShowBackButton] = useState(false);
 
     useEffect(() => {
-        if (typeof window !== 'undefined' && document.referrer) {
-            try {
-                const referrerUrl = new URL(document.referrer);
-                if (referrerUrl.host === window.location.host) {
-                    setShowBackButton(true);
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('action') === 'upload_video') {
+                const videoSection = document.getElementById('video-upload-section');
+                if (videoSection) {
+                    setTimeout(() => {
+                        videoSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 500); 
                 }
-            } catch (e) {
-                // Invalid URL
+            } else if (document.referrer) {
+                try {
+                    const referrerUrl = new URL(document.referrer);
+                    if (referrerUrl.host === window.location.host) {
+                        setShowBackButton(true);
+                    }
+                } catch (e) {
+
+                }
             }
         }
     }, []);
 
-    // Normalize responses list handling both array (legacy) and object (new) formats
     const responsesList = Array.isArray(applicationResponses)
         ? applicationResponses
         : (applicationResponses?.responses || []);
@@ -419,6 +434,48 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
         } finally {
             setIsCheckingApplication(false);
         }
+    };
+
+    const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (file.size > 100 * 1024 * 1024) { // 100MB limit
+            toast.error("O vídeo deve ter no máximo 100MB");
+            return;
+        }
+
+        // Validate duration
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        
+        video.onloadedmetadata = function() {
+            window.URL.revokeObjectURL(video.src);
+            if (video.duration > 180) { 
+                toast.error("O vídeo deve ter no máximo 3 minutos");
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append("video", file);
+
+            startTransition(async () => {
+                const result = await uploadVideoAction(vacancy.id, userId!, formData);
+                
+                if (result.success) {
+                    toast.success("Vídeo enviado com sucesso!");
+                    router.refresh();
+                } else {
+                    toast.error("Erro ao enviar vídeo: " + result.error);
+                }
+            });
+        };
+        
+        video.onerror = function() {
+             toast.error("Formato de vídeo inválido ou erro ao carregar");
+        };
+
+        video.src = URL.createObjectURL(file);
     };
 
     return (
@@ -744,18 +801,75 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                         {t("vacancy_apply_btn")}
                                     </button>
                                 )
+
+                            )}
+
+                            {hasApplied && applicationBreakdown?.video?.status === 'requested' && (
+                                <div id="video-upload-section" className="mt-6 bg-purple-50 border border-purple-200 p-6 rounded-lg animate-in fade-in slide-in-from-top-2">
+                                    <div className="flex items-start gap-4 mb-4">
+                                        <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 flex-shrink-0">
+                                            <Video size={24} />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900">Vídeo de Apresentação Solicitado</h3>
+                                            <p className="text-sm text-gray-600 mt-1">A empresa solicitou um vídeo de apresentação de até 3 minutos.</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col gap-3">
+                                        <label className="block w-full">
+                                            <span className="sr-only">Escolher vídeo</span>
+                                            <div className={`
+                                                w-full flex items-center justify-center px-4 py-8 border-2 border-dashed rounded-lg cursor-pointer hover:bg-white transition-colors
+                                                ${isPending ? 'border-gray-300 bg-gray-100 cursor-not-allowed' : 'border-purple-300 bg-purple-50/50 hover:border-purple-400'}
+                                            `}>
+                                                <input 
+                                                    type="file" 
+                                                    accept="video/*" 
+                                                    className="hidden" 
+                                                    onChange={handleVideoUpload}
+                                                    disabled={isPending}
+                                                />
+                                                <div className="text-center">
+                                                    {isPending ? (
+                                                        <div className="flex flex-col items-center gap-2">
+                                                            <Loader2 size={24} className="animate-spin text-purple-600" />
+                                                            <span className="text-sm text-gray-500">Enviando vídeo... (isso pode levar alguns segundos)</span>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <div className="mx-auto w-10 h-10 mb-2 text-purple-400">
+                                                                <FileText size={40} />
+                                                            </div>
+                                                            <p className="font-medium text-purple-700">Clique para enviar seu vídeo</p>
+                                                            <p className="text-xs text-gray-500 mt-1">MP4, WebM (Max 3 min, 100MB)</p>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            )}
+
+                            {hasApplied && applicationBreakdown?.video?.status === 'submitted' && (
+                                <div className="mt-6 bg-green-50 border border-green-200 p-4 rounded-lg flex items-center gap-3">
+                                    <CheckCircle2 size={24} className="text-green-600" />
+                                    <div>
+                                        <p className="font-semibold text-green-800">Vídeo Enviado</p>
+                                        <p className="text-sm text-green-700">Seu vídeo foi recebido com sucesso.</p>
+                                    </div>
+                                </div>
                             )}
                         </div>
                     </div>
                 </div>
 
-                {/* Seção de Gerenciamento para o Dono da Vaga */}
                 {isOwner && (
                     <div className="mt-10 pt-8 border-t border-gray-100">
                         <h2 className="text-lg font-semibold text-gray-900 mb-4">{t("management_title")}</h2>
                         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
                             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                                {/* Lado Esquerdo */}
                                 <div>
                                     <button
                                         onClick={handleRankCandidates}
@@ -767,7 +881,6 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                     </button>
                                 </div>
 
-                                {/* Lado Direito */}
                                 <div className="flex flex-wrap items-center gap-3">
                                     <button
                                         onClick={handleEditVacancy}

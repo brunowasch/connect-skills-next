@@ -1533,5 +1533,14 @@
     "parental_consent_required_error": "Legal guardian consent confirmation is required.",
     "parent_email_required_error": "Guardian's email is required.",
     "candidate_age_error_invalid_date": "Invalid date of birth.",
-    "candidate_age_error_too_old": "Unlikely age. Check your date of birth."
+    "candidate_age_error_too_old": "Unlikely age. Check your date of birth.",
+    "modal_video_request_title": "Request Presentation Video",
+    "modal_video_request_desc": "By confirming, the candidate will receive an email with instructions to record or upload a video of up to 3 minutes. This will help you better evaluate the candidate's communication and profile.",
+    "modal_video_request_cancel": "Cancel",
+    "modal_video_request_confirm_btn": "Confirm Request",
+    "modal_video_request_sending": "Sending...",
+    "ranking_video_requested": "Video Requested",
+    "ranking_request_video": "Request Video",
+    "ranking_video_request_error": "Error requesting video: ",
+    "ranking_video_request_success": "Video request sent successfully!"
 }

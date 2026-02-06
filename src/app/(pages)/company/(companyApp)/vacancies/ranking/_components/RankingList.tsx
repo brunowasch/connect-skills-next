@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { Mail, FileText, Brain, User, ExternalLink } from "lucide-react";
+import { useState, useTransition } from "react";
+import { Mail, FileText, Brain, User, ExternalLink, Video } from "lucide-react";
 import { AnswersModal } from "./AnswersModal";
 import { AnalysisModal } from "./AnalysisModal";
 import { useTranslation } from "react-i18next";
+import { requestVideo } from "../../actions";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface Application {
     id: string;
@@ -42,10 +45,13 @@ export function RankingList({ candidates, vacancyId }: RankingListProps) {
     const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null);
     const [showAnswers, setShowAnswers] = useState(false);
     const [showAnalysis, setShowAnalysis] = useState(false);
+    const [videoRequestCandidate, setVideoRequestCandidate] = useState<string | null>(null);
+    const [isPending, startTransition] = useTransition();
+    const router = useRouter();
 
     // Parse breakdown to extract DISC scores
     const parseBreakdown = (breakdown: string | null | undefined) => {
-        if (!breakdown) return { D: 0, I: 0, S: 0, C: 0 };
+        if (!breakdown) return { D: 0, I: 0, S: 0, C: 0, video: null };
 
         try {
             const parsed = JSON.parse(breakdown);
@@ -54,9 +60,10 @@ export function RankingList({ candidates, vacancyId }: RankingListProps) {
                 I: parsed.i_score || 0,
                 S: parsed.s_score || 0,
                 C: parsed.c_score || 0,
+                video: parsed.video
             };
         } catch {
-            return { D: 0, I: 0, S: 0, C: 0 };
+            return { D: 0, I: 0, S: 0, C: 0, video: null };
         }
     };
 
@@ -90,6 +97,25 @@ export function RankingList({ candidates, vacancyId }: RankingListProps) {
         setSelectedCandidate(candidateId);
         setShowAnalysis(true);
         setShowAnswers(false);
+    };
+
+    const handleRequestVideoClick = (candidateId: string) => {
+        setVideoRequestCandidate(candidateId);
+    };
+
+    const confirmRequestVideo = () => {
+        if (!videoRequestCandidate) return;
+        
+        startTransition(async () => {
+            const result = await requestVideo(videoRequestCandidate, vacancyId);
+            if (result.success) {
+                toast.success(t('ranking_video_request_success'));
+                router.refresh();
+                setVideoRequestCandidate(null);
+            } else {
+                toast.error(t('ranking_video_request_error') + result.error);
+            }
+        });
     };
 
     return (
@@ -227,6 +253,24 @@ export function RankingList({ candidates, vacancyId }: RankingListProps) {
                                                 <Brain size={14} />
                                                 {t('ranking_ai_analysis')}
                                             </button>
+                                            
+                                            {(() => {
+                                                const hasVideoRequest = breakdown?.video?.status === 'requested' || breakdown?.video?.status === 'submitted';
+                                                
+                                                return (
+                                                    <button
+                                                        onClick={() => handleRequestVideoClick(candidate.id)}
+                                                        disabled={hasVideoRequest || isPending}
+                                                        className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer
+                                                            ${hasVideoRequest 
+                                                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                                                                : 'bg-green-50 text-green-600 hover:bg-green-100'}`}
+                                                    >
+                                                        <Video size={14} />
+                                                        {hasVideoRequest ? t('ranking_video_requested') : t('ranking_request_video')}
+                                                    </button>
+                                                );
+                                            })()}
                                         </div>
                                     </div>
                                 </div>
@@ -265,6 +309,48 @@ export function RankingList({ candidates, vacancyId }: RankingListProps) {
                         score={sortedCandidates.find(c => c.id === selectedCandidate)?.application?.score || 0}
                     />
                 </>
+            )}
+
+            {/* Video Request Confirmation Modal */}
+            {videoRequestCandidate && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl animate-in fade-in zoom-in-95 duration-200">
+                        <div className="w-12 h-12 bg-green-50 text-green-600 rounded-full flex items-center justify-center mb-4 mx-auto border border-green-200">
+                            <Video size={24} />
+                        </div>
+                        
+                        <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
+                            {t('modal_video_request_title')}
+                        </h3>
+                        
+                        <p className="text-gray-600 text-center mb-6 leading-relaxed">
+                            {t('modal_video_request_desc')}
+                        </p>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setVideoRequestCandidate(null)}
+                                className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors cursor-pointer"
+                            >
+                                {t('modal_video_request_cancel')}
+                            </button>
+                            <button
+                                onClick={confirmRequestVideo}
+                                disabled={isPending}
+                                className="flex-1 px-3 py-1.5 bg-green-50 text-green-600 font-medium rounded-lg hover:bg-green-100 transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 border border-green-200"
+                            >
+                                {isPending ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-green-600/30 border-t-green-600 rounded-full animate-spin" />
+                                        {t('modal_video_request_sending')}
+                                    </>
+                                ) : (
+                                    t('modal_video_request_confirm_btn')
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </>
     );

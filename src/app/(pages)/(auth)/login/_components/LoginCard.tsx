@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { Eye, EyeOff } from "lucide-react";
@@ -9,6 +9,8 @@ import { Eye, EyeOff } from "lucide-react";
 export function LoginCard() {
     const { t } = useTranslation();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const redirectParam = searchParams.get("redirect");
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
     const [rememberMe, setRememberMe] = useState(false);
@@ -41,6 +43,11 @@ export function LoginCard() {
                     email: data.email,
                     keep: rememberMe ? "true" : "false"
                 });
+                
+                if (redirectParam) {
+                    params.append("redirect", redirectParam);
+                }
+                
                 router.push(`/login/verify?${params.toString()}`);
                 return;
             }
@@ -51,7 +58,17 @@ export function LoginCard() {
                 sessionStorage.removeItem("cs_session_active");
             }
 
-            router.push(data.redirectTo);
+            // Check if server wants to force a specific flow (like registration)
+            // If the redirection is just to dashboard (default), and we have a specific return url, use that.
+            const isRegistrationFlow = data.redirectTo.includes("/register") || data.redirectTo.includes("/area");
+
+            if (redirectParam && !isRegistrationFlow) {
+                router.push(redirectParam);
+            } else {
+                router.push(data.redirectTo);
+            }
+            router.refresh(); // Ensure the layout updates state (cookies)
+          return;
         } catch {
             setError(t("login_error_connection"));
         }

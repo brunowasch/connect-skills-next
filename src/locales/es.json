@@ -1523,5 +1523,14 @@
     "parental_consent_required_error": "Se requiere confirmación del consentimiento del responsable legal.",
     "parent_email_required_error": "El correo del tutor es obligatorio.",
     "candidate_age_error_invalid_date": "Fecha de nacimiento inválida.",
-    "candidate_age_error_too_old": "Edad improbable. Verifica tu fecha de nacimiento."
+    "candidate_age_error_too_old": "Edad improbable. Verifica tu fecha de nacimiento.",
+    "modal_video_request_title": "Solicitar Video de Presentación",
+    "modal_video_request_desc": "Al confirmar, el candidato recibirá un correo electrónico con instrucciones para grabar o subir un video de hasta 3 minutos. Esto le ayudará a evaluar mejor la comunicación y el perfil del candidato.",
+    "modal_video_request_cancel": "Cancelar",
+    "modal_video_request_confirm_btn": "Confirmar Solicitud",
+    "modal_video_request_sending": "Enviando...",
+    "ranking_video_requested": "Video Solicitado",
+    "ranking_request_video": "Solicitar Video",
+    "ranking_video_request_error": "Error al solicitar el video: ",
+    "ranking_video_request_success": "¡Solicitud de video enviada con éxito!"
 }

@@ -193,3 +193,44 @@ export async function sendParentalConsentEmail(email: string, candidateName: str
         return false;
     }
 }
+
+export async function sendVideoRequestEmail(email: string, candidateName: string, vacancyTitle: string, vacancyLink: string) {
+    const mailOptions = {
+        from: process.env.EMAIL_FROM,
+        to: email,
+        subject: `Solicitação de Vídeo - Vaga: ${vacancyTitle} - Connect Skills`,
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+                <h2 style="color: #4F46E5; text-align: center;">Nova Etapa: Vídeo de Apresentação</h2>
+                <p style="text-align: center; color: #555;">Olá <strong>${candidateName}</strong>,</p>
+                <p style="text-align: center; color: #555;">
+                    Parabéns! A empresa gostou do seu perfil para a vaga de <strong>${vacancyTitle}</strong> e gostaria de conhecer você melhor.
+                </p>
+                <p style="text-align: center; color: #555;">
+                    Solicitamos que você grave ou envie um vídeo de apresentação de até 3 minutos.
+                </p>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="${vacancyLink}" style="background-color: #4F46E5; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+                        Acessar Vaga e Enviar Vídeo
+                    </a>
+                </div>
+
+                <p style="text-align: center; color: #555;">ou copie o link abaixo:</p>
+                <p style="text-align: center; word-break: break-all; color: #4F46E5;">${vacancyLink}</p>
+
+                <p style="text-align: center; font-size: 14px; color: #666; margin-top: 30px;">
+                    Boa sorte!
+                </p>
+            </div>
+        `,
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        return true;
+    } catch (error) {
+        console.error("Erro ao enviar email de solicitação de vídeo:", error);
+        return false;
+    }
+}

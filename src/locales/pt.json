@@ -1402,5 +1402,14 @@
     "parent_email_label": "E-mail do Responsável",
     "parent_email_placeholder": "Digite o e-mail do responsável",
     "parental_consent_required_error": "É necessário confirmar o consentimento do responsável legal.",
-    "parent_email_required_error": "O e-mail do responsável é obrigatório."
+    "parent_email_required_error": "O e-mail do responsável é obrigatório.",
+    "modal_video_request_title": "Solicitar Vídeo de Apresentação",
+    "modal_video_request_desc": "Ao confirmar, o candidato receberá um e-mail com instruções para gravar ou enviar um vídeo de até 3 minutos. Isso ajudará você a avaliar melhor a comunicação e o perfil do candidato.",
+    "modal_video_request_cancel": "Cancelar",
+    "modal_video_request_confirm_btn": "Confirmar",
+    "modal_video_request_sending": "Enviando...",
+    "ranking_video_requested": "Vídeo Solicitado",
+    "ranking_request_video": "Solicitar Vídeo",
+    "ranking_video_request_error": "Erro ao solicitar vídeo: ",
+    "ranking_video_request_success": "Solicitação de vídeo enviada com sucesso!"
 }
