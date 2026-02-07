@@ -278,9 +278,6 @@ export function RegisterCard() {
                     {senha && confirmSenha && senha !== confirmSenha && (
                         <p className="text-red-500 text-xs mt-1">{t("password_mismatch")}</p>
                     )}
-                    {senha && confirmSenha && senha !== confirmSenha && (
-                        <p className="text-red-500 text-xs mt-1">{t("password_mismatch")}</p>
-                    )}
                 </div>
 
                 <div className="mb-6 flex items-start gap-3">
@@ -306,9 +303,8 @@ export function RegisterCard() {
                 <button
                     type="submit"
                     disabled={isLoading || !acceptedTerms}
-                    className={`w-full text-white py-2 rounded-lg transition-colors cursor-pointer flex justify-center items-center ${
-                        isLoading || !acceptedTerms ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-                    }`}
+                    className={`w-full text-white py-2 rounded-lg transition-colors cursor-pointer flex justify-center items-center ${isLoading || !acceptedTerms ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+                        }`}
                 >
                     {isLoading ? (
                         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
