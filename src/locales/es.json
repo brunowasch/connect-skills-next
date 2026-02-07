@@ -1532,5 +1532,54 @@
     "ranking_video_requested": "Video Solicitado",
     "ranking_request_video": "Solicitar Video",
     "ranking_video_request_error": "Error al solicitar el video: ",
-    "ranking_video_request_success": "¡Solicitud de video enviada con éxito!"
+    "ranking_video_request_success": "¡Solicitud de video enviada con éxito!",
+    "notifications_title": "Notificaciones",
+    "notifications_new": "nueva",
+    "notifications_new_plural": "nuevas",
+    "notifications_empty": "Sin notificaciones",
+    "notifications_view_all": "Ver todas las notificaciones",
+    "notification_view_feedback": "Ver feedback",
+    "notification_send_video": "Enviar video",
+    "notification_mark_read": "Marcar leída",
+    "notification_delete": "Eliminar",
+    "notification_mark_read_tooltip": "Marcar como leída",
+    "notification_delete_tooltip": "Eliminar",
+    "feedback_modal_approved_title": "¡Felicidades! Has sido aprobado",
+    "feedback_modal_rejected_title": "Feedback Recibido",
+    "feedback_modal_close_btn": "Cerrar",
+    "feedback_modal_company_message": "Mensaje de la Empresa",
+    "feedback_modal_no_message": "No se proporcionó ningún mensaje adicional.",
+    "feedback_modal_next_steps_title": "Próximos pasos:",
+    "feedback_modal_next_steps_desc": "La empresa se pondrá en contacto contigo pronto para continuar el proceso de selección. ¡Mantente atento a tu correo electrónico!",
+    "feedback_modal_keep_trying_title": "¡Sigue intentando!",
+    "feedback_modal_keep_trying_desc": "Usa este feedback para mejorar tus próximas candidaturas. ¡Hay muchas otras oportunidades esperándote!",
+    "feedback_modal_close": "Cerrar",
+    "notifications": {
+        "title": "Notificaciones",
+        "new_one": "nueva",
+        "new_many": "nuevas",
+        "empty": "Sin notificaciones",
+        "view_feedback": "Ver feedback",
+        "send_video": "Enviar video",
+        "mark_read": "Marcar como leída",
+        "delete": "Eliminar",
+        "view_all": "Ver todas las notificaciones",
+        "types": {
+            "video_request": {
+                "title": "Video de Presentación Solicitado",
+                "message": "La empresa solicitó un video de presentación de hasta 3 minutos."
+            },
+            "feedback_approved": {
+                "title": "¡Felicidades! Fuiste aprobado",
+                "default_message": "La empresa aprobó tu candidatura."
+            },
+            "feedback_rejected": {
+                "title": "Feedback Recibido",
+                "default_message": "La empresa envió un feedback sobre tu candidatura."
+            },
+            "general": {
+                "title": "Nueva Notificación"
+            }
+        }
+    }
 }

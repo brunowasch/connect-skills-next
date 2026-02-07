@@ -216,6 +216,30 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
         });
     }
 
+    // Filtrar vagas inativas para as visualizações de Explorar e Recomendadas
+    if (!isHistory && !isFavorites) {
+        const vagaIdsToCheck = vagasLocalizadas.map(v => v.id);
+        
+        if (vagaIdsToCheck.length > 0) {
+            const statuses = await prisma.vaga_status.findMany({
+                where: { vaga_id: { in: vagaIdsToCheck } },
+                orderBy: { criado_em: 'desc' }
+            });
+
+            const latestStatusMap = new Map<string, string>();
+            for (const s of statuses) {
+                if (!latestStatusMap.has(s.vaga_id)) {
+                    latestStatusMap.set(s.vaga_id, s.situacao);
+                }
+            }
+
+            vagasLocalizadas = vagasLocalizadas.filter(v => {
+                const status = latestStatusMap.get(v.id);
+                return status === 'Ativa';
+            });
+        }
+    }
+
     const vagas = vagasLocalizadas;
 
     if (vagas.length > 0) {

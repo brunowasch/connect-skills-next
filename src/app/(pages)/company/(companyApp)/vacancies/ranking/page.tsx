@@ -2,9 +2,14 @@ import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
 import { RankingPageContent } from "./_components/RankingPageContent";
 
-export default async function RankingPage() {
+export default async function RankingPage({
+    searchParams
+}: {
+    searchParams: Promise<{ [key: string]: string | undefined }>
+}) {
+    const params = await searchParams;
     const cookieStore = await cookies();
-    const vacancyId = cookieStore.get("vacancy_ranking_id")?.value;
+    const vacancyId = params?.id || cookieStore.get("vacancy_ranking_id")?.value;
 
     if (!vacancyId) {
         return <RankingPageContent state="no_selection" />;

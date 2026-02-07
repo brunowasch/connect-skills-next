@@ -1,5 +1,6 @@
 export interface Application {
     id: string;
+    uuid?: string;
     cargo?: string;
     tipo_local_trabalho?: string;
     salario?: number;
@@ -18,6 +19,7 @@ export interface Application {
         };
     }>;
     created_at?: Date;
+    videoStatus?: string | null;
 }
 
 export interface ApplicationHistoryProps {

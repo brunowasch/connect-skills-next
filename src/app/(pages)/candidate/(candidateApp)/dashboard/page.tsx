@@ -71,6 +71,7 @@ export default async function Dashboard() {
         select: {
             vaga_id: true,
             created_at: true,
+            breakdown: true,
         }
     });
 
@@ -210,10 +211,13 @@ export default async function Dashboard() {
 
     // Buscar dados completos das vagas aplicadas
     let appliedVacancies: any[] = [];
+    let appliedVagas: any[] = [];
+    let appliedEmpresas: any[] = [];
+    
     if (appliedVacanciesData.length > 0) {
         const appliedVagasIds = appliedVacanciesData.map((av: any) => av.vaga_id);
 
-        const appliedVagas = await prisma.vaga.findMany({
+        appliedVagas = await prisma.vaga.findMany({
             where: {
                 id: {
                     in: appliedVagasIds
@@ -232,7 +236,7 @@ export default async function Dashboard() {
 
         // Buscar dados das empresas
         const appliedEmpresaIds = [...new Set(appliedVagas.map((v: any) => v.empresa_id))];
-        const appliedEmpresas = await prisma.empresa.findMany({
+        appliedEmpresas = await prisma.empresa.findMany({
             where: {
                 id: {
                     in: appliedEmpresaIds
@@ -291,6 +295,15 @@ export default async function Dashboard() {
 
             const applicationData = appliedVacanciesData.find((av: any) => av.vaga_id === vaga.id);
 
+            let videoStatus = null;
+            try {
+                if (applicationData?.breakdown) {
+                    const breakdown = JSON.parse(applicationData.breakdown);
+                    videoStatus = breakdown?.video?.status || null;
+                }
+            } catch (e) {
+            }
+
             return {
                 id: vaga.id,
                 uuid: vaga.uuid,
@@ -308,9 +321,13 @@ export default async function Dashboard() {
                 } : undefined,
                 vaga_area: vagaAreasData,
                 created_at: applicationData?.created_at,
+                videoStatus,
             };
         });
     }
+    // Buscar vagas recomendadas
+    
+    // ... (existing logic for other things)
 
     return (
         <>
@@ -322,6 +339,7 @@ export default async function Dashboard() {
                 appliedVacanciesCount={appliedVacanciesCount}
                 areas={areas}
             />
+
             <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 <RecommendedVacancies vacanciesRecommended={recommendedVacancies} />
                 <ApplicationHistory historicoAplicacoes={appliedVacancies} />

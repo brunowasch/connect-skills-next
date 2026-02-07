@@ -7,6 +7,7 @@ export interface Application {
     score?: number;
     candidateId: string;
     vacancyId: string;
+    videoStatus?: string | null;
 }
 
 export interface RecentCandidatesProps {

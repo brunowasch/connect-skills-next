@@ -6,14 +6,14 @@ import { revalidatePath } from "next/cache";
 
 export async function uploadVideoAction(
     vacancyId: string,
-    userId: string, // Changed from candidateId to userId as frontend sends userId
+    userId: string,
     formData: FormData
 ) {
     try {
         // Resolve candidateId from userId
         const candidate = await prisma.candidato.findUnique({
             where: { usuario_id: userId },
-            select: { id: true }
+            select: { id: true, nome: true, sobrenome: true }
         });
 
         if (!candidate) {
@@ -67,11 +67,39 @@ export async function uploadVideoAction(
                 }
             } catch (e) { }
 
+            // Check if candidate was rejected
+            if (breakdown?.feedback?.status === 'REJECTED') {
+                return { 
+                    success: false, 
+                    error: "Não é possível enviar vídeo após receber feedback de reprovação" 
+                };
+            }
+
+            // Check if video was requested and deadline hasn't expired
+            if (breakdown?.video?.status === 'requested') {
+                const deadline = new Date(breakdown.video.deadline);
+                const now = new Date();
+                
+                if (now > deadline) {
+                    return {
+                        success: false,
+                        error: "O prazo para envio do vídeo expirou (1 semana após solicitação)"
+                    };
+                }
+            }
+
+            // Calculate video expiration: 1 week from submission
+            const submittedAt = new Date();
+            const expiresAt = new Date(submittedAt);
+            expiresAt.setDate(expiresAt.getDate() + 7); // Video available for 1 week
+
             const newBreakdown = {
                 ...breakdown,
                 video: {
+                    ...breakdown.video,
                     status: 'submitted',
-                    submittedAt: new Date().toISOString(),
+                    submittedAt: submittedAt.toISOString(),
+                    expiresAt: expiresAt.toISOString(), // Video expires after 1 week
                     fileId: fileId,
                     url: url
                 }
@@ -83,9 +111,52 @@ export async function uploadVideoAction(
                     breakdown: JSON.stringify(newBreakdown)
                 }
             });
+
+            // Notify Company
+            try {
+                const vacancy = await prisma.vaga.findUnique({
+                    where: { id: vacancyId },
+                    select: { cargo: true, empresa_id: true }
+                });
+
+                if (vacancy) {
+                    const company = await prisma.empresa.findUnique({
+                        where: { id: vacancy.empresa_id },
+                        select: { nome_empresa: true, usuario_id: true }
+                    });
+
+                    if (company) {
+                        const companyUser = await prisma.usuario.findUnique({
+                            where: { id: company.usuario_id },
+                            select: { email: true }
+                        });
+
+                        if (companyUser && companyUser.email) {
+                            const { sendVideoReceivedEmail } = await import("@/src/lib/mail");
+                            const candidateName = `${candidate.nome || ''} ${candidate.sobrenome || ''}`.trim() || "Candidato";
+                            
+                            // Redirect to candidates page after login
+                            const redirectUrl = `/company/vacancies/${vacancyId}/candidates`;
+                            const loginLink = `${process.env.APP_URL}/login?redirect=${encodeURIComponent(redirectUrl)}`;
+
+                            await sendVideoReceivedEmail(
+                                companyUser.email, 
+                                company.nome_empresa, 
+                                candidateName, 
+                                vacancy.cargo, 
+                                loginLink
+                            );
+                        }
+                    }
+                }
+            } catch (emailError) {
+                console.error("Erro ao enviar notificação por email:", emailError);
+            }
         }
 
         revalidatePath(`/viewer/vacancy/${vacancyId}`);
+        revalidatePath('/candidate/dashboard');
+        revalidatePath('/company/dashboard');
         return { success: true };
     } catch (error) {
         console.error("Erro no upload de vídeo:", error);

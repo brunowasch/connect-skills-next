@@ -8,17 +8,6 @@ import { useTranslation } from "react-i18next";
 export function ApplicationHistory({ historicoAplicacoes }: ApplicationHistoryProps) {
     const { t, i18n } = useTranslation();
 
-    {/* Helper para formatar o status (será usado futuramente)
-    const formatStatus = (status: string) => {
-        const statusMap: Record<string, string> = {
-            'pendente': 'Pendente',
-            'em_analise': 'Em Análise',
-            'selecionado': 'Selecionado',
-            'reprovado': 'Finalizado',
-        };
-        return statusMap[status.toLowerCase()] || status;
-    }; */}
-
     return (
         <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm p-4 sm:p-5 border border-slate-100 h-full flex flex-col">
             <div className="flex justify-between items-center mb-3 sm:mb-4">
@@ -46,11 +35,16 @@ export function ApplicationHistory({ historicoAplicacoes }: ApplicationHistoryPr
                     <div className="divide-y divide-slate-100">
                         {historicoAplicacoes.slice(0, 5).map((item, index) => {
                             const dataAplicacao = item?.created_at ? new Date(item.created_at) : new Date();
+                            
+                            // Se o vídeo foi solicitado e temos o UUID, redirecionar para a vaga
+                            const linkHref = item.videoStatus === 'requested' && item.uuid 
+                                ? `/viewer/vacancy/${item.uuid}?action=upload_video`
+                                : `/candidate/vacancies`;
 
                             return (
                                 <Link
                                     key={index}
-                                    href={`/candidate/vacancies`}
+                                    href={linkHref}
                                     className="group flex justify-between items-start gap-2 sm:gap-3 py-2.5 sm:py-3 first:pt-0 last:pb-0 hover:bg-slate-50/50 transition-colors rounded-lg px-0.5 sm:px-1"
                                 >
                                     <div className="flex-1 min-w-0">
@@ -72,9 +66,21 @@ export function ApplicationHistory({ historicoAplicacoes }: ApplicationHistoryPr
                                     </div>
 
                                     <div className="flex flex-col items-end gap-1.5 sm:gap-2 flex-shrink-0">
-                                        <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-white border border-slate-200 text-[9px] sm:text-[10px] font-bold text-slate-600 shadow-sm">
-                                            {t("pending")}
-                                        </span>
+                                        {item.videoStatus === 'requested' && (
+                                            <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-purple-50 border border-purple-200 text-[9px] sm:text-[10px] font-bold text-purple-600 shadow-sm">
+                                                📹 Solicitado
+                                            </span>
+                                        )}
+                                        {item.videoStatus === 'submitted' && (
+                                            <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-green-50 border border-green-200 text-[9px] sm:text-[10px] font-bold text-green-600 shadow-sm">
+                                                ✓ Enviado
+                                            </span>
+                                        )}
+                                        {!item.videoStatus && (
+                                            <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-white border border-slate-200 text-[9px] sm:text-[10px] font-bold text-slate-600 shadow-sm">
+                                                {t("pending")}
+                                            </span>
+                                        )}
                                         <ChevronRight size={12} className="text-slate-300 group-hover:text-blue-500 transition-colors sm:w-3.5 sm:h-3.5" />
                                     </div>
                                 </Link>

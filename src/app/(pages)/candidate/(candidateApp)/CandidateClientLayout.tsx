@@ -9,10 +9,15 @@ import { Footer } from "@/src/app/(pages)/candidate/layout/Footer/Footer";
 import { GlobalToast } from "./_components/GlobalToast";
 import { LanguageSwitcher } from "@/src/app/_components/Layout/LanguageSwitcher";
 
+import { NotificationDropdown } from "./_components/NotificationDropdown";
+import { Notification } from "@/src/lib/notifications";
+
 export default function CandidateLayout({
     children,
+    notifications = []
 }: {
     children: React.ReactNode;
+    notifications?: Notification[];
 }) {
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
     const pathname = usePathname();
@@ -56,8 +61,14 @@ export default function CandidateLayout({
                         {/* Espaço vazio em desktop quando sidebar está visível */}
                         <div className="hidden lg:block flex-1" />
 
-                        {/* Language Switcher - sempre visível */}
-                        <div className="flex items-center">
+                        {/* Language Switcher e Notificações */}
+                        <div className="flex items-center gap-4">
+                            {pathname === '/candidate/dashboard' && (
+                                <>
+                                    <NotificationDropdown notifications={notifications} />
+                                    <div className="h-6 w-px bg-gray-200" />
+                                </>
+                            )}
                             <LanguageSwitcher />
                         </div>
                     </header>

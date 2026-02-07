@@ -74,12 +74,24 @@ export function RecentCandidates({ applications }: RecentCandidatesProps) {
                                     {t("applied_for")}: <span className="font-medium text-slate-700">{app.vacancyTitle}</span>
                                 </p>
 
-                                {app.score !== undefined && app.score > 0 && (
-                                    <span className="flex items-center gap-1 text-[10px] font-bold bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full border border-amber-100">
-                                        <Star size={10} className="fill-current" />
-                                        {app.score}%
-                                    </span>
-                                )}
+                                <div className="flex items-center gap-2">
+                                    {app.videoStatus === 'requested' && (
+                                        <span className="flex items-center gap-1 text-[10px] font-bold bg-purple-50 text-purple-600 px-2 py-0.5 rounded-full border border-purple-100">
+                                            📹 Solicitado
+                                        </span>
+                                    )}
+                                    {app.videoStatus === 'submitted' && (
+                                        <span className="flex items-center gap-1 text-[10px] font-bold bg-green-50 text-green-600 px-2 py-0.5 rounded-full border border-green-100">
+                                            ✓ Vídeo Enviado
+                                        </span>
+                                    )}
+                                    {app.score !== undefined && app.score > 0 && (
+                                        <span className="flex items-center gap-1 text-[10px] font-bold bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full border border-amber-100">
+                                            <Star size={10} className="fill-current" />
+                                            {app.score}%
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </div>
 

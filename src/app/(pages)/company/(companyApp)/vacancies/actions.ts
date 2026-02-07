@@ -69,11 +69,16 @@ export async function requestVideo(candidateId: string, vacancyId: string) {
             // ignore parse error/empty
         }
 
+        const requestDate = new Date();
+        const deadline = new Date(requestDate);
+        deadline.setDate(deadline.getDate() + 7); // 1 week for candidate to submit
+
         const newBreakdown = {
             ...breakdownData,
             video: {
                 status: 'requested',
-                requestedAt: new Date().toISOString()
+                requestedAt: requestDate.toISOString(),
+                deadline: deadline.toISOString() // Candidate has 1 week to submit
             }
         };
 

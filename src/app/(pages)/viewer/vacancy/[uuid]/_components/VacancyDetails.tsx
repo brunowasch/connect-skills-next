@@ -48,6 +48,7 @@ interface ModalConfig {
     onConfirm: () => void;
     confirmText: string;
     variant: 'danger' | 'warning' | 'success' | 'info';
+    size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 }
 
 interface VacancyDetailsProps {
@@ -456,17 +457,48 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                 return;
             }
 
-            const formData = new FormData();
-            formData.append("video", file);
+            setModal({
+                isOpen: true,
+                title: 'Confirmar Envio',
+                description: (
+                    <div className="space-y-4">
+                        <p className="text-gray-600">
+                            Confira seu vídeo abaixo. Se estiver tudo certo, clique em "Enviar Vídeo" para finalizar.
+                        </p>
+                        <div className="rounded-lg overflow-hidden bg-black border border-gray-200">
+                            <video 
+                                src={URL.createObjectURL(file)} 
+                                controls 
+                                className="w-full max-h-[60vh]"
+                            />
+                        </div>
+                        <p className="text-xs text-gray-500">
+                            * Atenção: Após o envio, não será possível alterar o vídeo.
+                        </p>
+                    </div>
+                ),
+                confirmText: 'Enviar Vídeo',
+                variant: 'info',
+                size: '2xl',
+                onConfirm: () => {
+                    const formData = new FormData();
+                    formData.append("video", file);
 
-            startTransition(async () => {
-                const result = await uploadVideoAction(vacancy.id, userId!, formData);
+                    startTransition(async () => {
+                        const result = await uploadVideoAction(vacancy.id, userId!, formData);
 
-                if (result.success) {
-                    toast.success("Vídeo enviado com sucesso!");
-                    router.refresh();
-                } else {
-                    toast.error("Erro ao enviar vídeo: " + result.error);
+                        if (result.success) {
+                            toast.success("Vídeo enviado com sucesso!");
+                            setModal(prev => ({ ...prev, isOpen: false }));
+                            // Redirecionar para o dashboard após 1 segundo
+                            setTimeout(() => {
+                                router.push('/candidate/dashboard');
+                            }, 1000);
+                        } else {
+                            toast.error("Erro ao enviar vídeo: " + result.error);
+                            setModal(prev => ({ ...prev, isOpen: false }));
+                        }
+                    });
                 }
             });
         };
@@ -585,63 +617,139 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
 
             {/* Conteúdo principal */}
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {hasApplied && applicationBreakdown?.video?.status === 'requested' && (
-                    <div id="video-upload-section" className="mt-6 bg-purple-50 border border-purple-200 p-6 rounded-lg animate-in fade-in slide-in-from-top-2">
-                        <div className="flex items-start gap-4 mb-4">
-                            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 flex-shrink-0">
-                                <Video size={24} />
-                            </div>
-                            <div>
-                                <h3 className="font-bold text-gray-900">Vídeo de Apresentação Solicitado</h3>
-                                <p className="text-sm text-gray-600 mt-1">A empresa solicitou um vídeo de apresentação de até 3 minutos.</p>
-                            </div>
-                        </div>
+                {hasApplied && applicationBreakdown?.video?.status === 'requested' && (() => {
+                    // Check if deadline has expired
+                    const deadline = applicationBreakdown?.video?.deadline ? new Date(applicationBreakdown.video.deadline) : null;
+                    const now = new Date();
+                    const isExpired = deadline && now > deadline;
+                    
+                    // Calculate remaining time
+                    const timeRemaining = deadline ? Math.max(0, deadline.getTime() - now.getTime()) : 0;
+                    const daysRemaining = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
+                    const hoursRemaining = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 
-                        <div className="flex flex-col gap-3">
-                            <label className="block w-full">
-                                <span className="sr-only">Escolher vídeo</span>
-                                <div className={`
-                                                w-full flex items-center justify-center px-4 py-8 border-2 border-dashed rounded-lg cursor-pointer hover:bg-white transition-colors
-                                                ${isPending ? 'border-gray-300 bg-gray-100 cursor-not-allowed' : 'border-purple-300 bg-purple-50/50 hover:border-purple-400'}
-                                            `}>
-                                    <input
-                                        type="file"
-                                        accept="video/*"
-                                        className="hidden"
-                                        onChange={handleVideoUpload}
-                                        disabled={isPending}
-                                    />
-                                    <div className="text-center">
-                                        {isPending ? (
-                                            <div className="flex flex-col items-center gap-2">
-                                                <Loader2 size={24} className="animate-spin text-purple-600" />
-                                                <span className="text-sm text-gray-500">Enviando vídeo... (isso pode levar alguns segundos)</span>
-                                            </div>
-                                        ) : (
-                                            <>
-                                                <div className="mx-auto w-10 h-10 mb-2 text-purple-400">
-                                                    <FileText size={40} />
-                                                </div>
-                                                <p className="font-medium text-purple-700">Clique para enviar seu vídeo</p>
-                                                <p className="text-xs text-gray-500 mt-1">MP4, WebM (Max 3 min, 100MB)</p>
-                                            </>
-                                        )}
+                    return (
+                        <>
+                            {/* Check if rejected */}
+                            {applicationBreakdown?.feedback?.status === 'REJECTED' ? (
+                                <div id="video-upload-section" className="mt-6 bg-red-50 border border-red-200 p-6 rounded-lg animate-in fade-in slide-in-from-top-2">
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center text-red-600 flex-shrink-0">
+                                            <Ban size={24} />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900">Envio de Vídeo Não Disponível</h3>
+                                            <p className="text-sm text-gray-600 mt-1">
+                                                A empresa já enviou um feedback sobre sua candidatura. O envio de vídeo não está mais disponível.
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
-                            </label>
-                        </div>
-                    </div>
-                )}
+                            ) : isExpired ? (
+                                <div id="video-upload-section" className="mt-6 bg-orange-50 border border-orange-200 p-6 rounded-lg animate-in fade-in slide-in-from-top-2">
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center text-orange-600 flex-shrink-0">
+                                            <Clock size={24} />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900">Prazo Expirado</h3>
+                                            <p className="text-sm text-gray-600 mt-1">
+                                                O prazo de 1 semana para envio do vídeo expirou. Entre em contato com a empresa se necessário.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div id="video-upload-section" className="mt-6 bg-purple-50 border border-purple-200 p-6 rounded-lg animate-in fade-in slide-in-from-top-2">
+                                    <div className="flex items-start gap-4 mb-4">
+                                        <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 flex-shrink-0">
+                                            <Video size={24} />
+                                        </div>
+                                        <div className="flex-1">
+                                            <h3 className="font-bold text-gray-900">Vídeo de Apresentação Solicitado</h3>
+                                            <p className="text-sm text-gray-600 mt-1">A empresa solicitou um vídeo de apresentação de até 3 minutos.</p>
+                                            {deadline && (
+                                                <div className="mt-2 flex items-center gap-2 text-sm">
+                                                    <Clock size={14} className="text-purple-600" />
+                                                    <span className="font-medium text-purple-700">
+                                                        Prazo: {daysRemaining > 0 ? `${daysRemaining} dia${daysRemaining > 1 ? 's' : ''}` : `${hoursRemaining} hora${hoursRemaining > 1 ? 's' : ''}`} restante{daysRemaining > 1 || hoursRemaining > 1 ? 's' : ''}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
 
-                {hasApplied && applicationBreakdown?.video?.status === 'submitted' && (
-                    <div className="mt-6 bg-green-50 border border-green-200 p-4 rounded-lg flex items-center gap-3">
-                        <CheckCircle2 size={24} className="text-green-600" />
-                        <div>
-                            <p className="font-semibold text-green-800">Vídeo Enviado</p>
-                            <p className="text-sm text-green-700">Seu vídeo foi recebido com sucesso.</p>
+                                    <div className="flex flex-col gap-3">
+                                        <label className="block w-full">
+                                            <span className="sr-only">Escolher vídeo</span>
+                                            <div className={`
+                                                    w-full flex items-center justify-center px-4 py-8 border-2 border-dashed rounded-lg cursor-pointer hover:bg-white transition-colors
+                                                    ${isPending ? 'border-gray-300 bg-gray-100 cursor-not-allowed' : 'border-purple-300 bg-purple-50/50 hover:border-purple-400'}
+                                                `}>
+                                                <input
+                                                    type="file"
+                                                    accept="video/*"
+                                                    className="hidden"
+                                                    onChange={handleVideoUpload}
+                                                    disabled={isPending}
+                                                />
+                                                <div className="text-center">
+                                                    {isPending ? (
+                                                        <div className="flex flex-col items-center gap-2">
+                                                            <Loader2 size={24} className="animate-spin text-purple-600" />
+                                                            <span className="text-sm text-gray-500">Enviando vídeo... (isso pode levar alguns segundos)</span>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <div className="mx-auto w-10 h-10 mb-2 text-purple-400">
+                                                                <FileText size={40} />
+                                                            </div>
+                                                            <p className="font-medium text-purple-700">Clique para enviar seu vídeo</p>
+                                                            <p className="text-xs text-gray-500 mt-1">MP4, WebM (Max 3 min, 100MB)</p>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    );
+                })()}
+
+                {hasApplied && applicationBreakdown?.video?.status === 'submitted' && (() => {
+                    const expiresAt = applicationBreakdown?.video?.expiresAt ? new Date(applicationBreakdown.video.expiresAt) : null;
+                    const now = new Date();
+                    const isExpired = expiresAt && now > expiresAt;
+                    
+                    // Calculate remaining time
+                    const timeRemaining = expiresAt ? Math.max(0, expiresAt.getTime() - now.getTime()) : 0;
+                    const daysRemaining = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
+
+                    return (
+                        <div className={`mt-6 border p-4 rounded-lg flex items-start gap-3 ${isExpired ? 'bg-gray-50 border-gray-200' : 'bg-green-50 border-green-200'}`}>
+                            <CheckCircle2 size={24} className={isExpired ? 'text-gray-600' : 'text-green-600'} />
+                            <div className="flex-1">
+                                <p className={`font-semibold ${isExpired ? 'text-gray-800' : 'text-green-800'}`}>Vídeo Enviado</p>
+                                <p className={`text-sm ${isExpired ? 'text-gray-700' : 'text-green-700'}`}>
+                                    Seu vídeo foi recebido com sucesso.
+                                </p>
+                                {expiresAt && (
+                                    <div className="mt-2 flex items-center gap-2 text-sm">
+                                        <Clock size={14} className={isExpired ? 'text-gray-600' : 'text-green-600'} />
+                                        <span className={`font-medium ${isExpired ? 'text-gray-700' : 'text-green-700'}`}>
+                                            {isExpired 
+                                                ? 'Vídeo expirado (disponível por 1 semana após envio)'
+                                                : `Disponível por mais ${daysRemaining} dia${daysRemaining > 1 ? 's' : ''}`
+                                            }
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                )}
+                    );
+                })()}
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
                     {/* Coluna principal */}
@@ -874,7 +982,13 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                         />
 
                         {/* Modal Card */}
-                        <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 fade-in duration-300 scale-100">
+                        <div className={`relative w-full bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 fade-in duration-300 scale-100 ${
+                            modal.size === 'sm' ? 'max-w-sm' :
+                            modal.size === 'lg' ? 'max-w-lg' :
+                            modal.size === 'xl' ? 'max-w-xl' :
+                            modal.size === '2xl' ? 'max-w-2xl' :
+                            'max-w-md'
+                        }`}>
                             <div className="p-6">
                                 <div className="flex items-start gap-4">
                                     <div className={`p-3 rounded-xl shrink-0 ${modal.variant === 'danger' ? 'bg-red-50 text-red-600' :

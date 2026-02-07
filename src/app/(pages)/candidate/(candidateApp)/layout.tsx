@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { prisma } from "@/src/lib/prisma";
 import CandidateClientLayout from "./CandidateClientLayout";
+import { getCandidateNotifications } from "@/src/lib/notifications";
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
     const cookieStore = await cookies();
@@ -41,8 +42,10 @@ export default async function Layout({ children }: { children: React.ReactNode }
         redirect("/candidate/area");
     }
 
+    const notifications = await getCandidateNotifications(candidato.id);
+
     return (
-        <CandidateClientLayout>
+        <CandidateClientLayout notifications={notifications}>
             {children}
         </CandidateClientLayout>
     );

@@ -125,7 +125,7 @@ export function FeedbackModal({ isOpen, onClose, candidateName, onSubmit, aiSugg
                             {aiSuggestions && (
                                 <button
                                     onClick={handleUseAiSuggestions}
-                                    className="flex items-center gap-1.5 text-xs font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 px-2 py-1 rounded-md transition-colors"
+                                    className="flex items-center gap-1.5 text-xs font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 px-2 py-1 rounded-md transition-colors cursor-pointer"
                                     title={t('feedback_use_ai_tooltip', 'Inserir sugestões da IA')}
                                 >
                                     <Sparkles size={14} />

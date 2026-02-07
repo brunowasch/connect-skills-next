@@ -98,13 +98,6 @@ export default async function Dashboard() {
 
     const candidateCountMap = new Map(candidateCounts.map((c: { vaga_id: string; _count: { vaga_id: number } }) => [c.vaga_id, c._count.vaga_id]));
 
-    // Fetch Latest Statuses for recent vacancies
-    // We could reuse 'latestStatuses' but that might contain stale data if we fetched all? 
-    // Actually 'latestStatuses' fetched *all* statuses for *all* vacancies of the company.
-    // So we can reuse 'latestStatuses' to find status for recent vacancies.
-    // We already processed it into a map sort of (processedVagas set).
-    // Let's create a map from latestStatuses directly.
-
     const statusMap = new Map<string, string>();
     const processedStatusVagas = new Set<string>();
 
@@ -137,7 +130,15 @@ export default async function Dashboard() {
             vaga_id: { in: vacancyIds }
         },
         orderBy: { created_at: 'desc' },
-        take: 5
+        take: 5,
+        select: {
+            id: true,
+            candidato_id: true,
+            vaga_id: true,
+            created_at: true,
+            score: true,
+            breakdown: true
+        }
     });
 
     // Buscar detalhes dos candidatos e vagas para as aplicações
@@ -171,6 +172,16 @@ export default async function Dashboard() {
         const candidate: any = appCandidateMap.get(app.candidato_id);
         const vacancy: any = appVacancyMap.get(app.vaga_id);
 
+        // Parse breakdown para obter status do vídeo
+        let videoStatus = null;
+        try {
+            if (app.breakdown) {
+                const breakdown = JSON.parse(app.breakdown);
+                videoStatus = breakdown?.video?.status || null;
+            }
+        } catch (e) {
+        }
+
         return {
             id: app.id,
             candidateName: candidate ? `${candidate.nome || ''} ${candidate.sobrenome || ''}`.trim() || 'Candidato' : 'Candidato Desconhecido',
@@ -179,7 +190,8 @@ export default async function Dashboard() {
             date: app.created_at,
             score: app.score,
             candidateId: app.candidato_id,
-            vacancyId: app.vaga_id
+            vacancyId: app.vaga_id,
+            videoStatus
         };
     });
 
