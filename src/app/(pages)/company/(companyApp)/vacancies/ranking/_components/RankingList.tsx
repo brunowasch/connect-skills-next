@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Mail, FileText, Brain, User, ExternalLink, Video } from "lucide-react";
+import { Mail, FileText, Brain, User, ExternalLink, Video, MessageSquare } from "lucide-react";
 import { AnswersModal } from "./AnswersModal";
 import { AnalysisModal } from "./AnalysisModal";
+import { VideoModal } from "./VideoModal";
+import { FeedbackModal } from "./FeedbackModal";
 import { useTranslation } from "react-i18next";
-import { requestVideo } from "../../actions";
+import { requestVideo, submitFeedback } from "../../actions";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -42,16 +44,21 @@ type SortOption = 'score' | 'score_D' | 'score_I' | 'score_S' | 'score_C';
 export function RankingList({ candidates, vacancyId }: RankingListProps) {
     const { t } = useTranslation();
     const [sortBy, setSortBy] = useState<SortOption>('score');
+    const [filter, setFilter] = useState<'all' | 'approved' | 'rejected'>('all');
     const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null);
     const [showAnswers, setShowAnswers] = useState(false);
     const [showAnalysis, setShowAnalysis] = useState(false);
+    const [showVideo, setShowVideo] = useState(false);
+    const [selectedVideoUrl, setSelectedVideoUrl] = useState<string | null>(null);
+    const [showFeedback, setShowFeedback] = useState(false);
+    const [feedbackCandidate, setFeedbackCandidate] = useState<string | null>(null);
     const [videoRequestCandidate, setVideoRequestCandidate] = useState<string | null>(null);
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
 
     // Parse breakdown to extract DISC scores
     const parseBreakdown = (breakdown: string | null | undefined) => {
-        if (!breakdown) return { D: 0, I: 0, S: 0, C: 0, video: null };
+        if (!breakdown) return { D: 0, I: 0, S: 0, C: 0, video: null, suggestions: null };
 
         try {
             const parsed = JSON.parse(breakdown);
@@ -60,32 +67,47 @@ export function RankingList({ candidates, vacancyId }: RankingListProps) {
                 I: parsed.i_score || 0,
                 S: parsed.s_score || 0,
                 C: parsed.c_score || 0,
-                video: parsed.video
+                video: parsed.video,
+                suggestions: parsed.suggestions,
+                feedback: parsed.feedback
             };
         } catch {
-            return { D: 0, I: 0, S: 0, C: 0, video: null };
+            return { D: 0, I: 0, S: 0, C: 0, video: null, suggestions: null };
         }
     };
 
     // Sort candidates based on selected criteria
-    const sortedCandidates = [...candidates].sort((a, b) => {
-        if (sortBy === 'score') {
-            const scoreA = a.application?.score || 0;
-            const scoreB = b.application?.score || 0;
-            if (scoreB !== scoreA) return scoreB - scoreA;
-            // Tie-breaker: earlier application
-            return new Date(a.application?.created_at || 0).getTime() - new Date(b.application?.created_at || 0).getTime();
-        } else {
-            const breakdownA = parseBreakdown(a.application?.breakdown);
-            const breakdownB = parseBreakdown(b.application?.breakdown);
-            const key = sortBy.replace('score_', '') as 'D' | 'I' | 'S' | 'C';
-            const scoreA = breakdownA[key];
-            const scoreB = breakdownB[key];
-            if (scoreB !== scoreA) return scoreB - scoreA;
-            // Tie-breaker: earlier application
-            return new Date(a.application?.created_at || 0).getTime() - new Date(b.application?.created_at || 0).getTime();
-        }
+    const sortCandidates = (items: Candidate[]) => {
+        return [...items].sort((a, b) => {
+            if (sortBy === 'score') {
+                const scoreA = a.application?.score || 0;
+                const scoreB = b.application?.score || 0;
+                if (scoreB !== scoreA) return scoreB - scoreA;
+                // Tie-breaker: earlier application
+                return new Date(a.application?.created_at || 0).getTime() - new Date(b.application?.created_at || 0).getTime();
+            } else {
+                const breakdownA = parseBreakdown(a.application?.breakdown);
+                const breakdownB = parseBreakdown(b.application?.breakdown);
+                const key = sortBy.replace('score_', '') as 'D' | 'I' | 'S' | 'C';
+                const scoreA = breakdownA[key];
+                const scoreB = breakdownB[key];
+                if (scoreB !== scoreA) return scoreB - scoreA;
+                // Tie-breaker: earlier application
+                return new Date(a.application?.created_at || 0).getTime() - new Date(b.application?.created_at || 0).getTime();
+            }
+        });
+    };
+
+    const filteredCandidates = candidates.filter(candidate => {
+        const breakdown = parseBreakdown(candidate.application?.breakdown);
+        const status = breakdown.feedback?.status;
+
+        if (filter === 'approved') return status === 'APPROVED';
+        if (filter === 'rejected') return status === 'REJECTED';
+        return true;
     });
+
+    const sortedCandidates = sortCandidates(filteredCandidates);
 
     const handleShowAnswers = (candidateId: string) => {
         setSelectedCandidate(candidateId);
@@ -97,15 +119,35 @@ export function RankingList({ candidates, vacancyId }: RankingListProps) {
         setSelectedCandidate(candidateId);
         setShowAnalysis(true);
         setShowAnswers(false);
+        setShowVideo(false);
+    };
+
+    const handleShowVideo = (candidateId: string, url: string) => {
+        setSelectedCandidate(candidateId);
+        setSelectedVideoUrl(url);
+        setShowVideo(true);
+        setShowAnswers(false);
+        setShowAnalysis(false);
     };
 
     const handleRequestVideoClick = (candidateId: string) => {
         setVideoRequestCandidate(candidateId);
     };
 
+    const handleFeedbackClick = (candidateId: string) => {
+        setFeedbackCandidate(candidateId);
+        setShowFeedback(true);
+    };
+
+    const handleFeedbackSubmit = async (status: 'APPROVED' | 'REJECTED', justification: string) => {
+        if (!feedbackCandidate) return;
+        await submitFeedback(feedbackCandidate, vacancyId, status, justification);
+        router.refresh();
+    };
+
     const confirmRequestVideo = () => {
         if (!videoRequestCandidate) return;
-        
+
         startTransition(async () => {
             const result = await requestVideo(videoRequestCandidate, vacancyId);
             if (result.success) {
@@ -118,34 +160,92 @@ export function RankingList({ candidates, vacancyId }: RankingListProps) {
         });
     };
 
+    const renderFeedbackButton = (candidate: Candidate, breakdown: any) => {
+        const feedback = breakdown?.feedback;
+
+        if (feedback?.status) {
+            const isApproved = feedback.status === 'APPROVED';
+            return (
+                <div className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold border cursor-default
+                    ${isApproved ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                    {isApproved ? 'Aprovado' : 'Reprovado'}
+                </div>
+            );
+        }
+
+        return (
+            <button
+                onClick={() => handleFeedbackClick(candidate.id)}
+                className="flex items-center gap-1 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-medium hover:bg-indigo-100 transition-colors cursor-pointer"
+            >
+                <MessageSquare size={14} />
+                {t('ranking_send_feedback', 'Enviar Feedback')}
+            </button>
+        );
+    };
+
     return (
         <>
-            <div className="flex justify-between items-center mb-6 bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-xl border border-blue-100">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="12" y1="20" x2="12" y2="10"></line>
-                            <line x1="18" y1="20" x2="18" y2="4"></line>
-                            <line x1="6" y1="20" x2="6" y2="16"></line>
-                        </svg>
+            <div className="flex flex-col gap-4 mb-6">
+                {/* Header Controls */}
+                <div className="flex justify-between items-center bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-xl border border-blue-100">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="12" y1="20" x2="12" y2="10"></line>
+                                <line x1="18" y1="20" x2="18" y2="4"></line>
+                                <line x1="6" y1="20" x2="6" y2="16"></line>
+                            </svg>
+                        </div>
+                        <div>
+                            <label htmlFor="ordenarPor" className="text-sm font-semibold text-gray-700 block">{t('ranking_sort_label')}</label>
+                            <p className="text-xs text-gray-500">{t('ranking_sort_placeholder')}</p>
+                        </div>
                     </div>
-                    <div>
-                        <label htmlFor="ordenarPor" className="text-sm font-semibold text-gray-700 block">{t('ranking_sort_label')}</label>
-                        <p className="text-xs text-gray-500">{t('ranking_sort_placeholder')}</p>
-                    </div>
+                    <select
+                        id="ordenarPor"
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value as SortOption)}
+                        className="px-4 py-2.5 border-2 border-blue-200 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm hover:border-blue-300 transition-colors cursor-pointer"
+                    >
+                        <option value="score">{t('ranking_sort_score')}</option>
+                        <option value="score_D">{t('ranking_sort_d')}</option>
+                        <option value="score_I">{t('ranking_sort_i')}</option>
+                        <option value="score_S">{t('ranking_sort_s')}</option>
+                        <option value="score_C">{t('ranking_sort_c')}</option>
+                    </select>
                 </div>
-                <select
-                    id="ordenarPor"
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as SortOption)}
-                    className="px-4 py-2.5 border-2 border-blue-200 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm hover:border-blue-300 transition-colors cursor-pointer"
-                >
-                    <option value="score">{t('ranking_sort_score')}</option>
-                    <option value="score_D">{t('ranking_sort_d')}</option>
-                    <option value="score_I">{t('ranking_sort_i')}</option>
-                    <option value="score_S">{t('ranking_sort_s')}</option>
-                    <option value="score_C">{t('ranking_sort_c')}</option>
-                </select>
+
+                {/* Filter Tabs */}
+                <div className="flex p-1 bg-gray-100 rounded-xl w-fit">
+                    <button
+                        onClick={() => setFilter('all')}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${filter === 'all'
+                            ? 'bg-white text-blue-600 shadow-sm'
+                            : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                    >
+                        {t('ranking_filter_all', 'Todos os Candidatos')}
+                    </button>
+                    <button
+                        onClick={() => setFilter('approved')}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${filter === 'approved'
+                            ? 'bg-white text-green-600 shadow-sm'
+                            : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                    >
+                        {t('ranking_filter_approved', 'Aprovados')}
+                    </button>
+                    <button
+                        onClick={() => setFilter('rejected')}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${filter === 'rejected'
+                            ? 'bg-white text-red-600 shadow-sm'
+                            : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                    >
+                        {t('ranking_filter_rejected', 'Reprovados')}
+                    </button>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 gap-4">
@@ -174,11 +274,13 @@ export function RankingList({ candidates, vacancyId }: RankingListProps) {
                                                 <User size={32} className="text-blue-400" />
                                             )}
                                         </div>
-                                        <div>
-                                            <h3 className="font-bold text-lg text-slate-900">{candidate.nome} {candidate.sobrenome}</h3>
-                                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500 mt-1">
-                                                {candidate.cidade && <span>{candidate.cidade}, {candidate.estado}</span>}
-                                                {candidate.usuario?.email && <span className="flex items-center gap-1"><Mail size={12} /> {candidate.usuario.email}</span>}
+                                        <div className="flex flex-col gap-1">
+                                            <div>
+                                                <h3 className="font-bold text-lg text-slate-900">{candidate.nome} {candidate.sobrenome}</h3>
+                                                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500 mt-0.5">
+                                                    {candidate.cidade && <span>{candidate.cidade}, {candidate.estado}</span>}
+                                                    {candidate.usuario?.email && <span className="flex items-center gap-1"><Mail size={12} /> {candidate.usuario.email}</span>}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -226,132 +328,191 @@ export function RankingList({ candidates, vacancyId }: RankingListProps) {
                                                 </span>
                                             </div>
                                         </div>
-
-                                        {/* Action Buttons */}
-                                        <div className="flex gap-2 mt-2">
-                                            {candidate.uuid && (
-                                                <a
-                                                    href={`/viewer/candidate/${candidate.uuid}`}
-                                                    rel="noopener"
-                                                    className="flex items-center gap-1 px-3 py-1.5 bg-gray-50 text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-100 transition-colors cursor-pointer border border-gray-200"
-                                                >
-                                                    <ExternalLink size={14} />
-                                                    {t('vacancy_view_public_profile')}
-                                                </a>
-                                            )}
-                                            <button
-                                                onClick={() => handleShowAnswers(candidate.id)}
-                                                className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium hover:bg-blue-100 transition-colors cursor-pointer"
-                                            >
-                                                <FileText size={14} />
-                                                {t('ranking_view_answers')}
-                                            </button>
-                                            <button
-                                                onClick={() => handleShowAnalysis(candidate.id)}
-                                                className="flex items-center gap-1 px-3 py-1.5 bg-purple-50 text-purple-600 rounded-lg text-xs font-medium hover:bg-purple-100 transition-colors cursor-pointer"
-                                            >
-                                                <Brain size={14} />
-                                                {t('ranking_ai_analysis')}
-                                            </button>
-                                            
-                                            {(() => {
-                                                const hasVideoRequest = breakdown?.video?.status === 'requested' || breakdown?.video?.status === 'submitted';
-                                                
-                                                return (
-                                                    <button
-                                                        onClick={() => handleRequestVideoClick(candidate.id)}
-                                                        disabled={hasVideoRequest || isPending}
-                                                        className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer
-                                                            ${hasVideoRequest 
-                                                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                                                                : 'bg-green-50 text-green-600 hover:bg-green-100'}`}
-                                                    >
-                                                        <Video size={14} />
-                                                        {hasVideoRequest ? t('ranking_video_requested') : t('ranking_request_video')}
-                                                    </button>
-                                                );
-                                            })()}
-                                        </div>
                                     </div>
+                                </div>
+
+                                <hr className="border-gray-100 my-4" />
+
+                                {/* Action Buttons */}
+                                <div className="flex gap-2 flex-wrap">
+                                    {candidate.uuid && (
+                                        <a
+                                            href={`/viewer/candidate/${candidate.uuid}`}
+                                            rel="noopener"
+                                            className="flex items-center gap-1 px-3 py-1.5 bg-gray-50 text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-100 transition-colors cursor-pointer border border-gray-200"
+                                        >
+                                            <ExternalLink size={14} />
+                                            {t('vacancy_view_public_profile')}
+                                        </a>
+                                    )}
+                                    <button
+                                        onClick={() => handleShowAnswers(candidate.id)}
+                                        className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium hover:bg-blue-100 transition-colors cursor-pointer"
+                                    >
+                                        <FileText size={14} />
+                                        {t('ranking_view_answers')}
+                                    </button>
+                                    <button
+                                        onClick={() => handleShowAnalysis(candidate.id)}
+                                        className="flex items-center gap-1 px-3 py-1.5 bg-purple-50 text-purple-600 rounded-lg text-xs font-medium hover:bg-purple-100 transition-colors cursor-pointer"
+                                    >
+                                        <Brain size={14} />
+                                        {t('ranking_ai_analysis')}
+                                    </button>
+
+                                    {(() => {
+                                        const status = breakdown?.video?.status;
+                                        const hasVideoRequest = status === 'requested' || status === 'submitted';
+
+                                        if (status === 'submitted') {
+                                            return (
+                                                <button
+                                                    onClick={() => handleShowVideo(candidate.id, breakdown.video.url)}
+                                                    className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs font-medium hover:bg-green-700 transition-colors cursor-pointer shadow-sm shadow-green-200"
+                                                >
+                                                    <Video size={14} />
+                                                    {t('ranking_watch_video', 'Ver Vídeo')}
+                                                </button>
+                                            );
+                                        }
+
+                                        return (
+                                            <button
+                                                onClick={() => handleRequestVideoClick(candidate.id)}
+                                                disabled={hasVideoRequest || isPending}
+                                                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer
+                                                    ${hasVideoRequest
+                                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                                        : 'bg-green-50 text-green-600 hover:bg-green-100'}`}
+                                            >
+                                                <Video size={14} />
+                                                {hasVideoRequest ? t('ranking_video_requested') : t('ranking_request_video')}
+                                            </button>
+                                        );
+                                    })()}
+
+                                    {renderFeedbackButton(candidate, breakdown)}
                                 </div>
                             </div>
                         );
                     })
                 )}
-            </div>
+            </div >
+
+            {/* Feedback Modal */}
+            {
+                feedbackCandidate && (
+                    <FeedbackModal
+                        isOpen={showFeedback}
+                        onClose={() => {
+                            setShowFeedback(false);
+                            setFeedbackCandidate(null);
+                        }}
+                        candidateName={(() => {
+                            const candidate = sortedCandidates.find(c => c.id === feedbackCandidate);
+                            return `${candidate?.nome || ''} ${candidate?.sobrenome || ''}`.trim();
+                        })()}
+                        candidateId={feedbackCandidate}
+                        vacancyId={vacancyId}
+                        onSubmit={handleFeedbackSubmit}
+                        aiSuggestions={(() => {
+                            const candidate = sortedCandidates.find(c => c.id === feedbackCandidate);
+                            const breakdown = parseBreakdown(candidate?.application?.breakdown);
+                            return breakdown.suggestions;
+                        })()}
+                    />
+                )
+            }
 
             {/* Modals */}
-            {selectedCandidate && (
-                <>
-                    <AnswersModal
-                        isOpen={showAnswers}
-                        onClose={() => {
-                            setShowAnswers(false);
-                            setSelectedCandidate(null);
-                        }}
-                        candidateName={(() => {
-                            const candidate = sortedCandidates.find(c => c.id === selectedCandidate);
-                            return `${candidate?.nome || ''} ${candidate?.sobrenome || ''}`.trim();
-                        })()}
-                        answers={sortedCandidates.find(c => c.id === selectedCandidate)?.application?.resposta}
-                    />
-                    <AnalysisModal
-                        isOpen={showAnalysis}
-                        onClose={() => {
-                            setShowAnalysis(false);
-                            setSelectedCandidate(null);
-                        }}
-                        candidateName={(() => {
-                            const candidate = sortedCandidates.find(c => c.id === selectedCandidate);
-                            return `${candidate?.nome || ''} ${candidate?.sobrenome || ''}`.trim();
-                        })()}
-                        breakdown={sortedCandidates.find(c => c.id === selectedCandidate)?.application?.breakdown}
-                        score={sortedCandidates.find(c => c.id === selectedCandidate)?.application?.score || 0}
-                    />
-                </>
-            )}
+            {
+                selectedCandidate && (
+                    <>
+                        <AnswersModal
+                            isOpen={showAnswers}
+                            onClose={() => {
+                                setShowAnswers(false);
+                                setSelectedCandidate(null);
+                            }}
+                            candidateName={(() => {
+                                const candidate = sortedCandidates.find(c => c.id === selectedCandidate);
+                                return `${candidate?.nome || ''} ${candidate?.sobrenome || ''}`.trim();
+                            })()}
+                            answers={sortedCandidates.find(c => c.id === selectedCandidate)?.application?.resposta}
+                        />
+                        <AnalysisModal
+                            isOpen={showAnalysis}
+                            onClose={() => {
+                                setShowAnalysis(false);
+                                setSelectedCandidate(null);
+                            }}
+                            candidateName={(() => {
+                                const candidate = sortedCandidates.find(c => c.id === selectedCandidate);
+                                return `${candidate?.nome || ''} ${candidate?.sobrenome || ''}`.trim();
+                            })()}
+                            breakdown={sortedCandidates.find(c => c.id === selectedCandidate)?.application?.breakdown}
+                            score={sortedCandidates.find(c => c.id === selectedCandidate)?.application?.score || 0}
+                        />
+                        <VideoModal
+                            isOpen={showVideo}
+                            onClose={() => {
+                                setShowVideo(false);
+                                setSelectedCandidate(null);
+                                setSelectedVideoUrl(null);
+                            }}
+                            candidateName={(() => {
+                                const candidate = sortedCandidates.find(c => c.id === selectedCandidate);
+                                return `${candidate?.nome || ''} ${candidate?.sobrenome || ''}`.trim();
+                            })()}
+                            videoUrl={selectedVideoUrl}
+                        />
+                    </>
+                )
+            }
 
             {/* Video Request Confirmation Modal */}
-            {videoRequestCandidate && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl animate-in fade-in zoom-in-95 duration-200">
-                        <div className="w-12 h-12 bg-green-50 text-green-600 rounded-full flex items-center justify-center mb-4 mx-auto border border-green-200">
-                            <Video size={24} />
-                        </div>
-                        
-                        <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
-                            {t('modal_video_request_title')}
-                        </h3>
-                        
-                        <p className="text-gray-600 text-center mb-6 leading-relaxed">
-                            {t('modal_video_request_desc')}
-                        </p>
+            {
+                videoRequestCandidate && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                        <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl animate-in fade-in zoom-in-95 duration-200">
+                            <div className="w-12 h-12 bg-green-50 text-green-600 rounded-full flex items-center justify-center mb-4 mx-auto border border-green-200">
+                                <Video size={24} />
+                            </div>
 
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => setVideoRequestCandidate(null)}
-                                className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors cursor-pointer"
-                            >
-                                {t('modal_video_request_cancel')}
-                            </button>
-                            <button
-                                onClick={confirmRequestVideo}
-                                disabled={isPending}
-                                className="flex-1 px-3 py-1.5 bg-green-50 text-green-600 font-medium rounded-lg hover:bg-green-100 transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 border border-green-200"
-                            >
-                                {isPending ? (
-                                    <>
-                                        <div className="w-4 h-4 border-2 border-green-600/30 border-t-green-600 rounded-full animate-spin" />
-                                        {t('modal_video_request_sending')}
-                                    </>
-                                ) : (
-                                    t('modal_video_request_confirm_btn')
-                                )}
-                            </button>
+                            <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
+                                {t('modal_video_request_title')}
+                            </h3>
+
+                            <p className="text-gray-600 text-center mb-6 leading-relaxed">
+                                {t('modal_video_request_desc')}
+                            </p>
+
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setVideoRequestCandidate(null)}
+                                    className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors cursor-pointer"
+                                >
+                                    {t('modal_video_request_cancel')}
+                                </button>
+                                <button
+                                    onClick={confirmRequestVideo}
+                                    disabled={isPending}
+                                    className="flex-1 px-3 py-1.5 bg-green-50 text-green-600 font-medium rounded-lg hover:bg-green-100 transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 border border-green-200"
+                                >
+                                    {isPending ? (
+                                        <>
+                                            <div className="w-4 h-4 border-2 border-green-600/30 border-t-green-600 rounded-full animate-spin" />
+                                            {t('modal_video_request_sending')}
+                                        </>
+                                    ) : (
+                                        t('modal_video_request_confirm_btn')
+                                    )}
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
         </>
     );
 }

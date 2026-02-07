@@ -234,3 +234,49 @@ export async function sendVideoRequestEmail(email: string, candidateName: string
         return false;
     }
 }
+
+export async function sendFeedbackEmail(email: string, candidateName: string, vacancyTitle: string, status: 'APPROVED' | 'REJECTED', justification?: string) {
+    const isApproved = status === 'APPROVED';
+    const statusText = isApproved ? 'Aprovado' : 'Reprovado';
+    const color = isApproved ? '#10B981' : '#EF4444';
+
+    const mailOptions = {
+        from: process.env.EMAIL_FROM,
+        to: email,
+        subject: `Feedback da Vaga: ${vacancyTitle} - Connect Skills`,
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+                <h2 style="color: #4F46E5; text-align: center;">Feedback do Processo Seletivo</h2>
+                <p style="text-align: center; color: #555;">Olá <strong>${candidateName}</strong>,</p>
+                <p style="text-align: center; color: #555;">
+                    A empresa enviou um feedback sobre sua candidatura para a vaga de <strong>${vacancyTitle}</strong>.
+                </p>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                    <span style="background-color: ${color}20; color: ${color}; padding: 12px 24px; border-radius: 8px; font-size: 18px; font-weight: bold; border: 1px solid ${color};">
+                        ${statusText}
+                    </span>
+                </div>
+
+                ${justification ? `
+                    <div style="background-color: #f9fafb; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 20px;">
+                        <p style="font-weight: bold; color: #374151; margin-bottom: 5px;">Mensagem da Empresa:</p>
+                        <p style="color: #4b5563; font-style: italic;">"${justification}"</p>
+                    </div>
+                ` : ''}
+
+                <p style="text-align: center; font-size: 14px; color: #666; margin-top: 30px;">
+                    Obrigado por utilizar o Connect Skills!
+                </p>
+            </div>
+        `,
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        return true;
+    } catch (error) {
+        console.error("Erro ao enviar email de feedback:", error);
+        return false;
+    }
+}

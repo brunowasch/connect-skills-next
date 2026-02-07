@@ -160,7 +160,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                 if (videoSection) {
                     setTimeout(() => {
                         videoSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 500); 
+                    }, 500);
                 }
             } else if (document.referrer) {
                 try {
@@ -448,20 +448,20 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
         // Validate duration
         const video = document.createElement('video');
         video.preload = 'metadata';
-        
-        video.onloadedmetadata = function() {
+
+        video.onloadedmetadata = function () {
             window.URL.revokeObjectURL(video.src);
-            if (video.duration > 180) { 
+            if (video.duration > 180) {
                 toast.error("O vídeo deve ter no máximo 3 minutos");
                 return;
             }
-            
+
             const formData = new FormData();
             formData.append("video", file);
 
             startTransition(async () => {
                 const result = await uploadVideoAction(vacancy.id, userId!, formData);
-                
+
                 if (result.success) {
                     toast.success("Vídeo enviado com sucesso!");
                     router.refresh();
@@ -470,9 +470,9 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                 }
             });
         };
-        
-        video.onerror = function() {
-             toast.error("Formato de vídeo inválido ou erro ao carregar");
+
+        video.onerror = function () {
+            toast.error("Formato de vídeo inválido ou erro ao carregar");
         };
 
         video.src = URL.createObjectURL(file);
@@ -499,7 +499,6 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                 {t("vacancy_back")}
                             </button>
                         )}
-                        <LanguageSwitcher />
                     </div>
 
                     <div className="flex items-start gap-4 mb-6">
@@ -544,6 +543,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                             <Copy size={18} className="text-gray-600 group-hover:text-gray-900" />
                                         )}
                                     </button>
+                                    <LanguageSwitcher />
                                     {isActive && (
                                         <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200">
                                             Vaga Ativa
@@ -585,10 +585,67 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
 
             {/* Conteúdo principal */}
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {hasApplied && applicationBreakdown?.video?.status === 'requested' && (
+                    <div id="video-upload-section" className="mt-6 bg-purple-50 border border-purple-200 p-6 rounded-lg animate-in fade-in slide-in-from-top-2">
+                        <div className="flex items-start gap-4 mb-4">
+                            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 flex-shrink-0">
+                                <Video size={24} />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-gray-900">Vídeo de Apresentação Solicitado</h3>
+                                <p className="text-sm text-gray-600 mt-1">A empresa solicitou um vídeo de apresentação de até 3 minutos.</p>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col gap-3">
+                            <label className="block w-full">
+                                <span className="sr-only">Escolher vídeo</span>
+                                <div className={`
+                                                w-full flex items-center justify-center px-4 py-8 border-2 border-dashed rounded-lg cursor-pointer hover:bg-white transition-colors
+                                                ${isPending ? 'border-gray-300 bg-gray-100 cursor-not-allowed' : 'border-purple-300 bg-purple-50/50 hover:border-purple-400'}
+                                            `}>
+                                    <input
+                                        type="file"
+                                        accept="video/*"
+                                        className="hidden"
+                                        onChange={handleVideoUpload}
+                                        disabled={isPending}
+                                    />
+                                    <div className="text-center">
+                                        {isPending ? (
+                                            <div className="flex flex-col items-center gap-2">
+                                                <Loader2 size={24} className="animate-spin text-purple-600" />
+                                                <span className="text-sm text-gray-500">Enviando vídeo... (isso pode levar alguns segundos)</span>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className="mx-auto w-10 h-10 mb-2 text-purple-400">
+                                                    <FileText size={40} />
+                                                </div>
+                                                <p className="font-medium text-purple-700">Clique para enviar seu vídeo</p>
+                                                <p className="text-xs text-gray-500 mt-1">MP4, WebM (Max 3 min, 100MB)</p>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                )}
+
+                {hasApplied && applicationBreakdown?.video?.status === 'submitted' && (
+                    <div className="mt-6 bg-green-50 border border-green-200 p-4 rounded-lg flex items-center gap-3">
+                        <CheckCircle2 size={24} className="text-green-600" />
+                        <div>
+                            <p className="font-semibold text-green-800">Vídeo Enviado</p>
+                            <p className="text-sm text-green-700">Seu vídeo foi recebido com sucesso.</p>
+                        </div>
+                    </div>
+                )}
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
                     {/* Coluna principal */}
                     <div className="lg:col-span-2 space-y-6">
-
 
                         {/* Descrição da vaga */}
                         <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -804,123 +861,9 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
 
                             )}
 
-                            {hasApplied && applicationBreakdown?.video?.status === 'requested' && (
-                                <div id="video-upload-section" className="mt-6 bg-purple-50 border border-purple-200 p-6 rounded-lg animate-in fade-in slide-in-from-top-2">
-                                    <div className="flex items-start gap-4 mb-4">
-                                        <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 flex-shrink-0">
-                                            <Video size={24} />
-                                        </div>
-                                        <div>
-                                            <h3 className="font-bold text-gray-900">Vídeo de Apresentação Solicitado</h3>
-                                            <p className="text-sm text-gray-600 mt-1">A empresa solicitou um vídeo de apresentação de até 3 minutos.</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex flex-col gap-3">
-                                        <label className="block w-full">
-                                            <span className="sr-only">Escolher vídeo</span>
-                                            <div className={`
-                                                w-full flex items-center justify-center px-4 py-8 border-2 border-dashed rounded-lg cursor-pointer hover:bg-white transition-colors
-                                                ${isPending ? 'border-gray-300 bg-gray-100 cursor-not-allowed' : 'border-purple-300 bg-purple-50/50 hover:border-purple-400'}
-                                            `}>
-                                                <input 
-                                                    type="file" 
-                                                    accept="video/*" 
-                                                    className="hidden" 
-                                                    onChange={handleVideoUpload}
-                                                    disabled={isPending}
-                                                />
-                                                <div className="text-center">
-                                                    {isPending ? (
-                                                        <div className="flex flex-col items-center gap-2">
-                                                            <Loader2 size={24} className="animate-spin text-purple-600" />
-                                                            <span className="text-sm text-gray-500">Enviando vídeo... (isso pode levar alguns segundos)</span>
-                                                        </div>
-                                                    ) : (
-                                                        <>
-                                                            <div className="mx-auto w-10 h-10 mb-2 text-purple-400">
-                                                                <FileText size={40} />
-                                                            </div>
-                                                            <p className="font-medium text-purple-700">Clique para enviar seu vídeo</p>
-                                                            <p className="text-xs text-gray-500 mt-1">MP4, WebM (Max 3 min, 100MB)</p>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </label>
-                                    </div>
-                                </div>
-                            )}
-
-                            {hasApplied && applicationBreakdown?.video?.status === 'submitted' && (
-                                <div className="mt-6 bg-green-50 border border-green-200 p-4 rounded-lg flex items-center gap-3">
-                                    <CheckCircle2 size={24} className="text-green-600" />
-                                    <div>
-                                        <p className="font-semibold text-green-800">Vídeo Enviado</p>
-                                        <p className="text-sm text-green-700">Seu vídeo foi recebido com sucesso.</p>
-                                    </div>
-                                </div>
-                            )}
                         </div>
                     </div>
                 </div>
-
-                {isOwner && (
-                    <div className="mt-10 pt-8 border-t border-gray-100">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4">{t("management_title")}</h2>
-                        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-                            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                                <div>
-                                    <button
-                                        onClick={handleRankCandidates}
-                                        disabled={isPending}
-                                        className="inline-flex items-center gap-2 px-4 py-2.5 border border-blue-600 text-blue-600 font-medium rounded-lg hover:bg-blue-50 transition-colors cursor-pointer disabled:opacity-50 text-sm"
-                                    >
-                                        <BarChart3 size={18} />
-                                        {t("management_ranking")}
-                                    </button>
-                                </div>
-
-                                <div className="flex flex-wrap items-center gap-3">
-                                    <button
-                                        onClick={handleEditVacancy}
-                                        disabled={isPending}
-                                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors cursor-pointer disabled:opacity-50 text-sm"
-                                    >
-                                        <Edit size={18} />
-                                        {t("management_edit")}
-                                    </button>
-
-                                    {!isActive ? (
-                                        <button
-                                            onClick={() => handleUpdateStatus('Ativa')}
-                                            className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-600 font-medium rounded-lg hover:bg-gray-50 transition-colors cursor-pointer text-sm"
-                                        >
-                                            <Unlock size={18} />
-                                            {t("management_open")}
-                                        </button>
-                                    ) : (
-                                        <button
-                                            onClick={() => handleUpdateStatus('Fechada')}
-                                            className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-600 font-medium rounded-lg hover:bg-gray-50 transition-colors cursor-pointer text-sm"
-                                        >
-                                            <Ban size={18} />
-                                            {t("management_close")}
-                                        </button>
-                                    )}
-
-                                    <button
-                                        onClick={handleDeleteVacancy}
-                                        className="inline-flex items-center gap-2 px-4 py-2.5 border border-red-500 text-red-500 font-medium rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-sm"
-                                    >
-                                        <Trash2 size={18} />
-                                        {t("management_delete")}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
 
                 {modal.isOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
@@ -997,6 +940,62 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                     {isCheckingApplication && <Loader2 size={18} className="animate-spin" />}
                                     {t('vacancy_apply_action')}
                                 </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                {isOwner && (
+                    <div className="mt-10 pt-8 border-t border-gray-100">
+                        <h2 className="text-lg font-semibold text-gray-900 mb-4">{t("management_title")}</h2>
+                        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+                            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                                <div>
+                                    <button
+                                        onClick={handleRankCandidates}
+                                        disabled={isPending}
+                                        className="inline-flex items-center gap-2 px-4 py-2.5 border border-blue-600 text-blue-600 font-medium rounded-lg hover:bg-blue-50 transition-colors cursor-pointer disabled:opacity-50 text-sm"
+                                    >
+                                        <BarChart3 size={18} />
+                                        {t("management_ranking")}
+                                    </button>
+                                </div>
+
+                                <div className="flex flex-wrap items-center gap-3">
+                                    <button
+                                        onClick={handleEditVacancy}
+                                        disabled={isPending}
+                                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors cursor-pointer disabled:opacity-50 text-sm"
+                                    >
+                                        <Edit size={18} />
+                                        {t("management_edit")}
+                                    </button>
+
+                                    {!isActive ? (
+                                        <button
+                                            onClick={() => handleUpdateStatus('Ativa')}
+                                            className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-600 font-medium rounded-lg hover:bg-gray-50 transition-colors cursor-pointer text-sm"
+                                        >
+                                            <Unlock size={18} />
+                                            {t("management_open")}
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={() => handleUpdateStatus('Fechada')}
+                                            className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-600 font-medium rounded-lg hover:bg-gray-50 transition-colors cursor-pointer text-sm"
+                                        >
+                                            <Ban size={18} />
+                                            {t("management_close")}
+                                        </button>
+                                    )}
+
+                                    <button
+                                        onClick={handleDeleteVacancy}
+                                        className="inline-flex items-center gap-2 px-4 py-2.5 border border-red-500 text-red-500 font-medium rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-sm"
+                                    >
+                                        <Trash2 size={18} />
+                                        {t("management_delete")}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

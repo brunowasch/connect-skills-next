@@ -10,9 +10,16 @@ import {
     BrainCircuit,
     MessageSquareText,
     TrendingUp,
-    Lightbulb
+    Lightbulb,
+    Video,
+    Loader2,
+    Play
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useRouter } from "next/navigation";
+import { useTransition } from "react";
+import { toast } from "sonner";
+import { requestVideo } from "../../../actions";
 
 interface ApplicationDetailsProps {
     application: any;
@@ -20,7 +27,23 @@ interface ApplicationDetailsProps {
 
 export function ApplicationDetails({ application }: ApplicationDetailsProps) {
     const { t } = useTranslation();
+    const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
+    const [isPending, startTransition] = useTransition();
+
+    const handleRequestVideo = () => {
+        if (!application?.candidato_id || !application?.vaga_id) return;
+
+        startTransition(async () => {
+            const result = await requestVideo(application.candidato_id, application.vaga_id);
+            if (result.success) {
+                toast.success("Solicitação de vídeo enviada com sucesso!");
+                router.refresh();
+            } else {
+                toast.error(result.error || "Erro ao solicitar vídeo");
+            }
+        });
+    };
 
     if (!application || !application.resposta) return null;
 
@@ -58,6 +81,80 @@ export function ApplicationDetails({ application }: ApplicationDetailsProps) {
 
             {isOpen && (
                 <div className="mt-6 space-y-8 animate-in fade-in slide-in-from-top-2 duration-300">
+                    {/* Seção de Vídeo */}
+                    <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-4 opacity-5">
+                            <Video size={100} />
+                        </div>
+
+                        <div className="relative z-10">
+                            <div className="flex items-center gap-2 mb-4">
+                                <div className="p-2 bg-purple-100 rounded-lg text-purple-600">
+                                    <Video size={20} />
+                                </div>
+                                <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Vídeo de Apresentação</h4>
+                            </div>
+
+                            {!breakdownData.video?.status && (
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                    <div>
+                                        <p className="text-sm text-gray-600 font-medium">Solicitar vídeo de apresentação</p>
+                                        <p className="text-xs text-gray-500 mt-1">O candidato receberá um email solicitando o envio de um vídeo de até 3 minutos.</p>
+                                    </div>
+                                    <button
+                                        onClick={handleRequestVideo}
+                                        disabled={isPending}
+                                        className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center gap-2 shrink-0"
+                                    >
+                                        {isPending ? (
+                                            <>
+                                                <Loader2 size={16} className="animate-spin" />
+                                                Enviando...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Video size={16} />
+                                                Solicitar Vídeo
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            )}
+
+                            {breakdownData.video?.status === 'requested' && (
+                                <div className="flex items-center gap-3 bg-amber-50 p-4 rounded-xl border border-amber-100 text-amber-800">
+                                    <Clock size={20} className="shrink-0" />
+                                    <div>
+                                        <p className="text-sm font-bold">Aguardando envio</p>
+                                        <p className="text-xs opacity-90">Solicitação enviada em {new Date(breakdownData.video.requestedAt).toLocaleDateString()} às {new Date(breakdownData.video.requestedAt).toLocaleTimeString()}</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {breakdownData.video?.status === 'submitted' && (
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-2 text-green-700 mb-2">
+                                        <CheckCircle2 size={16} />
+                                        <span className="text-xs font-bold uppercase tracking-wider">Vídeo Recebido</span>
+                                    </div>
+                                    <div className="relative rounded-xl overflow-hidden bg-black aspect-video max-w-2xl border border-gray-200 shadow-sm">
+                                        <video
+                                            src={breakdownData.video.url}
+                                            controls
+                                            className="w-full h-full"
+                                            poster={breakdownData.video.thumbnail}
+                                        >
+                                            Seu navegador não suporta a tag de vídeo.
+                                        </video>
+                                    </div>
+                                    <p className="text-xs text-gray-500">
+                                        Enviado em {new Date(breakdownData.video.submittedAt).toLocaleDateString()}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
                     {/* Resumo da IA */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* Scores DISC */}

@@ -99,3 +99,68 @@ export async function requestVideo(candidateId: string, vacancyId: string) {
         return { success: false, error: "Falha ao solicitar vídeo" };
     }
 }
+
+export async function submitFeedback(candidateId: string, vacancyId: string, status: 'APPROVED' | 'REJECTED', justification: string) {
+    try {
+        const application = await prisma.vaga_avaliacao.findUnique({
+            where: {
+                vaga_id_candidato_id: {
+                    vaga_id: vacancyId,
+                    candidato_id: candidateId
+                }
+            }
+        });
+
+        if (!application) throw new Error("Candidatura não encontrada");
+
+        let breakdown: any = {};
+        try {
+            if (application.breakdown) {
+                breakdown = JSON.parse(application.breakdown);
+            }
+        } catch (e) { }
+
+        const newBreakdown = {
+            ...breakdown,
+            feedback: {
+                status,
+                justification,
+                sentAt: new Date().toISOString()
+            }
+        };
+
+        await prisma.vaga_avaliacao.update({
+            where: { id: application.id },
+            data: {
+                breakdown: JSON.stringify(newBreakdown)
+            }
+        });
+
+        // Send email
+        try {
+            const candidate = await prisma.candidato.findUnique({
+                where: { id: candidateId },
+                include: { usuario: true }
+            });
+            const vacancy = await prisma.vaga.findUnique({ where: { id: vacancyId } });
+
+            if (candidate?.usuario?.email && vacancy) {
+                const { sendFeedbackEmail } = await import("@/src/lib/mail");
+                await sendFeedbackEmail(
+                    candidate.usuario.email,
+                    candidate.nome || "Candidato",
+                    vacancy.cargo,
+                    status,
+                    justification
+                );
+            }
+        } catch (mailError) {
+            console.error("Erro ao enviar email de feedback:", mailError);
+        }
+
+        return { success: true };
+    } catch (error) {
+        console.error("Erro ao enviar feedback:", error);
+        return { success: false, error: "Erro ao enviar feedback" };
+    }
+}
