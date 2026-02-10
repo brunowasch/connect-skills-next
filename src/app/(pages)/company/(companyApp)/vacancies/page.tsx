@@ -35,13 +35,50 @@ export default async function VacanciesPage() {
 
     const vacancyIds = vacancies.map(v => v.id);
 
-    const applicationCounts = await prisma.vaga_avaliacao.groupBy({
-        by: ['vaga_id'],
-        _count: {
-            vaga_id: true
-        },
+    const evaluations = await prisma.vaga_avaliacao.findMany({
         where: {
             vaga_id: { in: vacancyIds }
+        },
+        select: {
+            vaga_id: true,
+            breakdown: true
+        }
+    });
+
+    const statsMap = new Map<string, { total: number, pendingVideo: number, noVideo: number, feedbackGiven: number }>();
+
+    // Initialize map
+    vacancyIds.forEach(id => {
+        statsMap.set(id, { total: 0, pendingVideo: 0, noVideo: 0, feedbackGiven: 0 });
+    });
+
+    // Calculate stats
+    evaluations.forEach(ev => {
+        const stats = statsMap.get(ev.vaga_id);
+        if (stats) {
+            stats.total++;
+
+            let breakdown: any = {};
+            try {
+                if (ev.breakdown && typeof ev.breakdown === 'string') {
+                    breakdown = JSON.parse(ev.breakdown);
+                } else if (ev.breakdown && typeof ev.breakdown === 'object') {
+                    breakdown = ev.breakdown;
+                }
+            } catch (e) {
+                // If JSON parse fails, treat as no video
+            }
+
+            const videoStatus = breakdown?.video?.status;
+            const feedbackStatus = breakdown?.feedback?.status;
+
+            if (feedbackStatus) {
+                stats.feedbackGiven++;
+            } else if (videoStatus === 'submitted') {
+                stats.pendingVideo++;
+            } else {
+                stats.noVideo++; // Not submitted or no breakdown
+            }
         }
     });
 
@@ -51,7 +88,7 @@ export default async function VacanciesPage() {
     });
 
     const vacanciesWithCounts = vacancies.map(vacancy => {
-        const count = applicationCounts.find(c => c.vaga_id === vacancy.id)?._count.vaga_id || 0;
+        const stats = statsMap.get(vacancy.id) || { total: 0, pendingVideo: 0, noVideo: 0, feedbackGiven: 0 };
         const statusRecord = statuses.find(s => s.vaga_id === vacancy.id);
         const rawStatus = statusRecord ? statusRecord.situacao.toUpperCase() : 'ATIVA';
         const status = ['INATIVA', 'FECHADA', 'ENCERRADA'].includes(rawStatus) ? 'inactive' : 'active';
@@ -61,8 +98,9 @@ export default async function VacanciesPage() {
             uuid: vacancy.uuid || vacancy.id,
             status,
             _count: {
-                vaga_avaliacao: count
-            }
+                vaga_avaliacao: stats.total
+            },
+            stats
         };
     });
 

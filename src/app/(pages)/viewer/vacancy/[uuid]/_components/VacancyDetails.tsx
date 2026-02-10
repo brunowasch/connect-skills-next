@@ -26,15 +26,23 @@ import {
     BarChart3,
     X,
     AlertCircle,
+    RotateCcw,
     Trash2,
     Ban,
     ChevronUp,
     Loader2,
     Video,
+    Mic,
+    Upload,
+    VolumeX,
+    Sparkles,
+    Info,
+    AlertTriangle,
 } from "lucide-react";
+import { VideoRecorder } from "./VideoRecorder";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useState, useEffect, useRef, useCallback, ReactNode, useTransition } from "react";
 import { LanguageSwitcher } from "@/src/app/_components/Layout/LanguageSwitcher";
 
 import { uploadVideoAction } from "../actions";
@@ -48,6 +56,8 @@ interface ModalConfig {
     confirmText: string;
     variant: 'danger' | 'warning' | 'success' | 'info';
     size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+    cancelText?: ReactNode;
+    hideCancel?: boolean;
 }
 
 interface VacancyDetailsProps {
@@ -138,6 +148,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
 
     const [isStickyVisible, setIsStickyVisible] = useState(true);
     const [hasScroll, setHasScroll] = useState(false);
+    const [isRecordingMode, setIsRecordingMode] = useState(false);
     const isApplyingRef = useRef(false);
 
     useEffect(() => {
@@ -197,6 +208,51 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
             }
         }
     }, []);
+
+    const hasShownWelcomeModalRef = useRef(false);
+
+    useEffect(() => {
+        if (hasApplied && applicationBreakdown?.video?.status === 'requested' && !hasShownWelcomeModalRef.current) {
+            hasShownWelcomeModalRef.current = true;
+            setModal({
+                isOpen: true,
+                title: t('video_instructions_title', 'Instruções Importantes'),
+                description: (
+                    <div className="space-y-4">
+                        <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-800">
+                                <div className="flex items-start gap-3 bg-white/60 p-3 rounded-lg border border-blue-100/50">
+                                    <VolumeX size={18} className="mt-0.5 shrink-0 text-blue-500" />
+                                    <span>{t('video_instruction_quiet', 'Grave em local silencioso e fechado. Ruídos podem impedir a análise.')}</span>
+                                </div>
+                                <div className="flex items-start gap-3 bg-white/60 p-3 rounded-lg border border-blue-100/50">
+                                    <AlertTriangle size={18} className="mt-0.5 shrink-0 text-amber-500" />
+                                    <span>{t('video_instruction_noise_warning', 'Vídeos com muito ruído não são compreendidos pelo sistema e podem resultar na perda da vaga.')}</span>
+                                </div>
+                                <div className="flex items-start gap-3 bg-white/60 p-3 rounded-lg border border-blue-100/50">
+                                    <Clock size={18} className="mt-0.5 shrink-0 text-blue-500" />
+                                    <span>{t('video_instruction_duration', 'Você tem até 3 minutos. Fale sem interrupções.')}</span>
+                                </div>
+                                <div className="flex items-start gap-3 bg-white/60 p-3 rounded-lg border border-blue-100/50">
+                                    <Eye size={18} className="mt-0.5 shrink-0 text-blue-500" />
+                                    <span>{t('video_instruction_visibility', 'O vídeo analisado será visto pela empresa contratante e pelo RH.')}</span>
+                                </div>
+                            </div>
+                            <div className="mt-4 pt-4 border-t border-blue-200/50 text-sm font-semibold text-blue-900 flex items-center gap-2">
+                                <Sparkles size={16} className="text-amber-500" />
+                                {t('good_luck', 'Boa sorte!')}
+                            </div>
+                        </div>
+                    </div>
+                ),
+                confirmText: "Entendido!",
+                variant: 'info',
+                size: '2xl',
+                hideCancel: true,
+                onConfirm: () => setModal(prev => ({ ...prev, isOpen: false }))
+            });
+        }
+    }, [hasApplied, applicationBreakdown, t]);
 
     const responsesList = Array.isArray(applicationResponses)
         ? applicationResponses
@@ -471,12 +527,9 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
         }
     };
 
-    const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
+    const submitVideoFile = (file: File) => {
         if (file.size > 100 * 1024 * 1024) { // 100MB limit
-            toast.error("O vídeo deve ter no máximo 100MB");
+            toast.error(t('video_error_size', 'O vídeo deve ter no máximo 100MB'));
             return;
         }
 
@@ -486,8 +539,10 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
 
         video.onloadedmetadata = function () {
             window.URL.revokeObjectURL(video.src);
-            if (video.duration > 180) {
-                toast.error("O vídeo deve ter no máximo 3 minutos");
+            // Check if duration is valid and finite. MediaRecorder blobs can have Infinity duration.
+            const duration = video.duration;
+            if (Number.isFinite(duration) && duration > 185) { // 3 minutes tolerance
+                toast.error(t('video_error_duration', 'O vídeo deve ter no máximo 3 minutos'));
                 return;
             }
 
@@ -503,7 +558,8 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                             <video
                                 src={URL.createObjectURL(file)}
                                 controls
-                                className="w-full max-h-[60vh]"
+                                playsInline
+                                className="w-full max-h-[60vh] object-contain bg-black"
                             />
                         </div>
                         <p className="text-xs text-gray-500">
@@ -512,6 +568,12 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                     </div>
                 ),
                 confirmText: t('video_confirm_modal_btn_confirm'),
+                cancelText: isRecordingMode ? (
+                    <div className="flex items-center justify-center gap-2">
+                        <RotateCcw size={18} />
+                        {t('retake', 'Gravar Novamente')}
+                    </div>
+                ) : t('video_confirm_modal_btn_cancel', 'Cancelar'),
                 variant: 'info',
                 size: '2xl',
                 onConfirm: () => {
@@ -522,14 +584,16 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                         const result = await uploadVideoAction(vacancy.uuid, userId!, formData);
 
                         if (result.success) {
-                            toast.success("Vídeo enviado com sucesso!");
+                            toast.success(t('video_success_upload', 'Vídeo enviado com sucesso!'));
                             setModal(prev => ({ ...prev, isOpen: false }));
+                            setIsRecordingMode(false);
+
                             // Redirecionar para o dashboard após 1 segundo
                             setTimeout(() => {
                                 router.push(`/viewer/vacancy/${vacancy.uuid}`);
                             }, 1000);
                         } else {
-                            toast.error("Erro ao enviar vídeo: " + result.error);
+                            toast.error(t('video_error_upload', 'Erro ao enviar vídeo: ') + result.error);
                             setModal(prev => ({ ...prev, isOpen: false }));
                         }
                     });
@@ -538,10 +602,16 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
         };
 
         video.onerror = function () {
-            toast.error("Formato de vídeo inválido ou erro ao carregar");
+            toast.error(t('video_error_format', 'Formato de vídeo inválido ou erro ao carregar'));
         };
 
         video.src = URL.createObjectURL(file);
+    };
+
+    const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        submitVideoFile(file);
     };
 
     return (
@@ -716,39 +786,102 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                         </div>
                                     </div>
 
-                                    <div className="flex flex-col gap-3">
-                                        <label className="block w-full">
-                                            <span className="sr-only">{t('video_upload_choose_video')}</span>
-                                            <div className={`
-                                                    w-full flex items-center justify-center px-4 py-8 border-2 border-dashed rounded-lg cursor-pointer hover:bg-white transition-colors
-                                                    ${isPending ? 'border-gray-300 bg-gray-100 cursor-not-allowed' : 'border-purple-300 bg-purple-50/50 hover:border-purple-400'}
-                                                `}>
-                                                <input
-                                                    type="file"
-                                                    accept="video/*"
-                                                    className="hidden"
-                                                    onChange={handleVideoUpload}
-                                                    disabled={isPending}
-                                                />
-                                                <div className="text-center">
-                                                    {isPending ? (
-                                                        <div className="flex flex-col items-center gap-2">
-                                                            <Loader2 size={24} className="animate-spin text-purple-600" />
-                                                            <span className="text-sm text-gray-500">{t('video_upload_sending')}</span>
-                                                        </div>
-                                                    ) : (
-                                                        <>
-                                                            <div className="mx-auto w-10 h-10 mb-2 text-purple-400">
-                                                                <FileText size={40} />
-                                                            </div>
-                                                            <p className="font-medium text-purple-700">{t('video_upload_click_to_upload')}</p>
-                                                            <p className="text-xs text-gray-500 mt-1">{t('video_upload_formats')}</p>
-                                                        </>
-                                                    )}
-                                                </div>
+                                    <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 mb-6">
+                                        <h4 className="font-bold text-blue-900 mb-4 flex items-center gap-2">
+                                            <div className="bg-blue-100 p-1.5 rounded-lg">
+                                                <Info size={18} className="text-blue-600" />
                                             </div>
-                                        </label>
+                                            {t('video_instructions_title', 'Instruções Importantes')}
+                                        </h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-800">
+                                            <div className="flex items-start gap-3 bg-white/60 p-3 rounded-lg border border-blue-100/50">
+                                                <VolumeX size={18} className="mt-0.5 shrink-0 text-blue-500" />
+                                                <span>{t('video_instruction_quiet', 'Grave em local silencioso e fechado. Ruídos podem impedir a análise.')}</span>
+                                            </div>
+                                            <div className="flex items-start gap-3 bg-white/60 p-3 rounded-lg border border-blue-100/50">
+                                                <AlertTriangle size={18} className="mt-0.5 shrink-0 text-amber-500" />
+                                                <span>{t('video_instruction_noise_warning', 'Vídeos com muito ruído não são compreendidos pelo sistema e podem resultar na perda da vaga.')}</span>
+                                            </div>
+                                            <div className="flex items-start gap-3 bg-white/60 p-3 rounded-lg border border-blue-100/50">
+                                                <Clock size={18} className="mt-0.5 shrink-0 text-blue-500" />
+                                                <span>{t('video_instruction_duration', 'Você tem até 3 minutos. Fale sem interrupções.')}</span>
+                                            </div>
+                                            <div className="flex items-start gap-3 bg-white/60 p-3 rounded-lg border border-blue-100/50">
+                                                <Eye size={18} className="mt-0.5 shrink-0 text-blue-500" />
+                                                <span>{t('video_instruction_visibility', 'O vídeo analisado será visto pela empresa contratante e pelo RH.')}</span>
+                                            </div>
+                                        </div>
+                                        <div className="mt-4 pt-4 border-t border-blue-200/50 text-sm font-semibold text-blue-900 flex items-center gap-2">
+                                            <Sparkles size={16} className="text-amber-500" />
+                                            {t('good_luck', 'Boa sorte!')}
+                                        </div>
                                     </div>
+
+                                    <div className="flex bg-white p-1 rounded-lg border border-slate-200 mb-6 w-fit mx-auto shadow-sm">
+                                        <button
+                                            onClick={() => setIsRecordingMode(false)}
+                                            className={`flex items-center gap-2 px-6 py-2 rounded-md text-sm font-bold transition-all cursor-pointer ${!isRecordingMode
+                                                ? 'bg-slate-900 text-white shadow-md'
+                                                : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                                                }`}
+                                        >
+                                            <Upload size={16} />
+                                            {t('tab_upload_video', 'Fazer Upload')}
+                                        </button>
+                                        <button
+                                            onClick={() => setIsRecordingMode(true)}
+                                            className={`flex items-center gap-2 px-6 py-2 rounded-md text-sm font-bold transition-all cursor-pointer ${isRecordingMode
+                                                ? 'bg-slate-900 text-white shadow-md'
+                                                : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                                                }`}
+                                        >
+                                            <Video size={16} />
+                                            {t('tab_record_video', 'Gravar Agora')}
+                                        </button>
+                                    </div>
+
+                                    {isRecordingMode ? (
+                                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                            <VideoRecorder
+                                                onRecordingComplete={submitVideoFile}
+                                                onCancel={() => setIsRecordingMode(false)}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                            <label className="block w-full">
+                                                <span className="sr-only">{t('video_upload_choose_video')}</span>
+                                                <div className={`
+                                                        w-full flex items-center justify-center px-4 py-12 border-2 border-dashed rounded-xl cursor-pointer hover:bg-white transition-all
+                                                        ${isPending ? 'border-gray-300 bg-gray-100 cursor-not-allowed' : 'border-slate-300 bg-slate-50/50 hover:border-purple-400 hover:shadow-lg hover:shadow-purple-500/5'}
+                                                    `}>
+                                                    <input
+                                                        type="file"
+                                                        accept="video/*"
+                                                        className="hidden"
+                                                        onChange={handleVideoUpload}
+                                                        disabled={isPending}
+                                                    />
+                                                    <div className="text-center">
+                                                        {isPending ? (
+                                                            <div className="flex flex-col items-center gap-3">
+                                                                <Loader2 size={32} className="animate-spin text-purple-600" />
+                                                                <span className="text-sm font-medium text-slate-600">{t('video_upload_sending')}</span>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="group">
+                                                                <div className="mx-auto w-16 h-16 mb-4 rounded-full bg-purple-50 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                                                    <Upload size={32} className="text-purple-600" />
+                                                                </div>
+                                                                <p className="font-bold text-lg text-slate-800 mb-1">{t('video_upload_click_to_upload')}</p>
+                                                                <p className="text-sm text-slate-500">{t('video_upload_formats')}</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </>
@@ -1051,12 +1184,14 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                 </div>
 
                                 <div className="mt-8 flex flex-col sm:flex-row gap-3">
-                                    <button
-                                        onClick={() => setModal(prev => ({ ...prev, isOpen: false }))}
-                                        className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-all active:scale-95 cursor-pointer"
-                                    >
-                                        Cancelar
-                                    </button>
+                                    {!modal.hideCancel && (
+                                        <button
+                                            onClick={() => setModal(prev => ({ ...prev, isOpen: false }))}
+                                            className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-all active:scale-95 cursor-pointer"
+                                        >
+                                            {modal.cancelText || 'Cancelar'}
+                                        </button>
+                                    )}
                                     <button
                                         onClick={modal.onConfirm}
                                         className={`flex-1 px-4 py-2.5 text-white font-semibold rounded-xl transition-all active:scale-95 shadow-lg shadow-opacity-20 cursor-pointer ${modal.variant === 'danger' ? 'bg-red-600 hover:bg-red-700 shadow-red-500/30' :

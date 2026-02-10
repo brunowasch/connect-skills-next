@@ -16,6 +16,12 @@ export interface CompanyVacancy {
     _count?: {
         vaga_avaliacao?: number;
     };
+    stats?: {
+        total: number;
+        pendingVideo: number;
+        noVideo: number;
+        feedbackGiven: number;
+    };
 }
 
 interface ModalConfig {
@@ -134,13 +140,38 @@ export function CompanyVacancyCard({
                     </div>
                 </div>
 
-                <div className="flex items-center gap-6 text-sm text-gray-600">
-                    <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2" title={t('total_candidates', 'Total de candidatos')}>
                         <Users size={16} className="text-blue-500" />
                         <span>
-                            <span className="font-semibold text-slate-900">{applicationCount}</span> {t('candidates')}
+                            <span className="font-semibold text-slate-900">{vacancy.stats?.total ?? applicationCount}</span> <span className="hidden sm:inline">{t('candidates')}</span>
                         </span>
                     </div>
+
+                    {vacancy.stats && (
+                        <>
+                            <div className="flex items-center gap-2" title={t('pending_video_evaluations', 'Vídeos pendentes de avaliação')}>
+                                <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                                <span>
+                                    <span className="font-semibold text-slate-900">{vacancy.stats.pendingVideo}</span> <span className="text-xs text-gray-500">{t('stat_pending_video', 'Pendentes')}</span>
+                                </span>
+                            </div>
+
+                            <div className="flex items-center gap-2" title={t('no_video_sent', 'Não enviaram vídeo')}>
+                                <div className="w-2 h-2 rounded-full bg-slate-300"></div>
+                                <span>
+                                    <span className="font-semibold text-slate-900">{vacancy.stats.noVideo}</span> <span className="text-xs text-gray-500">{t('stat_no_video', 'Sem vídeo')}</span>
+                                </span>
+                            </div>
+
+                            <div className="flex items-center gap-2" title={t('feedback_given', 'Feedback realizado')}>
+                                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                <span>
+                                    <span className="font-semibold text-slate-900">{vacancy.stats.feedbackGiven}</span> <span className="text-xs text-gray-500">{t('stat_feedback', 'Avaliados')}</span>
+                                </span>
+                            </div>
+                        </>
+                    )}
                 </div>
             </Link>
 

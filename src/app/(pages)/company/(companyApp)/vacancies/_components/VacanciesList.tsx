@@ -19,6 +19,12 @@ interface Vacancy {
     _count: {
         vaga_avaliacao: number;
     };
+    stats?: {
+        total: number;
+        pendingVideo: number;
+        noVideo: number;
+        feedbackGiven: number;
+    };
 }
 
 export function VacanciesList({ initialVacancies }: { initialVacancies: any[] }) {
