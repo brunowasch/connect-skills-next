@@ -301,11 +301,13 @@ export default async function Dashboard() {
 
             let videoStatus = null;
             let videoDeadline = null;
+            let feedbackStatus = null;
             try {
                 if (applicationData?.breakdown) {
                     const breakdown = typeof applicationData.breakdown === 'string' ? JSON.parse(applicationData.breakdown) : applicationData.breakdown;
                     videoStatus = breakdown?.video?.status || null;
                     videoDeadline = breakdown?.video?.deadline || null;
+                    feedbackStatus = breakdown?.feedback?.status || null;
                 }
             } catch (e) {
                 console.error("Error parsing breakdown", e);
@@ -330,6 +332,7 @@ export default async function Dashboard() {
                 created_at: applicationData?.created_at,
                 videoStatus,
                 videoDeadline,
+                feedbackStatus,
             };
         });
     }

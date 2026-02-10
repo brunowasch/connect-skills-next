@@ -81,6 +81,11 @@ export async function requestVideo(candidateId: string, vacancyUuid: string) {
             // ignore parse error/empty
         }
 
+        // 3.1. Check if feedback already exists
+        if (breakdownData && (breakdownData as any).feedback?.status) {
+            throw new Error("Não é possível solicitar vídeo após enviar feedback ao candidato");
+        }
+
         const requestDate = new Date();
         const deadline = new Date(requestDate);
         deadline.setDate(deadline.getDate() + 7); // 1 week for candidate to submit

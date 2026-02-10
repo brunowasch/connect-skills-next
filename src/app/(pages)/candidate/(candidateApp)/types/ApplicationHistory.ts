@@ -20,6 +20,7 @@ export interface Application {
     }>;
     created_at?: Date;
     videoStatus?: string | null;
+    feedbackStatus?: 'APPROVED' | 'REJECTED' | null;
 }
 
 export interface ApplicationHistoryProps {

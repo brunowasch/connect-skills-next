@@ -1,7 +1,7 @@
 "use client";
 
 import { Vacancy } from '@/src/app/(pages)/candidate/(candidateApp)/types/Vacancy';
-import { MapPin, Briefcase, HeartHandshake, Building2, Star } from "lucide-react";
+import { MapPin, Briefcase, HeartHandshake, Building2, Star, CheckCircle, XCircle, Camera, Check } from "lucide-react";
 import Image from 'next/image';
 import Link from 'next/link';
 import { useFavorites } from '../_hooks/useFavorites';
@@ -62,6 +62,7 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
                     </span>
                 </div>
             )}
+            
             <div className="p-3 sm:p-5 flex-grow">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
                     <div className="flex items-center gap-2 sm:gap-3">
@@ -99,7 +100,10 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
                     </button>
                 </div>
 
-                <h3 className="font-bold text-sm sm:text-base text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2 mb-1 sm:mb-2">
+                <h3 className={`font-bold text-sm sm:text-base transition-colors line-clamp-2 mb-1 sm:mb-2 
+                    ${vaga.feedbackStatus === 'APPROVED' ? 'text-emerald-600' :
+                        vaga.feedbackStatus === 'REJECTED' ? 'text-red-600' :
+                            'text-slate-900 group-hover:text-blue-600'}`}>
                     {vaga.cargo}
                 </h3>
 
@@ -112,6 +116,36 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
                         <Briefcase className="text-slate-400 flex-shrink-0 w-3.5 h-3.5 sm:w-[15px] sm:h-[15px]" />
                         <span>{vinculoMap[vaga.vinculo_empregaticio || '']}</span>
                     </div>
+
+                    {/* Badges de Status (Aprovado/Reprovado/Vídeo) */}
+                    {(vaga.feedbackStatus || vaga.videoStatus) && (
+                        <div className="flex flex-wrap gap-2 mt-1">
+                            {vaga.feedbackStatus === 'APPROVED' && (
+                                <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[9px] sm:text-[10px] font-bold text-emerald-600 shadow-sm">
+                                    <CheckCircle size={10} className="mr-1" />
+                                    {t("approved")}
+                                </span>
+                            )}
+                            {vaga.feedbackStatus === 'REJECTED' && (
+                                <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-red-50 border border-red-200 text-[9px] sm:text-[10px] font-bold text-red-600 shadow-sm">
+                                    <XCircle size={10} className="mr-1" />
+                                    {t("rejected")}
+                                </span>
+                            )}
+                            {vaga.videoStatus === 'requested' && (
+                                <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-purple-50 border border-purple-200 text-[9px] sm:text-[10px] font-bold text-purple-600 shadow-sm">
+                                    <Camera size={10} className="mr-1" />
+                                    Solicitado
+                                </span>
+                            )}
+                            {vaga.videoStatus === 'submitted' && (
+                                <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-green-50 border border-green-200 text-[9px] sm:text-[10px] font-bold text-green-600 shadow-sm">
+                                    <Check size={10} className="mr-1" />
+                                    Enviado
+                                </span>
+                            )}
+                        </div>
+                    )}
 
                     {affirmativeGroups.length > 0 && (
                         <div className="flex items-center text-[11px] sm:text-xs text-gray-500 font-medium gap-1.5 mt-1">

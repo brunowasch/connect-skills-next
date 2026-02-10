@@ -1,9 +1,13 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Mail, User, BrainCircuit } from "lucide-react";
+import { ArrowLeft, Mail, User, BrainCircuit, MessageSquare } from "lucide-react";
 import Link from 'next/link';
 import { ApplicationDetails } from "./ApplicationDetails";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { FeedbackModal } from "../../ranking/_components/FeedbackModal";
+import { submitFeedback } from "../../../actions";
 
 interface CandidatesPageContentProps {
     state: 'access_denied' | 'not_found' | 'company_mismatch' | 'success';
@@ -15,7 +19,22 @@ interface CandidatesPageContentProps {
 }
 
 export function CandidatesPageContent({ state, vacancy, candidates, vacancyUuid }: CandidatesPageContentProps) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    const router = useRouter();
+    const [showFeedback, setShowFeedback] = useState(false);
+    const [selectedFeedbackCandidate, setSelectedFeedbackCandidate] = useState<any | null>(null);
+
+    const handleFeedbackClick = (e: React.MouseEvent, candidate: any) => {
+        e.preventDefault(); 
+        setSelectedFeedbackCandidate(candidate);
+        setShowFeedback(true);
+    };
+
+    const handleFeedbackSubmit = async (status: 'APPROVED' | 'REJECTED', justification: string) => {
+        if (!selectedFeedbackCandidate || !vacancyUuid) return;
+        await submitFeedback(selectedFeedbackCandidate.id, vacancyUuid, status, justification);
+        router.refresh();
+    };
 
     if (state === 'access_denied') {
         return (
@@ -74,16 +93,36 @@ export function CandidatesPageContent({ state, vacancy, candidates, vacancyUuid 
             ) : (
                 <div className="grid grid-cols-1 gap-6">
                     {candidates && candidates.map((candidate, index) => (
-                        <div key={candidate.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                        <div key={candidate.id} className="relative bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                            
+                            {/* Floating Feedback Button */}
+                            <button 
+                                onClick={(e) => handleFeedbackClick(e, candidate)}
+                                className="absolute right-6 bottom-6 z-10 p-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors shadow-lg hover:shadow-xl hover:-translate-y-1 transform active:scale-95"
+                                title={t('give_feedback', 'Dar Feedback')}
+                            >
+                                <MessageSquare size={20} />
+                            </button>
+
                             <div className="p-6">
                                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                                     <div className="flex items-center gap-4">
                                         <div className="relative">
                                             <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xl overflow-hidden flex-shrink-0 border-2 border-white shadow-sm">
-                                                {candidate.foto_perfil || candidate.usuario?.avatarUrl ? (
-                                                    <img src={candidate.foto_perfil || candidate.usuario?.avatarUrl!} alt="" className="w-full h-full object-cover" />
+                                                {candidate.uuid ? (
+                                                    <Link href={`/viewer/candidate/${candidate.uuid}`} className="w-full h-full relative block">
+                                                        {candidate.foto_perfil || candidate.usuario?.avatarUrl ? (
+                                                            <img src={candidate.foto_perfil || candidate.usuario?.avatarUrl!} alt="" className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <User size={32} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-400" />
+                                                        )}
+                                                    </Link>
                                                 ) : (
-                                                    <User size={32} className="text-blue-400" />
+                                                    candidate.foto_perfil || candidate.usuario?.avatarUrl ? (
+                                                        <img src={candidate.foto_perfil || candidate.usuario?.avatarUrl!} alt="" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <User size={32} className="text-blue-400" />
+                                                    )
                                                 )}
                                             </div>
                                             <div className="absolute -top-2 -left-2 w-7 h-7 bg-slate-900 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">
@@ -100,7 +139,7 @@ export function CandidatesPageContent({ state, vacancy, candidates, vacancyUuid 
                                     </div>
 
                                     <div className="flex flex-col items-end gap-2 shrink-0">
-                                        <div className="text-xs text-gray-400">{t('candidates_page_applied_on')} {candidate.application?.created_at ? new Date(candidate.application.created_at).toLocaleDateString('pt-BR') : '---'}</div>
+                                        <div className="text-xs text-gray-400">{t('candidates_page_applied_on')} {candidate.application?.created_at ? new Date(candidate.application.created_at).toLocaleDateString(i18n.language) : '---'}</div>
                                         <div className="flex flex-col items-end">
                                             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{t('candidates_page_match_score')}</span>
                                             <div className="inline-flex items-center px-4 py-1.5 rounded-full text-lg font-black bg-blue-600 text-white shadow-lg shadow-blue-100">
@@ -128,6 +167,20 @@ export function CandidatesPageContent({ state, vacancy, candidates, vacancyUuid 
                         </div>
                     ))}
                 </div>
+            )}
+
+            {selectedFeedbackCandidate && (
+                <FeedbackModal 
+                    isOpen={showFeedback}
+                    onClose={() => {
+                        setShowFeedback(false);
+                        setSelectedFeedbackCandidate(null);
+                    }}
+                    candidateName={`${selectedFeedbackCandidate.nome} ${selectedFeedbackCandidate.sobrenome}`}
+                    candidateId={selectedFeedbackCandidate.id}
+                    onSubmit={handleFeedbackSubmit}
+                    aiSuggestions={selectedFeedbackCandidate.breakdown?.suggestions}
+                />
             )}
         </div>
     );

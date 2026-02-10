@@ -50,7 +50,11 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
     // Buscar vagas já aplicadas pelo candidato
     const appliedVacancies = await prisma.vaga_avaliacao.findMany({
         where: { candidato_id: candidateComplete.id },
-        select: { vaga_id: true }
+        select: { 
+            vaga_id: true,
+            breakdown: true,
+            created_at: true
+        }
     });
     const appliedVacanciesIds = appliedVacancies.map(av => av.vaga_id);
 
@@ -295,6 +299,24 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
                 score = 0; // Sem localização nenhuma
             }
 
+            // Extrair feedbackStatus e videoStatus do breakdown (se estiver no histórico)
+            let feedbackStatus = null;
+            let videoStatus = null;
+            if (isHistory) {
+                const applicationData = appliedVacancies.find(av => av.vaga_id === vaga.id);
+                if (applicationData?.breakdown) {
+                    try {
+                        const breakdown = typeof applicationData.breakdown === 'string' 
+                            ? JSON.parse(applicationData.breakdown) 
+                            : applicationData.breakdown;
+                        feedbackStatus = breakdown?.feedback?.status || null;
+                        videoStatus = breakdown?.video?.status || null;
+                    } catch (e) {
+                        console.error("Error parsing breakdown", e);
+                    }
+                }
+            }
+
             return {
                 id: vaga.id,
                 uuid: vaga.uuid,
@@ -318,7 +340,9 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
                 // Adicionamos flags extras para o componente
                 score,
                 isNear: score >= 50, // Destaque para mesma cidade ou estado
-                isFavorited: favoriteIds.includes(vaga.id)
+                isFavorited: favoriteIds.includes(vaga.id),
+                feedbackStatus,
+                videoStatus
             } as any;
         });
 

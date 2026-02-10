@@ -25,6 +25,8 @@ export interface Vacancy {
     isNear?: boolean;
     score?: number;
     isFavorited?: boolean;
+    feedbackStatus?: 'APPROVED' | 'REJECTED' | null;
+    videoStatus?: string | null;
 }
 
 export interface RecommendedVacancyProps {

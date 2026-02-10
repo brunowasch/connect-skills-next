@@ -96,7 +96,7 @@ export function ApplicationDetails({ application, vacancyUuid }: ApplicationDeta
                                 <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Vídeo de Apresentação</h4>
                             </div>
 
-                            {!breakdownData.video?.status && (
+                            {!breakdownData.video?.status && !breakdownData.feedback?.status && (
                                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                                     <div>
                                         <p className="text-sm text-gray-600 font-medium">Solicitar vídeo de apresentação</p>
@@ -119,6 +119,16 @@ export function ApplicationDetails({ application, vacancyUuid }: ApplicationDeta
                                             </>
                                         )}
                                     </button>
+                                </div>
+                            )}
+
+                            {breakdownData.feedback?.status && (
+                                <div className="flex items-center gap-3 bg-blue-50 p-4 rounded-xl border border-blue-100 text-blue-800">
+                                    <AlertCircle size={20} className="shrink-0" />
+                                    <div>
+                                        <p className="text-sm font-bold">Feedback já enviado</p>
+                                        <p className="text-xs opacity-90">Não é possível solicitar vídeo após enviar feedback ao candidato.</p>
+                                    </div>
                                 </div>
                             )}
 

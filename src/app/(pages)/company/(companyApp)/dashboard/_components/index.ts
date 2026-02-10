@@ -4,3 +4,4 @@ export { ProfileCompletion } from '@/src/app/(pages)/company/(companyApp)/dashbo
 export { RecentVacancies } from '@/src/app/(pages)/company/(companyApp)/dashboard/_components/RecentVacancies/RecentVacancies';
 export { RecentCandidates } from '@/src/app/(pages)/company/(companyApp)/dashboard/_components/RecentCandidates/RecentCandidates';
 export { DashboardHeader } from '@/src/app/(pages)/company/(companyApp)/dashboard/_components/DashboardHeader/DashboardHeader';
+export { VideoEvaluations } from '@/src/app/(pages)/company/(companyApp)/dashboard/_components/VideoEvaluations/VideoEvaluations';

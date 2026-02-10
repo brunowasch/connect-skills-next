@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Clock, ChevronRight, Camera, Check } from 'lucide-react';
+import { Clock, ChevronRight, Camera, Check, CheckCircle, XCircle } from 'lucide-react';
 import { ApplicationHistoryProps } from '@/src/app/(pages)/candidate/(candidateApp)/types/ApplicationHistory';
 import { useTranslation } from "react-i18next";
 
@@ -48,7 +48,10 @@ export function ApplicationHistory({ historicoAplicacoes }: ApplicationHistoryPr
                                     className="group flex justify-between items-start gap-2 sm:gap-3 py-2.5 sm:py-3 first:pt-0 last:pb-0 hover:bg-slate-50/50 transition-colors rounded-lg px-0.5 sm:px-1"
                                 >
                                     <div className="flex-1 min-w-0">
-                                        <div className="font-semibold text-slate-800 text-xs sm:text-sm truncate">
+                                        <div className={`font-semibold text-xs sm:text-sm truncate 
+                                            ${item.feedbackStatus === 'APPROVED' ? 'text-emerald-600' :
+                                                item.feedbackStatus === 'REJECTED' ? 'text-red-600' :
+                                                    'text-slate-800'}`}>
                                             {item?.cargo || t("vacancy")}
                                         </div>
                                         <div className="text-[11px] sm:text-xs text-slate-500 truncate mt-0.5">
@@ -66,6 +69,18 @@ export function ApplicationHistory({ historicoAplicacoes }: ApplicationHistoryPr
                                     </div>
 
                                     <div className="flex flex-col items-end gap-1.5 sm:gap-2 flex-shrink-0">
+                                        {item.feedbackStatus === 'APPROVED' && (
+                                            <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[9px] sm:text-[10px] font-bold text-emerald-600 shadow-sm">
+                                                <CheckCircle size={10} className="mr-1" />
+                                                {t("approved")}
+                                            </span>
+                                        )}
+                                        {item.feedbackStatus === 'REJECTED' && (
+                                            <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-red-50 border border-red-200 text-[9px] sm:text-[10px] font-bold text-red-600 shadow-sm">
+                                                <XCircle size={10} className="mr-1" />
+                                                {t("rejected")}
+                                            </span>
+                                        )}
                                         {item.videoStatus === 'requested' && (
                                             <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-purple-50 border border-purple-200 text-[9px] sm:text-[10px] font-bold text-purple-600 shadow-sm">
                                                 <Camera size={10} className="mr-1" />
@@ -78,7 +93,7 @@ export function ApplicationHistory({ historicoAplicacoes }: ApplicationHistoryPr
                                                 Enviado
                                             </span>
                                         )}
-                                        {!item.videoStatus && (
+                                        {!item.videoStatus && !item.feedbackStatus && (
                                             <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-white border border-slate-200 text-[9px] sm:text-[10px] font-bold text-slate-600 shadow-sm">
                                                 {t("pending")}
                                             </span>

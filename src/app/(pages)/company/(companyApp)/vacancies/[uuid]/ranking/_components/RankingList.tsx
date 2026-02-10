@@ -362,6 +362,7 @@ export function RankingList({ candidates, vacancyUuid }: RankingListProps) {
 
                                     {(() => {
                                         const status = breakdown?.video?.status;
+                                        const hasFeedback = breakdown?.feedback?.status;
                                         const hasVideoRequest = status === 'requested' || status === 'submitted';
 
                                         if (status === 'submitted') {
@@ -379,9 +380,9 @@ export function RankingList({ candidates, vacancyUuid }: RankingListProps) {
                                         return (
                                             <button
                                                 onClick={() => handleRequestVideoClick(candidate.id)}
-                                                disabled={hasVideoRequest || isPending}
+                                                disabled={hasVideoRequest || hasFeedback || isPending}
                                                 className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer
-                                                    ${hasVideoRequest
+                                                    ${hasVideoRequest || hasFeedback
                                                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                                         : 'bg-green-50 text-green-600 hover:bg-green-100'}`}
                                             >
