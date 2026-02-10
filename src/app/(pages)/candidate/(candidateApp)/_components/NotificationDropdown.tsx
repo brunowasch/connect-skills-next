@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { Bell, Video, CheckCircle, XCircle, Clock, MessageSquare, Check, Trash2, Eye } from 'lucide-react';
+import { Bell, Video, CheckCircle, XCircle, Clock, MessageSquare, Check, Trash2, Eye, X } from 'lucide-react';
 import { useTranslation } from "react-i18next";
 import { FeedbackModal } from './FeedbackModal';
 import { useRouter } from 'next/navigation';
@@ -124,6 +124,24 @@ export function NotificationDropdown({ notifications: initialNotifications }: No
         }
     };
 
+    const handleClearAll = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        try {
+            const response = await fetch('/api/candidate/notifications/clear-all', {
+                method: 'POST',
+            });
+
+            if (response.ok) {
+                setNotifications([]);
+                router.refresh();
+            }
+        } catch (error) {
+            console.error('Error clearing notifications:', error);
+        }
+    };
+
     const handleNotificationClick = (notification: Notification, e: React.MouseEvent) => {
         e.preventDefault();
 
@@ -201,11 +219,21 @@ export function NotificationDropdown({ notifications: initialNotifications }: No
                         {/* Header do dropdown */}
                         <div className="p-4 border-b border-slate-100 bg-slate-50">
                             <div className="flex items-center justify-between">
-                                <h3 className="font-bold text-slate-800 text-base">{t('notifications.title')}</h3>
-                                {unreadCount > 0 && (
-                                    <span className="text-xs text-slate-500 bg-slate-200 px-2 py-1 rounded-full">
-                                        {unreadCount} {unreadCount === 1 ? t('notifications.new_one') : t('notifications.new_many')}
-                                    </span>
+                                <div className="flex items-center gap-2">
+                                    <h3 className="font-bold text-slate-800 text-base">{t('notifications.title')}</h3>
+                                    {unreadCount > 0 && (
+                                        <span className="text-xs text-slate-500 bg-slate-200 px-2 py-1 rounded-full">
+                                            {unreadCount} {unreadCount === 1 ? t('notifications.new_one') : t('notifications.new_many')}
+                                        </span>
+                                    )}
+                                </div>
+                                {notifications.length > 0 && (
+                                    <button
+                                        onClick={handleClearAll}
+                                        className="text-xs font-medium text-slate-500 hover:text-red-600 transition-colors cursor-pointer"
+                                    >
+                                        {t('notifications.clear_all')}
+                                    </button>
                                 )}
                             </div>
                         </div>
@@ -224,10 +252,18 @@ export function NotificationDropdown({ notifications: initialNotifications }: No
                                     {notifications.slice(0, 5).map((notification) => (
                                         <div
                                             key={notification.id}
-                                            className={`group p-4 hover:bg-slate-50 transition-colors duration-150 ${
+                                            className={`group relative p-4 hover:bg-slate-50 transition-colors duration-150 ${
                                                 !notification.read ? 'bg-blue-50/30' : ''
                                             }`}
                                         >
+                                            {/* Delete X Button */}
+                                            <button
+                                                onClick={(e) => handleDelete(notification.id, e)}
+                                                className="absolute top-2 right-2 p-1 text-slate-400 hover:text-red-500 hover:bg-slate-100 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200"
+                                                title={t('notifications.delete')}
+                                            >
+                                                <X size={14} />
+                                            </button>
                                             <div className="flex items-start gap-3">
                                                 {/* Icon */}
                                                 <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 border ${getNotificationBgColor(notification.type)}`}>
@@ -292,14 +328,6 @@ export function NotificationDropdown({ notifications: initialNotifications }: No
                                                                 {t('notifications.mark_read')}
                                                             </button>
                                                         )}
-                                                        <button
-                                                            onClick={(e) => handleDelete(notification.id, e)}
-                                                            className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer ml-auto"
-                                                            title={t('notifications.delete')}
-                                                        >
-                                                            <Trash2 size={12} />
-                                                            {t('notifications.delete')}
-                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>

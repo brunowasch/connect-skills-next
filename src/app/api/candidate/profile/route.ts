@@ -123,9 +123,39 @@ export async function PUT(req: NextRequest) {
                 }
             }
 
-            // Remove todos e insere os processados
+            // Buscar avaliações para filtrar anexos de vagas e não excluí-los
+            const applications = await prisma.vaga_avaliacao.findMany({
+                where: {
+                    candidato_id: candidate.id
+                },
+                select: {
+                    breakdown: true
+                }
+            });
+
+            const vacancyFileIds = new Set<string>();
+            
+            applications.forEach(app => {
+                try {
+                    if (app.breakdown) {
+                        const breakdown = JSON.parse(app.breakdown);
+                        if (breakdown?.video?.fileId) {
+                            vacancyFileIds.add(breakdown.video.fileId);
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error parsing breakdown:', e);
+                }
+            });
+
+            // Remove todos (exceto os de vagas) e insere os processados
             await prisma.candidato_arquivo.deleteMany({
-                where: { candidato_id: candidate.id }
+                where: { 
+                    candidato_id: candidate.id,
+                    id: {
+                        notIn: Array.from(vacancyFileIds)
+                    }
+                }
             });
 
             if (processedAnexos.length > 0) {

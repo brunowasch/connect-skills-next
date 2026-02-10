@@ -125,6 +125,31 @@
     "vacancy_work_type": "Distribución",
     "vacancy_presential": "presencial",
     "vacancy_remote": "remoto",
+    "video_upload_rejected_title": "Video No Disponible",
+    "video_upload_rejected_desc": "La empresa ya ha enviado su opinión sobre su candidatura. El envío de vídeo ya no está disponible.",
+    "video_upload_expired_title": "Plazo Expirado",
+    "video_upload_expired_desc": "El plazo de 1 semana para enviar el vídeo ha expirado. Póngase en contacto con la empresa si es necesario.",
+    "video_upload_requested_title": "Video de Presentación Solicitado",
+    "video_upload_requested_desc": "La empresa ha solicitado un video de presentación de hasta 3 minutos.",
+    "video_upload_deadline": "Plazo:",
+    "video_upload_days_remaining": "{{count}} día restante",
+    "video_upload_days_remaining_plural": "{{count}} días restantes",
+    "video_upload_hours_remaining": "{{count}} hora restante",
+    "video_upload_hours_remaining_plural": "{{count}} horas restantes",
+    "video_upload_choose_video": "Elegir video",
+    "video_upload_click_to_upload": "Haga clic para enviar su video",
+    "video_upload_formats": "MP4, WebM (Max 3 min, 100MB)",
+    "video_upload_sending": "Enviando video... (esto puede tardar unos segundos)",
+    "video_upload_success_title": "Video Enviado",
+    "video_upload_success_desc": "Su video fue recibido con éxito.",
+    "video_upload_success_expired": "Video expirado (disponible por 1 semana después del envío)",
+    "video_upload_success_available": "Disponible por {{count}} día más",
+    "video_upload_success_available_plural": "Disponible por {{count}} días más",
+    "video_confirm_modal_title": "Confirmar Envío",
+    "video_confirm_modal_desc": "Revise su video a continuación. Si todo está correcto, haga clic en \"Enviar Video\" para finalizar.",
+    "video_confirm_modal_warning": "* Atención: Después del envío, no será posible cambiar el video.",
+    "video_confirm_modal_btn_cancel": "Cancelar",
+    "video_confirm_modal_btn_confirm": "Enviar Video",
     "vacancy_description_title": "Descripción de la Vacante",
     "vacancy_benefits_title": "Beneficios",
     "vacancy_areas_title": "Áreas de Actividad",
@@ -174,6 +199,10 @@
     "Temporario": "Temporal",
     "dashboard_title": "Dashboard",
     "dashboard_subtitle": "Siga sus candidaturas, vea vacantes recomendadas y avance en su trayectoria profesional.",
+    "dashboard_video_requests_title": "Videos Solicitados",
+    "dashboard_video_request_desc": "La empresa ha solicitado un video de presentación.",
+    "dashboard_video_deadline": "Plazo:",
+    "dashboard_send_video_btn": "Enviar Video Ahora",
     "dashboard_hero_welcome": "¡Hola,",
     "dashboard_hero_desc": "¿Qué desea hacer hoy?",
     "dashboard_kpi_matching": "Vacantes con su perfil",
@@ -1559,6 +1588,7 @@
         "new_one": "nueva",
         "new_many": "nuevas",
         "empty": "Sin notificaciones",
+        "clear_all": "Borrar todas",
         "view_feedback": "Ver feedback",
         "send_video": "Enviar video",
         "mark_read": "Marcar como leída",
@@ -1580,6 +1610,10 @@
             "general": {
                 "title": "Nueva Notificación"
             }
+        },
+        "company_notifications": {
+            "new_candidate_title": "Nueva Candidatura",
+            "video_received_title": "Video Recibido"
         }
     }
 }

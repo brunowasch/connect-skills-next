@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
-import { sendVideoRequestEmail } from "@/src/lib/mail";
+import { sendVideoRequestEmail, sendFeedbackEmail } from "@/src/lib/mail";
 
 export async function selectVacancyForRanking(vacancyId: string) {
     const cookieStore = await cookies();
@@ -98,6 +98,10 @@ export async function requestVideo(candidateId: string, vacancyId: string) {
             link
         );
 
+        if (!result) {
+            console.error("Falha ao enviar email de solicitação de vídeo (mas registro atualizado no banco).");
+        }
+
         return { success: true };
     } catch (error) {
         console.error("Error requesting video:", error);
@@ -149,8 +153,7 @@ export async function submitFeedback(candidateId: string, vacancyId: string, sta
             });
             const vacancy = await prisma.vaga.findUnique({ where: { id: vacancyId } });
 
-            if (candidate?.usuario?.email && vacancy) {
-                const { sendFeedbackEmail } = await import("@/src/lib/mail");
+        if (candidate?.usuario?.email && vacancy) {
                 await sendFeedbackEmail(
                     candidate.usuario.email,
                     candidate.nome || "Candidato",

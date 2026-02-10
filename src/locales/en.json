@@ -132,6 +132,31 @@
     "vacancy_work_type": "Distribution",
     "vacancy_presential": "presential",
     "vacancy_remote": "remote",
+    "video_upload_rejected_title": "Video Upload Not Available",
+    "video_upload_rejected_desc": "The company has already sent feedback on your application. Video upload is no longer available.",
+    "video_upload_expired_title": "Deadline Expired",
+    "video_upload_expired_desc": "The 1-week deadline for video submission has expired. Contact the company if necessary.",
+    "video_upload_requested_title": "Presentation Video Requested",
+    "video_upload_requested_desc": "The company has requested a presentation video of up to 3 minutes.",
+    "video_upload_deadline": "Deadline:",
+    "video_upload_days_remaining": "{{count}} day remaining",
+    "video_upload_days_remaining_plural": "{{count}} days remaining",
+    "video_upload_hours_remaining": "{{count}} hour remaining",
+    "video_upload_hours_remaining_plural": "{{count}} hours remaining",
+    "video_upload_choose_video": "Choose video",
+    "video_upload_click_to_upload": "Click to upload your video",
+    "video_upload_formats": "MP4, WebM (Max 3 min, 100MB)",
+    "video_upload_sending": "Uploading video... (this may take a few seconds)",
+    "video_upload_success_title": "Video Sent",
+    "video_upload_success_desc": "Your video was successfully received.",
+    "video_upload_success_expired": "Video expired (available for 1 week after submission)",
+    "video_upload_success_available": "Available for {{count}} more day",
+    "video_upload_success_available_plural": "Available for {{count}} more days",
+    "video_confirm_modal_title": "Confirm Submission",
+    "video_confirm_modal_desc": "Check your video below. If everything is correct, click \"Send Video\" to finish.",
+    "video_confirm_modal_warning": "* Attention: After sending, it will not be possible to change the video.",
+    "video_confirm_modal_btn_cancel": "Cancel",
+    "video_confirm_modal_btn_confirm": "Send Video",
     "vacancy_description_title": "Job Description",
     "vacancy_benefits_title": "Benefits",
     "vacancy_areas_title": "Areas of Activity",
@@ -181,6 +206,10 @@
     "Temporario": "Temporary",
     "dashboard_title": "Dashboard",
     "dashboard_subtitle": "Track your applications, view recommended jobs, and advance your professional journey.",
+    "dashboard_video_requests_title": "Requested Videos",
+    "dashboard_video_request_desc": "The company has requested a presentation video.",
+    "dashboard_video_deadline": "Deadline:",
+    "dashboard_send_video_btn": "Send Video Now",
     "dashboard_hero_welcome": "Hello,",
     "dashboard_hero_desc": "What do you want to do today?",
     "dashboard_kpi_matching": "Jobs matching your profile",
@@ -1569,6 +1598,7 @@
         "new_one": "new",
         "new_many": "new",
         "empty": "No notifications",
+        "clear_all": "Clear all",
         "view_feedback": "View feedback",
         "send_video": "Send video",
         "mark_read": "Mark as read",
@@ -1590,6 +1620,10 @@
             "general": {
                 "title": "New Notification"
             }
+        },
+        "company_notifications": {
+            "new_candidate_title": "New Application",
+            "video_received_title": "Video Received"
         }
     }
 }

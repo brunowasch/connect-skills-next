@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { prisma } from "@/src/lib/prisma";
 import CompanyClientLayout from "./CompanyClientLayout";
+import { getCompanyNotifications } from "@/src/lib/notifications";
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
     const cookieStore = await cookies();
@@ -33,8 +34,10 @@ export default async function Layout({ children }: { children: React.ReactNode }
         redirect("/company/register");
     }
 
+    const notifications = await getCompanyNotifications(empresa.id);
+
     return (
-        <CompanyClientLayout>
+        <CompanyClientLayout notifications={notifications}>
             {children}
         </CompanyClientLayout>
     );

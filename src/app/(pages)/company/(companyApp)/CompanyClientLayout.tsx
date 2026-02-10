@@ -7,12 +7,16 @@ import Image from "next/image";
 import { Footer } from "../Layout/Footer/Footer";
 import { GlobalToast } from "./_components/GlobalToast";
 
+import { NotificationDropdown } from "./_components/NotificationDropdown";
+import { Notification } from "@/src/lib/notifications";
 import { LanguageSwitcher } from "@/src/app/_components/Layout/LanguageSwitcher";
 
 export default function CompanyLayout({
     children,
+    notifications = []
 }: {
     children: React.ReactNode;
+    notifications?: Notification[];
 }) {
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
@@ -48,7 +52,9 @@ export default function CompanyLayout({
                         {/* Espaço para migalhas de pão ou título no futuro */}
                     </div>
 
-                    <div className="flex items-center">
+                    <div className="flex items-center gap-4">
+                        <NotificationDropdown notifications={notifications} />
+                        <div className="h-6 w-px bg-gray-200" />
                         <LanguageSwitcher />
                     </div>
                 </header>

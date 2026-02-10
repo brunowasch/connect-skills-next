@@ -1,25 +1,27 @@
-import nodemailer from 'nodemailer';
+import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT) || 587,
-    secure: false, // true for 465, false for other ports
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-    },
-    tls: {
-        rejectUnauthorized: false
-    }
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT) || 587,
+  secure: false, // true for 465, false for other ports
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+  tls: {
+    rejectUnauthorized: false,
+  },
+  connectionTimeout: 10000, // 10 seconds
+  greetingTimeout: 5000, // 5 seconds
+  socketTimeout: 10000, // 10 seconds
 });
 
 export async function sendVerificationEmail(email: string, code: string) {
-
-    const mailOptions = {
-        from: process.env.EMAIL_FROM,
-        to: email,
-        subject: 'Seu código de verificação - Connect Skills',
-        html: `
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to: email,
+    subject: "Seu código de verificação - Connect Skills",
+    html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
         <h2 style="color: #4F46E5; text-align: center;">Bem-vindo à Connect Skills!</h2>
         <p style="text-align: center; color: #555;">Use o código abaixo para validar seu cadastro e ativar sua conta:</p>
@@ -36,22 +38,22 @@ export async function sendVerificationEmail(email: string, code: string) {
         <p style="text-align: center; font-size: 12px; color: #999; margin-top: 20px;">Este código expira em 30 minutos.</p>
       </div>
     `,
-    };
+  };
 
-    try {
-        await transporter.sendMail(mailOptions);
-        return true;
-    } catch (error) {
-        return false;
-    }
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    return false;
+  }
 }
 
 export async function sendLoginCodeEmail(email: string, code: string) {
-    const mailOptions = {
-        from: process.env.EMAIL_FROM,
-        to: email,
-        subject: 'Código de Acesso - Connect Skills',
-        html: `
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to: email,
+    subject: "Código de Acesso - Connect Skills",
+    html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
         <h2 style="color: #4F46E5; text-align: center;">Verificação de Segurança</h2>
         <p style="text-align: center; color: #555;">Detectamos um novo acesso à sua conta. Use o código abaixo para completar o login:</p>
@@ -68,24 +70,24 @@ export async function sendLoginCodeEmail(email: string, code: string) {
         <p style="text-align: center; font-size: 12px; color: #999; margin-top: 20px;">Este código expira em 30 minutos.</p>
       </div>
     `,
-    };
+  };
 
-    try {
-        await transporter.sendMail(mailOptions);
-        return true;
-    } catch (error) {
-        return false;
-    }
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    return false;
+  }
 }
 
 export async function sendPasswordResetEmail(email: string, token: string) {
-    const resetLink = `${process.env.APP_URL}/reset-password?token=${token}`;
+  const resetLink = `${process.env.APP_URL}/reset-password?token=${token}`;
 
-    const mailOptions = {
-        from: process.env.EMAIL_FROM,
-        to: email,
-        subject: 'Recuperação de Senha - Connect Skills',
-        html: `
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to: email,
+    subject: "Recuperação de Senha - Connect Skills",
+    html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
                 <h2 style="color: #4F46E5; text-align: center;">Recuperação de Senha</h2>
                 <p style="text-align: center; color: #555;">Você solicitou a redefinição de sua senha. Clique no botão abaixo para criar uma nova senha:</p>
@@ -105,25 +107,25 @@ export async function sendPasswordResetEmail(email: string, token: string) {
                 <p style="text-align: center; font-size: 12px; color: #999; margin-top: 20px;">Este link expira em 1 hora.</p>
             </div>
         `,
-    };
+  };
 
-    try {
-        await transporter.sendMail(mailOptions);
-        return true;
-    } catch (error) {
-        console.error("Erro ao enviar email de reset:", error);
-        return false;
-    }
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error("Erro ao enviar email de reset:", error);
+    return false;
+  }
 }
 
 export async function sendPasswordResetCodeEmail(email: string, code: string) {
-    const resetLink = `${process.env.APP_URL}/reset-password?email=${encodeURIComponent(email)}&token=${code}`;
+  const resetLink = `${process.env.APP_URL}/reset-password?email=${encodeURIComponent(email)}&token=${code}`;
 
-    const mailOptions = {
-        from: process.env.EMAIL_FROM,
-        to: email,
-        subject: 'Código de Recuperação - Connect Skills',
-        html: `
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to: email,
+    subject: "Código de Recuperação - Connect Skills",
+    html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
                 <h2 style="color: #4F46E5; text-align: center;">Recuperação de Senha</h2>
                 <p style="text-align: center; color: #555;">Você solicitou a redefinição de sua senha. Use o código abaixo para redefinir:</p>
@@ -151,23 +153,26 @@ export async function sendPasswordResetCodeEmail(email: string, code: string) {
                 <p style="text-align: center; font-size: 12px; color: #999; margin-top: 20px;">Este link/código expira em 1 hora.</p>
             </div>
         `,
-    };
+  };
 
-    try {
-        await transporter.sendMail(mailOptions);
-        return true;
-    } catch (error) {
-        console.error("Erro ao enviar email de reset (código):", error);
-        return false;
-    }
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error("Erro ao enviar email de reset (código):", error);
+    return false;
+  }
 }
 
-export async function sendParentalConsentEmail(email: string, candidateName: string) {
-    const mailOptions = {
-        from: process.env.EMAIL_FROM,
-        to: email,
-        subject: 'Aviso de Cadastro de Menor - Connect Skills',
-        html: `
+export async function sendParentalConsentEmail(
+  email: string,
+  candidateName: string,
+) {
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to: email,
+    subject: "Aviso de Cadastro de Menor - Connect Skills",
+    html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
                 <h2 style="color: #4F46E5; text-align: center;">Aviso de Cadastro</h2>
                 <p style="text-align: center; color: #555;">Olá,</p>
@@ -183,23 +188,28 @@ export async function sendParentalConsentEmail(email: string, candidateName: str
                 </p>
             </div>
         `,
-    };
+  };
 
-    try {
-        await transporter.sendMail(mailOptions);
-        return true;
-    } catch (error) {
-        console.error("Erro ao enviar email de consentimento parental:", error);
-        return false;
-    }
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error("Erro ao enviar email de consentimento parental:", error);
+    return false;
+  }
 }
 
-export async function sendVideoRequestEmail(email: string, candidateName: string, vacancyTitle: string, vacancyLink: string) {
-    const mailOptions = {
-        from: process.env.EMAIL_FROM,
-        to: email,
-        subject: `Solicitação de Vídeo - Vaga: ${vacancyTitle} - Connect Skills`,
-        html: `
+export async function sendVideoRequestEmail(
+  email: string,
+  candidateName: string,
+  vacancyTitle: string,
+  vacancyLink: string,
+) {
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to: email,
+    subject: `Solicitação de Vídeo - Vaga: ${vacancyTitle} - Connect Skills`,
+    html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
                 <h2 style="color: #4F46E5; text-align: center;">Nova Etapa: Vídeo de Apresentação</h2>
                 <p style="text-align: center; color: #555;">Olá <strong>${candidateName}</strong>,</p>
@@ -224,27 +234,33 @@ export async function sendVideoRequestEmail(email: string, candidateName: string
                 </p>
             </div>
         `,
-    };
+  };
 
-    try {
-        await transporter.sendMail(mailOptions);
-        return true;
-    } catch (error) {
-        console.error("Erro ao enviar email de solicitação de vídeo:", error);
-        return false;
-    }
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error("Erro ao enviar email de solicitação de vídeo:", error);
+    return false;
+  }
 }
 
-export async function sendFeedbackEmail(email: string, candidateName: string, vacancyTitle: string, status: 'APPROVED' | 'REJECTED', justification?: string) {
-    const isApproved = status === 'APPROVED';
-    const statusText = isApproved ? 'Aprovado' : 'Reprovado';
-    const color = isApproved ? '#10B981' : '#EF4444';
+export async function sendFeedbackEmail(
+  email: string,
+  candidateName: string,
+  vacancyTitle: string,
+  status: "APPROVED" | "REJECTED",
+  justification?: string,
+) {
+  const isApproved = status === "APPROVED";
+  const statusText = isApproved ? "Aprovado" : "Reprovado";
+  const color = isApproved ? "#10B981" : "#EF4444";
 
-    const mailOptions = {
-        from: process.env.EMAIL_FROM,
-        to: email,
-        subject: `Feedback da Vaga: ${vacancyTitle} - Connect Skills`,
-        html: `
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to: email,
+    subject: `Feedback da Vaga: ${vacancyTitle} - Connect Skills`,
+    html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
                 <h2 style="color: #4F46E5; text-align: center;">Feedback do Processo Seletivo</h2>
                 <p style="text-align: center; color: #555;">Olá <strong>${candidateName}</strong>,</p>
@@ -258,36 +274,45 @@ export async function sendFeedbackEmail(email: string, candidateName: string, va
                     </span>
                 </div>
 
-                ${justification ? `
+                ${
+                  justification
+                    ? `
                     <div style="background-color: #f9fafb; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 20px;">
                         <p style="font-weight: bold; color: #374151; margin-bottom: 5px;">Mensagem da Empresa:</p>
                         <p style="color: #4b5563; font-style: italic;">"${justification}"</p>
                     </div>
-                ` : ''}
+                `
+                    : ""
+                }
 
                 <p style="text-align: center; font-size: 14px; color: #666; margin-top: 30px;">
                     Obrigado por utilizar o Connect Skills!
                 </p>
             </div>
         `,
-    };
+  };
 
-
-    try {
-        await transporter.sendMail(mailOptions);
-        return true;
-    } catch (error) {
-        console.error("Erro ao enviar email de feedback:", error);
-        return false;
-    }
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error("Erro ao enviar email de feedback:", error);
+    return false;
+  }
 }
 
-export async function sendVideoReceivedEmail(email: string, companyName: string, candidateName: string, vacancyTitle: string, loginLink: string) {
-    const mailOptions = {
-        from: process.env.EMAIL_FROM,
-        to: email,
-        subject: `Vídeo Recebido: ${candidateName} - Vaga: ${vacancyTitle}`,
-        html: `
+export async function sendVideoReceivedEmail(
+  email: string,
+  companyName: string,
+  candidateName: string,
+  vacancyTitle: string,
+  loginLink: string,
+) {
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to: email,
+    subject: `Vídeo Recebido: ${candidateName} - Vaga: ${vacancyTitle}`,
+    html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
                 <h2 style="color: #4F46E5; text-align: center;">Novo Vídeo Recebido</h2>
                 <p style="text-align: center; color: #555;">Olá <strong>${companyName}</strong>,</p>
@@ -309,13 +334,13 @@ export async function sendVideoReceivedEmail(email: string, companyName: string,
                 </p>
             </div>
         `,
-    };
+  };
 
-    try {
-        await transporter.sendMail(mailOptions);
-        return true;
-    } catch (error) {
-        console.error("Erro ao enviar email de vídeo recebido:", error);
-        return false;
-    }
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error("Erro ao enviar email de vídeo recebido:", error);
+    return false;
+  }
 }

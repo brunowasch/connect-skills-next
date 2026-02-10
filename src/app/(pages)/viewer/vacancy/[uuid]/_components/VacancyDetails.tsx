@@ -139,6 +139,28 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
 
     const [isStickyVisible, setIsStickyVisible] = useState(true);
     const [hasScroll, setHasScroll] = useState(false);
+    const isApplyingRef = useRef(false);
+
+    useEffect(() => {
+        const onFocus = async () => {
+            if (isApplyingRef.current) {
+                try {
+                    const res = await fetch(`/api/vacancies/${vacancy.id}/check-application`);
+                    const data = await res.json();
+                    
+                    if (data.applied) {
+                        router.refresh();
+                        isApplyingRef.current = false;
+                    }
+                } catch (error) {
+                    console.error("Error verifying application status:", error);
+                }
+            }
+        };
+
+        window.addEventListener("focus", onFocus);
+        return () => window.removeEventListener("focus", onFocus);
+    }, [vacancy.id, router]);
     const [linkCopied, setLinkCopied] = useState(false);
     const [isPending, startTransition] = useTransition();
     const [modal, setModal] = useState<ModalConfig>({
@@ -426,6 +448,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                 onConfirm: () => {
                     const assessmentUrl = `/candidate/vacancies/${vacancy.uuid}/apply`;
                     window.open(assessmentUrl, '_blank');
+                    isApplyingRef.current = true;
                     setModal(prev => ({ ...prev, isOpen: false }));
                 }
             });
@@ -459,11 +482,11 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
 
             setModal({
                 isOpen: true,
-                title: 'Confirmar Envio',
+                title: t('video_confirm_modal_title'),
                 description: (
                     <div className="space-y-4">
                         <p className="text-gray-600">
-                            Confira seu vídeo abaixo. Se estiver tudo certo, clique em "Enviar Vídeo" para finalizar.
+                            {t('video_confirm_modal_desc')}
                         </p>
                         <div className="rounded-lg overflow-hidden bg-black border border-gray-200">
                             <video 
@@ -473,11 +496,11 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                             />
                         </div>
                         <p className="text-xs text-gray-500">
-                            * Atenção: Após o envio, não será possível alterar o vídeo.
+                            {t('video_confirm_modal_warning')}
                         </p>
                     </div>
                 ),
-                confirmText: 'Enviar Vídeo',
+                confirmText: t('video_confirm_modal_btn_confirm'),
                 variant: 'info',
                 size: '2xl',
                 onConfirm: () => {
@@ -638,9 +661,9 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                             <Ban size={24} />
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-gray-900">Envio de Vídeo Não Disponível</h3>
+                                            <h3 className="font-bold text-gray-900">{t('video_upload_rejected_title')}</h3>
                                             <p className="text-sm text-gray-600 mt-1">
-                                                A empresa já enviou um feedback sobre sua candidatura. O envio de vídeo não está mais disponível.
+                                                {t('video_upload_rejected_desc')}
                                             </p>
                                         </div>
                                     </div>
@@ -652,9 +675,9 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                             <Clock size={24} />
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-gray-900">Prazo Expirado</h3>
+                                            <h3 className="font-bold text-gray-900">{t('video_upload_expired_title')}</h3>
                                             <p className="text-sm text-gray-600 mt-1">
-                                                O prazo de 1 semana para envio do vídeo expirou. Entre em contato com a empresa se necessário.
+                                                {t('video_upload_expired_desc')}
                                             </p>
                                         </div>
                                     </div>
@@ -666,13 +689,16 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                             <Video size={24} />
                                         </div>
                                         <div className="flex-1">
-                                            <h3 className="font-bold text-gray-900">Vídeo de Apresentação Solicitado</h3>
-                                            <p className="text-sm text-gray-600 mt-1">A empresa solicitou um vídeo de apresentação de até 3 minutos.</p>
+                                            <h3 className="font-bold text-gray-900">{t('video_upload_requested_title')}</h3>
+                                            <p className="text-sm text-gray-600 mt-1">{t('video_upload_requested_desc')}</p>
                                             {deadline && (
                                                 <div className="mt-2 flex items-center gap-2 text-sm">
                                                     <Clock size={14} className="text-purple-600" />
                                                     <span className="font-medium text-purple-700">
-                                                        Prazo: {daysRemaining > 0 ? `${daysRemaining} dia${daysRemaining > 1 ? 's' : ''}` : `${hoursRemaining} hora${hoursRemaining > 1 ? 's' : ''}`} restante{daysRemaining > 1 || hoursRemaining > 1 ? 's' : ''}
+                                                        {t('video_upload_deadline')} {daysRemaining > 0 
+                                                            ? t(daysRemaining === 1 ? 'video_upload_days_remaining' : 'video_upload_days_remaining_plural', { count: daysRemaining })
+                                                            : t(hoursRemaining === 1 ? 'video_upload_hours_remaining' : 'video_upload_hours_remaining_plural', { count: hoursRemaining })
+                                                        }
                                                     </span>
                                                 </div>
                                             )}
@@ -681,7 +707,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
 
                                     <div className="flex flex-col gap-3">
                                         <label className="block w-full">
-                                            <span className="sr-only">Escolher vídeo</span>
+                                            <span className="sr-only">{t('video_upload_choose_video')}</span>
                                             <div className={`
                                                     w-full flex items-center justify-center px-4 py-8 border-2 border-dashed rounded-lg cursor-pointer hover:bg-white transition-colors
                                                     ${isPending ? 'border-gray-300 bg-gray-100 cursor-not-allowed' : 'border-purple-300 bg-purple-50/50 hover:border-purple-400'}
@@ -697,15 +723,15 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                                     {isPending ? (
                                                         <div className="flex flex-col items-center gap-2">
                                                             <Loader2 size={24} className="animate-spin text-purple-600" />
-                                                            <span className="text-sm text-gray-500">Enviando vídeo... (isso pode levar alguns segundos)</span>
+                                                            <span className="text-sm text-gray-500">{t('video_upload_sending')}</span>
                                                         </div>
                                                     ) : (
                                                         <>
                                                             <div className="mx-auto w-10 h-10 mb-2 text-purple-400">
                                                                 <FileText size={40} />
                                                             </div>
-                                                            <p className="font-medium text-purple-700">Clique para enviar seu vídeo</p>
-                                                            <p className="text-xs text-gray-500 mt-1">MP4, WebM (Max 3 min, 100MB)</p>
+                                                            <p className="font-medium text-purple-700">{t('video_upload_click_to_upload')}</p>
+                                                            <p className="text-xs text-gray-500 mt-1">{t('video_upload_formats')}</p>
                                                         </>
                                                     )}
                                                 </div>
@@ -731,17 +757,17 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                         <div className={`mt-6 border p-4 rounded-lg flex items-start gap-3 ${isExpired ? 'bg-gray-50 border-gray-200' : 'bg-green-50 border-green-200'}`}>
                             <CheckCircle2 size={24} className={isExpired ? 'text-gray-600' : 'text-green-600'} />
                             <div className="flex-1">
-                                <p className={`font-semibold ${isExpired ? 'text-gray-800' : 'text-green-800'}`}>Vídeo Enviado</p>
+                                <p className={`font-semibold ${isExpired ? 'text-gray-800' : 'text-green-800'}`}>{t('video_upload_success_title')}</p>
                                 <p className={`text-sm ${isExpired ? 'text-gray-700' : 'text-green-700'}`}>
-                                    Seu vídeo foi recebido com sucesso.
+                                    {t('video_upload_success_desc')}
                                 </p>
                                 {expiresAt && (
                                     <div className="mt-2 flex items-center gap-2 text-sm">
                                         <Clock size={14} className={isExpired ? 'text-gray-600' : 'text-green-600'} />
                                         <span className={`font-medium ${isExpired ? 'text-gray-700' : 'text-green-700'}`}>
                                             {isExpired 
-                                                ? 'Vídeo expirado (disponível por 1 semana após envio)'
-                                                : `Disponível por mais ${daysRemaining} dia${daysRemaining > 1 ? 's' : ''}`
+                                                ? t('video_upload_success_expired')
+                                                : t(daysRemaining === 1 ? 'video_upload_success_available' : 'video_upload_success_available_plural', { count: daysRemaining })
                                             }
                                         </span>
                                     </div>

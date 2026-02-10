@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
-import { Hero, KPI, RecommendedVacancies, ApplicationHistory, ProfileCompletion, DashboardHeader } from "@/src/app/(pages)/candidate/(candidateApp)/dashboard/_components/index";
+import { Hero, KPI, RecommendedVacancies, ApplicationHistory, ProfileCompletion, DashboardHeader, VideoRequests } from "@/src/app/(pages)/candidate/(candidateApp)/dashboard/_components/index";
 
 export default async function Dashboard() {
     const cookieStore = await cookies();
@@ -80,6 +80,7 @@ export default async function Dashboard() {
 
     // Buscar vagas recomendadas (baseadas nas áreas de interesse)
     let recommendedVacanciesCount = 0;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let recommendedVacancies: any[] = [];
     if (areasIds.length > 0) {
         // Primeiro, buscar os IDs únicos das vagas recomendadas
@@ -210,8 +211,11 @@ export default async function Dashboard() {
     }
 
     // Buscar dados completos das vagas aplicadas
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let appliedVacancies: any[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let appliedVagas: any[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let appliedEmpresas: any[] = [];
     
     if (appliedVacanciesData.length > 0) {
@@ -296,12 +300,15 @@ export default async function Dashboard() {
             const applicationData = appliedVacanciesData.find((av: any) => av.vaga_id === vaga.id);
 
             let videoStatus = null;
+            let videoDeadline = null;
             try {
                 if (applicationData?.breakdown) {
-                    const breakdown = JSON.parse(applicationData.breakdown);
+                    const breakdown = typeof applicationData.breakdown === 'string' ? JSON.parse(applicationData.breakdown) : applicationData.breakdown;
                     videoStatus = breakdown?.video?.status || null;
+                    videoDeadline = breakdown?.video?.deadline || null;
                 }
             } catch (e) {
+                console.error("Error parsing breakdown", e);
             }
 
             return {
@@ -322,18 +329,29 @@ export default async function Dashboard() {
                 vaga_area: vagaAreasData,
                 created_at: applicationData?.created_at,
                 videoStatus,
+                videoDeadline,
             };
         });
     }
-    // Buscar vagas recomendadas
-    
-    // ... (existing logic for other things)
+
+    // Filtrar solicitações de vídeo pendentes
+    const videoRequests = appliedVacancies
+        .filter((app: any) => app.videoStatus === 'requested')
+        .map((app: any) => ({
+            id: app.id,
+            uuid: app.uuid,
+            cargo: app.cargo,
+            empresa: app.empresa,
+            deadline: app.videoDeadline,
+            action: 'upload_video'
+        }));
 
     return (
         <>
             <DashboardHeader />
             <Hero candidato={candidate} />
             <ProfileCompletion candidato={candidate} usuario={userId} areas={areas} />
+            <VideoRequests requests={videoRequests} />
             <KPI
                 recommendedVacanciesCount={recommendedVacanciesCount}
                 appliedVacanciesCount={appliedVacanciesCount}
@@ -346,4 +364,4 @@ export default async function Dashboard() {
             </div>
         </>
     );
-}   
+}

@@ -70,14 +70,42 @@ export default async function CandidatePublicProfilePage({ params }: { params: P
     const contato = { ddi, ddd, numero };
 
     const links = candidate.candidato_link.map((l: any) => ({ id: l.id, label: l.label, url: l.url, ordem: l.ordem }));
-    const anexos = candidate.candidato_arquivo.map((a: any) => ({
-        id: a.id,
-        nome: a.nome,
-        url: a.url,
-        mime: a.mime,
-        tamanho: a.tamanho,
-        criadoEm: a.criadoEm.toISOString(),
-    }));
+
+    // Buscar avaliações para filtrar anexos de vagas
+    const applications = await prisma.vaga_avaliacao.findMany({
+        where: {
+            candidato_id: candidate.id
+        },
+        select: {
+            breakdown: true
+        }
+    });
+
+    const vacancyFileIds = new Set<string>();
+    
+    applications.forEach(app => {
+        try {
+            if (app.breakdown) {
+                const breakdown = JSON.parse(app.breakdown);
+                if (breakdown?.video?.fileId) {
+                    vacancyFileIds.add(breakdown.video.fileId);
+                }
+            }
+        } catch (e) {
+            console.error('Error parsing breakdown:', e);
+        }
+    });
+
+    const anexos = candidate.candidato_arquivo
+        .filter((a: any) => !vacancyFileIds.has(a.id))
+        .map((a: any) => ({
+            id: a.id,
+            nome: a.nome,
+            url: a.url,
+            mime: a.mime,
+            tamanho: a.tamanho,
+            criadoEm: a.criadoEm.toISOString(),
+        }));
 
     // Serialize object to avoid server component errors with Date objects
     const candidateSerialized = JSON.parse(JSON.stringify(candidate));

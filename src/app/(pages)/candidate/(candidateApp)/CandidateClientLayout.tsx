@@ -63,12 +63,8 @@ export default function CandidateLayout({
 
                         {/* Language Switcher e Notificações */}
                         <div className="flex items-center gap-4">
-                            {pathname === '/candidate/dashboard' && (
-                                <>
-                                    <NotificationDropdown notifications={notifications} />
-                                    <div className="h-6 w-px bg-gray-200" />
-                                </>
-                            )}
+                            <NotificationDropdown notifications={notifications} />
+                            <div className="h-6 w-px bg-gray-200" />
                             <LanguageSwitcher />
                         </div>
                     </header>
