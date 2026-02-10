@@ -25,6 +25,11 @@ export default async function Layout({ children }: { children: React.ReactNode }
         redirect("/login");
     }
 
+    const normalizedType = user.tipo.toUpperCase();
+    if (normalizedType === 'EMPRESA') {
+        redirect("/company/dashboard");
+    }
+
     const candidato = user.candidato;
     if (!candidato) {
         redirect("/candidate/register");

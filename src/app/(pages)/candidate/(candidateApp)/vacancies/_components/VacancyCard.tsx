@@ -47,11 +47,15 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
     const displayCidade = inclusivity?.cidade || vaga.empresa?.cidade;
     const displayEstado = inclusivity?.estado || vaga.empresa?.estado;
 
+    const isRejected = vaga.feedbackStatus === 'REJECTED';
+
     return (
         <Link
             href={`/viewer/vacancy/${vaga.uuid}`}
-            className={`group bg-white rounded-xl shadow-sm border ${vaga.isNear ? 'border-blue-300 ring-2 ring-blue-500/5' : 'border-gray-100'} 
-                hover:shadow-md transition-all hover:border-blue-400 active:scale-[0.98]
+            className={`group bg-white rounded-xl shadow-sm border 
+                ${vaga.isNear ? 'border-blue-300 ring-2 ring-blue-500/5' : 'border-gray-100'} 
+                ${isRejected ? 'opacity-60 hover:opacity-100 grayscale hover:grayscale-0' : 'hover:shadow-md hover:border-blue-400'}
+                transition-all active:scale-[0.98]
                 flex flex-col h-full block relative min-w-0 overflow-hidden`}
         >
             {vaga.isNear && (
@@ -71,7 +75,7 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
                                 src={vaga.empresa.foto_perfil}
                                 width={40}
                                 height={40}
-                                className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg object-cover border border-gray-100"
+                                className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg object-cover border border-gray-100 ${isRejected ? 'grayscale' : ''}`}
                                 alt="Logo"
                             />
                         ) : (

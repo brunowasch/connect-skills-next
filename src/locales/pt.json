@@ -199,6 +199,7 @@
     "management_close": "Fechar vaga",
     "management_delete": "Excluir vaga",
     "modal_apply_title": "Confirmar Candidatura",
+    "all": "Todos",
     "modal_apply_desc_prefix": "Você está prestes a se candidatar para a vaga de",
     "modal_apply_rules_title": "Regras da Avaliação:",
     "modal_apply_rule_1": "Uma nova guia será aberta para o teste.",

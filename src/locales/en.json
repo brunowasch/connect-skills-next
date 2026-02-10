@@ -295,6 +295,7 @@
     "pending": "Pending",
     "approved": "Approved",
     "rejected": "Rejected",
+    "all": "All",
     "vacancies_title": "Find Jobs",
     "vacancies_subtitle": "Explore opportunities that match your profile.",
     "search_placeholder": "Search by position or company...",

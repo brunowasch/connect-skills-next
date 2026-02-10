@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { SearchFilters } from "./SearchFilters";
 import { VacancyTabs } from "./VacancyTabs";
@@ -31,6 +32,7 @@ export function VacanciesClientContent({
     appliedCount
 }: VacanciesClientContentProps) {
     const { t } = useTranslation();
+    const [historyFilter, setHistoryFilter] = useState<'ALL' | 'APPROVED' | 'REJECTED'>('ALL');
 
     const getTitle = () => {
         if (isHistory) return isSearch ? t("search_applications") : t("your_applied_vacancies");
@@ -53,6 +55,26 @@ export function VacanciesClientContent({
         if (isSearch) return t("no_vacancies_found_search");
         return t("no_recommended_vacancies");
     };
+
+    let filteredVagas = [...vagas];
+    if (isHistory) {
+        if (historyFilter === 'APPROVED') {
+            filteredVagas = filteredVagas.filter(v => v.feedbackStatus === 'APPROVED');
+        } else if (historyFilter === 'REJECTED') {
+            filteredVagas = filteredVagas.filter(v => v.feedbackStatus === 'REJECTED');
+        }
+        
+        // Sort rejected to bottom only when showing ALL
+        if (historyFilter === 'ALL') {
+            filteredVagas.sort((a, b) => {
+                const isRejectedA = a.feedbackStatus === 'REJECTED';
+                const isRejectedB = b.feedbackStatus === 'REJECTED';
+                if (isRejectedA && !isRejectedB) return 1;
+                if (!isRejectedA && isRejectedB) return -1;
+                return 0;
+            });
+        }
+    }
 
     return (
         <main className="w-full min-w-0 overflow-hidden py-2 sm:py-4 md:py-6">
@@ -98,11 +120,47 @@ export function VacanciesClientContent({
                     </p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 w-full overflow-hidden">
-                    {vagas.map((vaga) => (
-                        <VacancyCard key={vaga.id} vaga={vaga} />
-                    ))}
-                </div>
+                <>
+                    {isHistory && (
+                        <div className="flex gap-2 mb-4 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide">
+                            <button
+                                onClick={() => setHistoryFilter('ALL')}
+                                className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap cursor-pointer
+                                    ${historyFilter === 'ALL' 
+                                        ? 'bg-blue-100 text-blue-700 border border-blue-200' 
+                                        : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
+                            >
+                                {t("all")}
+                            </button>
+                            <button
+                                onClick={() => setHistoryFilter('APPROVED')}
+                                className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-1.5 cursor-pointer
+                                    ${historyFilter === 'APPROVED' 
+                                        ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' 
+                                        : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
+                            >
+                                <span className={`w-2 h-2 rounded-full ${historyFilter === 'APPROVED' ? 'bg-emerald-500' : 'bg-emerald-400'}`}></span>
+                                {t("approved")}
+                            </button>
+                            <button
+                                onClick={() => setHistoryFilter('REJECTED')}
+                                className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-1.5 cursor-pointer
+                                    ${historyFilter === 'REJECTED' 
+                                        ? 'bg-red-100 text-red-700 border border-red-200' 
+                                        : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
+                            >
+                                <span className={`w-2 h-2 rounded-full ${historyFilter === 'REJECTED' ? 'bg-red-500' : 'bg-red-400'}`}></span>
+                                {t("rejected")}
+                            </button>
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 w-full overflow-hidden">
+                        {filteredVagas.map((vaga) => (
+                            <VacancyCard key={vaga.id} vaga={vaga} />
+                        ))}
+                    </div>
+                </>
             )}
         </main>
     );
