@@ -1,3 +1,4 @@
+// Client-side content for the ranking page
 "use client";
 
 import { ArrowLeft } from "lucide-react";
@@ -11,10 +12,10 @@ interface RankingPageContentProps {
         cargo: string;
     } | null;
     candidates?: any[];
-    vacancyId?: string;
+    vacancyUuid?: string;
 }
 
-export function RankingPageContent({ state, vacancy, candidates, vacancyId }: RankingPageContentProps) {
+export function RankingPageContent({ state, vacancy, candidates, vacancyUuid }: RankingPageContentProps) {
     const { t } = useTranslation();
 
     const renderContent = () => {
@@ -44,7 +45,7 @@ export function RankingPageContent({ state, vacancy, candidates, vacancyId }: Ra
                         <p className="text-gray-500">{t('ranking_subtitle')}</p>
                     </div>
                 </div>
-                {candidates && vacancyId && <RankingList candidates={candidates} vacancyId={vacancyId} />}
+                {candidates && vacancyUuid && <RankingList candidates={candidates} vacancyUuid={vacancyUuid} />}
             </>
         );
     };

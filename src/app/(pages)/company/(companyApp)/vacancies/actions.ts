@@ -5,32 +5,48 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
 import { sendVideoRequestEmail, sendFeedbackEmail } from "@/src/lib/mail";
 
-export async function selectVacancyForRanking(vacancyId: string) {
+export async function selectVacancyForRanking(vacancyUuid: string) {
     const cookieStore = await cookies();
-    cookieStore.set("vacancy_ranking_id", vacancyId, {
+    cookieStore.set("vacancy_ranking_uuid", vacancyUuid, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         maxAge: 60 * 60, // 1 hour
         path: "/",
     });
 
-    redirect("/company/vacancies/ranking");
+    redirect(`/company/vacancies/${vacancyUuid}/ranking`);
 }
 
-export async function selectVacancyForEditing(vacancyId: string) {
+export async function selectVacancyForEditing(vacancyUuid: string) {
     const cookieStore = await cookies();
-    cookieStore.set("editing_vacancy_id", vacancyId, {
+    cookieStore.set("editing_vacancy_uuid", vacancyUuid, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         maxAge: 60 * 60, // 1 hour
         path: "/",
     });
 
-    redirect("/company/vacancies/edit");
+    redirect(`/company/vacancies/${vacancyUuid}/edit`);
 }
 
-export async function requestVideo(candidateId: string, vacancyId: string) {
+export async function requestVideo(candidateId: string, vacancyUuid: string) {
     try {
+        // Fetch vacancy ID from UUID
+        const vacancy = await prisma.vaga.findFirst({
+            where: {
+                OR: [
+                    { uuid: vacancyUuid },
+                    { id: vacancyUuid }
+                ]
+            }
+        });
+
+        if (!vacancy) {
+            throw new Error("Vaga não encontrada");
+        }
+
+        const vacancyId = vacancy.id;
+
         // 1. Fetch application to get current breakdown
         const application = await prisma.vaga_avaliacao.findUnique({
             where: {
@@ -51,11 +67,7 @@ export async function requestVideo(candidateId: string, vacancyId: string) {
             include: { usuario: true }
         });
 
-        const vacancy = await prisma.vaga.findUnique({
-            where: { id: vacancyId }
-        });
-
-        if (!candidate || !vacancy || !candidate.usuario) {
+        if (!candidate || !candidate.usuario) {
             throw new Error("Dados incompletos");
         }
 
@@ -109,8 +121,22 @@ export async function requestVideo(candidateId: string, vacancyId: string) {
     }
 }
 
-export async function submitFeedback(candidateId: string, vacancyId: string, status: 'APPROVED' | 'REJECTED', justification: string) {
+export async function submitFeedback(candidateId: string, vacancyUuid: string, status: 'APPROVED' | 'REJECTED', justification: string) {
     try {
+        // Fetch vacancy ID from UUID
+        const vacancy = await prisma.vaga.findFirst({
+            where: {
+                OR: [
+                    { uuid: vacancyUuid },
+                    { id: vacancyUuid }
+                ]
+            }
+        });
+
+        if (!vacancy) throw new Error("Vaga não encontrada");
+
+        const vacancyId = vacancy.id;
+
         const application = await prisma.vaga_avaliacao.findUnique({
             where: {
                 vaga_id_candidato_id: {
@@ -151,9 +177,8 @@ export async function submitFeedback(candidateId: string, vacancyId: string, sta
                 where: { id: candidateId },
                 include: { usuario: true }
             });
-            const vacancy = await prisma.vaga.findUnique({ where: { id: vacancyId } });
 
-        if (candidate?.usuario?.email && vacancy) {
+            if (candidate?.usuario?.email && vacancy) {
                 await sendFeedbackEmail(
                     candidate.usuario.email,
                     candidate.nome || "Candidato",

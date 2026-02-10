@@ -40,7 +40,7 @@ interface VacancyFormProps {
     areas: Area[];
     softSkills: SoftSkill[];
     initialData?: any;
-    vacancyId?: string;
+    vacancyUuid?: string;
     companyProfile?: {
         cidade: string | null;
         estado: string | null;
@@ -48,14 +48,14 @@ interface VacancyFormProps {
     } | null;
 }
 
-export function VacancyForm({ areas, softSkills, initialData, vacancyId, companyProfile }: VacancyFormProps) {
+export function VacancyForm({ areas, softSkills, initialData, vacancyUuid, companyProfile }: VacancyFormProps) {
     const { t } = useTranslation();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [isAIModalOpen, setIsAIModalOpen] = useState(false);
     const [searchArea, setSearchArea] = useState("");
     const [searchSoftSkill, setSearchSoftSkill] = useState("");
-    const isEdit = !!vacancyId;
+    const isEdit = !!vacancyUuid;
 
     let existingOptions: any = {};
     try {
@@ -422,7 +422,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyId, company
                 return;
             }
 
-            const url = isEdit ? `/api/vacancies/${vacancyId}` : "/api/vacancies";
+            const url = isEdit ? `/api/vacancies/${vacancyUuid}` : "/api/vacancies";
             const method = isEdit ? "PUT" : "POST";
 
             const payload = {

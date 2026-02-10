@@ -41,17 +41,19 @@ export function VacanciesList({ initialVacancies }: { initialVacancies: any[] })
         setSelectedIds([]);
     };
 
-    const toggleSelectVacancy = (id: string) => {
+    const toggleSelectVacancy = (uuid: string) => {
+        if (!uuid) return;
         setSelectedIds(prev =>
-            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+            prev.includes(uuid) ? prev.filter(i => i !== uuid) : [...prev, uuid]
         );
     };
 
     const selectAll = () => {
-        if (selectedIds.length === initialVacancies.length) {
+        const selectables = initialVacancies.map(v => v.uuid).filter(Boolean) as string[];
+        if (selectedIds.length === selectables.length) {
             setSelectedIds([]);
         } else {
-            setSelectedIds(initialVacancies.map(v => v.id));
+            setSelectedIds(selectables);
         }
     };
 
@@ -161,8 +163,8 @@ export function VacanciesList({ initialVacancies }: { initialVacancies: any[] })
                             onClick={selectAll}
                             className="flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-800 cursor-pointer"
                         >
-                            {selectedIds.length === initialVacancies.length ? <CheckSquare size={18} /> : <Square size={18} />}
-                            {selectedIds.length === initialVacancies.length ? t('deselect_all') : t('select_all')}
+                            {selectedIds.length > 0 && selectedIds.length === initialVacancies.filter(v => v.uuid).length ? <CheckSquare size={18} /> : <Square size={18} />}
+                            {selectedIds.length > 0 && selectedIds.length === initialVacancies.filter(v => v.uuid).length ? t('deselect_all') : t('select_all')}
                         </button>
                         <span className="text-sm text-blue-600 font-medium">
                             {selectedIds.length} {selectedIds.length !== 1 ? t('selected_plural') : t('selected')}
@@ -202,17 +204,17 @@ export function VacanciesList({ initialVacancies }: { initialVacancies: any[] })
                     <div key={vacancy.id} className="relative group">
                         {isSelectionMode && (
                             <div
-                                onClick={() => toggleSelectVacancy(vacancy.id)}
-                                className={`absolute inset-0 z-10 rounded-xl cursor-pointer transition-all border-2 ${selectedIds.includes(vacancy.id)
+                                onClick={() => vacancy.uuid && toggleSelectVacancy(vacancy.uuid)}
+                                className={`absolute inset-0 z-10 rounded-xl cursor-pointer transition-all border-2 ${vacancy.uuid && selectedIds.includes(vacancy.uuid)
                                     ? 'bg-blue-600/5 border-blue-600'
                                     : 'bg-white/40 border-transparent hover:border-blue-200'
                                     }`}
                             >
-                                <div className={`absolute top-4 right-4 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${selectedIds.includes(vacancy.id)
+                                <div className={`absolute top-4 right-4 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${vacancy.uuid && selectedIds.includes(vacancy.uuid)
                                     ? 'bg-blue-600 border-blue-600 text-white'
                                     : 'bg-white border-gray-300'
                                     }`}>
-                                    {selectedIds.includes(vacancy.id) && <Check size={16} />}
+                                    {vacancy.uuid && selectedIds.includes(vacancy.uuid) && <Check size={16} />}
                                 </div>
                             </div>
                         )}

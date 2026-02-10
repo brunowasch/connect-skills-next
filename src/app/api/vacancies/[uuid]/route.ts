@@ -4,11 +4,11 @@ import { cookies } from "next/headers";
 import { randomUUID } from "crypto";
 import { uploadToCloudinary } from "@/src/lib/cloudinary";
 
-export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ uuid: string }> }) {
     try {
         const cookieStore = await cookies();
         const userId = cookieStore.get("time_user_id")?.value;
-        const { id } = await params;
+        const { uuid } = await params;
 
         if (!userId) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -20,14 +20,21 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
         if (!company) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-        // Verify ownership
-        const existingVacancy = await prisma.vaga.findFirst({
-            where: { id, empresa_id: company.id }
+        // Verify ownership and get ID
+        const vacancy = await prisma.vaga.findFirst({
+            where: {
+                OR: [
+                    { uuid: uuid },
+                    { id: uuid }
+                ]
+            }
         });
 
-        if (!existingVacancy) {
+        if (!vacancy || vacancy.empresa_id !== company.id) {
             return NextResponse.json({ error: "Not found" }, { status: 404 });
         }
+
+        const id = vacancy.id;
 
         const data = await request.json();
 
@@ -143,11 +150,11 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
 }
 
-export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ uuid: string }> }) {
     try {
         const cookieStore = await cookies();
         const userId = cookieStore.get("time_user_id")?.value;
-        const { id } = await params;
+        const { uuid } = await params;
 
         if (!userId) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -159,13 +166,20 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
         if (!company) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-        const existingVacancy = await prisma.vaga.findFirst({
-            where: { id, empresa_id: company.id }
+        const vacancy = await prisma.vaga.findFirst({
+            where: {
+                OR: [
+                    { uuid: uuid },
+                    { id: uuid }
+                ]
+            }
         });
 
-        if (!existingVacancy) {
+        if (!vacancy || vacancy.empresa_id !== company.id) {
             return NextResponse.json({ error: "Not found" }, { status: 404 });
         }
+
+        const id = vacancy.id;
 
         await prisma.$transaction(async (tx) => {
             // Delete relations first

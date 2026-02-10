@@ -7,7 +7,7 @@ import { AnalysisModal } from "./AnalysisModal";
 import { VideoModal } from "./VideoModal";
 import { FeedbackModal } from "./FeedbackModal";
 import { useTranslation } from "react-i18next";
-import { requestVideo, submitFeedback } from "../../actions";
+import { requestVideo, submitFeedback } from "../../../actions";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -36,12 +36,12 @@ interface Candidate {
 
 interface RankingListProps {
     candidates: Candidate[];
-    vacancyId: string;
+    vacancyUuid: string;
 }
 
 type SortOption = 'score' | 'score_D' | 'score_I' | 'score_S' | 'score_C';
 
-export function RankingList({ candidates, vacancyId }: RankingListProps) {
+export function RankingList({ candidates, vacancyUuid }: RankingListProps) {
     const { t } = useTranslation();
     const [sortBy, setSortBy] = useState<SortOption>('score');
     const [filter, setFilter] = useState<'all' | 'approved' | 'rejected'>('all');
@@ -141,7 +141,7 @@ export function RankingList({ candidates, vacancyId }: RankingListProps) {
 
     const handleFeedbackSubmit = async (status: 'APPROVED' | 'REJECTED', justification: string) => {
         if (!feedbackCandidate) return;
-        await submitFeedback(feedbackCandidate, vacancyId, status, justification);
+        await submitFeedback(feedbackCandidate, vacancyUuid, status, justification);
         router.refresh();
     };
 
@@ -149,7 +149,7 @@ export function RankingList({ candidates, vacancyId }: RankingListProps) {
         if (!videoRequestCandidate) return;
 
         startTransition(async () => {
-            const result = await requestVideo(videoRequestCandidate, vacancyId);
+            const result = await requestVideo(videoRequestCandidate, vacancyUuid);
             if (result.success) {
                 toast.success(t('ranking_video_request_success'));
                 router.refresh();
@@ -413,7 +413,7 @@ export function RankingList({ candidates, vacancyId }: RankingListProps) {
                             return `${candidate?.nome || ''} ${candidate?.sobrenome || ''}`.trim();
                         })()}
                         candidateId={feedbackCandidate}
-                        vacancyId={vacancyId}
+
                         onSubmit={handleFeedbackSubmit}
                         aiSuggestions={(() => {
                             const candidate = sortedCandidates.find(c => c.id === feedbackCandidate);

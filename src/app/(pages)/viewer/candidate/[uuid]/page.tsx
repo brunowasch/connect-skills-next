@@ -82,7 +82,7 @@ export default async function CandidatePublicProfilePage({ params }: { params: P
     });
 
     const vacancyFileIds = new Set<string>();
-    
+
     applications.forEach(app => {
         try {
             if (app.breakdown) {
@@ -97,7 +97,7 @@ export default async function CandidatePublicProfilePage({ params }: { params: P
     });
 
     const anexos = candidate.candidato_arquivo
-        .filter((a: any) => !vacancyFileIds.has(a.id))
+        .filter((a: any) => !vacancyFileIds.has(a.id) && !a.nome.startsWith(`${candidate.nome} ${candidate.sobrenome}-${Date.now()}-Video.mp4`))
         .map((a: any) => ({
             id: a.id,
             nome: a.nome,

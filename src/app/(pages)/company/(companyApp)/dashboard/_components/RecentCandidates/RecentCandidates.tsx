@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useTransition } from 'react';
-import Link from 'next/link';
-import { Users, ChevronRight, Calendar, Star } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Users, ChevronRight, Calendar, Star, Camera, Check } from 'lucide-react';
 import { RecentCandidatesProps } from '@/src/app/(pages)/company/(companyApp)/types/Application';
 import { useTranslation } from "react-i18next";
-import { selectVacancyForRanking } from '@/src/app/(pages)/company/(companyApp)/vacancies/actions';
 
 export function RecentCandidates({ applications }: RecentCandidatesProps) {
     const { t, i18n } = useTranslation();
+    const router = useRouter();
     const [isPending, startTransition] = useTransition();
 
     if (applications.length === 0) {
@@ -77,12 +77,14 @@ export function RecentCandidates({ applications }: RecentCandidatesProps) {
                                 <div className="flex items-center gap-2">
                                     {app.videoStatus === 'requested' && (
                                         <span className="flex items-center gap-1 text-[10px] font-bold bg-purple-50 text-purple-600 px-2 py-0.5 rounded-full border border-purple-100">
-                                            📹 Solicitado
+                                            <Camera size={10} className="mr-1" />
+                                            Solicitado
                                         </span>
                                     )}
                                     {app.videoStatus === 'submitted' && (
                                         <span className="flex items-center gap-1 text-[10px] font-bold bg-green-50 text-green-600 px-2 py-0.5 rounded-full border border-green-100">
-                                            ✓ Vídeo Enviado
+                                            <Check size={10} className="mr-1" />
+                                            Vídeo Enviado
                                         </span>
                                     )}
                                     {app.score !== undefined && app.score > 0 && (
@@ -96,7 +98,7 @@ export function RecentCandidates({ applications }: RecentCandidatesProps) {
                         </div>
 
                         <button
-                            onClick={() => startTransition(() => selectVacancyForRanking(app.vacancyId))}
+                            onClick={() => startTransition(() => router.push(`/company/vacancies/${app.vacancyId}/ranking`))}
                             disabled={isPending}
                             className={`text-slate-300 hover:text-indigo-600 p-2 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer ${isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >

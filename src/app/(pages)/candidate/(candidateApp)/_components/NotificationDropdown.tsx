@@ -8,6 +8,7 @@ import { FeedbackModal } from './FeedbackModal';
 import { useRouter } from 'next/navigation';
 
 import { Notification } from "@/src/lib/notifications";
+import { AllNotificationsModal } from './AllNotificationsModal';
 
 interface NotificationDropdownProps {
     notifications: Notification[];
@@ -16,6 +17,7 @@ interface NotificationDropdownProps {
 export function NotificationDropdown({ notifications: initialNotifications }: NotificationDropdownProps) {
     const { t, i18n } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
+    const [isAllNotificationsOpen, setIsAllNotificationsOpen] = useState(false);
     const [notifications, setNotifications] = useState(initialNotifications);
     const [feedbackModal, setFeedbackModal] = useState<{
         isOpen: boolean;
@@ -176,7 +178,7 @@ export function NotificationDropdown({ notifications: initialNotifications }: No
         if (notification.type === 'video_request') {
             return t('notifications.types.video_request.message');
         }
-        
+
         // Se a mensagem for exatamente igual à mensagem padrão em PT (hardcoded no backend),
         // assumimos que é uma mensagem padrão e traduzimos.
         // Se for diferente, é uma mensagem personalizada (justificativa) e mostramos como está.
@@ -186,11 +188,11 @@ export function NotificationDropdown({ notifications: initialNotifications }: No
         };
 
         if (notification.type === 'feedback_approved' && notification.message === defaultMessagesPT['feedback_approved']) {
-             return t('notifications.types.feedback_approved.default_message');
+            return t('notifications.types.feedback_approved.default_message');
         }
 
         if (notification.type === 'feedback_rejected' && notification.message === defaultMessagesPT['feedback_rejected']) {
-             return t('notifications.types.feedback_rejected.default_message');
+            return t('notifications.types.feedback_rejected.default_message');
         }
 
         return notification.message;
@@ -252,14 +254,13 @@ export function NotificationDropdown({ notifications: initialNotifications }: No
                                     {notifications.slice(0, 5).map((notification) => (
                                         <div
                                             key={notification.id}
-                                            className={`group relative p-4 hover:bg-slate-50 transition-colors duration-150 ${
-                                                !notification.read ? 'bg-blue-50/30' : ''
-                                            }`}
+                                            className={`group relative p-4 hover:bg-slate-50 transition-colors duration-150 ${!notification.read ? 'bg-blue-50/30' : ''
+                                                }`}
                                         >
                                             {/* Delete X Button */}
                                             <button
                                                 onClick={(e) => handleDelete(notification.id, e)}
-                                                className="absolute top-2 right-2 p-1 text-slate-400 hover:text-red-500 hover:bg-slate-100 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200"
+                                                className="absolute top-2 right-2 p-1 text-slate-400 hover:text-red-500 hover:bg-slate-100 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer"
                                                 title={t('notifications.delete')}
                                             >
                                                 <X size={14} />
@@ -341,7 +342,10 @@ export function NotificationDropdown({ notifications: initialNotifications }: No
                         {notifications.length > 0 && (
                             <div className="p-3 border-t border-slate-100 bg-slate-50">
                                 <button
-                                    onClick={() => setIsOpen(false)}
+                                    onClick={() => {
+                                        setIsOpen(false);
+                                        setIsAllNotificationsOpen(true);
+                                    }}
                                     className="w-full text-center text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors cursor-pointer"
                                 >
                                     {t('notifications.view_all')}
@@ -368,6 +372,19 @@ export function NotificationDropdown({ notifications: initialNotifications }: No
                     }
                 `}</style>
             </div>
+
+            <AllNotificationsModal
+                isOpen={isAllNotificationsOpen}
+                onClose={() => setIsAllNotificationsOpen(false)}
+                notifications={notifications}
+                onMarkAsRead={handleMarkAsRead}
+                onDelete={handleDelete}
+                onClearAll={handleClearAll}
+                onNotificationClick={(n, e) => {
+                    handleNotificationClick(n, e);
+                    setIsAllNotificationsOpen(false);
+                }}
+            />
 
             {/* Feedback Modal */}
             <FeedbackModal

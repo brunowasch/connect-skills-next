@@ -161,7 +161,7 @@ export default async function Dashboard() {
         }),
         prisma.vaga.findMany({
             where: { id: { in: appVacancyIds } },
-            select: { id: true, cargo: true }
+            select: { id: true, cargo: true, uuid: true }
         })
     ]);
 
@@ -190,7 +190,7 @@ export default async function Dashboard() {
             date: app.created_at,
             score: app.score,
             candidateId: app.candidato_id,
-            vacancyId: app.vaga_id,
+            vacancyId: vacancy?.uuid || app.vaga_id,
             videoStatus
         };
     });

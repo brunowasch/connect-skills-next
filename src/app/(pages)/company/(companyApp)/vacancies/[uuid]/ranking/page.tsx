@@ -1,27 +1,32 @@
+
 import { prisma } from "@/src/lib/prisma";
-import { cookies } from "next/headers";
 import { RankingPageContent } from "./_components/RankingPageContent";
 
-export default async function RankingPage({
-    searchParams
-}: {
-    searchParams: Promise<{ [key: string]: string | undefined }>
-}) {
-    const params = await searchParams;
-    const cookieStore = await cookies();
-    const vacancyId = params?.id || cookieStore.get("vacancy_ranking_id")?.value;
+interface Props {
+    params: Promise<{ uuid: string }>;
+}
 
-    if (!vacancyId) {
+export default async function RankingPage({ params }: Props) {
+    const { uuid: vacancyUuid } = await params;
+
+    if (!vacancyUuid) {
         return <RankingPageContent state="no_selection" />;
     }
 
-    const vacancy = await prisma.vaga.findUnique({
-        where: { id: vacancyId },
+    const vacancy = await prisma.vaga.findFirst({
+        where: {
+            OR: [
+                { uuid: vacancyUuid },
+                { id: vacancyUuid }
+            ]
+        },
     });
 
     if (!vacancy) {
         return <RankingPageContent state="not_found" />;
     }
+
+    const vacancyId = vacancy.id;
 
     const applications = await prisma.vaga_avaliacao.findMany({
         where: { vaga_id: vacancyId },
@@ -58,7 +63,7 @@ export default async function RankingPage({
             state="success"
             vacancy={{ cargo: vacancy.cargo }}
             candidates={candidatesWithApp}
-            vacancyId={vacancyId}
+            vacancyUuid={vacancyUuid}
         />
     );
 }

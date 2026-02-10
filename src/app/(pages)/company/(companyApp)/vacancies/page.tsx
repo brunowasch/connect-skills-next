@@ -58,6 +58,7 @@ export default async function VacanciesPage() {
 
         return {
             ...vacancy,
+            uuid: vacancy.uuid || vacancy.id,
             status,
             _count: {
                 vaga_avaliacao: count

@@ -3,11 +3,11 @@ import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
 import { randomUUID } from "crypto";
 
-export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(request: Request, { params }: { params: Promise<{ uuid: string }> }) {
     try {
         const cookieStore = await cookies();
         const userId = cookieStore.get("time_user_id")?.value;
-        const { id } = await params; // Vaga ID
+        const { uuid } = await params; // Vaga UUID
 
         if (!userId) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -18,6 +18,21 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         });
 
         if (!company) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+        const vacancy = await prisma.vaga.findFirst({
+            where: {
+                OR: [
+                    { uuid: uuid },
+                    { id: uuid }
+                ]
+            }
+        });
+
+        if (!vacancy || vacancy.empresa_id !== company.id) {
+            return NextResponse.json({ error: "Vaga não encontrada" }, { status: 404 });
+        }
+
+        const id = vacancy.id;
 
         const body = await request.json();
         const { situacao } = body;

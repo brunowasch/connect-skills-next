@@ -11,9 +11,10 @@ interface CandidatesPageContentProps {
         cargo: string;
     } | null;
     candidates?: any[];
+    vacancyUuid?: string;
 }
 
-export function CandidatesPageContent({ state, vacancy, candidates }: CandidatesPageContentProps) {
+export function CandidatesPageContent({ state, vacancy, candidates, vacancyUuid }: CandidatesPageContentProps) {
     const { t } = useTranslation();
 
     if (state === 'access_denied') {
@@ -26,6 +27,7 @@ export function CandidatesPageContent({ state, vacancy, candidates }: Candidates
             </div>
         );
     }
+
 
     if (state === 'not_found') {
         return (
@@ -98,7 +100,7 @@ export function CandidatesPageContent({ state, vacancy, candidates }: Candidates
                                     </div>
 
                                     <div className="flex flex-col items-end gap-2 shrink-0">
-                                        <div className="text-xs text-gray-400">{t('candidates_page_applied_on')} {new Date(candidate.application.created_at).toLocaleDateString('pt-BR')}</div>
+                                        <div className="text-xs text-gray-400">{t('candidates_page_applied_on')} {candidate.application?.created_at ? new Date(candidate.application.created_at).toLocaleDateString('pt-BR') : '---'}</div>
                                         <div className="flex flex-col items-end">
                                             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{t('candidates_page_match_score')}</span>
                                             <div className="inline-flex items-center px-4 py-1.5 rounded-full text-lg font-black bg-blue-600 text-white shadow-lg shadow-blue-100">
@@ -121,7 +123,7 @@ export function CandidatesPageContent({ state, vacancy, candidates }: Candidates
                                     </div>
                                 )}
 
-                                <ApplicationDetails application={candidate.application} />
+                                <ApplicationDetails application={candidate.application} vacancyUuid={vacancyUuid} />
                             </div>
                         </div>
                     ))}

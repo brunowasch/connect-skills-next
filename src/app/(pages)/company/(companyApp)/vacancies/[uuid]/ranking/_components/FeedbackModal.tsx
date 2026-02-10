@@ -10,7 +10,7 @@ interface FeedbackModalProps {
     onClose: () => void;
     candidateName: string;
     candidateId: string;
-    vacancyId: string;
+
     onSubmit: (status: 'APPROVED' | 'REJECTED', justification: string) => Promise<void>;
     aiSuggestions?: string | string[];
 }
@@ -62,7 +62,7 @@ export function FeedbackModal({ isOpen, onClose, candidateName, onSubmit, aiSugg
 
         setJustification(prev => {
             const separator = prev ? '\n\n' : '';
-            return `${prev}${separator}${t('feedback_ai_suggestion_intro', 'Sugestões de melhoria identificadas pela IA:')}\n${formattedText}`;
+            return `${prev}${separator}${t('feedback_ai_suggestion_intro', 'Sugestões de melhoria:')}\n${formattedText}`;
         });
     };
 

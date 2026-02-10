@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { selectVacancyForRanking, selectVacancyForEditing } from "../actions";
 import { AlertCircle, X, Lock, Unlock, Ban, Eye, Edit, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -75,7 +74,7 @@ export function CompanyVacancyCard({
             onConfirm: async () => {
                 setIsUpdating(true);
                 try {
-                    const res = await fetch(`/api/vacancies/${vacancy.id}/status`, {
+                    const res = await fetch(`/api/vacancies/${vacancy.uuid}/status`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ situacao: newStatus })
@@ -149,7 +148,9 @@ export function CompanyVacancyCard({
                 <button
                     onClick={(e) => {
                         e.preventDefault();
-                        startTransition(() => selectVacancyForRanking(vacancy.id));
+                        if (vacancy.uuid) {
+                            router.push(`/company/vacancies/${vacancy.uuid}/ranking`);
+                        }
                     }}
                     className="w-full sm:w-auto sm:flex-1 flex items-center justify-center gap-2 h-10 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold cursor-pointer hover:bg-blue-100 transition-colors whitespace-nowrap order-1 sm:order-none"
                 >
@@ -168,7 +169,9 @@ export function CompanyVacancyCard({
                     <button
                         onClick={(e) => {
                             e.preventDefault();
-                            startTransition(() => selectVacancyForEditing(vacancy.id));
+                            if (vacancy.uuid) {
+                                router.push(`/company/vacancies/${vacancy.uuid}/edit`);
+                            }
                         }}
                         className="flex-1 sm:flex-none flex shrink-0 items-center justify-center w-full sm:w-10 h-10 text-gray-400 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-colors border border-gray-200 cursor-pointer"
                         title={t('edit_vacancy_btn')}

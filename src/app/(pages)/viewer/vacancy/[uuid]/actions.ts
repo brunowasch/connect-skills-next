@@ -5,11 +5,22 @@ import { uploadToCloudinary } from "@/src/lib/cloudinary";
 import { revalidatePath } from "next/cache";
 
 export async function uploadVideoAction(
-    vacancyId: string,
+    vacancyUuid: string,
     userId: string,
     formData: FormData
 ) {
     try {
+        const vacancy = await prisma.vaga.findUnique({
+            where: { uuid: vacancyUuid },
+            select: { id: true }
+        });
+
+        if (!vacancy) {
+            throw new Error("Vaga não encontrada");
+        }
+
+        const vacancyId = vacancy.id;
+
         // Resolve candidateId from userId
         const candidate = await prisma.candidato.findUnique({
             where: { usuario_id: userId },
@@ -19,7 +30,7 @@ export async function uploadVideoAction(
         if (!candidate) {
             throw new Error("Candidato não encontrado");
         }
-        
+
         const candidateId = candidate.id;
 
         const file = formData.get("video") as File;
@@ -41,7 +52,7 @@ export async function uploadVideoAction(
             data: {
                 id: fileId,
                 candidato_id: candidateId,
-                nome: `Video_Apresentacao_${Date.now()}.mp4`,
+                nome: `${candidate.nome} ${candidate.sobrenome}-${Date.now()}-Video.mp4`,
                 url: url,
                 mime: file.type,
                 tamanho: file.size,
@@ -69,9 +80,9 @@ export async function uploadVideoAction(
 
             // Check if candidate was rejected
             if (breakdown?.feedback?.status === 'REJECTED') {
-                return { 
-                    success: false, 
-                    error: "Não é possível enviar vídeo após receber feedback de reprovação" 
+                return {
+                    success: false,
+                    error: "Não é possível enviar vídeo após receber feedback de reprovação"
                 };
             }
 
@@ -79,7 +90,7 @@ export async function uploadVideoAction(
             if (breakdown?.video?.status === 'requested') {
                 const deadline = new Date(breakdown.video.deadline);
                 const now = new Date();
-                
+
                 if (now > deadline) {
                     return {
                         success: false,
@@ -134,16 +145,16 @@ export async function uploadVideoAction(
                         if (companyUser && companyUser.email) {
                             const { sendVideoReceivedEmail } = await import("@/src/lib/mail");
                             const candidateName = `${candidate.nome || ''} ${candidate.sobrenome || ''}`.trim() || "Candidato";
-                            
+
                             // Redirect to candidates page after login
-                            const redirectUrl = `/company/vacancies/${vacancyId}/candidates`;
+                            const redirectUrl = `/company/vacancies/${vacancyUuid}/candidates`;
                             const loginLink = `${process.env.APP_URL}/login?redirect=${encodeURIComponent(redirectUrl)}`;
 
                             await sendVideoReceivedEmail(
-                                companyUser.email, 
-                                company.nome_empresa, 
-                                candidateName, 
-                                vacancy.cargo, 
+                                companyUser.email,
+                                company.nome_empresa,
+                                candidateName,
+                                vacancy.cargo,
                                 loginLink
                             );
                         }
@@ -154,7 +165,7 @@ export async function uploadVideoAction(
             }
         }
 
-        revalidatePath(`/viewer/vacancy/${vacancyId}`);
+        revalidatePath(`/viewer/vacancy/${vacancyUuid}`);
         revalidatePath('/candidate/dashboard');
         revalidatePath('/company/dashboard');
         return { success: true };

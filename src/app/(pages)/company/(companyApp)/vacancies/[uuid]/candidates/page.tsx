@@ -4,11 +4,11 @@ import { redirect } from "next/navigation";
 import { CandidatesPageContent } from "./_components/CandidatesPageContent";
 
 interface Props {
-    params: Promise<{ id: string }>;
+    params: Promise<{ uuid: string }>;
 }
 
 export default async function VacancyCandidatesPage({ params }: Props) {
-    const { id } = await params;
+    const { uuid } = await params;
 
     const cookieStore = await cookies();
     const userId = cookieStore.get("time_user_id")?.value;
@@ -28,12 +28,14 @@ export default async function VacancyCandidatesPage({ params }: Props) {
     }
 
     const vacancy = await prisma.vaga.findUnique({
-        where: { id },
+        where: { uuid },
     });
 
     if (!vacancy) {
         return <CandidatesPageContent state="not_found" />;
     }
+
+    const id = vacancy.id;
 
     // Verificar se a empresa logada é a dona da vaga
     if (vacancy.empresa_id !== company.id) {
@@ -79,6 +81,7 @@ export default async function VacancyCandidatesPage({ params }: Props) {
             state="success"
             vacancy={{ cargo: vacancy.cargo }}
             candidates={candidatesWithApp}
+            vacancyUuid={uuid}
         />
     );
 }

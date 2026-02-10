@@ -2,11 +2,12 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { Bell, Video, UserPlus, Clock, X, Trash2 } from 'lucide-react';
+import { Bell, Video, UserPlus, Clock, X, Trash2, Check, Eye } from 'lucide-react';
 import { useTranslation } from "react-i18next";
 import { useRouter } from 'next/navigation';
 
 import { Notification } from "@/src/lib/notifications";
+import { AllNotificationsModal } from './AllNotificationsModal';
 
 interface NotificationDropdownProps {
     notifications: Notification[];
@@ -15,6 +16,7 @@ interface NotificationDropdownProps {
 export function NotificationDropdown({ notifications: initialNotifications }: NotificationDropdownProps) {
     const { t, i18n } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
+    const [isAllNotificationsOpen, setIsAllNotificationsOpen] = useState(false);
     const [notifications, setNotifications] = useState(initialNotifications);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
@@ -155,11 +157,35 @@ export function NotificationDropdown({ notifications: initialNotifications }: No
                 console.error('Error marking notification as read:', error);
             });
         }
-        
+
         // Link to the ranking page or candidate profile view
-        if (notification.vacancyId) {
-             router.push(`/company/vacancies/ranking?id=${notification.vacancyId}`);
-             setIsOpen(false);
+        if (notification.vacancyUuid) {
+            router.push(`/company/vacancies/${notification.vacancyUuid}/ranking`);
+            setIsOpen(false);
+            return;
+        } else if (notification.vacancyId) {
+            // Fallback try to find uuid if not present (requires fetching, but for now we might just redirect or handle gracefully)
+            // ideally we should have vacancyUuid populated in notifications.
+            // If we only have ID, we might have an issue if the route expects UUID.
+            // Let's assume we want to push to ranking with ID if that's what we have, OR we should have UUIDs.
+            // But the ranking page was just updated to expect UUID in params or cookie.
+            // params?.uuid is what it checks.
+            // So we should try to navigate with UUID.
+            // If `vacancyUuid` is missing in notification object, we have a problem.
+            // But let's look at `src/lib/notifications.ts`, it populates vacancyUuid.
+
+            // Assuming vacancyUuid is available on notification object (we verified it is in Step 10).
+            // notification.vacancyUuid = vacancy.uuid ?? undefined
+
+            if (notification.vacancyUuid) {
+                router.push(`/company/vacancies/${notification.vacancyUuid}/ranking`);
+                setIsOpen(false);
+            } else {
+                // If for some reason we really only have ID (legacy notifications?), 
+                // we can't easily go to the new ranking page unless we support ID param as fallback or fetch UUID.
+                // For now, let's keep it safe. If the User wants to secure IDs, we should use UUIDs.
+                console.warn("Notification has no vacancyUuid, cannot redirect to ranking safely.");
+            }
         }
     };
 
@@ -230,19 +256,18 @@ export function NotificationDropdown({ notifications: initialNotifications }: No
                                 {notifications.slice(0, 5).map((notification) => (
                                     <div
                                         key={notification.id}
-                                        className={`group relative p-4 hover:bg-slate-50 transition-colors duration-150 ${
-                                            !notification.read ? 'bg-blue-50/30' : ''
-                                        }`}
+                                        className={`group relative p-4 hover:bg-slate-50 transition-colors duration-150 ${!notification.read ? 'bg-blue-50/30' : ''
+                                            }`}
                                     >
                                         <button
                                             onClick={(e) => handleDelete(notification.id, e)}
-                                            className="absolute top-2 right-2 p-1 text-slate-400 hover:text-red-500 hover:bg-slate-100 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200"
+                                            className="absolute top-2 right-2 p-1 text-slate-400 hover:text-red-500 hover:bg-slate-100 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer"
                                             title={t('notifications.delete')}
                                         >
                                             <X size={14} />
                                         </button>
-                                        
-                                        <div 
+
+                                        <div
                                             className="flex items-start gap-3 cursor-pointer"
                                             onClick={(e) => handleNotificationClick(notification, e)}
                                         >
@@ -278,6 +303,36 @@ export function NotificationDropdown({ notifications: initialNotifications }: No
                                                         {formatDate(notification.date)}
                                                     </span>
                                                 </div>
+
+                                                <div className="flex items-center gap-2 mt-2">
+                                                    <button
+                                                        onClick={(e) => handleNotificationClick(notification, e)}
+                                                        className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors cursor-pointer"
+                                                    >
+                                                        {notification.type === 'video_received' ? (
+                                                            <>
+                                                                <Video size={12} />
+                                                                {t('notifications.view_video', 'Ver Vídeo')}
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Eye size={12} />
+                                                                {t('notifications.view_details', 'Ver Detalhes')}
+                                                            </>
+                                                        )}
+                                                    </button>
+
+                                                    {!notification.read && (
+                                                        <button
+                                                            onClick={(e) => handleMarkAsRead(notification.id, e)}
+                                                            className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded-md transition-colors cursor-pointer"
+                                                            title={t('notifications.mark_read', 'Marcar como lida')}
+                                                        >
+                                                            <Check size={12} />
+                                                            {t('notifications.mark_read', 'Marcar como lida')}
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -289,7 +344,10 @@ export function NotificationDropdown({ notifications: initialNotifications }: No
                     {notifications.length > 0 && (
                         <div className="p-3 border-t border-slate-100 bg-slate-50">
                             <button
-                                onClick={() => setIsOpen(false)}
+                                onClick={() => {
+                                    setIsOpen(false);
+                                    setIsAllNotificationsOpen(true);
+                                }}
                                 className="w-full text-center text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors cursor-pointer"
                             >
                                 {t('notifications.view_all')}
@@ -313,6 +371,19 @@ export function NotificationDropdown({ notifications: initialNotifications }: No
                     background: #94a3b8;
                 }
             `}</style>
-        </div>
+
+            <AllNotificationsModal
+                isOpen={isAllNotificationsOpen}
+                onClose={() => setIsAllNotificationsOpen(false)}
+                notifications={notifications}
+                onMarkAsRead={handleMarkAsRead}
+                onDelete={handleDelete}
+                onClearAll={handleClearAll}
+                onNotificationClick={(n, e) => {
+                    handleNotificationClick(n, e);
+                    setIsAllNotificationsOpen(false);
+                }}
+            />
+        </div >
     );
 }

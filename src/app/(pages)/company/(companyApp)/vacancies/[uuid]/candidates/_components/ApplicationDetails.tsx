@@ -23,19 +23,20 @@ import { requestVideo } from "../../../actions";
 
 interface ApplicationDetailsProps {
     application: any;
+    vacancyUuid?: string;
 }
 
-export function ApplicationDetails({ application }: ApplicationDetailsProps) {
+export function ApplicationDetails({ application, vacancyUuid }: ApplicationDetailsProps) {
     const { t } = useTranslation();
     const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
 
     const handleRequestVideo = () => {
-        if (!application?.candidato_id || !application?.vaga_id) return;
+        if (!application?.candidato_id || !vacancyUuid) return;
 
         startTransition(async () => {
-            const result = await requestVideo(application.candidato_id, application.vaga_id);
+            const result = await requestVideo(application.candidato_id, vacancyUuid);
             if (result.success) {
                 toast.success("Solicitação de vídeo enviada com sucesso!");
                 router.refresh();
@@ -126,7 +127,7 @@ export function ApplicationDetails({ application }: ApplicationDetailsProps) {
                                     <Clock size={20} className="shrink-0" />
                                     <div>
                                         <p className="text-sm font-bold">Aguardando envio</p>
-                                        <p className="text-xs opacity-90">Solicitação enviada em {new Date(breakdownData.video.requestedAt).toLocaleDateString()} às {new Date(breakdownData.video.requestedAt).toLocaleTimeString()}</p>
+                                        <p className="text-xs opacity-90">Solicitação enviada em {breakdownData.video.requestedAt ? new Date(breakdownData.video.requestedAt).toLocaleDateString() : ''} às {breakdownData.video.requestedAt ? new Date(breakdownData.video.requestedAt).toLocaleTimeString() : ''}</p>
                                     </div>
                                 </div>
                             )}
@@ -148,7 +149,7 @@ export function ApplicationDetails({ application }: ApplicationDetailsProps) {
                                         </video>
                                     </div>
                                     <p className="text-xs text-gray-500">
-                                        Enviado em {new Date(breakdownData.video.submittedAt).toLocaleDateString()}
+                                        Enviado em {breakdownData.video.submittedAt ? new Date(breakdownData.video.submittedAt).toLocaleDateString() : ''}
                                     </p>
                                 </div>
                             )}

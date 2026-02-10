@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Clock, ChevronRight } from 'lucide-react';
+import { Clock, ChevronRight, Camera, Check } from 'lucide-react';
 import { ApplicationHistoryProps } from '@/src/app/(pages)/candidate/(candidateApp)/types/ApplicationHistory';
 import { useTranslation } from "react-i18next";
 
@@ -35,9 +35,9 @@ export function ApplicationHistory({ historicoAplicacoes }: ApplicationHistoryPr
                     <div className="divide-y divide-slate-100">
                         {historicoAplicacoes.slice(0, 5).map((item, index) => {
                             const dataAplicacao = item?.created_at ? new Date(item.created_at) : new Date();
-                            
+
                             // Se o vídeo foi solicitado e temos o UUID, redirecionar para a vaga
-                            const linkHref = item.videoStatus === 'requested' && item.uuid 
+                            const linkHref = item.videoStatus === 'requested' && item.uuid
                                 ? `/viewer/vacancy/${item.uuid}?action=upload_video`
                                 : `/candidate/vacancies`;
 
@@ -68,12 +68,14 @@ export function ApplicationHistory({ historicoAplicacoes }: ApplicationHistoryPr
                                     <div className="flex flex-col items-end gap-1.5 sm:gap-2 flex-shrink-0">
                                         {item.videoStatus === 'requested' && (
                                             <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-purple-50 border border-purple-200 text-[9px] sm:text-[10px] font-bold text-purple-600 shadow-sm">
-                                                📹 Solicitado
+                                                <Camera size={10} className="mr-1" />
+                                                Solicitado
                                             </span>
                                         )}
                                         {item.videoStatus === 'submitted' && (
                                             <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-green-50 border border-green-200 text-[9px] sm:text-[10px] font-bold text-green-600 shadow-sm">
-                                                ✓ Enviado
+                                                <Check size={10} className="mr-1" />
+                                                Enviado
                                             </span>
                                         )}
                                         {!item.videoStatus && (

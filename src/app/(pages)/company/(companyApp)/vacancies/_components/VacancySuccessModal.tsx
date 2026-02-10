@@ -7,18 +7,18 @@ interface VacancySuccessModalProps {
     isOpen: boolean;
     onClose: () => void;
     mode: 'create' | 'edit';
-    vacancyId?: string;
+    vacancyUuid?: string;
 }
 
-export function VacancySuccessModal({ isOpen, onClose, mode, vacancyId }: VacancySuccessModalProps) {
+export function VacancySuccessModal({ isOpen, onClose, mode, vacancyUuid }: VacancySuccessModalProps) {
     const { t } = useTranslation();
     const router = useRouter();
 
     if (!isOpen) return null;
 
     const handleView = () => {
-        if (vacancyId) {
-            router.push(`/company/vacancies/${vacancyId}`);
+        if (vacancyUuid) {
+            router.push(`/company/vacancies/${vacancyUuid}`);
         }
     };
 

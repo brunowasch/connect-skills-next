@@ -5,11 +5,11 @@ import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 
 interface Props {
-    params: Promise<{ id: string }>;
+    params: Promise<{ uuid: string }>;
 }
 
 export default async function EditVacancyPage({ params }: Props) {
-    const { id } = await params;
+    const { uuid } = await params;
     const cookieStore = await cookies();
     const userId = cookieStore.get("time_user_id")?.value;
 
@@ -18,11 +18,18 @@ export default async function EditVacancyPage({ params }: Props) {
         select: { cidade: true, estado: true, pais: true }
     });
 
-    const vacancy = await prisma.vaga.findUnique({
-        where: { id },
+    const vacancy = await prisma.vaga.findFirst({
+        where: {
+            OR: [
+                { uuid: uuid },
+                { id: uuid }
+            ]
+        },
     });
 
     if (!vacancy) notFound();
+
+    const id = vacancy.id;
 
     const vagaAreas = await prisma.vaga_area.findMany({
         where: { vaga_id: id }
@@ -68,7 +75,7 @@ export default async function EditVacancyPage({ params }: Props) {
                 areas={areas}
                 softSkills={softSkills}
                 initialData={fullVacancy}
-                vacancyId={id}
+                vacancyUuid={uuid}
                 companyProfile={company}
             />
         </div>

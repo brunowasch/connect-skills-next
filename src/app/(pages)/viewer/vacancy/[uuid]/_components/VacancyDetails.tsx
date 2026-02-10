@@ -35,7 +35,6 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { selectVacancyForRanking, selectVacancyForEditing } from "@/src/app/(pages)/company/(companyApp)/vacancies/actions";
 import { LanguageSwitcher } from "@/src/app/_components/Layout/LanguageSwitcher";
 
 import { uploadVideoAction } from "../actions";
@@ -145,12 +144,13 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
         const onFocus = async () => {
             if (isApplyingRef.current) {
                 try {
-                    const res = await fetch(`/api/vacancies/${vacancy.id}/check-application`);
-                    const data = await res.json();
-                    
-                    if (data.applied) {
-                        router.refresh();
-                        isApplyingRef.current = false;
+                    const res = await fetch(`/api/vacancies/${vacancy.uuid}/check-application`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.applied) {
+                            router.refresh();
+                            isApplyingRef.current = false;
+                        }
                     }
                 } catch (error) {
                     console.error("Error verifying application status:", error);
@@ -342,7 +342,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
             ...config,
             onConfirm: async () => {
                 try {
-                    const res = await fetch(`/api/vacancies/${vacancy.id}/status`, {
+                    const res = await fetch(`/api/vacancies/${vacancy.uuid}/status`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ situacao: newStatus })
@@ -363,15 +363,11 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
     };
 
     const handleRankCandidates = () => {
-        startTransition(() => {
-            selectVacancyForRanking(vacancy.id);
-        });
+        router.push(`/company/vacancies/${vacancy.uuid}/ranking`);
     };
 
     const handleEditVacancy = () => {
-        startTransition(() => {
-            selectVacancyForEditing(vacancy.id);
-        });
+        router.push(`/company/vacancies/${vacancy.uuid}/edit`);
     };
 
     const handleDeleteVacancy = () => {
@@ -383,7 +379,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
             variant: 'danger',
             onConfirm: async () => {
                 try {
-                    const res = await fetch(`/api/vacancies/${vacancy.id}`, {
+                    const res = await fetch(`/api/vacancies/${vacancy.uuid}`, {
                         method: 'DELETE',
                     });
 
@@ -411,9 +407,24 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
         }
 
         setIsCheckingApplication(true);
+        console.log("Checking application for vacancy:", vacancy.uuid, vacancy);
         try {
             // Verificar se já se candidatou
-            const res = await fetch(`/api/vacancies/${vacancy.id}/check-application`);
+            const apiUrl = `/api/vacancies/${vacancy.uuid}/check-application`;
+            console.log("Fetching application status from:", apiUrl);
+            const res = await fetch(apiUrl);
+
+            if (!res.ok) {
+                const text = await res.text();
+                let errorData;
+                try {
+                    errorData = JSON.parse(text);
+                } catch (e) {
+                    throw new Error(`Erro do servidor (${res.status}): ${text.substring(0, 100)}...`);
+                }
+                throw new Error(errorData.details || errorData.error || `Erro ${res.status}`);
+            }
+
             const data = await res.json();
 
             if (data.applied) {
@@ -454,7 +465,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
             });
         } catch (error) {
             console.error(error);
-            alert("Erro ao verificar candidatura.");
+            alert(`Erro ao verificar candidatura: ${error instanceof Error ? error.message : String(error)}`);
         } finally {
             setIsCheckingApplication(false);
         }
@@ -489,9 +500,9 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                             {t('video_confirm_modal_desc')}
                         </p>
                         <div className="rounded-lg overflow-hidden bg-black border border-gray-200">
-                            <video 
-                                src={URL.createObjectURL(file)} 
-                                controls 
+                            <video
+                                src={URL.createObjectURL(file)}
+                                controls
                                 className="w-full max-h-[60vh]"
                             />
                         </div>
@@ -508,14 +519,14 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                     formData.append("video", file);
 
                     startTransition(async () => {
-                        const result = await uploadVideoAction(vacancy.id, userId!, formData);
+                        const result = await uploadVideoAction(vacancy.uuid, userId!, formData);
 
                         if (result.success) {
                             toast.success("Vídeo enviado com sucesso!");
                             setModal(prev => ({ ...prev, isOpen: false }));
                             // Redirecionar para o dashboard após 1 segundo
                             setTimeout(() => {
-                                router.push('/candidate/dashboard');
+                                router.push(`/viewer/vacancy/${vacancy.uuid}`);
                             }, 1000);
                         } else {
                             toast.error("Erro ao enviar vídeo: " + result.error);
@@ -645,7 +656,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                     const deadline = applicationBreakdown?.video?.deadline ? new Date(applicationBreakdown.video.deadline) : null;
                     const now = new Date();
                     const isExpired = deadline && now > deadline;
-                    
+
                     // Calculate remaining time
                     const timeRemaining = deadline ? Math.max(0, deadline.getTime() - now.getTime()) : 0;
                     const daysRemaining = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
@@ -695,7 +706,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                                 <div className="mt-2 flex items-center gap-2 text-sm">
                                                     <Clock size={14} className="text-purple-600" />
                                                     <span className="font-medium text-purple-700">
-                                                        {t('video_upload_deadline')} {daysRemaining > 0 
+                                                        {t('video_upload_deadline')} {daysRemaining > 0
                                                             ? t(daysRemaining === 1 ? 'video_upload_days_remaining' : 'video_upload_days_remaining_plural', { count: daysRemaining })
                                                             : t(hoursRemaining === 1 ? 'video_upload_hours_remaining' : 'video_upload_hours_remaining_plural', { count: hoursRemaining })
                                                         }
@@ -748,7 +759,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                     const expiresAt = applicationBreakdown?.video?.expiresAt ? new Date(applicationBreakdown.video.expiresAt) : null;
                     const now = new Date();
                     const isExpired = expiresAt && now > expiresAt;
-                    
+
                     // Calculate remaining time
                     const timeRemaining = expiresAt ? Math.max(0, expiresAt.getTime() - now.getTime()) : 0;
                     const daysRemaining = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
@@ -765,7 +776,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                     <div className="mt-2 flex items-center gap-2 text-sm">
                                         <Clock size={14} className={isExpired ? 'text-gray-600' : 'text-green-600'} />
                                         <span className={`font-medium ${isExpired ? 'text-gray-700' : 'text-green-700'}`}>
-                                            {isExpired 
+                                            {isExpired
                                                 ? t('video_upload_success_expired')
                                                 : t(daysRemaining === 1 ? 'video_upload_success_available' : 'video_upload_success_available_plural', { count: daysRemaining })
                                             }
@@ -1008,13 +1019,12 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                         />
 
                         {/* Modal Card */}
-                        <div className={`relative w-full bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 fade-in duration-300 scale-100 ${
-                            modal.size === 'sm' ? 'max-w-sm' :
+                        <div className={`relative w-full bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 fade-in duration-300 scale-100 ${modal.size === 'sm' ? 'max-w-sm' :
                             modal.size === 'lg' ? 'max-w-lg' :
-                            modal.size === 'xl' ? 'max-w-xl' :
-                            modal.size === '2xl' ? 'max-w-2xl' :
-                            'max-w-md'
-                        }`}>
+                                modal.size === 'xl' ? 'max-w-xl' :
+                                    modal.size === '2xl' ? 'max-w-2xl' :
+                                        'max-w-md'
+                            }`}>
                             <div className="p-6">
                                 <div className="flex items-start gap-4">
                                     <div className={`p-3 rounded-xl shrink-0 ${modal.variant === 'danger' ? 'bg-red-50 text-red-600' :
