@@ -76,7 +76,6 @@ export default async function CandidateProfilePage() {
         }
     }
 
-    // Formatar número com hífen se for celular ou fixo
     if (numero.length === 9) {
         numero = `${numero.substring(0, 5)}-${numero.substring(5)}`;
     } else if (numero.length === 8) {

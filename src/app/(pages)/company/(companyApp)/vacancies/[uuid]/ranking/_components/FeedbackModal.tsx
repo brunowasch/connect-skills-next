@@ -40,6 +40,11 @@ export function FeedbackModal({ isOpen, onClose, candidateName, onSubmit, aiSugg
             return;
         }
 
+        if (!justification.trim()) {
+            toast.error(t('feedback_justification_required_error', 'A justificativa é obrigatória'));
+            return;
+        }
+
         startTransition(async () => {
             try {
                 await onSubmit(status, justification);
@@ -120,7 +125,7 @@ export function FeedbackModal({ isOpen, onClose, candidateName, onSubmit, aiSugg
                     <div>
                         <div className="flex justify-between items-center mb-2">
                             <label className="block text-sm font-semibold text-gray-700">
-                                {t('feedback_justification_label', 'Justificativa (Opcional)')}
+                                {t('feedback_justification_label', 'Justificativa')} <span className="text-red-500">*</span>
                             </label>
                             {aiSuggestions && (
                                 <button
@@ -153,7 +158,7 @@ export function FeedbackModal({ isOpen, onClose, candidateName, onSubmit, aiSugg
                     </button>
                     <button
                         onClick={handleSubmit}
-                        disabled={!status || isPending}
+                        disabled={!status || !justification.trim() || isPending}
                         className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     >
                         {isPending ? (

@@ -135,14 +135,12 @@ export function NotificationDropdown({ notifications: initialNotifications }: No
         e.preventDefault();
 
         if (!notification.read) {
-            // Optimistically update UI
             setNotifications(prev =>
                 prev.map(n =>
                     n.id === notification.id ? { ...n, read: true } : n
                 )
             );
 
-            // Mark as read in backend
             fetch('/api/company/notifications/mark-read', {
                 method: 'POST',
                 headers: {
@@ -158,32 +156,16 @@ export function NotificationDropdown({ notifications: initialNotifications }: No
             });
         }
 
-        // Link to the ranking page or candidate profile view
         if (notification.vacancyUuid) {
             router.push(`/company/vacancies/${notification.vacancyUuid}/ranking`);
             setIsOpen(false);
             return;
         } else if (notification.vacancyId) {
-            // Fallback try to find uuid if not present (requires fetching, but for now we might just redirect or handle gracefully)
-            // ideally we should have vacancyUuid populated in notifications.
-            // If we only have ID, we might have an issue if the route expects UUID.
-            // Let's assume we want to push to ranking with ID if that's what we have, OR we should have UUIDs.
-            // But the ranking page was just updated to expect UUID in params or cookie.
-            // params?.uuid is what it checks.
-            // So we should try to navigate with UUID.
-            // If `vacancyUuid` is missing in notification object, we have a problem.
-            // But let's look at `src/lib/notifications.ts`, it populates vacancyUuid.
-
-            // Assuming vacancyUuid is available on notification object (we verified it is in Step 10).
-            // notification.vacancyUuid = vacancy.uuid ?? undefined
 
             if (notification.vacancyUuid) {
                 router.push(`/company/vacancies/${notification.vacancyUuid}/ranking`);
                 setIsOpen(false);
             } else {
-                // If for some reason we really only have ID (legacy notifications?), 
-                // we can't easily go to the new ranking page unless we support ID param as fallback or fetch UUID.
-                // For now, let's keep it safe. If the User wants to secure IDs, we should use UUIDs.
                 console.warn("Notification has no vacancyUuid, cannot redirect to ranking safely.");
             }
         }

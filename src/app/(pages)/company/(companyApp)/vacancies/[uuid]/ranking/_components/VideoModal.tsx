@@ -1,6 +1,6 @@
 "use client";
 
-import { X } from "lucide-react";
+import { MessageSquare, X } from "lucide-react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -9,9 +9,11 @@ interface VideoModalProps {
     onClose: () => void;
     candidateName: string;
     videoUrl: string | null | undefined;
+    onFeedback: () => void;
+    feedbackStatus?: 'APPROVED' | 'REJECTED' | null;
 }
 
-export function VideoModal({ isOpen, onClose, candidateName, videoUrl }: VideoModalProps) {
+export function VideoModal({ isOpen, onClose, candidateName, videoUrl, onFeedback, feedbackStatus }: VideoModalProps) {
     const { t } = useTranslation();
 
     useEffect(() => {
@@ -64,11 +66,28 @@ export function VideoModal({ isOpen, onClose, candidateName, videoUrl }: VideoMo
                     )}
                 </div>
 
-                {/* Footer */}
-                <div className="p-4 border-t border-gray-100 bg-gray-50 text-right">
+                <div className="p-4 border-t border-gray-100 bg-gray-50 text-right flex justify-end gap-3 items-center">
+                    {feedbackStatus && (
+                        <div className={`px-4 py-2 rounded-lg text-sm font-bold border ${
+                            feedbackStatus === 'APPROVED' 
+                                ? 'bg-green-50 text-green-700 border-green-200' 
+                                : 'bg-red-50 text-red-700 border-red-200'
+                        }`}>
+                            {feedbackStatus === 'APPROVED' ? t('approved', 'Aprovado') : t('rejected', 'Reprovado')}
+                        </div>
+                    )}
+                    {!feedbackStatus && (
+                        <button
+                            onClick={onFeedback}
+                            className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors cursor-pointer flex items-center gap-2"
+                        >
+                            <MessageSquare size={18} />
+                            {t('video_modal_feedback', 'Dar Feedback')}
+                        </button>
+                    )}
                     <button
                         onClick={onClose}
-                        className="px-6 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors cursor-pointer"
+                        className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors cursor-pointer"
                     >
                         {t('video_modal_close', 'Fechar')}
                     </button>

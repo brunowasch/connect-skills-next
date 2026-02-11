@@ -42,13 +42,11 @@ export async function POST(request: NextRequest) {
 
             let updated = false;
 
-            // Mark video as deleted if needed
             if (breakdown?.video?.status === 'requested' && !breakdown?.video?.deleted) {
                 breakdown.video.deleted = true;
                 updated = true;
             }
 
-            // Mark feedback as deleted if needed
             if ((breakdown?.feedback?.status === 'APPROVED' || breakdown?.feedback?.status === 'REJECTED') && !breakdown?.feedback?.deleted) {
                 breakdown.feedback.deleted = true;
                 updated = true;

@@ -48,9 +48,7 @@ export default function CompanyLayout({
                         />
                     </div>
 
-                    <div className="hidden lg:block text-slate-500 font-medium">
-                        {/* Espaço para migalhas de pão ou título no futuro */}
-                    </div>
+                    <div className="hidden lg:block text-slate-500 font-medium"></div>
 
                     <div className="flex items-center gap-4">
                         <NotificationDropdown notifications={notifications} />

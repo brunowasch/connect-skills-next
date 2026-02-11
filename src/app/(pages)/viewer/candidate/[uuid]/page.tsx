@@ -107,7 +107,6 @@ export default async function CandidatePublicProfilePage({ params }: { params: P
             criadoEm: a.criadoEm.toISOString(),
         }));
 
-    // Serialize object to avoid server component errors with Date objects
     const candidateSerialized = JSON.parse(JSON.stringify(candidate));
 
     return (

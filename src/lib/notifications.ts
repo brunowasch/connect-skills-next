@@ -54,8 +54,6 @@ export async function getCompanyNotifications(companyId: string): Promise<Notifi
             const breakdown = app.breakdown ? JSON.parse(app.breakdown as string) : {};
             const candidateName = candidate?.nome || 'Candidato';
 
-            // New Application
-            // Se created_at existe, é uma nova candidatura.
             if (app.created_at && !breakdown?.company_notifications?.new_candidate?.deleted) {
                  notifications.push({
                     id: `new_candidate_${app.id}`,
@@ -73,7 +71,6 @@ export async function getCompanyNotifications(companyId: string): Promise<Notifi
                 });
             }
 
-            // Video Received
             if (breakdown?.video?.status === 'submitted' && breakdown?.video?.submittedAt && !breakdown?.company_notifications?.video_received?.deleted) {
                 notifications.push({
                     id: `video_received_${app.id}`,
@@ -160,7 +157,6 @@ export async function getCandidateNotifications(candidateId: string): Promise<No
             const companyName = empresa?.nome_empresa || 'Empresa';
             const vacancyUuid = vaga?.uuid ?? undefined;
 
-            // Video Request
             if (breakdown?.video?.status === 'requested' && breakdown?.video?.requestedAt && !breakdown?.video?.deleted) {
                 notifications.push({
                     id: `video_request_${app.vaga_id}`,
@@ -175,7 +171,6 @@ export async function getCandidateNotifications(candidateId: string): Promise<No
                 });
             }
 
-            // Feedback Approved
             if (breakdown?.feedback?.status === 'APPROVED' && breakdown?.feedback?.sentAt && !breakdown?.feedback?.deleted) {
                 notifications.push({
                     id: `feedback_approved_${app.vaga_id}`,
@@ -194,7 +189,6 @@ export async function getCandidateNotifications(candidateId: string): Promise<No
                 });
             }
 
-            // Feedback Rejected
             if (breakdown?.feedback?.status === 'REJECTED' && breakdown?.feedback?.sentAt && !breakdown?.feedback?.deleted) {
                 notifications.push({
                     id: `feedback_rejected_${app.vaga_id}`,

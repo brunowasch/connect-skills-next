@@ -80,7 +80,6 @@ export default async function Dashboard() {
 
     // Buscar vagas recomendadas (baseadas nas áreas de interesse)
     let recommendedVacanciesCount = 0;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let recommendedVacancies: any[] = [];
     if (areasIds.length > 0) {
         // Primeiro, buscar os IDs únicos das vagas recomendadas
@@ -127,7 +126,7 @@ export default async function Dashboard() {
                     moeda: true,
                     empresa_id: true,
                 },
-                take: 3 // Limitar a 3 vagas já que o componente só mostra 3
+                take: 3 
             });
 
             // Buscar dados das empresas
@@ -210,12 +209,8 @@ export default async function Dashboard() {
         }
     }
 
-    // Buscar dados completos das vagas aplicadas
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let appliedVacancies: any[] = [];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let appliedVagas: any[] = [];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let appliedEmpresas: any[] = [];
     
     if (appliedVacanciesData.length > 0) {

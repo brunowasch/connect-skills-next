@@ -92,17 +92,26 @@ export function CandidatesPageContent({ state, vacancy, candidates, vacancyUuid 
                 </div>
             ) : (
                 <div className="grid grid-cols-1 gap-6">
-                    {candidates && candidates.map((candidate, index) => (
-                        <div key={candidate.id} className="relative bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                    {candidates && candidates.map((candidate, index) => {
+                        const feedbackStatus = candidate.breakdown?.feedback?.status;
+                        
+                        return (
+                        <div id={`candidate-${candidate.id}`} key={candidate.id} className="relative bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
                             
-                            {/* Floating Feedback Button */}
-                            <button 
-                                onClick={(e) => handleFeedbackClick(e, candidate)}
-                                className="absolute right-6 bottom-6 z-10 p-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors shadow-lg hover:shadow-xl hover:-translate-y-1 transform active:scale-95"
-                                title={t('give_feedback', 'Dar Feedback')}
-                            >
-                                <MessageSquare size={20} />
-                            </button>
+                            {feedbackStatus ? (
+                                <div className={`absolute right-6 bottom-6 z-10 px-4 py-2 rounded-lg text-sm font-bold border shadow-md select-none
+                                    ${feedbackStatus === 'APPROVED' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                                    {feedbackStatus === 'APPROVED' ? t('approved', 'Aprovado') : t('rejected', 'Reprovado')}
+                                </div>
+                            ) : (
+                                <button 
+                                    onClick={(e) => handleFeedbackClick(e, candidate)}
+                                    className="absolute right-6 bottom-6 z-10 p-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors shadow-lg hover:shadow-xl hover:-translate-y-1 transform active:scale-95"
+                                    title={t('give_feedback', 'Dar Feedback')}
+                                >
+                                    <MessageSquare size={20} />
+                                </button>
+                            )}
 
                             <div className="p-6">
                                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
@@ -165,7 +174,8 @@ export function CandidatesPageContent({ state, vacancy, candidates, vacancyUuid 
                                 <ApplicationDetails application={candidate.application} vacancyUuid={vacancyUuid} />
                             </div>
                         </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
 

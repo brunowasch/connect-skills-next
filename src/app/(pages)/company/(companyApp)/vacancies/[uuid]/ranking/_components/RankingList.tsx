@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Mail, FileText, Brain, User, ExternalLink, Video, MessageSquare } from "lucide-react";
+import { Mail, FileText, Brain, User, ExternalLink, Video, MessageSquare, Eye } from "lucide-react";
 import { AnswersModal } from "./AnswersModal";
 import { AnalysisModal } from "./AnalysisModal";
 import { VideoModal } from "./VideoModal";
@@ -333,18 +333,25 @@ export function RankingList({ candidates, vacancyUuid }: RankingListProps) {
 
                                 <hr className="border-gray-100 my-4" />
 
-                                {/* Action Buttons */}
                                 <div className="flex gap-2 flex-wrap">
                                     {candidate.uuid && (
                                         <a
                                             href={`/viewer/candidate/${candidate.uuid}`}
-                                            rel="noopener"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
                                             className="flex items-center gap-1 px-3 py-1.5 bg-gray-50 text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-100 transition-colors cursor-pointer border border-gray-200"
                                         >
                                             <ExternalLink size={14} />
                                             {t('vacancy_view_public_profile')}
                                         </a>
                                     )}
+                                    <a
+                                        href={`/company/vacancies/${vacancyUuid}/candidates#candidate-${candidate.id}`}
+                                        className="flex items-center gap-1 px-3 py-1.5 bg-amber-50 text-amber-600 rounded-lg text-xs font-medium hover:bg-amber-100 transition-colors cursor-pointer border border-amber-200"
+                                    >
+                                        <Eye size={14} />
+                                        {t('ranking_view_details', 'Ver Detalhes')}
+                                    </a>
                                     <button
                                         onClick={() => handleShowAnswers(candidate.id)}
                                         className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium hover:bg-blue-100 transition-colors cursor-pointer"
@@ -466,6 +473,17 @@ export function RankingList({ candidates, vacancyUuid }: RankingListProps) {
                                 return `${candidate?.nome || ''} ${candidate?.sobrenome || ''}`.trim();
                             })()}
                             videoUrl={selectedVideoUrl}
+                            feedbackStatus={(() => {
+                                const candidate = sortedCandidates.find(c => c.id === selectedCandidate);
+                                const breakdown = parseBreakdown(candidate?.application?.breakdown);
+                                return breakdown?.feedback?.status || null;
+                            })()}
+                            onFeedback={() => {
+                                if (selectedCandidate) {
+                                    handleFeedbackClick(selectedCandidate);
+                                    setShowVideo(false);
+                                }
+                            }}
                         />
                     </>
                 )

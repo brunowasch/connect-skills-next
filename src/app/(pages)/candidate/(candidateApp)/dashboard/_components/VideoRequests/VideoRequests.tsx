@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useTranslation } from "react-i18next";
 
 interface VideoRequest {
-    id: string; // vacancy id
-    uuid: string; // vacancy uuid
+    id: string; 
+    uuid: string; 
     cargo: string;
     empresa: {
         nome_empresa: string;
