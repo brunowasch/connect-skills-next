@@ -12,4 +12,5 @@ export interface Application {
 
 export interface RecentCandidatesProps {
     applications: Application[];
+    isRestricted?: boolean;
 }

@@ -1,8 +1,8 @@
-// Client-side content for the ranking page
 "use client";
 
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { RankingList } from "./RankingList";
 
@@ -13,9 +13,10 @@ interface RankingPageContentProps {
     } | null;
     candidates?: any[];
     vacancyUuid?: string;
+    pendingCandidateId?: string;
 }
 
-export function RankingPageContent({ state, vacancy, candidates, vacancyUuid }: RankingPageContentProps) {
+export function RankingPageContent({ state, vacancy, candidates, vacancyUuid, pendingCandidateId }: RankingPageContentProps) {
     const { t } = useTranslation();
 
     const renderContent = () => {
@@ -45,17 +46,26 @@ export function RankingPageContent({ state, vacancy, candidates, vacancyUuid }: 
                         <p className="text-gray-500">{t('ranking_subtitle')}</p>
                     </div>
                 </div>
-                {candidates && vacancyUuid && <RankingList candidates={candidates} vacancyUuid={vacancyUuid} />}
+                {candidates && vacancyUuid && <RankingList candidates={candidates} vacancyUuid={vacancyUuid} pendingCandidateId={pendingCandidateId} />}
             </>
         );
     };
 
+    const router = useRouter();
+
+    const handleBack = () => {
+        router.back();
+    };
+
     return (
         <div className="max-w-5xl mx-auto px-4 py-8">
-            <Link href="/company/vacancies" className="inline-flex items-center text-gray-500 hover:text-blue-600 mb-4 transition-colors">
+            <button
+                onClick={handleBack}
+                className="inline-flex items-center text-gray-500 hover:text-blue-600 mb-4 transition-colors cursor-pointer bg-transparent border-none p-0"
+            >
                 <ArrowLeft size={16} className="mr-2" />
                 {t('ranking_back_to_vacancies')}
-            </Link>
+            </button>
 
             {renderContent()}
         </div>

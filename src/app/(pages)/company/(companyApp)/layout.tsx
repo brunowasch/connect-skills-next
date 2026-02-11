@@ -3,6 +3,9 @@ import { cookies } from "next/headers";
 import { prisma } from "@/src/lib/prisma";
 import CompanyClientLayout from "./CompanyClientLayout";
 import { getCompanyNotifications } from "@/src/lib/notifications";
+import { checkCompanyRestrictions } from "@/src/lib/companyRestrictions";
+import PendingEvaluationBanner from "./_components/PendingEvaluationBanner";
+import DisabledOverlay from "./_components/DisabledOverlay";
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
     const cookieStore = await cookies();
@@ -39,7 +42,23 @@ export default async function Layout({ children }: { children: React.ReactNode }
         redirect("/company/register");
     }
 
-    const notifications = await getCompanyNotifications(empresa.id);
+    // Verificar se a empresa tem vídeos expirados sem avaliação
+    const expiredVideos = await checkCompanyRestrictions(empresa!.id);
+
+    const notifications = await getCompanyNotifications(empresa!.id);
+
+    // Se houver vídeos expirados, mostrar banner e desabilitar funcionalidades
+    if (expiredVideos && expiredVideos.length > 0) {
+        return (
+            <>
+                <PendingEvaluationBanner expiredVideos={expiredVideos} />
+                <DisabledOverlay expiredVideos={expiredVideos} />
+                <CompanyClientLayout notifications={notifications}>
+                    {children}
+                </CompanyClientLayout>
+            </>
+        );
+    }
 
     return (
         <CompanyClientLayout notifications={notifications}>

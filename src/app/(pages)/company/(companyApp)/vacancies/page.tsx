@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { prisma } from "@/src/lib/prisma";
 import { VacanciesList } from "./_components/VacanciesList";
 import { redirect } from "next/navigation";
+import { checkCompanyRestrictions } from "@/src/lib/companyRestrictions";
 
 export default async function VacanciesPage() {
     const cookieStore = await cookies();
@@ -104,7 +105,12 @@ export default async function VacanciesPage() {
         };
     });
 
+    const expiredVideos = await checkCompanyRestrictions(company.id);
+
     return (
-        <VacanciesList initialVacancies={vacanciesWithCounts} />
+        <VacanciesList
+            initialVacancies={vacanciesWithCounts}
+            expiredVideos={expiredVideos}
+        />
     );
 }

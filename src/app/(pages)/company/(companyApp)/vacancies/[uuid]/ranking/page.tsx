@@ -4,10 +4,12 @@ import { RankingPageContent } from "./_components/RankingPageContent";
 
 interface Props {
     params: Promise<{ uuid: string }>;
+    searchParams: Promise<{ pendingCandidate?: string }>;
 }
 
-export default async function RankingPage({ params }: Props) {
+export default async function RankingPage({ params, searchParams }: Props) {
     const { uuid: vacancyUuid } = await params;
+    const { pendingCandidate } = await searchParams;
 
     if (!vacancyUuid) {
         return <RankingPageContent state="no_selection" />;
@@ -64,6 +66,7 @@ export default async function RankingPage({ params }: Props) {
             vacancy={{ cargo: vacancy.cargo }}
             candidates={candidatesWithApp}
             vacancyUuid={vacancyUuid}
+            pendingCandidateId={pendingCandidate}
         />
     );
 }

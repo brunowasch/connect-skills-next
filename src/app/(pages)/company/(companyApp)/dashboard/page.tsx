@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
+import { checkCompanyRestrictions } from "@/src/lib/companyRestrictions";
 import { CompanyHero, CompanyKPI, ProfileCompletion, RecentVacancies, RecentCandidates, DashboardHeader, VideoEvaluations } from '@/src/app/(pages)/company/(companyApp)/dashboard/_components';
 
 export default async function Dashboard() {
@@ -275,6 +276,10 @@ export default async function Dashboard() {
         })
         .filter((item): item is NonNullable<typeof item> => item !== null);
 
+    // Verificar se há restrições devido a vídeos expirados
+    const expiredVideos = await checkCompanyRestrictions(companyId);
+    const isRestricted = !!expiredVideos && expiredVideos.length > 0;
+
     return (
         <>
             <DashboardHeader />
@@ -287,8 +292,8 @@ export default async function Dashboard() {
                 OpenVacancies={OpenVacancies}
             />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <RecentVacancies vacancies={recentVacancies} />
-                <RecentCandidates applications={applications} />
+                <RecentVacancies vacancies={recentVacancies} isRestricted={isRestricted} />
+                <RecentCandidates applications={applications} isRestricted={isRestricted} />
             </div>
 
         </>

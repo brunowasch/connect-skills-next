@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Mail, FileText, Brain, User, ExternalLink, Video, MessageSquare, Eye } from "lucide-react";
+import { Mail, FileText, Brain, User, ExternalLink, Video, MessageSquare, Eye, AlertTriangle } from "lucide-react";
 import { AnswersModal } from "./AnswersModal";
 import { AnalysisModal } from "./AnalysisModal";
 import { VideoModal } from "./VideoModal";
@@ -37,11 +37,12 @@ interface Candidate {
 interface RankingListProps {
     candidates: Candidate[];
     vacancyUuid: string;
+    pendingCandidateId?: string;
 }
 
 type SortOption = 'score' | 'score_D' | 'score_I' | 'score_S' | 'score_C';
 
-export function RankingList({ candidates, vacancyUuid }: RankingListProps) {
+export function RankingList({ candidates, vacancyUuid, pendingCandidateId }: RankingListProps) {
     const { t } = useTranslation();
     const [sortBy, setSortBy] = useState<SortOption>('score');
     const [filter, setFilter] = useState<'all' | 'approved' | 'rejected'>('all');
@@ -107,7 +108,10 @@ export function RankingList({ candidates, vacancyUuid }: RankingListProps) {
         return true;
     });
 
-    const sortedCandidates = sortCandidates(filteredCandidates);
+    // Mostrar todos os candidatos filtrados
+    const displayCandidates = filteredCandidates;
+
+    const sortedCandidates = sortCandidates(displayCandidates);
 
     const handleShowAnswers = (candidateId: string) => {
         setSelectedCandidate(candidateId);
@@ -140,9 +144,16 @@ export function RankingList({ candidates, vacancyUuid }: RankingListProps) {
     };
 
     const handleFeedbackSubmit = async (status: 'APPROVED' | 'REJECTED', justification: string) => {
-        if (!feedbackCandidate) return;
-        await submitFeedback(feedbackCandidate, vacancyUuid, status, justification);
-        router.refresh();
+        const currentCandidateId = feedbackCandidate;
+        if (!currentCandidateId) return;
+
+        await submitFeedback(currentCandidateId, vacancyUuid, status, justification);
+
+        if (pendingCandidateId && currentCandidateId === pendingCandidateId) {
+            window.location.replace(`/company/vacancies/${vacancyUuid}/ranking`);
+        } else {
+            router.refresh();
+        }
     };
 
     const confirmRequestVideo = () => {
@@ -186,6 +197,25 @@ export function RankingList({ candidates, vacancyUuid }: RankingListProps) {
 
     return (
         <>
+            {/* Banner informativo quando está avaliando candidato pendente */}
+            {pendingCandidateId && (
+                <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4">
+                    <div className="flex items-start gap-3">
+                        <div className="bg-amber-100 p-2 rounded-full flex-shrink-0">
+                            <MessageSquare className="w-5 h-5 text-amber-600" />
+                        </div>
+                        <div>
+                            <h3 className="font-semibold text-amber-900 text-sm">
+                                {t('ranking_pending_mode_title')}
+                            </h3>
+                            <p className="text-amber-700 text-xs mt-1">
+                                {t('ranking_pending_mode_desc')}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="flex flex-col gap-4 mb-6">
                 {/* Header Controls */}
                 <div className="flex justify-between items-center bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-xl border border-blue-100">
@@ -257,13 +287,32 @@ export function RankingList({ candidates, vacancyUuid }: RankingListProps) {
                     sortedCandidates.map((candidate, index) => {
                         const breakdown = parseBreakdown(candidate.application?.breakdown);
 
+                        const isPendingTarget = pendingCandidateId && candidate.id === pendingCandidateId;
+                        const isDisabled = pendingCandidateId && !isPendingTarget;
+
                         return (
-                            <div key={candidate.id} className="relative bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                            <div
+                                key={candidate.id}
+                                className={`relative bg-white p-6 rounded-xl border transition-all
+                                    ${isDisabled ? 'grayscale opacity-40 pointer-events-none' : 'hover:shadow-md'}
+                                    ${isPendingTarget ? 'border-amber-400 ring-4 ring-amber-50 shadow-lg scale-[1.01] z-10' : 'border-gray-100 shadow-sm'}
+                                `}
+                            >
 
                                 {/* Ranking Badge */}
-                                <div className="absolute -left-2 -top-2 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold shadow-sm z-10">
+                                <div className={`absolute -left-2 -top-2 w-8 h-8 rounded-full flex items-center justify-center font-bold shadow-sm z-10
+                                    ${isDisabled ? 'bg-gray-400 text-white' : 'bg-blue-600 text-white'}
+                                `}>
                                     #{index + 1}
                                 </div>
+
+                                {/* Pending Evaluation Badge */}
+                                {isPendingTarget && (
+                                    <div className="absolute -right-2 -top-2 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm flex items-center gap-1.5 animate-pulse z-20">
+                                        <AlertTriangle size={12} />
+                                        {t('ranking_pending_feedback', 'Feedback Pendente')}
+                                    </div>
+                                )}
 
                                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                                     <div className="flex items-center gap-4 ml-2">

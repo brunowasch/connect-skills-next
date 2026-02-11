@@ -191,7 +191,7 @@ export function NotificationDropdown({ notifications: initialNotifications }: No
         <div className="relative" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="relative p-2 rounded-lg hover:bg-slate-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 cursor-pointer"
+                className="notification-btn relative p-2 rounded-lg hover:bg-slate-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 cursor-pointer"
                 aria-label={t('notifications.title')}
             >
                 <Bell size={24} className="text-slate-600" />
@@ -217,7 +217,7 @@ export function NotificationDropdown({ notifications: initialNotifications }: No
                             {notifications.length > 0 && (
                                 <button
                                     onClick={handleClearAll}
-                                    className="text-xs font-medium text-slate-500 hover:text-red-600 transition-colors cursor-pointer"
+                                    className="text-xs font-medium text-slate-500 hover:text-red-600 transition-colors cursor-pointer notification-action-btn"
                                 >
                                     {t('notifications.clear_all')}
                                 </button>
@@ -243,14 +243,14 @@ export function NotificationDropdown({ notifications: initialNotifications }: No
                                     >
                                         <button
                                             onClick={(e) => handleDelete(notification.id, e)}
-                                            className="absolute top-2 right-2 p-1 text-slate-400 hover:text-red-500 hover:bg-slate-100 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer"
+                                            className="absolute top-2 right-2 p-1 text-slate-400 hover:text-red-500 hover:bg-slate-100 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer notification-action-btn"
                                             title={t('notifications.delete')}
                                         >
                                             <X size={14} />
                                         </button>
 
                                         <div
-                                            className="flex items-start gap-3 cursor-pointer"
+                                            className="flex items-start gap-3 cursor-pointer notification-content"
                                             onClick={(e) => handleNotificationClick(notification, e)}
                                         >
                                             <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 border ${getNotificationBgColor(notification.type)}`}>

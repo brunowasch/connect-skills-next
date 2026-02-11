@@ -114,19 +114,19 @@ export function VideoEvaluations({ evaluations }: VideoEvaluationsProps) {
 
                                     {isUrgent && (
                                         <div className="flex items-center gap-1 text-[10px] text-red-600 font-bold animate-pulse">
-                                            <AlertTriangle size={10} />
-                                            {t('dashboard_video_suspension_warning', 'Risco de bloqueio da conta!')}
+                                            {t('dashboard_video_suspension_warning')}
                                         </div>
                                     )}
                                 </div>
                             </div>
 
                             <Link
-                                href={`/company/vacancies/${evalReq.vacancyUuid}/candidates`}
-                                className="w-full flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-lg text-sm font-bold transition-transform active:scale-[0.98] shadow-sm shadow-purple-200"
+                                href={`/company/vacancies/${evalReq.vacancyUuid}/ranking?pendingCandidate=${evalReq.candidato.id}`}
+                                className={`${isUrgent ? 'evaluate-video-btn bg-purple-600 hover:bg-purple-700 text-white shadow-purple-200' : 'bg-white text-purple-600 hover:bg-purple-50 border border-purple-200'} 
+                                    w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-transform active:scale-[0.98] shadow-sm`}
                             >
                                 <Video size={16} />
-                                {t('dashboard_evaluate_video_btn', 'Avaliar Vídeo')}
+                                {t('dashboard_evaluate_video_btn')}
                                 <ArrowRight size={16} className="opacity-70 group-hover:translate-x-1 transition-transform" />
                             </Link>
                         </div>

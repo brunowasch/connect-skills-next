@@ -504,7 +504,9 @@
     "ranking_no_selection_desc": "Por favor, seleccione una vacante en el panel para ver el ranking.",
     "ranking_not_found_title": "Vacante no encontrada",
     "ranking_view_details": "Ver Detalles",
-    "ranking_back_to_vacancies": "Volver a Vacantes",
+    "ranking_back_to_vacancies": "Volver",
+    "ranking_pending_mode_title": "Modo de Evaluación Pendiente",
+    "ranking_pending_mode_desc": "Debe evaluar a todos los candidatos pendientes para liberar el acceso completo a la plataforma nuevamente.",
     "answers_modal_title": "Respuestas del Candidato",
     "answers_modal_no_data": "No se encontraron datos de respuesta.",
     "answers_modal_no_responses": "No hay respuestas disponibles para este candidato.",
@@ -596,6 +598,7 @@
     "pdf_load_error": "Error al cargar PDF",
     "vacancy_saved_favorites": "Vacante guardada en favoritos",
     "vacancy_removed_favorites": "Vacante eliminada de favoritos",
+    "feedback_min_length_error": "La justificación debe tener al menos 40 caracteres.",
     "error_updating_favorites": "Error al actualizar favoritos",
     "success_title": "¡Éxito!",
     "attention_title": "Atención",
@@ -1660,6 +1663,32 @@
         "company_notifications": {
             "new_candidate_title": "Nueva Candidatura",
             "video_received_title": "Video Recibido"
+        }
+    },
+    "companyBlocked": {
+        "title": "Acceso Temporalmente Bloqueado",
+        "subtitle": "Su cuenta está temporalmente suspendida",
+        "pendingEvaluation": {
+            "title": "Tienes evaluaciones de candidatos pendientes",
+            "subtitle": "Las funcionalidades están deshabilitadas hasta que los evalúes"
+        },
+        "warning": {
+            "title": "Acción Requerida",
+            "description": "Detectamos videos de candidatos que expiraron sin evaluación. Para mantener la calidad del servicio y respetar el tiempo de los candidatos, todas las funcionalidades de la plataforma han sido temporalmente deshabilitadas. El acceso será restaurado una vez que evalúe todos los videos pendientes."
+        },
+        "pendingVideos": {
+            "title": "Videos Pendientes de Evaluación",
+            "vacancy": "Vacante",
+            "candidate": "Candidato",
+            "submitted": "Enviado el",
+            "expired": "Expiró el",
+            "evaluateNow": "Evaluar Ahora"
+        },
+        "instructions": {
+            "title": "Cómo Restaurar el Acceso",
+            "step1": "Haga clic en 'Evaluar Ahora' en cada video pendiente",
+            "step2": "Vea el video y proporcione un feedback honesto al candidato",
+            "step3": "Después de evaluar todos los videos, el acceso será restaurado automáticamente"
         }
     }
 }

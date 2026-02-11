@@ -514,7 +514,10 @@
     "ranking_no_selection_desc": "Please select a vacancy from the dashboard to view the ranking.",
     "ranking_not_found_title": "Vacancy not found",
     "ranking_view_details": "View Details",
-    "ranking_back_to_vacancies": "Back to Vacancies",
+    "ranking_back_to_vacancies": "Back",
+    "ranking_pending_mode_title": "Pending Evaluation Mode",
+    "ranking_pending_mode_desc": "You must evaluate all pending candidates to restore full access to the platform.",
+    "ranking_pending_feedback": "Pending Feedback",
     "answers_modal_title": "Candidate Answers",
     "answers_modal_no_data": "No answer data found.",
     "answers_modal_no_responses": "No responses available for this candidate.",
@@ -606,6 +609,7 @@
     "pdf_load_error": "Error loading PDF",
     "vacancy_saved_favorites": "Vacancy saved to favorites",
     "vacancy_removed_favorites": "Vacancy removed from favorites",
+    "feedback_min_length_error": "The justification must be at least 40 characters long.",
     "error_updating_favorites": "Error updating favorites",
     "success_title": "Success!",
     "attention_title": "Attention",
@@ -1670,6 +1674,32 @@
         "company_notifications": {
             "new_candidate_title": "New Application",
             "video_received_title": "Video Received"
+        }
+    },
+    "companyBlocked": {
+        "title": "Access Temporarily Blocked",
+        "subtitle": "Your account is temporarily suspended",
+        "pendingEvaluation": {
+            "title": "You have pending candidate evaluations",
+            "subtitle": "Functionalities are disabled until you evaluate them"
+        },
+        "warning": {
+            "title": "Action Required",
+            "description": "We detected candidate videos that expired without evaluation. To maintain service quality and respect candidates' time, all platform features have been temporarily disabled. Access will be restored once you evaluate all pending videos."
+        },
+        "pendingVideos": {
+            "title": "Videos Pending Evaluation",
+            "vacancy": "Job",
+            "candidate": "Candidate",
+            "submitted": "Submitted on",
+            "expired": "Expired on",
+            "evaluateNow": "Evaluate Now"
+        },
+        "instructions": {
+            "title": "How to Restore Access",
+            "step1": "Click 'Evaluate Now' on each pending video",
+            "step2": "Watch the video and provide honest feedback to the candidate",
+            "step3": "After evaluating all videos, access will be automatically restored"
         }
     }
 }

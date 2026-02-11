@@ -6,14 +6,14 @@ import { Users, ChevronRight, Calendar, Star, Camera, Check } from 'lucide-react
 import { RecentCandidatesProps } from '@/src/app/(pages)/company/(companyApp)/types/Application';
 import { useTranslation } from "react-i18next";
 
-export function RecentCandidates({ applications }: RecentCandidatesProps) {
+export function RecentCandidates({ applications, isRestricted }: RecentCandidatesProps) {
     const { t, i18n } = useTranslation();
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
 
     if (applications.length === 0) {
         return (
-            <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 p-8 text-center h-full flex flex-col items-center justify-center">
+            <div className={`bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 p-8 text-center h-full flex flex-col items-center justify-center ${isRestricted ? 'grayscale opacity-75 pointer-events-none' : ''}`}>
                 <div className="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mb-4 text-slate-400">
                     <Users size={32} />
                 </div>
@@ -26,7 +26,7 @@ export function RecentCandidates({ applications }: RecentCandidatesProps) {
     }
 
     return (
-        <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col h-full">
+        <div className={`bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col h-full ${isRestricted ? 'grayscale opacity-75 pointer-events-none' : ''}`}>
             <div className="p-4 sm:p-6 border-b border-slate-50 flex justify-between items-center bg-white sticky top-0 z-10">
                 <div className="flex items-center gap-2">
                     <div className="bg-indigo-50 p-2 rounded-lg text-indigo-600">

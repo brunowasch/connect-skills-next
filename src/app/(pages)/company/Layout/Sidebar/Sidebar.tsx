@@ -79,7 +79,7 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarPr
                             padding: "0 1.5rem",
                         }}
                     >
-                        <Link href="/company/dashboard">
+                        <Link href="/company/dashboard" className="header-logo-link">
                             <div style={{ backgroundColor: "rgba(255,255,255,0.9)", borderRadius: "0.5rem", padding: "0.5rem" }}>
                                 <Image
                                     src="/img/logos/logo-connect-skills.png"
@@ -99,9 +99,11 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarPr
                             const Icon = item.icon;
 
                             return (
+
                                 <Link
                                     key={item.href}
                                     href={item.href}
+                                    className="sidebar-nav-link"
                                     style={{
                                         display: "flex",
                                         alignItems: "center",
@@ -139,6 +141,7 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarPr
 
                 <div style={{ padding: "1rem" }}>
                     <button
+                        className="sidebar-nav-link"
                         style={{
                             display: "flex",
                             width: "100%",
@@ -167,7 +170,7 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarPr
                         <a
                             href="https://wa.me/5551992179330"
                             target="_blank"
-                            className="mt-2 flex items-center gap-2 font-medium text-black hover:text-green-600 lg:mt-0"
+                            className="sidebar-nav-link mt-2 flex items-center gap-2 font-medium text-black hover:text-green-600 lg:mt-0"
                         >
                             <div style={{
                                 display: "flex",
@@ -186,6 +189,7 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarPr
                     </button>
                     <button
                         onClick={() => setLogoutOpen(true)}
+                        className="sidebar-nav-link"
                         style={{
                             display: "flex",
                             width: "100%",

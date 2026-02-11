@@ -40,18 +40,18 @@ export function FeedbackModal({ isOpen, onClose, candidateName, onSubmit, aiSugg
             return;
         }
 
-        if (!justification.trim()) {
-            toast.error(t('feedback_justification_required_error', 'A justificativa é obrigatória'));
+        if (!justification.trim() || justification.length < 40) {
+            toast.error(t('feedback_min_length_error'));
             return;
         }
 
         startTransition(async () => {
             try {
                 await onSubmit(status, justification);
-                toast.success(t('feedback_success', 'Feedback enviado com sucesso!'));
+                toast.success(t('feedback_success'));
                 onClose();
             } catch (error) {
-                toast.error(t('feedback_error', 'Erro ao enviar feedback'));
+                toast.error(t('feedback_error'));
             }
         });
     };
@@ -142,8 +142,16 @@ export function FeedbackModal({ isOpen, onClose, candidateName, onSubmit, aiSugg
                             value={justification}
                             onChange={(e) => setJustification(e.target.value)}
                             placeholder={t('feedback_justification_placeholder', 'Escreva uma mensagem para o candidato...')}
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none resize-none h-32 text-sm"
+                            className={`w-full px-4 py-3 rounded-xl border focus:ring-2 outline-none resize-none h-32 text-sm transition-colors
+                                ${justification.length > 0 && justification.length < 40
+                                    ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                                    : 'border-gray-200 focus:border-blue-500 focus:ring-blue-200'}`}
                         />
+                        <div className="flex justify-end mt-1">
+                            <span className={`text-xs font-medium transition-colors ${justification.length > 0 && justification.length < 40 ? 'text-red-500' : 'text-gray-400'}`}>
+                                {justification.length} / 40
+                            </span>
+                        </div>
                     </div>
                 </div>
 
@@ -158,7 +166,7 @@ export function FeedbackModal({ isOpen, onClose, candidateName, onSubmit, aiSugg
                     </button>
                     <button
                         onClick={handleSubmit}
-                        disabled={!status || !justification.trim() || isPending}
+                        disabled={!status || justification.length < 40 || isPending}
                         className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     >
                         {isPending ? (

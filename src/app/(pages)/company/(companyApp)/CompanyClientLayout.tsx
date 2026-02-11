@@ -34,7 +34,7 @@ export default function CompanyLayout({
                     <div className="flex items-center gap-4 lg:hidden">
                         <button
                             onClick={() => setMobileSidebarOpen(true)}
-                            className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 cursor-pointer"
+                            className="menu-toggle-btn rounded-lg p-2 text-gray-600 hover:bg-gray-100 cursor-pointer"
                         >
                             <FaBars className="text-xl" />
                         </button>
