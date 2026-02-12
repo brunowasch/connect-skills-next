@@ -59,8 +59,8 @@ export function CompanyVacancyCard({
 
     const tipoMap: Record<string, string> = {
         Presencial: t('Presencial'),
-        Home_Office: t('Home Office'),
-        H_brido: t('Híbrido'),
+        Home_Office: t('Home_Office'),
+        H_brido: t('H_brido'),
     };
 
     const applicationCount = vacancy._count?.vaga_avaliacao || 0;
@@ -145,10 +145,10 @@ export function CompanyVacancyCard({
                 </div>
 
                 <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-600">
-                    <div className="flex items-center gap-2" title={t('total_candidates', 'Total de candidatos')}>
+                    <div className="flex items-center gap-2" title={t('total_candidates')}>
                         <Users size={16} className="text-blue-500" />
                         <span>
-                            <span className="font-semibold text-slate-900">{vacancy.stats?.total ?? applicationCount}</span> <span className="hidden sm:inline">{t('candidates')}</span>
+                            <span className="font-semibold text-slate-900">{vacancy.stats?.total ?? applicationCount}</span> <span className="hidden sm:inline">{t('total_candidates')}</span>
                         </span>
                     </div>
 

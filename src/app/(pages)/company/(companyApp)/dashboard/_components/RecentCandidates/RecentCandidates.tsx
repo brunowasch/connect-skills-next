@@ -78,13 +78,13 @@ export function RecentCandidates({ applications, isRestricted }: RecentCandidate
                                     {app.videoStatus === 'requested' && (
                                         <span className="flex items-center gap-1 text-[10px] font-bold bg-purple-50 text-purple-600 px-2 py-0.5 rounded-full border border-purple-100">
                                             <Camera size={10} className="mr-1" />
-                                            Solicitado
+                                            {t("video_requested")}
                                         </span>
                                     )}
                                     {app.videoStatus === 'submitted' && (
                                         <span className="flex items-center gap-1 text-[10px] font-bold bg-green-50 text-green-600 px-2 py-0.5 rounded-full border border-green-100">
                                             <Check size={10} className="mr-1" />
-                                            Vídeo Enviado
+                                            {t("video_submitted")}
                                         </span>
                                     )}
                                     {app.score !== undefined && app.score > 0 && (
