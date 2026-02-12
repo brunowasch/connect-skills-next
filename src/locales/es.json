@@ -499,6 +499,7 @@
     "ranking_score_label": "Puntaje:",
     "ranking_view_answers": "Ver Respuestas",
     "ranking_ai_analysis": "Análisis de IA",
+    "watch_video": "Ver Video de Presentación",
     "ranking_no_candidates": "Ningún candidato ha aplicado a esta vacante aún.",
     "ranking_no_selection_title": "Ninguna vacante seleccionada",
     "ranking_no_selection_desc": "Por favor, seleccione una vacante en el panel para ver el ranking.",
@@ -1690,5 +1691,17 @@
             "step2": "Vea el video y proporcione un feedback honesto al candidato",
             "step3": "Después de evaluar todos los videos, el acceso será restaurado automáticamente"
         }
-    }
+    },
+    "video_analysis_error": "Error al cargar el análisis del video.",
+    "video_analysis_title": "Análisis Inteligente de Video",
+    "candidate_label": "Candidato",
+    "overall_score": "Puntaje General",
+    "excellent_rating": "Excelente",
+    "good_rating": "Bueno",
+    "average_rating": "Promedio",
+    "needs_improvement_rating": "Necesita Mejorar",
+    "communication": "Comunicación",
+    "adherence": "Adherencia",
+    "candidate_summary": "Resumen del Candidato",
+    "full_transcript": "Transcripción Completa"
 }

@@ -12,7 +12,7 @@ interface FeedbackModalProps {
     candidateId: string;
 
     onSubmit: (status: 'APPROVED' | 'REJECTED', justification: string) => Promise<void>;
-    aiSuggestions?: string | string[];
+    aiSuggestions?: string | string[] | { feedback: string; suggestions: string[] } | null;
 }
 
 export function FeedbackModal({ isOpen, onClose, candidateName, onSubmit, aiSuggestions }: FeedbackModalProps) {
@@ -59,15 +59,27 @@ export function FeedbackModal({ isOpen, onClose, candidateName, onSubmit, aiSugg
     const handleUseAiSuggestions = () => {
         if (!aiSuggestions) return;
 
-        const suggestionsText = Array.isArray(aiSuggestions)
-            ? aiSuggestions.join('\n- ')
-            : aiSuggestions;
+        let formattedText = '';
 
-        const formattedText = Array.isArray(aiSuggestions) ? `- ${suggestionsText}` : suggestionsText;
+        if (typeof aiSuggestions === 'object' && !Array.isArray(aiSuggestions) && 'feedback' in aiSuggestions) {
+            formattedText = aiSuggestions.feedback;
+
+            if (aiSuggestions.suggestions && aiSuggestions.suggestions.length > 0) {
+                formattedText += `\n\n${t('feedback_ai_suggestion_intro', 'Sugestões de melhoria:')}\n`;
+                formattedText += aiSuggestions.suggestions.map(s => `- ${s}`).join('\n');
+            }
+        }
+        else if (Array.isArray(aiSuggestions)) {
+            formattedText = `${t('feedback_ai_suggestion_intro', 'Sugestões de melhoria:')}\n`;
+            formattedText += aiSuggestions.map(s => `- ${s}`).join('\n');
+        }
+        else if (typeof aiSuggestions === 'string') {
+            formattedText = aiSuggestions;
+        }
 
         setJustification(prev => {
             const separator = prev ? '\n\n' : '';
-            return `${prev}${separator}${t('feedback_ai_suggestion_intro', 'Sugestões de melhoria:')}\n${formattedText}`;
+            return `${prev}${separator}${formattedText}`;
         });
     };
 
@@ -186,4 +198,3 @@ export function FeedbackModal({ isOpen, onClose, candidateName, onSubmit, aiSugg
         </div>
     );
 }
-

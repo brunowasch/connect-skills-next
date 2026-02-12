@@ -25,7 +25,7 @@ export function CandidatesPageContent({ state, vacancy, candidates, vacancyUuid 
     const [selectedFeedbackCandidate, setSelectedFeedbackCandidate] = useState<any | null>(null);
 
     const handleFeedbackClick = (e: React.MouseEvent, candidate: any) => {
-        e.preventDefault(); 
+        e.preventDefault();
         setSelectedFeedbackCandidate(candidate);
         setShowFeedback(true);
     };
@@ -94,93 +94,93 @@ export function CandidatesPageContent({ state, vacancy, candidates, vacancyUuid 
                 <div className="grid grid-cols-1 gap-6">
                     {candidates && candidates.map((candidate, index) => {
                         const feedbackStatus = candidate.breakdown?.feedback?.status;
-                        
+
                         return (
-                        <div id={`candidate-${candidate.id}`} key={candidate.id} className="relative bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-                            
-                            {feedbackStatus ? (
-                                <div className={`absolute right-6 bottom-6 z-10 px-4 py-2 rounded-lg text-sm font-bold border shadow-md select-none
+                            <div id={`candidate-${candidate.id}`} key={candidate.id} className="relative bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+
+                                {feedbackStatus ? (
+                                    <div className={`absolute right-6 bottom-6 z-10 px-4 py-2 rounded-lg text-sm font-bold border shadow-md select-none
                                     ${feedbackStatus === 'APPROVED' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
-                                    {feedbackStatus === 'APPROVED' ? t('approved', 'Aprovado') : t('rejected', 'Reprovado')}
-                                </div>
-                            ) : (
-                                <button 
-                                    onClick={(e) => handleFeedbackClick(e, candidate)}
-                                    className="absolute right-6 bottom-6 z-10 p-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors shadow-lg hover:shadow-xl hover:-translate-y-1 transform active:scale-95"
-                                    title={t('give_feedback', 'Dar Feedback')}
-                                >
-                                    <MessageSquare size={20} />
-                                </button>
-                            )}
-
-                            <div className="p-6">
-                                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                                    <div className="flex items-center gap-4">
-                                        <div className="relative">
-                                            <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xl overflow-hidden flex-shrink-0 border-2 border-white shadow-sm">
-                                                {candidate.uuid ? (
-                                                    <Link href={`/viewer/candidate/${candidate.uuid}`} className="w-full h-full relative block">
-                                                        {candidate.foto_perfil || candidate.usuario?.avatarUrl ? (
-                                                            <img src={candidate.foto_perfil || candidate.usuario?.avatarUrl!} alt="" className="w-full h-full object-cover" />
-                                                        ) : (
-                                                            <User size={32} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-400" />
-                                                        )}
-                                                    </Link>
-                                                ) : (
-                                                    candidate.foto_perfil || candidate.usuario?.avatarUrl ? (
-                                                        <img src={candidate.foto_perfil || candidate.usuario?.avatarUrl!} alt="" className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <User size={32} className="text-blue-400" />
-                                                    )
-                                                )}
-                                            </div>
-                                            <div className="absolute -top-2 -left-2 w-7 h-7 bg-slate-900 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">
-                                                #{index + 1}
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <h3 className="font-bold text-xl text-slate-900">{candidate.nome} {candidate.sobrenome}</h3>
-                                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500 mt-1">
-                                                {candidate.cidade && <span>{candidate.cidade}, {candidate.estado}</span>}
-                                                {candidate.usuario?.email && <span className="flex items-center gap-1"><Mail size={12} /> {candidate.usuario.email}</span>}
-                                            </div>
-                                        </div>
+                                        {feedbackStatus === 'APPROVED' ? t('approved', 'Aprovado') : t('rejected', 'Reprovado')}
                                     </div>
-
-                                    <div className="flex flex-col items-end gap-2 shrink-0">
-                                        <div className="text-xs text-gray-400">{t('candidates_page_applied_on')} {candidate.application?.created_at ? new Date(candidate.application.created_at).toLocaleDateString(i18n.language) : '---'}</div>
-                                        <div className="flex flex-col items-end">
-                                            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{t('candidates_page_match_score')}</span>
-                                            <div className="inline-flex items-center px-4 py-1.5 rounded-full text-lg font-black bg-blue-600 text-white shadow-lg shadow-blue-100">
-                                                {candidate.application?.score || 0}%
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Justificativa da IA (Preview) */}
-                                {candidate.breakdown?.reason && (
-                                    <div className="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <BrainCircuit size={16} className="text-blue-600" />
-                                            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">{t('candidates_page_ai_justification')}</span>
-                                        </div>
-                                        <p className="text-sm text-slate-600 leading-relaxed line-clamp-2 italic">
-                                            "{candidate.breakdown.reason}"
-                                        </p>
-                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={(e) => handleFeedbackClick(e, candidate)}
+                                        className="absolute right-6 bottom-6 z-10 p-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors shadow-lg hover:shadow-xl hover:-translate-y-1 transform active:scale-95"
+                                        title={t('give_feedback', 'Dar Feedback')}
+                                    >
+                                        <MessageSquare size={20} />
+                                    </button>
                                 )}
 
-                                <ApplicationDetails application={candidate.application} vacancyUuid={vacancyUuid} />
+                                <div className="p-6">
+                                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                                        <div className="flex items-center gap-4">
+                                            <div className="relative">
+                                                <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xl overflow-hidden flex-shrink-0 border-2 border-white shadow-sm">
+                                                    {candidate.uuid ? (
+                                                        <Link href={`/viewer/candidate/${candidate.uuid}`} className="w-full h-full relative block">
+                                                            {candidate.foto_perfil || candidate.usuario?.avatarUrl ? (
+                                                                <img src={candidate.foto_perfil || candidate.usuario?.avatarUrl!} alt="" className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <User size={32} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-400" />
+                                                            )}
+                                                        </Link>
+                                                    ) : (
+                                                        candidate.foto_perfil || candidate.usuario?.avatarUrl ? (
+                                                            <img src={candidate.foto_perfil || candidate.usuario?.avatarUrl!} alt="" className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <User size={32} className="text-blue-400" />
+                                                        )
+                                                    )}
+                                                </div>
+                                                <div className="absolute -top-2 -left-2 w-7 h-7 bg-slate-900 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">
+                                                    #{index + 1}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h3 className="font-bold text-xl text-slate-900">{candidate.nome} {candidate.sobrenome}</h3>
+                                                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500 mt-1">
+                                                    {candidate.cidade && <span>{candidate.cidade}, {candidate.estado}</span>}
+                                                    {candidate.usuario?.email && <span className="flex items-center gap-1"><Mail size={12} /> {candidate.usuario.email}</span>}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-col items-end gap-2 shrink-0">
+                                            <div className="text-xs text-gray-400">{t('candidates_page_applied_on')} {candidate.application?.created_at ? new Date(candidate.application.created_at).toLocaleDateString(i18n.language) : '---'}</div>
+                                            <div className="flex flex-col items-end">
+                                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{t('candidates_page_match_score')}</span>
+                                                <div className="inline-flex items-center px-4 py-1.5 rounded-full text-lg font-black bg-blue-600 text-white shadow-lg shadow-blue-100">
+                                                    {candidate.application?.score || 0}%
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Justificativa da IA (Preview) */}
+                                    {candidate.breakdown?.reason && (
+                                        <div className="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <BrainCircuit size={16} className="text-blue-600" />
+                                                <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">{t('candidates_page_ai_justification')}</span>
+                                            </div>
+                                            <p className="text-sm text-slate-600 leading-relaxed line-clamp-2 italic">
+                                                "{candidate.breakdown.reason}"
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    <ApplicationDetails application={candidate.application} candidate={candidate} vacancyUuid={vacancyUuid} />
+                                </div>
                             </div>
-                        </div>
                         );
                     })}
                 </div>
             )}
 
             {selectedFeedbackCandidate && (
-                <FeedbackModal 
+                <FeedbackModal
                     isOpen={showFeedback}
                     onClose={() => {
                         setShowFeedback(false);

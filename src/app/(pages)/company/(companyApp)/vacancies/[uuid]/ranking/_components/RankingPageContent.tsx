@@ -10,6 +10,7 @@ interface RankingPageContentProps {
     state: 'no_selection' | 'not_found' | 'success';
     vacancy?: {
         cargo: string;
+        id?: string;
     } | null;
     candidates?: any[];
     vacancyUuid?: string;
@@ -46,7 +47,7 @@ export function RankingPageContent({ state, vacancy, candidates, vacancyUuid, pe
                         <p className="text-gray-500">{t('ranking_subtitle')}</p>
                     </div>
                 </div>
-                {candidates && vacancyUuid && <RankingList candidates={candidates} vacancyUuid={vacancyUuid} pendingCandidateId={pendingCandidateId} />}
+                {candidates && vacancyUuid && <RankingList candidates={candidates} vacancyUuid={vacancyUuid} vacancyId={vacancy?.id} pendingCandidateId={pendingCandidateId} />}
             </>
         );
     };

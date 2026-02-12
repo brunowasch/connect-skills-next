@@ -517,6 +517,7 @@
     "ranking_score_label": "Score:",
     "ranking_view_answers": "Ver Respostas",
     "ranking_ai_analysis": "Análise IA",
+    "watch_video": "Assistir Vídeo de Apresentação",
     "ranking_no_candidates": "Nenhum candidato aplicou para esta vaga ainda.",
     "ranking_no_selection_title": "Nenhuma vaga selecionada",
     "ranking_no_selection_desc": "Por favor, selecione uma vaga no painel para visualizar o ranking.",
@@ -1570,5 +1571,17 @@
             "step2": "Assista ao vídeo e forneça um feedback honesto ao candidato",
             "step3": "Após avaliar todos os vídeos, o acesso será restaurado automaticamente"
         }
-    }
+    },
+    "video_analysis_error": "Falha ao carregar análise do vídeo.",
+    "video_analysis_title": "Análise Inteligente de Vídeo",
+    "candidate_label": "Candidato",
+    "overall_score": "Score Geral",
+    "excellent_rating": "Excelente",
+    "good_rating": "Bom",
+    "average_rating": "Médio",
+    "needs_improvement_rating": "Precisa Melhorar",
+    "communication": "Comunicação",
+    "adherence": "Aderência",
+    "candidate_summary": "Resumo do Candidato",
+    "full_transcript": "Transcrição Completa"
 }

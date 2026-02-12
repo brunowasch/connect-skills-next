@@ -63,7 +63,7 @@ export default async function RankingPage({ params, searchParams }: Props) {
     return (
         <RankingPageContent
             state="success"
-            vacancy={{ cargo: vacancy.cargo }}
+            vacancy={{ cargo: vacancy.cargo, id: vacancy.id }}
             candidates={candidatesWithApp}
             vacancyUuid={vacancyUuid}
             pendingCandidateId={pendingCandidate}

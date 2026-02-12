@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Mail, FileText, Brain, User, ExternalLink, Video, MessageSquare, Eye, AlertTriangle } from "lucide-react";
+import { Mail, FileText, Brain, User, ExternalLink, Video, MessageSquare, Eye, AlertTriangle, Play } from "lucide-react";
 import { AnswersModal } from "./AnswersModal";
 import { AnalysisModal } from "./AnalysisModal";
-import { VideoModal } from "./VideoModal";
+import { VideoAnalysisModal } from "../../candidates/_components/VideoAnalysisModal";
 import { FeedbackModal } from "./FeedbackModal";
 import { useTranslation } from "react-i18next";
 import { requestVideo, submitFeedback } from "../../../actions";
@@ -37,12 +37,13 @@ interface Candidate {
 interface RankingListProps {
     candidates: Candidate[];
     vacancyUuid: string;
+    vacancyId?: string;
     pendingCandidateId?: string;
 }
 
 type SortOption = 'score' | 'score_D' | 'score_I' | 'score_S' | 'score_C';
 
-export function RankingList({ candidates, vacancyUuid, pendingCandidateId }: RankingListProps) {
+export function RankingList({ candidates, vacancyUuid, vacancyId, pendingCandidateId }: RankingListProps) {
     const { t } = useTranslation();
     const [sortBy, setSortBy] = useState<SortOption>('score');
     const [filter, setFilter] = useState<'all' | 'approved' | 'rejected'>('all');
@@ -59,7 +60,7 @@ export function RankingList({ candidates, vacancyUuid, pendingCandidateId }: Ran
 
     // Parse breakdown to extract DISC scores
     const parseBreakdown = (breakdown: string | null | undefined) => {
-        if (!breakdown) return { D: 0, I: 0, S: 0, C: 0, video: null, suggestions: null };
+        if (!breakdown) return { D: 0, I: 0, S: 0, C: 0, video: null, suggestions: null, videoAnalysis: null };
 
         try {
             const parsed = JSON.parse(breakdown);
@@ -70,10 +71,11 @@ export function RankingList({ candidates, vacancyUuid, pendingCandidateId }: Ran
                 C: parsed.c_score || 0,
                 video: parsed.video,
                 suggestions: parsed.suggestions,
-                feedback: parsed.feedback
+                feedback: parsed.feedback,
+                videoAnalysis: parsed.videoAnalysis
             };
         } catch {
-            return { D: 0, I: 0, S: 0, C: 0, video: null, suggestions: null };
+            return { D: 0, I: 0, S: 0, C: 0, video: null, suggestions: null, videoAnalysis: null };
         }
     };
 
@@ -179,7 +181,7 @@ export function RankingList({ candidates, vacancyUuid, pendingCandidateId }: Ran
             return (
                 <div className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold border cursor-default
                     ${isApproved ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
-                    {isApproved ? 'Aprovado' : 'Reprovado'}
+                    {isApproved ? t('approved') : t('rejected')}
                 </div>
             );
         }
@@ -394,13 +396,6 @@ export function RankingList({ candidates, vacancyUuid, pendingCandidateId }: Ran
                                             {t('vacancy_view_public_profile')}
                                         </a>
                                     )}
-                                    <a
-                                        href={`/company/vacancies/${vacancyUuid}/candidates#candidate-${candidate.id}`}
-                                        className="flex items-center gap-1 px-3 py-1.5 bg-amber-50 text-amber-600 rounded-lg text-xs font-medium hover:bg-amber-100 transition-colors cursor-pointer border border-amber-200"
-                                    >
-                                        <Eye size={14} />
-                                        {t('ranking_view_details', 'Ver Detalhes')}
-                                    </a>
                                     <button
                                         onClick={() => handleShowAnswers(candidate.id)}
                                         className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium hover:bg-blue-100 transition-colors cursor-pointer"
@@ -427,8 +422,8 @@ export function RankingList({ candidates, vacancyUuid, pendingCandidateId }: Ran
                                                     onClick={() => handleShowVideo(candidate.id, breakdown.video.url)}
                                                     className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs font-medium hover:bg-green-700 transition-colors cursor-pointer shadow-sm shadow-green-200"
                                                 >
-                                                    <Video size={14} />
-                                                    {t('ranking_watch_video', 'Ver Vídeo')}
+                                                    <Play size={14} />
+                                                    {t('watch_video')}
                                                 </button>
                                             );
                                         }
@@ -475,7 +470,25 @@ export function RankingList({ candidates, vacancyUuid, pendingCandidateId }: Ran
                         aiSuggestions={(() => {
                             const candidate = sortedCandidates.find(c => c.id === feedbackCandidate);
                             const breakdown = parseBreakdown(candidate?.application?.breakdown);
-                            return breakdown.suggestions;
+                            const videoFeedback = breakdown.videoAnalysis?.data?.suggestedFeedback;
+                            const textSuggestions = breakdown.suggestions;
+
+                            if (videoFeedback && textSuggestions) {
+                                const suggestionsList = Array.isArray(textSuggestions)
+                                    ? textSuggestions
+                                    : [textSuggestions];
+
+                                return {
+                                    feedback: videoFeedback,
+                                    suggestions: suggestionsList
+                                };
+                            }
+
+                            if (videoFeedback) return videoFeedback;
+
+                            if (textSuggestions) return textSuggestions;
+
+                            return null;
                         })()}
                     />
                 )
@@ -510,7 +523,7 @@ export function RankingList({ candidates, vacancyUuid, pendingCandidateId }: Ran
                             breakdown={sortedCandidates.find(c => c.id === selectedCandidate)?.application?.breakdown}
                             score={sortedCandidates.find(c => c.id === selectedCandidate)?.application?.score || 0}
                         />
-                        <VideoModal
+                        <VideoAnalysisModal
                             isOpen={showVideo}
                             onClose={() => {
                                 setShowVideo(false);
@@ -521,16 +534,18 @@ export function RankingList({ candidates, vacancyUuid, pendingCandidateId }: Ran
                                 const candidate = sortedCandidates.find(c => c.id === selectedCandidate);
                                 return `${candidate?.nome || ''} ${candidate?.sobrenome || ''}`.trim();
                             })()}
-                            videoUrl={selectedVideoUrl}
-                            feedbackStatus={(() => {
+                            videoUrl={selectedVideoUrl || ""}
+                            candidateId={selectedCandidate}
+                            vacancyUuid={vacancyUuid}
+                            vacancyId={vacancyId}
+                            showFeedbackButton={(() => {
                                 const candidate = sortedCandidates.find(c => c.id === selectedCandidate);
                                 const breakdown = parseBreakdown(candidate?.application?.breakdown);
-                                return breakdown?.feedback?.status || null;
+                                return !breakdown?.feedback?.status;
                             })()}
                             onFeedback={() => {
                                 if (selectedCandidate) {
                                     handleFeedbackClick(selectedCandidate);
-                                    setShowVideo(false);
                                 }
                             }}
                         />

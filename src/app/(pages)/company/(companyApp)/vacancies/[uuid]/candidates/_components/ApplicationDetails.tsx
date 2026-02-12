@@ -20,16 +20,19 @@ import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
 import { requestVideo } from "../../../actions";
+import { VideoAnalysisModal } from "./VideoAnalysisModal";
 
 interface ApplicationDetailsProps {
     application: any;
+    candidate?: any;
     vacancyUuid?: string;
 }
 
-export function ApplicationDetails({ application, vacancyUuid }: ApplicationDetailsProps) {
+export function ApplicationDetails({ application, candidate, vacancyUuid }: ApplicationDetailsProps) {
     const { t } = useTranslation();
     const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
+    const [showVideoAnalysis, setShowVideoAnalysis] = useState(false);
     const [isPending, startTransition] = useTransition();
 
     const handleRequestVideo = () => {
@@ -144,19 +147,35 @@ export function ApplicationDetails({ application, vacancyUuid }: ApplicationDeta
 
                             {breakdownData.video?.status === 'submitted' && (
                                 <div className="space-y-3">
-                                    <div className="flex items-center gap-2 text-green-700 mb-2">
-                                        <CheckCircle2 size={16} />
-                                        <span className="text-xs font-bold uppercase tracking-wider">Vídeo Recebido</span>
+                                    <div className="flex items-center justify-between gap-2 text-green-700 mb-2">
+                                        <div className="flex items-center gap-2">
+                                            <CheckCircle2 size={16} />
+                                            <span className="text-xs font-bold uppercase tracking-wider">Vídeo Recebido</span>
+                                        </div>
+                                        <button
+                                            onClick={() => setShowVideoAnalysis(true)}
+                                            className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 hover:underline transition-all"
+                                        >
+                                            <Play size={14} />
+                                            {t('watch_video')}
+                                        </button>
                                     </div>
-                                    <div className="relative rounded-xl overflow-hidden bg-black aspect-video max-w-2xl border border-gray-200 shadow-sm">
+                                    <div className="relative rounded-xl overflow-hidden bg-black aspect-video max-w-2xl border border-gray-200 shadow-sm group cursor-pointer" onClick={() => setShowVideoAnalysis(true)}>
                                         <video
                                             src={breakdownData.video.url}
-                                            controls
-                                            className="w-full h-full"
+                                            className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
                                             poster={breakdownData.video.thumbnail}
-                                        >
-                                            Seu navegador não suporta a tag de vídeo.
-                                        </video>
+                                        />
+                                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/10 transition-colors">
+                                            <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform">
+                                                <Play size={32} className="text-white fill-white ml-2" />
+                                            </div>
+                                        </div>
+                                        <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
+                                            <div className="px-3 py-1 bg-black/60 backdrop-blur text-white text-xs font-medium rounded-lg">
+                                                Clique para ver análise completa
+                                            </div>
+                                        </div>
                                     </div>
                                     <p className="text-xs text-gray-500">
                                         Enviado em {breakdownData.video.submittedAt ? new Date(breakdownData.video.submittedAt).toLocaleDateString() : ''}
@@ -165,6 +184,20 @@ export function ApplicationDetails({ application, vacancyUuid }: ApplicationDeta
                             )}
                         </div>
                     </div>
+
+                    <VideoAnalysisModal
+                        isOpen={showVideoAnalysis}
+                        onClose={() => setShowVideoAnalysis(false)}
+                        candidateName={candidate?.nome ? `${candidate.nome} ${candidate.sobrenome || ''}` : t('candidate')}
+                        videoUrl={breakdownData.video?.url}
+                        showFeedbackButton={!breakdownData.feedback?.status}
+                        candidateId={candidate?.id}
+                        vacancyUuid={vacancyUuid}
+                        vacancyId={application.vaga_id}
+                        onFeedback={() => {
+                            setShowVideoAnalysis(false);
+                        }}
+                    />
 
                     {/* Resumo da IA */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

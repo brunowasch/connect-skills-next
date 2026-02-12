@@ -509,6 +509,7 @@
     "ranking_score_label": "Score:",
     "ranking_view_answers": "View Answers",
     "ranking_ai_analysis": "AI Analysis",
+    "watch_video": "Watch Presentation Video",
     "ranking_no_candidates": "No candidates have applied for this vacancy yet.",
     "ranking_no_selection_title": "No vacancy selected",
     "ranking_no_selection_desc": "Please select a vacancy from the dashboard to view the ranking.",
@@ -1701,5 +1702,17 @@
             "step2": "Watch the video and provide honest feedback to the candidate",
             "step3": "After evaluating all videos, access will be automatically restored"
         }
-    }
+    },
+    "video_analysis_error": "Failed to load video analysis.",
+    "video_analysis_title": "Smart Video Analysis",
+    "candidate_label": "Candidate",
+    "overall_score": "Overall Score",
+    "excellent_rating": "Excellent",
+    "good_rating": "Good",
+    "average_rating": "Average",
+    "needs_improvement_rating": "Needs Improvement",
+    "communication": "Communication",
+    "adherence": "Adherence",
+    "candidate_summary": "Candidate Summary",
+    "full_transcript": "Full Transcript"
 }
