@@ -102,7 +102,7 @@ export async function uploadVideoAction(
             // Calculate video expiration: 1 week from submission
             const submittedAt = new Date();
             const expiresAt = new Date(submittedAt);
-            expiresAt.setDate(expiresAt.getDate() + 7); // Video available for 1 week
+            expiresAt.setDate(expiresAt.getDate() + 7); 
 
             const newBreakdown = {
                 ...breakdown,
@@ -110,7 +110,7 @@ export async function uploadVideoAction(
                     ...breakdown.video,
                     status: 'submitted',
                     submittedAt: submittedAt.toISOString(),
-                    expiresAt: expiresAt.toISOString(), // Video expires after 1 week
+                    expiresAt: expiresAt.toISOString(),
                     fileId: fileId,
                     url: url
                 }
@@ -123,7 +123,6 @@ export async function uploadVideoAction(
                 }
             });
 
-            // Notify Company
             try {
                 const vacancy = await prisma.vaga.findUnique({
                     where: { id: vacancyId },
@@ -143,20 +142,24 @@ export async function uploadVideoAction(
                         });
 
                         if (companyUser && companyUser.email) {
-                            const { sendVideoReceivedEmail } = await import("@/src/lib/mail");
-                            const candidateName = `${candidate.nome || ''} ${candidate.sobrenome || ''}`.trim() || "Candidato";
+                            const { shouldCompanyReceiveEmails } = await import("@/src/lib/company-settings");
+                            
+                            if (await shouldCompanyReceiveEmails(vacancy.empresa_id)) {
+                                const { sendVideoReceivedEmail } = await import("@/src/lib/mail");
+                                const candidateName = `${candidate.nome || ''} ${candidate.sobrenome || ''}`.trim() || "Candidato";
+    
+                                const redirectUrl = `/company/vacancies/${vacancyUuid}/candidates`;
+                                const loginLink = `${process.env.APP_URL}/login?redirect=${encodeURIComponent(redirectUrl)}`;
+                                
+                                await sendVideoReceivedEmail(
+                                    companyUser.email,
+                                    company.nome_empresa,
+                                    candidateName,
+                                    vacancy.cargo,
+                                    loginLink
+                                );
+                            }
 
-                            // Redirect to candidates page after login
-                            const redirectUrl = `/company/vacancies/${vacancyUuid}/candidates`;
-                            const loginLink = `${process.env.APP_URL}/login?redirect=${encodeURIComponent(redirectUrl)}`;
-
-                            await sendVideoReceivedEmail(
-                                companyUser.email,
-                                company.nome_empresa,
-                                candidateName,
-                                vacancy.cargo,
-                                loginLink
-                            );
                         }
                     }
                 }

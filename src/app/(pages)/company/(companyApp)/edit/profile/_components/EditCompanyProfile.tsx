@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
-    Camera, Upload, Save, AlertTriangle, X, Building2, MapPin, FileText, Eye, PlusCircle, Trash2, Link as LinkIcon
+    Camera, Upload, Save, AlertTriangle, X, Building2, MapPin, FileText, Eye, PlusCircle, Trash2, Link as LinkIcon, Bell
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from "react-i18next";
@@ -50,7 +50,14 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
         pais: initialData.pais || "",
         fotoPerfil: initialData.foto_perfil || undefined,
         anexos: initialData.anexos || [],
-        links: initialData.links.length > 0 ? initialData.links : [{ label: '', url: '' }],
+        links: (initialData.links && initialData.links.length > 0) 
+            ? initialData.links.filter((l: any) => l.label !== '__CONFIG_RECEIVE_EMAILS__') 
+            : [{ label: '', url: '' }],
+    });
+
+    const [receiveEmails, setReceiveEmails] = useState(() => {
+        const prefLink = initialData.links?.find((l: any) => l.label === '__CONFIG_RECEIVE_EMAILS__');
+        return prefLink ? prefLink.url === 'true' : true;
     });
 
     const [fotoPreview, setFotoPreview] = useState(initialData.foto_perfil || null);
@@ -180,16 +187,29 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        e.preventDefault();
         setIsLoading(true);
 
         try {
+            const linksToSave = [...formData.links];
+            
+            const cleanLinks = linksToSave.filter(l => l.label !== '__CONFIG_RECEIVE_EMAILS__');
+            
+            cleanLinks.push({
+                label: '__CONFIG_RECEIVE_EMAILS__',
+                url: String(receiveEmails),
+            });
+
+            const payload = {
+                ...formData,
+                links: cleanLinks
+            };
+
             const res = await fetch('/api/company/profile', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify(payload),
             });
 
             const result = await res.json();
@@ -267,8 +287,13 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
         const initialLinks = initialData.links.length > 0 ? initialData.links : [{ label: '', url: '' }];
         if (JSON.stringify(formData.links) !== JSON.stringify(initialLinks)) return true;
 
+        const initialPrefLink = initialData.links?.find((l: any) => l.label === '__CONFIG_RECEIVE_EMAILS__');
+        const initialReceiveEmails = initialPrefLink ? initialPrefLink.url === 'true' : true;
+        
+        if (receiveEmails !== initialReceiveEmails) return true;
+
         return false;
-    }, [formData, initialData]);
+    }, [formData, initialData, receiveEmails]);
 
     return (
         <main className="max-w-5xl mx-auto py-10 px-4">
@@ -481,10 +506,31 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
                                 ))}
                             </div>
                         </div>
+                        <div className="pt-6 border-t border-gray-100 mt-4">
+                            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <div>
+                                    <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                                        <Bell size={18} className="text-blue-600" />
+                                        {t('email_notifications_title')}
+                                    </h3>
+                                    <p className="text-xs text-gray-500 mt-1 max-w-xs sm:max-w-sm">
+                                        {t('email_notifications_desc')}
+                                    </p>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        className="sr-only peer"
+                                        checked={receiveEmails}
+                                        onChange={(e) => setReceiveEmails(e.target.checked)}
+                                    />
+                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-100 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 transition-colors"></div>
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                {/* Anexos Section */}
                 <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200 mt-10">
                     <div className="flex items-center gap-2 mb-4 text-gray-800 font-bold">
                         <FileText size={20} className="text-blue-600" />
@@ -536,7 +582,6 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
                     </div>
                 </div>
 
-                {/* Action Buttons */}
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-10 border-t">
                     <button
                         type="button"
@@ -574,7 +619,6 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
                 </div>
             </form>
 
-            {/* Modal de Exclusão */}
             {showDeleteModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
                     <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-in zoom-in-95 duration-200">

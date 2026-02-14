@@ -139,13 +139,13 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
                             {vaga.videoStatus === 'requested' && (
                                 <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-purple-50 border border-purple-200 text-[9px] sm:text-[10px] font-bold text-purple-600 shadow-sm">
                                     <Camera size={10} className="mr-1" />
-                                    Solicitado
+                                    {t("video_requested")}
                                 </span>
                             )}
                             {vaga.videoStatus === 'submitted' && (
                                 <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-green-50 border border-green-200 text-[9px] sm:text-[10px] font-bold text-green-600 shadow-sm">
                                     <Check size={10} className="mr-1" />
-                                    Enviado
+                                    {t("video_submitted")}
                                 </span>
                             )}
                         </div>

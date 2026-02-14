@@ -288,8 +288,8 @@
     "stat_pending_video": "Pendentes",
     "stat_no_video": "Sem vídeo",
     "stat_feedback": "Avaliados",
-    "video_submitted": "Vídeo Enviado",
-    "video_requested": "Vídeo Solicitado",
+    "video_submitted": "Enviado",
+    "video_requested": "Solicitado",
     "total_candidates": "Total de Candidatos",
     "latest_applications_received": "Últimas aplicações recebidas",
     "company_dashboard_title": "Dashboard",
@@ -606,6 +606,8 @@
     "company_description_hint": "Dica: foque na missão e valores da empresa",
     "company_links": "Links da Empresa",
     "add_link": "Adicionar link",
+    "email_notifications_title": "Notificações por Email",
+    "email_notifications_desc": "Receber emails sobre novas candidaturas e vídeos enviados.",
     "attachment_management": "Gestão de Anexos",
     "click_to_upload": "Clique para enviar arquivos",
     "upload_hint": "PDF, DOCX ou Imagens (Máx 10MB)",
@@ -685,6 +687,10 @@
     "Estabilidade": "Estabilidade",
     "Conformidade": "Conformidade",
     "N/A": "N/A",
+    "application_status_rejected_title": "Candidatura Reprovada",
+    "application_status_rejected_desc": "A empresa analisou seu perfil e decidiu não seguir com sua candidatura.",
+    "application_status_approved_title": "Candidatura Aprovada",
+    "application_status_approved_desc": "Parabéns! A empresa gostou do seu perfil e o aprovou para a próxima etapa.",
     "questions": {
         "banco_questoes_disc_full": {
             "Cognitiva": {
@@ -1534,6 +1540,13 @@
         "mark_read": "Marcar lida",
         "delete": "Excluir",
         "view_all": "Ver todas as notificações",
+        "view_video": "Ver Vídeo",
+        "view_details": "Ver Detalhes",
+        "all_notifications": "Todas as Notificações",
+        "notification": "notificação",
+        "notifications": "notificações",
+        "empty_title": "Tudo limpo por aqui!",
+        "empty_description": "Você não tem novas notificações no momento.",
         "types": {
             "video_request": {
                 "title": "Vídeo de Apresentação Solicitado",
@@ -1553,7 +1566,9 @@
         },
         "company_notifications": {
             "new_candidate_title": "Nova Candidatura",
-            "video_received_title": "Vídeo Recebido"
+            "new_candidate_message": "{{candidateName}} se candidatou para a vaga {{vacancyTitle}}.",
+            "video_received_title": "Vídeo Recebido",
+            "video_received_message": "{{candidateName}} enviou um vídeo de apresentação."
         }
     },
     "companyBlocked": {

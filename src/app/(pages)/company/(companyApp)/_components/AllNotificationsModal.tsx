@@ -62,9 +62,24 @@ export function AllNotificationsModal({
     };
 
     const getNotificationTitle = (notification: Notification) => {
-        if (notification.type === 'new_candidate') return t('company_notifications.new_candidate_title', 'Nova Candidatura');
-        if (notification.type === 'video_received') return t('company_notifications.video_received_title', 'Vídeo Recebido');
+        if (notification.type === 'new_candidate') return t('notifications.company_notifications.new_candidate_title', 'Nova Candidatura');
+        if (notification.type === 'video_received') return t('notifications.company_notifications.video_received_title', 'Vídeo Recebido');
         return notification.title;
+    };
+
+    const getNotificationMessage = (notification: Notification) => {
+        if (notification.type === 'new_candidate') {
+            return t('notifications.company_notifications.new_candidate_message', {
+                candidateName: notification.candidateName || 'Candidato',
+                vacancyTitle: notification.vacancyTitle || 'Vaga'
+            });
+        }
+        if (notification.type === 'video_received') {
+            return t('notifications.company_notifications.video_received_message', {
+                candidateName: notification.candidateName || 'Candidato'
+            });
+        }
+        return notification.message;
     };
 
     const formatDate = (date: Date) => {
@@ -162,7 +177,7 @@ export function AllNotificationsModal({
                                             </div>
 
                                             <p className="text-slate-600 text-sm mb-3 leading-relaxed">
-                                                {notification.message}
+                                                {getNotificationMessage(notification)}
                                             </p>
 
                                             <div className="flex flex-wrap items-center gap-2 mb-3">

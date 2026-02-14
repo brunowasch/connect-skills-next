@@ -272,8 +272,8 @@
     "stat_pending_video": "Pendientes",
     "stat_no_video": "Sin video",
     "stat_feedback": "Evaluados",
-    "video_submitted": "Video Enviado",
-    "video_requested": "Video Solicitado",
+    "video_submitted": "Enviado",
+    "video_requested": "Solicitado",
     "total_candidates": "Total de Candidatos",
     "latest_applications_received": "Últimas candidaturas recibidas",
     "company_dashboard_title": "Dashboard",
@@ -588,6 +588,8 @@
     "company_description_hint": "Consejo: enfóquese en la misión y valores de la empresa",
     "company_links": "Enlaces de la Empresa",
     "add_link": "Añadir enlace",
+    "email_notifications_title": "Notificaciones por Correo Electrónico",
+    "email_notifications_desc": "Recibir correos sobre nuevas candidaturas y videos enviados.",
     "attachment_management": "Gestión de Archivos",
     "click_to_upload": "Haga clic para subir archivos",
     "upload_hint": "PDF, DOCX o Imágenes (Máx 10MB)",
@@ -667,6 +669,10 @@
     "Estabilidade": "Estabilidad",
     "Conformidade": "Cumplimiento",
     "N/A": "N/A",
+    "application_status_rejected_title": "Candidatura Rechazada",
+    "application_status_rejected_desc": "La empresa revisó su perfil y decidió no continuar con su solicitud.",
+    "application_status_approved_title": "Candidatura Aprobada",
+    "application_status_approved_desc": "¡Felicidades! A la empresa le gustó tu perfil y te aprobó para el siguiente paso.",
     "Acabamento de Interiores": "Acabado de Interiores",
     "Alinhamento de Eixos": "Alineación de Ejes",
     "Almoxarifado e Estocagem": "Almacén y Stock",
@@ -1655,6 +1661,13 @@
         "mark_read": "Marcar como leída",
         "delete": "Eliminar",
         "view_all": "Ver todas las notificaciones",
+        "view_video": "Ver Video",
+        "view_details": "Ver Detalles",
+        "all_notifications": "Todas las Notificaciones",
+        "notification": "notificación",
+        "notifications": "notificaciones",
+        "empty_title": "¡Todo limpio por aquí!",
+        "empty_description": "No tienes nuevas notificaciones en este momento.",
         "types": {
             "video_request": {
                 "title": "Video de Presentación Solicitado",
@@ -1674,7 +1687,9 @@
         },
         "company_notifications": {
             "new_candidate_title": "Nueva Candidatura",
-            "video_received_title": "Video Recibido"
+            "new_candidate_message": "{{candidateName}} se postuló para la vacante {{vacancyTitle}}.",
+            "video_received_title": "Video Recibido",
+            "video_received_message": "{{candidateName}} envió un video de presentación."
         }
     },
     "companyBlocked": {

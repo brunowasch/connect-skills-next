@@ -897,6 +897,42 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                     const timeRemaining = expiresAt ? Math.max(0, expiresAt.getTime() - now.getTime()) : 0;
                     const daysRemaining = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
 
+                    if (applicationBreakdown?.feedback?.status === 'REJECTED') {
+                        return (
+                            <div className="mt-6 bg-red-50 border border-red-200 p-6 rounded-lg animate-in fade-in slide-in-from-top-2">
+                                <div className="flex items-start gap-4">
+                                    <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center text-red-600 flex-shrink-0">
+                                        <Ban size={24} />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-gray-900">{t('application_status_rejected_title')}</h3>
+                                        <p className="text-sm text-gray-600 mt-1">
+                                            {t('application_status_rejected_desc')}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    }
+
+                    if (applicationBreakdown?.feedback?.status === 'APPROVED') {
+                        return (
+                            <div className="mt-6 bg-green-50 border border-green-200 p-6 rounded-lg animate-in fade-in slide-in-from-top-2">
+                                <div className="flex items-start gap-4">
+                                    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center text-green-600 flex-shrink-0">
+                                        <CheckCircle2 size={24} />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-gray-900">{t('application_status_approved_title')}</h3>
+                                        <p className="text-sm text-gray-600 mt-1">
+                                            {t('application_status_approved_desc')}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    }
+
                     return (
                         <div className={`mt-6 border p-4 rounded-lg flex items-start gap-3 ${isExpired ? 'bg-gray-50 border-gray-200' : 'bg-green-50 border-green-200'}`}>
                             <CheckCircle2 size={24} className={isExpired ? 'text-gray-600' : 'text-green-600'} />
@@ -1107,25 +1143,60 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                 )}
                             </div>
 
-                            {/* CTA Button or Management Actions */}
                             {!isOwner && isActive && (isCandidate || isGuest) && (
                                 hasApplied ? (
-                                    <div className="w-full mt-6 bg-emerald-50 border border-emerald-200 text-emerald-700 py-3 px-4 rounded-lg flex flex-col items-center gap-2 text-center animate-in fade-in slide-in-from-top-2 duration-500">
-                                        <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 mb-1">
-                                            <CheckCircle2 size={24} />
+                                    applicationBreakdown?.feedback?.status === 'REJECTED' ? (
+                                        <div className="w-full mt-6 bg-red-50 border border-red-200 text-red-700 py-3 px-4 rounded-lg flex flex-col items-center gap-2 text-center animate-in fade-in slide-in-from-top-2 duration-500">
+                                            <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center text-red-600 mb-1">
+                                                <Ban size={24} />
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-sm uppercase tracking-wide">{t("application_status_rejected_title")}</p>
+                                                <p className="text-[11px] opacity-80 mt-0.5">{t("application_status_rejected_desc")}</p>
+                                            </div>
+                                            <button
+                                                onClick={() => setShowResponsesModal(true)}
+                                                className="mt-3 w-full py-2 bg-white text-red-700 text-xs font-bold rounded-lg border border-red-200 hover:bg-red-100 transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                                            >
+                                                <Eye size={14} />
+                                                {t("vacancy_view_responses")}
+                                            </button>
                                         </div>
-                                        <div>
-                                            <p className="font-bold text-sm uppercase tracking-wide">{t("vacancy_applied_title")}</p>
-                                            <p className="text-[11px] opacity-80 mt-0.5">{t("vacancy_applied_desc")}</p>
+                                    ) : applicationBreakdown?.feedback?.status === 'APPROVED' ? (
+                                        <div className="w-full mt-6 bg-green-50 border border-green-200 text-green-700 py-3 px-4 rounded-lg flex flex-col items-center gap-2 text-center animate-in fade-in slide-in-from-top-2 duration-500">
+                                            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-1">
+                                                <CheckCircle2 size={24} />
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-sm uppercase tracking-wide">{t("application_status_approved_title")}</p>
+                                                <p className="text-[11px] opacity-80 mt-0.5">{t("application_status_approved_desc")}</p>
+                                            </div>
+                                            <button
+                                                onClick={() => setShowResponsesModal(true)}
+                                                className="mt-3 w-full py-2 bg-white text-green-700 text-xs font-bold rounded-lg border border-green-200 hover:bg-green-100 transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                                            >
+                                                <Eye size={14} />
+                                                {t("vacancy_view_responses")}
+                                            </button>
                                         </div>
-                                        <button
-                                            onClick={() => setShowResponsesModal(true)}
-                                            className="mt-3 w-full py-2 bg-white text-emerald-700 text-xs font-bold rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
-                                        >
-                                            <Eye size={14} />
-                                            {t("vacancy_view_responses")}
-                                        </button>
-                                    </div>
+                                    ) : (
+                                        <div className="w-full mt-6 bg-emerald-50 border border-emerald-200 text-emerald-700 py-3 px-4 rounded-lg flex flex-col items-center gap-2 text-center animate-in fade-in slide-in-from-top-2 duration-500">
+                                            <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 mb-1">
+                                                <CheckCircle2 size={24} />
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-sm uppercase tracking-wide">{t("vacancy_applied_title")}</p>
+                                                <p className="text-[11px] opacity-80 mt-0.5">{t("vacancy_applied_desc")}</p>
+                                            </div>
+                                            <button
+                                                onClick={() => setShowResponsesModal(true)}
+                                                className="mt-3 w-full py-2 bg-white text-emerald-700 text-xs font-bold rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                                            >
+                                                <Eye size={14} />
+                                                {t("vacancy_view_responses")}
+                                            </button>
+                                        </div>
+                                    )
                                 ) : (
                                     <button
                                         onClick={handleApply}
@@ -1145,13 +1216,12 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
 
                 {modal.isOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-                        {/* Backdrop */}
+]
                         <div
                             className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300"
                             onClick={() => setModal(prev => ({ ...prev, isOpen: false }))}
                         />
 
-                        {/* Modal Card */}
                         <div className={`relative w-full bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 fade-in duration-300 scale-100 ${modal.size === 'sm' ? 'max-w-sm' :
                             modal.size === 'lg' ? 'max-w-lg' :
                                 modal.size === 'xl' ? 'max-w-xl' :

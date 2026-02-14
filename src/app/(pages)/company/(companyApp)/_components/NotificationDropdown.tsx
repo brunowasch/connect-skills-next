@@ -172,9 +172,24 @@ export function NotificationDropdown({ notifications: initialNotifications }: No
     };
 
     const getNotificationTitle = (notification: Notification) => {
-        if (notification.type === 'new_candidate') return t('company_notifications.new_candidate_title', 'Nova Candidatura');
-        if (notification.type === 'video_received') return t('company_notifications.video_received_title', 'Vídeo Recebido');
+        if (notification.type === 'new_candidate') return t('notifications.company_notifications.new_candidate_title', 'Nova Candidatura');
+        if (notification.type === 'video_received') return t('notifications.company_notifications.video_received_title', 'Vídeo Recebido');
         return notification.title;
+    };
+
+    const getNotificationMessage = (notification: Notification) => {
+        if (notification.type === 'new_candidate') {
+            return t('notifications.company_notifications.new_candidate_message', {
+                candidateName: notification.candidateName || 'Candidato',
+                vacancyTitle: notification.vacancyTitle || 'Vaga'
+            });
+        }
+        if (notification.type === 'video_received') {
+            return t('notifications.company_notifications.video_received_message', {
+                candidateName: notification.candidateName || 'Candidato'
+            });
+        }
+        return notification.message;
     };
 
     // Helper function for date formatting
@@ -268,7 +283,7 @@ export function NotificationDropdown({ notifications: initialNotifications }: No
                                                 </div>
 
                                                 <p className="text-xs text-slate-600 mb-2 line-clamp-2">
-                                                    {notification.message}
+                                                    {getNotificationMessage(notification)}
                                                 </p>
 
                                                 <div className="flex items-center gap-2 text-[10px] text-slate-400 mb-2">
