@@ -138,13 +138,25 @@ export function VideoAnalysisModal({ isOpen, onClose, candidateName, videoUrl, o
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                             <div className="lg:col-span-5 space-y-6">
                                 <div className="bg-black rounded-xl overflow-hidden shadow-lg border border-slate-200 aspect-video relative group">
-                                    <video
-                                        src={data.data.videoUrl || videoUrl}
-                                        controls
-                                        preload="metadata"
-                                        className="w-full h-full object-contain"
-                                        poster=""
-                                    />
+                                    {(data.data.videoUrl || videoUrl) ? (
+                                        <video
+                                            src={data.data.videoUrl || videoUrl}
+                                            controls
+                                            preload="metadata"
+                                            className="w-full h-full object-contain"
+                                            poster=""
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex flex-col items-center justify-center bg-slate-100 text-slate-500 p-6 text-center">
+                                            <div className="bg-amber-100 p-4 rounded-full mb-4">
+                                                <Activity size={32} className="text-amber-600" />
+                                            </div>
+                                            <h3 className="font-bold text-slate-700 mb-2">{t('video_expired_title', 'Vídeo Expirado')}</h3>
+                                            <p className="text-sm max-w-xs">
+                                                {t('video_expired_desc_company', 'O arquivo de vídeo foi removido após o período de expiração, mas a análise completa da IA foi preservada para sua consulta.')}
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 flex items-center justify-between relative overflow-hidden">

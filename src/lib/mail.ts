@@ -344,3 +344,47 @@ export async function sendVideoReceivedEmail(
     return false;
   }
 }
+
+export async function sendNewApplicationEmail(
+  email: string,
+  companyName: string,
+  candidateName: string,
+  vacancyTitle: string,
+  vacancyLink: string,
+) {
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to: email,
+    subject: `Nova Candidatura: ${candidateName} - Vaga: ${vacancyTitle}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+        <h2 style="color: #4F46E5; text-align: center;">Nova Candidatura Recebida</h2>
+        <p style="text-align: center; color: #555;">Olá <strong>${companyName}</strong>,</p>
+        <p style="text-align: center; color: #555;">
+          O candidato <strong>${candidateName}</strong> acabou de aplicar para a vaga de <strong>${vacancyTitle}</strong> e completou o questionário.
+        </p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${vacancyLink}" style="background-color: #4F46E5; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+            Ver Candidatura
+          </a>
+        </div>
+
+        <p style="text-align: center; color: #555;">ou copie o link abaixo:</p>
+        <p style="text-align: center; word-break: break-all; color: #4F46E5;">${vacancyLink}</p>
+
+        <p style="text-align: center; font-size: 14px; color: #666; margin-top: 30px;">
+          Acesse a plataforma para avaliar o candidato.
+        </p>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error("Erro ao enviar email de nova candidatura:", error);
+    return false;
+  }
+}

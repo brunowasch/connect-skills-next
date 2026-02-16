@@ -12,32 +12,60 @@ export async function uploadToCloudinary(fileUri: string, folder: string) {
     const options: any = {
         folder,
         resource_type: 'auto',
-        access_mode: 'public', // Ensure files are publicly accessible
-        type: 'upload', // Use 'upload' type (not 'authenticated' or 'private')
+        access_mode: 'public',
+        type: 'upload',
     };
 
     if (isPdf) {
-        // Use 'raw' resource_type for PDFs to ensure proper document storage and serving
-        // This allows PDFs to be viewed correctly without conversion issues
         options.resource_type = 'raw';
         options.public_id = `pdf_${Date.now()}`;
     }
 
     const result = await cloudinary.uploader.upload(fileUri, options);
 
-    // Return the secure URL directly - Cloudinary handles PDFs correctly with 'raw' type
-    // Remove any authentication parameters from the URL
     let url = result.secure_url;
 
-    // Clean URL by removing signature parameters if present
     if (url.includes('?')) {
         const urlObj = new URL(url);
-        // Remove authentication parameters
         urlObj.searchParams.delete('_a');
         url = urlObj.toString();
     }
 
     return url;
+}
+
+export async function uploadBufferToCloudinary(buffer: Buffer, folder: string, resourceType: 'auto' | 'video' | 'raw' = 'auto'): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+            {
+                folder: folder,
+                resource_type: resourceType,
+                access_mode: 'public',
+                type: 'upload',
+            },
+            (error, result) => {
+                if (error) {
+                    reject(error);
+                } else if (result) {
+                    let url = result.secure_url;
+                    if (url.includes('?')) {
+                        const urlObj = new URL(url);
+                        urlObj.searchParams.delete('_a');
+                        url = urlObj.toString();
+                    }
+                    resolve(url);
+                } else {
+                    reject(new Error('Upload failed with no result'));
+                }
+            }
+        );
+
+        const { Readable } = require('stream');
+        const readableStream = new Readable();
+        readableStream.push(buffer);
+        readableStream.push(null);
+        readableStream.pipe(uploadStream);
+    });
 }
 
 export default cloudinary;

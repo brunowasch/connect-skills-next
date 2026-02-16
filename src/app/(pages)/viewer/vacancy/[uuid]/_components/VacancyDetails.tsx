@@ -934,24 +934,117 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                     }
 
                     return (
-                        <div className={`mt-6 border p-4 rounded-lg flex items-start gap-3 ${isExpired ? 'bg-gray-50 border-gray-200' : 'bg-green-50 border-green-200'}`}>
-                            <CheckCircle2 size={24} className={isExpired ? 'text-gray-600' : 'text-green-600'} />
-                            <div className="flex-1">
-                                <p className={`font-semibold ${isExpired ? 'text-gray-800' : 'text-green-800'}`}>{t('video_upload_success_title')}</p>
-                                <p className={`text-sm ${isExpired ? 'text-gray-700' : 'text-green-700'}`}>
-                                    {t('video_upload_success_desc')}
-                                </p>
-                                {expiresAt && (
-                                    <div className="mt-2 flex items-center gap-2 text-sm">
-                                        <Clock size={14} className={isExpired ? 'text-gray-600' : 'text-green-600'} />
-                                        <span className={`font-medium ${isExpired ? 'text-gray-700' : 'text-green-700'}`}>
-                                            {isExpired
-                                                ? t('video_upload_success_expired')
-                                                : t(daysRemaining === 1 ? 'video_upload_success_available' : 'video_upload_success_available_plural', { count: daysRemaining })
-                                            }
-                                        </span>
-                                    </div>
-                                )}
+                        <div className={`mt-6 border p-6 rounded-lg ${isExpired ? 'bg-gray-50 border-gray-200' : 'bg-green-50 border-green-200'}`}>
+                            <div className="flex items-start gap-4">
+                                <CheckCircle2 size={24} className={`flex-shrink-0 ${isExpired ? 'text-gray-600' : 'text-green-600'}`} />
+                                <div className="flex-1">
+                                    <p className={`font-semibold ${isExpired ? 'text-gray-800' : 'text-green-800'}`}>{t('video_upload_success_title')}</p>
+                                    <p className={`text-sm ${isExpired ? 'text-gray-700' : 'text-green-700'}`}>
+                                        {t('video_upload_success_desc')}
+                                    </p>
+                                    {expiresAt && (
+                                        <div className="mt-2 flex flex-col gap-1">
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <Clock size={14} className={isExpired ? 'text-gray-600' : 'text-green-600'} />
+                                                <span className={`font-medium ${isExpired ? 'text-gray-700' : 'text-green-700'}`}>
+                                                    {isExpired
+                                                        ? t('video_upload_success_expired')
+                                                        : t(daysRemaining === 1 ? 'video_upload_success_available' : 'video_upload_success_available_plural', { count: daysRemaining })
+                                                    }
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
+                                    
+                                    {!isExpired && (
+                                        <div className="mt-4 pt-4 border-t border-green-200">
+                                            {applicationBreakdown?.video?.url && (
+                                                <div className="mb-6">
+                                                    <p className="text-sm font-semibold text-green-800 mb-2">
+                                                        {t('video_current')}
+                                                    </p>
+                                                    <div className="rounded-lg overflow-hidden bg-black border border-green-200 shadow-sm max-w-md">
+                                                        <video
+                                                            src={applicationBreakdown.video.url}
+                                                            controls
+                                                            playsInline
+                                                            className="w-full max-h-[300px] object-contain bg-black"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <p className="text-sm text-green-700 mb-3">
+                                                {t('video_replace_desc', 'Você pode substituir seu vídeo antes da empresa avaliar.')}
+                                            </p>
+                                            <div className="flex bg-white p-1 rounded-lg border border-green-200 mb-4 w-fit shadow-sm">
+                                                <button
+                                                    onClick={() => setIsRecordingMode(false)}
+                                                    className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-bold transition-all cursor-pointer ${!isRecordingMode
+                                                        ? 'bg-green-600 text-white shadow-md'
+                                                        : 'text-green-700 hover:text-green-900 hover:bg-green-50'
+                                                        }`}
+                                                >
+                                                    <Upload size={16} />
+                                                    {t('tab_upload_video', 'Fazer Upload')}
+                                                </button>
+                                                <button
+                                                    onClick={() => setIsRecordingMode(true)}
+                                                    className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-bold transition-all cursor-pointer ${isRecordingMode
+                                                        ? 'bg-green-600 text-white shadow-md'
+                                                        : 'text-green-700 hover:text-green-900 hover:bg-green-50'
+                                                        }`}
+                                                >
+                                                    <Video size={16} />
+                                                    {t('tab_record_video', 'Gravar Agora')}
+                                                </button>
+                                            </div>
+
+                                            {isRecordingMode ? (
+                                                <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                                    <VideoRecorder
+                                                        onRecordingComplete={submitVideoFile}
+                                                        onCancel={() => setIsRecordingMode(false)}
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <div className="flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                                    <label className="block w-full">
+                                                        <span className="sr-only">{t('video_upload_choose_video')}</span>
+                                                        <div className={`
+                                                                w-full flex items-center justify-center px-4 py-8 border-2 border-dashed rounded-xl cursor-pointer hover:bg-white transition-all
+                                                                ${isPending ? 'border-gray-300 bg-gray-100 cursor-not-allowed' : 'border-green-300 bg-green-50/50 hover:border-green-400 hover:shadow-lg hover:shadow-green-500/5'}
+                                                            `}>
+                                                            <input
+                                                                type="file"
+                                                                accept="video/*"
+                                                                className="hidden"
+                                                                onChange={handleVideoUpload}
+                                                                disabled={isPending}
+                                                            />
+                                                            <div className="text-center">
+                                                                {isPending ? (
+                                                                    <div className="flex flex-col items-center gap-3">
+                                                                        <Loader2 size={32} className="animate-spin text-green-600" />
+                                                                        <span className="text-sm font-medium text-green-600">{t('video_upload_sending')}</span>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="group">
+                                                                        <div className="mx-auto w-12 h-12 mb-3 rounded-full bg-green-100 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                                                            <Upload size={24} className="text-green-600" />
+                                                                        </div>
+                                                                        <p className="font-bold text-sm text-green-800 mb-1">{t('video_replace_upload', 'Clique para substituir o vídeo')}</p>
+                                                                        <p className="text-xs text-green-600">{t('video_upload_formats')}</p>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </label>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     );

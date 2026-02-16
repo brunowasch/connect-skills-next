@@ -160,8 +160,34 @@ export async function submitFeedback(candidateId: string, vacancyUuid: string, s
             }
         } catch (e) { }
 
+        let videoUpdate = {};
+        if (breakdown.video && breakdown.video.status === 'submitted') {
+            const expiresAt = breakdown.video.expiresAt ? new Date(breakdown.video.expiresAt) : null;
+            const now = new Date();
+
+            if (expiresAt) {
+                if (now <= expiresAt) {
+                    const newExpiresAt = new Date(now);
+                    newExpiresAt.setDate(newExpiresAt.getDate() + 7);
+                    videoUpdate = {
+                        expiresAt: newExpiresAt.toISOString()
+                    };
+                } else {
+                    videoUpdate = {
+                        url: null,
+                        fileId: null,
+                        videoRemoved: true
+                    };
+                }
+            }
+        }
+
         const newBreakdown = {
             ...breakdown,
+            video: {
+                ...breakdown.video,
+                ...videoUpdate
+            },
             feedback: {
                 status,
                 justification,
@@ -176,7 +202,6 @@ export async function submitFeedback(candidateId: string, vacancyUuid: string, s
             }
         });
 
-        // Send email
         try {
             const candidate = await prisma.candidato.findUnique({
                 where: { id: candidateId },

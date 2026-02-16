@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/src/lib/prisma";
-import { uploadToCloudinary } from "@/src/lib/cloudinary";
+import { uploadToCloudinary, uploadBufferToCloudinary } from "@/src/lib/cloudinary";
 import { revalidatePath } from "next/cache";
 
 export async function uploadVideoAction(
@@ -21,7 +21,6 @@ export async function uploadVideoAction(
 
         const vacancyId = vacancy.id;
 
-        // Resolve candidateId from userId
         const candidate = await prisma.candidato.findUnique({
             where: { usuario_id: userId },
             select: { id: true, nome: true, sobrenome: true }
@@ -40,13 +39,9 @@ export async function uploadVideoAction(
 
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
-        const base64 = buffer.toString("base64");
-        const fileUri = `data:${file.type};base64,${base64}`;
+        
+        const url = await uploadBufferToCloudinary(buffer, "videos", "video");
 
-        // Upload to Cloudinary
-        const url = await uploadToCloudinary(fileUri, "videos");
-
-        // Create candidato_arquivo record
         const fileId = crypto.randomUUID();
         await prisma.candidato_arquivo.create({
             data: {
@@ -60,7 +55,6 @@ export async function uploadVideoAction(
             }
         });
 
-        // Update application breakdown
         const application = await prisma.vaga_avaliacao.findUnique({
             where: {
                 vaga_id_candidato_id: {
@@ -78,7 +72,6 @@ export async function uploadVideoAction(
                 }
             } catch (e) { }
 
-            // Check if candidate was rejected
             if (breakdown?.feedback?.status === 'REJECTED') {
                 return {
                     success: false,
@@ -86,7 +79,6 @@ export async function uploadVideoAction(
                 };
             }
 
-            // Check if video was requested and deadline hasn't expired
             if (breakdown?.video?.status === 'requested') {
                 const deadline = new Date(breakdown.video.deadline);
                 const now = new Date();
@@ -99,7 +91,6 @@ export async function uploadVideoAction(
                 }
             }
 
-            // Calculate video expiration: 1 week from submission
             const submittedAt = new Date();
             const expiresAt = new Date(submittedAt);
             expiresAt.setDate(expiresAt.getDate() + 7); 

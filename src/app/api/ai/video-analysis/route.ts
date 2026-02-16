@@ -5,9 +5,9 @@ export async function POST(request: Request) {
     try {
         const { videoUrl, candidateId, vacancyUuid, vacancyId } = await request.json();
 
-        if (!videoUrl || !candidateId || !vacancyId) {
+        if (!candidateId || !vacancyId) {
             return NextResponse.json(
-                { error: 'videoUrl, candidateId and vacancyId are required' },
+                { error: 'candidateId and vacancyId are required' },
                 { status: 400 }
             );
         }
@@ -24,7 +24,9 @@ export async function POST(request: Request) {
             });
 
             if (existingApplication?.breakdown) {
-                const breakdown = JSON.parse(existingApplication.breakdown);
+                const breakdown = typeof existingApplication.breakdown === 'string' 
+                    ? JSON.parse(existingApplication.breakdown) 
+                    : existingApplication.breakdown;
 
                 if (breakdown.videoAnalysis) {
                     return NextResponse.json(breakdown.videoAnalysis);
@@ -32,6 +34,13 @@ export async function POST(request: Request) {
             }
         } catch (dbError) {
             console.error('Error checking existing analysis:', dbError);
+        }
+
+        if (!videoUrl) {
+            return NextResponse.json(
+                { error: 'videoUrl is required to generate a new analysis' },
+                { status: 400 }
+            );
         }
 
         const iaUrl = process.env.IA_ANALYZE_VIDEO;
