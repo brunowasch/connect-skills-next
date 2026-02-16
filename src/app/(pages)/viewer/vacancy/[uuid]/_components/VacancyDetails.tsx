@@ -45,7 +45,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef, useCallback, ReactNode, useTransition } from "react";
 import { LanguageSwitcher } from "@/src/app/_components/Layout/LanguageSwitcher";
 
-import { uploadVideoAction } from "../actions";
+import { uploadVideoAction, getVideoUploadSignatureAction, saveVideoMetadataAction } from "../actions";
 import { toast } from "sonner";
 
 interface ModalConfig {
@@ -148,6 +148,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
 
     const [isStickyVisible, setIsStickyVisible] = useState(true);
     const [hasScroll, setHasScroll] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
     const [isRecordingMode, setIsRecordingMode] = useState(false);
     const isApplyingRef = useRef(false);
 
@@ -576,27 +577,73 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                 ) : t('video_confirm_modal_btn_cancel', 'Cancelar'),
                 variant: 'info',
                 size: '2xl',
-                onConfirm: () => {
-                    const formData = new FormData();
-                    formData.append("video", file);
+                onConfirm: async () => {
+                    if (isUploading) return;
+                    setIsUploading(true);
+                    
+                    try {
+                        // 1. Obter assinatura (Server Action)
+                        const res = await getVideoUploadSignatureAction(vacancy.uuid, userId!);
 
-                    startTransition(async () => {
-                        const result = await uploadVideoAction(vacancy.uuid, userId!, formData);
+                        if (!res.success) {
+                            throw new Error(res.error || "Erro ao iniciar upload");
+                        }
+                        
+                        // Casting para garantir acesso às propriedades
+                        const signatureResult = res as { success: true, signature: string, timestamp: number, apiKey: string, cloudName: string, folder: string };
 
-                        if (result.success) {
+                        // 2. Upload direto para o Cloudinary (Client -> Cloudinary)
+                        const cloudFormData = new FormData();
+                        cloudFormData.append("file", file);
+                        cloudFormData.append("api_key", signatureResult.apiKey!);
+                        cloudFormData.append("timestamp", String(signatureResult.timestamp));
+                        cloudFormData.append("signature", signatureResult.signature!);
+                        cloudFormData.append("folder", signatureResult.folder!);
+                        cloudFormData.append("resource_type", "video");
+
+                        const uploadUrl = `https://api.cloudinary.com/v1_1/${signatureResult.cloudName}/video/upload`;
+                        
+                        const uploadResponse = await fetch(uploadUrl, {
+                            method: "POST",
+                            body: cloudFormData,
+                        });
+
+                        if (!uploadResponse.ok) {
+                            const errorData = await uploadResponse.json().catch(() => ({}));
+                            console.error("Cloudinary error:", errorData);
+                            throw new Error(errorData.error?.message || "Falha no upload para o servidor de arquivos");
+                        }
+
+                        const uploadData = await uploadResponse.json();
+
+                        // 3. Salvar metadados no banco (Server Action)
+                        const saveResult = await saveVideoMetadataAction(vacancy.uuid, userId!, {
+                            url: uploadData.secure_url,
+                            fileName: file.name,
+                            mimeType: "video/" + (uploadData.format || "mp4"),
+                            size: uploadData.bytes
+                        });
+
+                        if (saveResult.success) {
                             toast.success(t('video_success_upload', 'Vídeo enviado com sucesso!'));
                             setModal(prev => ({ ...prev, isOpen: false }));
                             setIsRecordingMode(false);
-
-                            // Redirecionar para o dashboard após 1 segundo
+                            
+                            // Redirecionar/Atualizar
                             setTimeout(() => {
-                                router.push(`/viewer/vacancy/${vacancy.uuid}`);
+                                router.refresh();
                             }, 1000);
                         } else {
-                            toast.error(t('video_error_upload', 'Erro ao enviar vídeo: ') + result.error);
-                            setModal(prev => ({ ...prev, isOpen: false }));
+                            throw new Error(saveResult.error || "Erro ao salvar informações do vídeo");
                         }
-                    });
+
+                    } catch (error) {
+                        console.error(error);
+                        toast.error(t('video_error_upload', 'Erro ao enviar vídeo: ') + (error instanceof Error ? error.message : String(error)));
+                        setModal(prev => ({ ...prev, isOpen: false }));
+                    } finally {
+                        setIsUploading(false);
+                    }
                 }
             });
         };
@@ -853,17 +900,17 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                                 <span className="sr-only">{t('video_upload_choose_video')}</span>
                                                 <div className={`
                                                         w-full flex items-center justify-center px-4 py-12 border-2 border-dashed rounded-xl cursor-pointer hover:bg-white transition-all
-                                                        ${isPending ? 'border-gray-300 bg-gray-100 cursor-not-allowed' : 'border-slate-300 bg-slate-50/50 hover:border-purple-400 hover:shadow-lg hover:shadow-purple-500/5'}
+                                                        ${(isPending || isUploading) ? 'border-gray-300 bg-gray-100 cursor-not-allowed' : 'border-slate-300 bg-slate-50/50 hover:border-purple-400 hover:shadow-lg hover:shadow-purple-500/5'}
                                                     `}>
                                                     <input
                                                         type="file"
                                                         accept="video/*"
                                                         className="hidden"
                                                         onChange={handleVideoUpload}
-                                                        disabled={isPending}
+                                                        disabled={isPending || isUploading}
                                                     />
                                                     <div className="text-center">
-                                                        {isPending ? (
+                                                        {(isPending || isUploading) ? (
                                                             <div className="flex flex-col items-center gap-3">
                                                                 <Loader2 size={32} className="animate-spin text-purple-600" />
                                                                 <span className="text-sm font-medium text-slate-600">{t('video_upload_sending')}</span>
@@ -1357,12 +1404,14 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                     )}
                                     <button
                                         onClick={modal.onConfirm}
-                                        className={`flex-1 px-4 py-2.5 text-white font-semibold rounded-xl transition-all active:scale-95 shadow-lg shadow-opacity-20 cursor-pointer ${modal.variant === 'danger' ? 'bg-red-600 hover:bg-red-700 shadow-red-500/30' :
+                                        disabled={isUploading || isPending}
+                                        className={`flex-1 px-4 py-2.5 text-white font-semibold rounded-xl transition-all active:scale-95 shadow-lg shadow-opacity-20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${modal.variant === 'danger' ? 'bg-red-600 hover:bg-red-700 shadow-red-500/30' :
                                             modal.variant === 'warning' ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/30' :
                                                 modal.variant === 'success' ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/30' :
                                                     'bg-blue-600 hover:bg-blue-700 shadow-blue-500/30'
                                             }`}
                                     >
+                                        {(isUploading || isPending) && <Loader2 className="w-4 h-4 animate-spin" />}
                                         {modal.confirmText}
                                     </button>
                                 </div>
