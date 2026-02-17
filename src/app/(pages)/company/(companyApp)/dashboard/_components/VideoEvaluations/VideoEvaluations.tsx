@@ -121,7 +121,7 @@ export function VideoEvaluations({ evaluations }: VideoEvaluationsProps) {
                             </div>
 
                             <Link
-                                href={`/company/vacancies/${evalReq.vacancyUuid}/ranking?pendingCandidate=${evalReq.candidato.id}`}
+                                href={`/company/vacancies/${evalReq.vacancyUuid}/ranking`}
                                 className={`${isUrgent ? 'evaluate-video-btn bg-purple-600 hover:bg-purple-700 text-white shadow-purple-200' : 'bg-white text-purple-600 hover:bg-purple-50 border border-purple-200'} 
                                     w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-transform active:scale-[0.98] shadow-sm`}
                             >

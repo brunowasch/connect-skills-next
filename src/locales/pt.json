@@ -1616,5 +1616,10 @@
     "communication": "Comunicação",
     "adherence": "Aderência",
     "candidate_summary": "Resumo do Candidato",
-    "full_transcript": "Transcrição Completa"
+    "full_transcript": "Transcrição Completa",
+    "feedback_approved_intro": "Olá! Segue abaixo seu feedback:\n\nVocê parece se enquadrar ao perfil da vaga. Achamos seu perfil interessante e, por isso, você está aprovado para a próxima etapa do processo seletivo.",
+    "feedback_approved_closing": "Fique atento para o início da próxima etapa. Boa sorte!",
+    "feedback_rejected_intro": "Olá! Segue abaixo seu feedback:\n\nAgradecemos seu interesse em fazer parte da nossa equipe e o tempo dedicado ao processo seletivo. Entretanto, infelizmente você não foi selecionado para a próxima etapa do processo seletivo.",
+    "feedback_rejected_closing": "Desejamos sucesso em sua jornada profissional e esperamos que surjam novas oportunidades no futuro.",
+    "feedback_select_status_first": "Selecione um status primeiro"
 }

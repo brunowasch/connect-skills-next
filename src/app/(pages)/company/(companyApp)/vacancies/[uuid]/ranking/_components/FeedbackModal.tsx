@@ -20,12 +20,14 @@ export function FeedbackModal({ isOpen, onClose, candidateName, onSubmit, aiSugg
     const [status, setStatus] = useState<'APPROVED' | 'REJECTED' | null>(null);
     const [justification, setJustification] = useState("");
     const [isPending, startTransition] = useTransition();
+    const [aiSuggestionsUsed, setAiSuggestionsUsed] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
             setStatus(null);
             setJustification("");
+            setAiSuggestionsUsed(false);
         } else {
             document.body.style.overflow = 'unset';
         }
@@ -33,6 +35,51 @@ export function FeedbackModal({ isOpen, onClose, candidateName, onSubmit, aiSugg
             document.body.style.overflow = 'unset';
         };
     }, [isOpen]);
+
+    const generateAiMessage = (currentStatus: 'APPROVED' | 'REJECTED' | null) => {
+        if (!aiSuggestions || !currentStatus) return '';
+
+        let aiText = '';
+
+        if (typeof aiSuggestions === 'object' && !Array.isArray(aiSuggestions) && 'feedback' in aiSuggestions) {
+            aiText = aiSuggestions.feedback;
+
+            if (aiSuggestions.suggestions && aiSuggestions.suggestions.length > 0) {
+                aiText += `\n\n${t('feedback_ai_suggestion_intro', 'Sugestões de melhoria:')}\n`;
+                aiText += aiSuggestions.suggestions.map(s => `- ${s}`).join('\n');
+            }
+        }
+        else if (Array.isArray(aiSuggestions)) {
+            aiText = `${t('feedback_ai_suggestion_intro', 'Sugestões de melhoria:')}\n`;
+            aiText += aiSuggestions.map(s => `- ${s}`).join('\n');
+        }
+        else if (typeof aiSuggestions === 'string') {
+            aiText = aiSuggestions;
+        }
+
+        let fullMessage = '';
+
+        if (currentStatus === 'APPROVED') {
+            const intro = t('feedback_approved_intro', 'Olá! Segue abaixo seu feedback: \n\nVocê parece se enquadrar ao perfil da vaga. Achamos seu perfil interessante e, por isso, você está aprovado para a próxima etapa do processo seletivo.');
+            const closing = t('feedback_approved_closing', 'Fique atento para o início da próxima etapa. Boa sorte!');
+            fullMessage = `${intro}\n\n${aiText}\n\n${closing}`;
+        } else if (currentStatus === 'REJECTED') {
+            const intro = t('feedback_rejected_intro', 'Olá! Segue abaixo seu feedback: \n\nAgradecemos seu interesse em fazer parte da nossa equipe e o tempo dedicado ao processo seletivo. Entretanto, infelizmente você não foi selecionado para a próxima etapa do processo seletivo.');
+            const closing = t('feedback_rejected_closing', 'Desejamos sucesso em sua jornada profissional e esperamos que surjam novas oportunidades no futuro.');
+            fullMessage = `${intro}\n\n${aiText}\n\n${closing}`;
+        } else {
+            fullMessage = aiText;
+        }
+
+        return fullMessage;
+    };
+
+    useEffect(() => {
+        if (aiSuggestionsUsed && status) {
+            const newMessage = generateAiMessage(status);
+            setJustification(newMessage);
+        }
+    }, [status, aiSuggestionsUsed]);
 
     const handleSubmit = () => {
         if (!status) {
@@ -57,30 +104,11 @@ export function FeedbackModal({ isOpen, onClose, candidateName, onSubmit, aiSugg
     };
 
     const handleUseAiSuggestions = () => {
-        if (!aiSuggestions) return;
+        if (!aiSuggestions || !status) return;
 
-        let formattedText = '';
-
-        if (typeof aiSuggestions === 'object' && !Array.isArray(aiSuggestions) && 'feedback' in aiSuggestions) {
-            formattedText = aiSuggestions.feedback;
-
-            if (aiSuggestions.suggestions && aiSuggestions.suggestions.length > 0) {
-                formattedText += `\n\n${t('feedback_ai_suggestion_intro', 'Sugestões de melhoria:')}\n`;
-                formattedText += aiSuggestions.suggestions.map(s => `- ${s}`).join('\n');
-            }
-        }
-        else if (Array.isArray(aiSuggestions)) {
-            formattedText = `${t('feedback_ai_suggestion_intro', 'Sugestões de melhoria:')}\n`;
-            formattedText += aiSuggestions.map(s => `- ${s}`).join('\n');
-        }
-        else if (typeof aiSuggestions === 'string') {
-            formattedText = aiSuggestions;
-        }
-
-        setJustification(prev => {
-            const separator = prev ? '\n\n' : '';
-            return `${prev}${separator}${formattedText}`;
-        });
+        const fullMessage = generateAiMessage(status);
+        setJustification(fullMessage);
+        setAiSuggestionsUsed(true);
     };
 
     if (!isOpen) return null;
@@ -142,8 +170,12 @@ export function FeedbackModal({ isOpen, onClose, candidateName, onSubmit, aiSugg
                             {aiSuggestions && (
                                 <button
                                     onClick={handleUseAiSuggestions}
-                                    className="flex items-center gap-1.5 text-xs font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 px-2 py-1 rounded-md transition-colors cursor-pointer"
-                                    title={t('feedback_use_ai_tooltip', 'Inserir sugestões da IA')}
+                                    disabled={!status}
+                                    className={`flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md transition-colors ${!status
+                                        ? 'text-gray-400 cursor-not-allowed opacity-50'
+                                        : 'text-purple-600 hover:text-purple-700 hover:bg-purple-50 cursor-pointer'
+                                        }`}
+                                    title={!status ? t('feedback_select_status_first', 'Selecione um status primeiro') : t('feedback_use_ai_tooltip', 'Inserir sugestões da IA')}
                                 >
                                     <Sparkles size={14} />
                                     {t('feedback_use_ai', 'Usar sugestões da IA')}
@@ -152,12 +184,21 @@ export function FeedbackModal({ isOpen, onClose, candidateName, onSubmit, aiSugg
                         </div>
                         <textarea
                             value={justification}
-                            onChange={(e) => setJustification(e.target.value)}
-                            placeholder={t('feedback_justification_placeholder', 'Escreva uma mensagem para o candidato...')}
-                            className={`w-full px-4 py-3 rounded-xl border focus:ring-2 outline-none resize-none h-32 text-sm transition-colors
-                                ${justification.length > 0 && justification.length < 40
-                                    ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
-                                    : 'border-gray-200 focus:border-blue-500 focus:ring-blue-200'}`}
+                            onChange={(e) => {
+                                setJustification(e.target.value);
+                                // If user manually edits the text, disable automatic updates
+                                if (aiSuggestionsUsed) {
+                                    setAiSuggestionsUsed(false);
+                                }
+                            }}
+                            disabled={!status}
+                            placeholder={!status ? t('feedback_select_status_first', 'Selecione um status primeiro') : t('feedback_justification_placeholder', 'Escreva uma mensagem para o candidato...')}
+                            className={`w-full px-4 py-3 rounded-xl border focus:ring-2 outline-none resize-none h-64 text-sm transition-colors
+                                ${!status
+                                    ? 'bg-gray-50 border-gray-200 cursor-not-allowed text-gray-400'
+                                    : justification.length > 0 && justification.length < 40
+                                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                                        : 'border-gray-200 focus:border-blue-500 focus:ring-blue-200'}`}
                         />
                         <div className="flex justify-end mt-1">
                             <span className={`text-xs font-medium transition-colors ${justification.length > 0 && justification.length < 40 ? 'text-red-500' : 'text-gray-400'}`}>

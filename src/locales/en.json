@@ -1747,5 +1747,10 @@
     "communication": "Communication",
     "adherence": "Adherence",
     "candidate_summary": "Candidate Summary",
-    "full_transcript": "Full Transcript"
+    "full_transcript": "Full Transcript",
+    "feedback_approved_intro": "Hello! Below is your feedback:\n\nYou seem to fit the job profile. We found your profile interesting and, therefore, you are approved for the next stage of the selection process.",
+    "feedback_approved_closing": "Stay tuned for the start of the next stage. Good luck!",
+    "feedback_rejected_intro": "Hello! Below is your feedback:\n\nWe appreciate your interest in joining our team and the time dedicated to the selection process. However, unfortunately you were not selected for the next stage of the selection process.",
+    "feedback_rejected_closing": "We wish you success in your professional journey and hope that new opportunities will arise in the future.",
+    "feedback_select_status_first": "Select a status first"
 }
