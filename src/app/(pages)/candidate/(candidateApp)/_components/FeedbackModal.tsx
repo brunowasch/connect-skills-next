@@ -30,9 +30,8 @@ export function FeedbackModal({ isOpen, onClose, feedback }: FeedbackModalProps)
                 <div className={`p-6 border-b ${isApproved ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'}`}>
                     <div className="flex items-start justify-between">
                         <div className="flex items-start gap-4">
-                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                                isApproved ? 'bg-green-100' : 'bg-red-100'
-                            }`}>
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isApproved ? 'bg-green-100' : 'bg-red-100'
+                                }`}>
                                 {isApproved ? (
                                     <CheckCircle size={24} className="text-green-600" />
                                 ) : (
@@ -62,7 +61,7 @@ export function FeedbackModal({ isOpen, onClose, feedback }: FeedbackModalProps)
                         </div>
                         <button
                             onClick={onClose}
-                            className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
+                            className="p-2 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
                             aria-label={t('feedback_modal_close')}
                         >
                             <X size={20} className="text-slate-400" />
@@ -105,7 +104,7 @@ export function FeedbackModal({ isOpen, onClose, feedback }: FeedbackModalProps)
                 <div className="p-6 border-t border-slate-100 bg-slate-50">
                     <button
                         onClick={onClose}
-                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200"
+                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200 cursor-pointer"
                     >
                         {t('feedback_modal_close')}
                     </button>

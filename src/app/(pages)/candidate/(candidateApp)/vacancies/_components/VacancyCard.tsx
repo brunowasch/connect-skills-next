@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from 'react';
 import { Vacancy } from '@/src/app/(pages)/candidate/(candidateApp)/types/Vacancy';
 import { MapPin, Briefcase, HeartHandshake, Building2, Star, CheckCircle, XCircle, Camera, Check } from "lucide-react";
 import Image from 'next/image';
@@ -12,6 +13,7 @@ const DEFAULT_AVATAR = <Building2 className="w-5 h-5 sm:w-7 sm:h-7 text-slate-50
 export function VacancyCard({ vaga }: { vaga: Vacancy }) {
     const { t } = useTranslation();
     const { isFavorite, toggleFavorite, isInitialized } = useFavorites();
+    const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
 
     const tipoMap: Record<string, string> = {
         Presencial: t("Presencial"),
@@ -49,6 +51,22 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
 
     const isRejected = vaga.feedbackStatus === 'REJECTED';
 
+    const handleToggleFavorite = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Se já está processando, ignora o clique
+        if (isTogglingFavorite) return;
+
+        setIsTogglingFavorite(true);
+        toggleFavorite(vaga.id);
+
+        // Delay de 500ms antes de permitir novo clique
+        setTimeout(() => {
+            setIsTogglingFavorite(false);
+        }, 500);
+    };
+
     return (
         <Link
             href={`/viewer/vacancy/${vaga.uuid}`}
@@ -66,7 +84,7 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
                     </span>
                 </div>
             )}
-            
+
             <div className="p-3 sm:p-5 flex-grow">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
                     <div className="flex items-center gap-2 sm:gap-3">
@@ -89,12 +107,11 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
                     </div>
 
                     <button
-                        onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            toggleFavorite(vaga.id);
-                        }}
-                        className={`p-2 rounded-full transition-all mt-4 hover:bg-gray-100 active:bg-gray-200 group/star ${favorited ? 'text-yellow-500' : 'text-gray-300'}`}
+                        onClick={handleToggleFavorite}
+                        disabled={isTogglingFavorite}
+                        className={`p-2 rounded-full transition-all mt-4 hover:bg-gray-100 active:bg-gray-200 group/star cursor-pointer 
+                            ${favorited ? 'text-yellow-500' : 'text-gray-300'}
+                            ${isTogglingFavorite ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                         <Star
                             size={18}
@@ -133,7 +150,7 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
                             {vaga.feedbackStatus === 'REJECTED' && (
                                 <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-red-50 border border-red-200 text-[9px] sm:text-[10px] font-bold text-red-600 shadow-sm">
                                     <XCircle size={10} className="mr-1" />
-                                    {t("rejected")}
+                                    {t("not_listed")}
                                 </span>
                             )}
                             {vaga.videoStatus === 'requested' && (

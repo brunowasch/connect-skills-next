@@ -78,7 +78,7 @@ export function ApplicationHistory({ historicoAplicacoes }: ApplicationHistoryPr
                                         {item.feedbackStatus === 'REJECTED' && (
                                             <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-red-50 border border-red-200 text-[9px] sm:text-[10px] font-bold text-red-600 shadow-sm">
                                                 <XCircle size={10} className="mr-1" />
-                                                {t("rejected")}
+                                                {t("not_listed")}
                                             </span>
                                         )}
                                         {item.videoStatus === 'requested' && (

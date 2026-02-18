@@ -580,7 +580,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                 onConfirm: async () => {
                     if (isUploading) return;
                     setIsUploading(true);
-                    
+
                     try {
                         // 1. Obter assinatura (Server Action)
                         const res = await getVideoUploadSignatureAction(vacancy.uuid, userId!);
@@ -588,7 +588,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                         if (!res.success) {
                             throw new Error(res.error || "Erro ao iniciar upload");
                         }
-                        
+
                         // Casting para garantir acesso às propriedades
                         const signatureResult = res as { success: true, signature: string, timestamp: number, apiKey: string, cloudName: string, folder: string };
 
@@ -602,7 +602,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                         cloudFormData.append("resource_type", "video");
 
                         const uploadUrl = `https://api.cloudinary.com/v1_1/${signatureResult.cloudName}/video/upload`;
-                        
+
                         const uploadResponse = await fetch(uploadUrl, {
                             method: "POST",
                             body: cloudFormData,
@@ -628,7 +628,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                             toast.success(t('video_success_upload', 'Vídeo enviado com sucesso!'));
                             setModal(prev => ({ ...prev, isOpen: false }));
                             setIsRecordingMode(false);
-                            
+
                             // Redirecionar/Atualizar
                             setTimeout(() => {
                                 router.refresh();
@@ -952,9 +952,9 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                         <Ban size={24} />
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-gray-900">{t('application_status_rejected_title')}</h3>
+                                        <h3 className="font-bold text-gray-900">{t('application_status_not_listed_title')}</h3>
                                         <p className="text-sm text-gray-600 mt-1">
-                                            {t('application_status_rejected_desc')}
+                                            {t('application_status_not_listed_desc')}
                                         </p>
                                     </div>
                                 </div>
@@ -1002,7 +1002,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                             </div>
                                         </div>
                                     )}
-                                    
+
                                     {!isExpired && (
                                         <div className="mt-4 pt-4 border-t border-green-200">
                                             {applicationBreakdown?.video?.url && (
@@ -1291,8 +1291,8 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                                 <Ban size={24} />
                                             </div>
                                             <div>
-                                                <p className="font-bold text-sm uppercase tracking-wide">{t("application_status_rejected_title")}</p>
-                                                <p className="text-[11px] opacity-80 mt-0.5">{t("application_status_rejected_desc")}</p>
+                                                <p className="font-bold text-sm uppercase tracking-wide">{t("application_status_not_listed_title")}</p>
+                                                <p className="text-[11px] opacity-80 mt-0.5">{t("application_status_not_listed_desc")}</p>
                                             </div>
                                             <button
                                                 onClick={() => setShowResponsesModal(true)}
@@ -1356,7 +1356,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
 
                 {modal.isOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-]
+                        ]
                         <div
                             className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300"
                             onClick={() => setModal(prev => ({ ...prev, isOpen: false }))}

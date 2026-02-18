@@ -303,6 +303,7 @@
     "pending": "Pendiente",
     "approved": "Aprobado",
     "rejected": "Rechazado",
+    "not_listed": "No Seleccionado",
     "all": "Todos",
     "vacancies_title": "Encontrar Vacantes",
     "vacancies_subtitle": "Explore oportunidades que coincidan con su perfil.",
@@ -678,6 +679,8 @@
     "N/A": "N/A",
     "application_status_rejected_title": "Candidatura Rechazada",
     "application_status_rejected_desc": "La empresa revisó su perfil y decidió no continuar con su solicitud.",
+    "application_status_not_listed_title": "Candidatura No Seleccionada",
+    "application_status_not_listed_desc": "La empresa optó por no continuar con su candidatura en este momento.",
     "application_status_approved_title": "Candidatura Aprobada",
     "application_status_approved_desc": "¡Felicidades! A la empresa le gustó tu perfil y te aprobó para el siguiente paso.",
     "Acabamento de Interiores": "Acabado de Interiores",
@@ -1685,19 +1688,21 @@
                 "default_message": "La empresa aprobó tu candidatura."
             },
             "feedback_rejected": {
-                "title": "Feedback Recibido",
-                "default_message": "La empresa envió un feedback sobre tu candidatura."
+                "title": "No Seleccionado",
+                "default_message": "La empresa optó por no continuar con su candidatura en este momento."
             },
-            "general": {
-                "title": "Nueva Notificación"
-            }
+            "title": "Feedback Recibido",
+            "default_message": "La empresa envió un feedback sobre tu candidatura."
         },
-        "company_notifications": {
-            "new_candidate_title": "Nueva Candidatura",
-            "new_candidate_message": "{{candidateName}} se postuló para la vacante {{vacancyTitle}}.",
-            "video_received_title": "Video Recibido",
-            "video_received_message": "{{candidateName}} envió un video de presentación."
+        "general": {
+            "title": "Nueva Notificación"
         }
+    },
+    "company_notifications": {
+        "new_candidate_title": "Nueva Candidatura",
+        "new_candidate_message": "{{candidateName}} se postuló para la vacante {{vacancyTitle}}.",
+        "video_received_title": "Video Recibido",
+        "video_received_message": "{{candidateName}} envió un video de presentación."
     },
     "companyBlocked": {
         "title": "Acceso Temporalmente Bloqueado",

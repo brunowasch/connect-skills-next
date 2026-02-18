@@ -63,7 +63,7 @@ export function VacanciesClientContent({
         } else if (historyFilter === 'REJECTED') {
             filteredVagas = filteredVagas.filter(v => v.feedbackStatus === 'REJECTED');
         }
-        
+
         // Sort rejected to bottom only when showing ALL
         if (historyFilter === 'ALL') {
             filteredVagas.sort((a, b) => {
@@ -126,8 +126,8 @@ export function VacanciesClientContent({
                             <button
                                 onClick={() => setHistoryFilter('ALL')}
                                 className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap cursor-pointer
-                                    ${historyFilter === 'ALL' 
-                                        ? 'bg-blue-100 text-blue-700 border border-blue-200' 
+                                    ${historyFilter === 'ALL'
+                                        ? 'bg-blue-100 text-blue-700 border border-blue-200'
                                         : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
                             >
                                 {t("all")}
@@ -135,8 +135,8 @@ export function VacanciesClientContent({
                             <button
                                 onClick={() => setHistoryFilter('APPROVED')}
                                 className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-1.5 cursor-pointer
-                                    ${historyFilter === 'APPROVED' 
-                                        ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' 
+                                    ${historyFilter === 'APPROVED'
+                                        ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
                                         : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
                             >
                                 <span className={`w-2 h-2 rounded-full ${historyFilter === 'APPROVED' ? 'bg-emerald-500' : 'bg-emerald-400'}`}></span>
@@ -145,12 +145,12 @@ export function VacanciesClientContent({
                             <button
                                 onClick={() => setHistoryFilter('REJECTED')}
                                 className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-1.5 cursor-pointer
-                                    ${historyFilter === 'REJECTED' 
-                                        ? 'bg-red-100 text-red-700 border border-red-200' 
+                                    ${historyFilter === 'REJECTED'
+                                        ? 'bg-red-100 text-red-700 border border-red-200'
                                         : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
                             >
                                 <span className={`w-2 h-2 rounded-full ${historyFilter === 'REJECTED' ? 'bg-red-500' : 'bg-red-400'}`}></span>
-                                {t("rejected")}
+                                {t("not_listed")}
                             </button>
                         </div>
                     )}
