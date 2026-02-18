@@ -142,14 +142,13 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
     }, [t, i18n.language]);
 
     const handleScreenLeave = useCallback(() => {
-        // Bloqueia o reset se a prova já tiver sido finalizada ou estiver enviando ou ainda não começou
-        if (isFinished || isSubmitting || !isStarted) return;
+        if (isFinished || isSubmitting || !isStarted || showConfirmModal) return;
 
         setPenaltyCount(prev => prev + 1);
         generateQuestions();
         setAnswers({});
         setShowPenaltyModal(true);
-    }, [isFinished, isSubmitting, isStarted, generateQuestions]);
+    }, [isFinished, isSubmitting, isStarted, showConfirmModal, generateQuestions]);
 
     useEffect(() => {
         if (isStarted && !initializedRef.current) {
