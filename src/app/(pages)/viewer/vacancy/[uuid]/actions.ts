@@ -43,6 +43,10 @@ export async function getVideoUploadSignatureAction(
                 return { success: false, error: "Não é possível enviar vídeo após receber feedback de reprovação" };
             }
 
+            if (breakdown?.video?.status === 'submitted' && breakdown.video.viewedAt) {
+                return { success: false, error: "O vídeo já foi visualizado pela empresa e não pode ser alterado." };
+            }
+
             if (breakdown?.video?.status === 'requested') {
                 const deadline = new Date(breakdown.video.deadline);
                 const now = new Date();
@@ -122,7 +126,11 @@ export async function saveVideoMetadataAction(
 
             // Re-validações de segurança
             if (breakdown?.feedback?.status === 'REJECTED') {
-                 throw new Error("Candidatura rejeitada");
+                throw new Error("Candidatura rejeitada");
+            }
+
+            if (breakdown?.video?.status === 'submitted' && breakdown.video.viewedAt) {
+                throw new Error("O vídeo já foi visualizado pela empresa e não pode ser alterado.");
             }
 
             const submittedAt = new Date();
@@ -149,7 +157,7 @@ export async function saveVideoMetadataAction(
             });
 
             // Envio de Email
-             try {
+            try {
                 const company = await prisma.empresa.findUnique({
                     where: { id: vacancy.empresa_id },
                     select: { nome_empresa: true, usuario_id: true }
@@ -163,14 +171,14 @@ export async function saveVideoMetadataAction(
 
                     if (companyUser && companyUser.email) {
                         const { shouldCompanyReceiveEmails } = await import("@/src/lib/company-settings");
-                        
+
                         if (await shouldCompanyReceiveEmails(vacancy.empresa_id)) {
                             const { sendVideoReceivedEmail } = await import("@/src/lib/mail");
                             const candidateName = `${candidate.nome || ''} ${candidate.sobrenome || ''}`.trim() || "Candidato";
 
                             const redirectUrl = `/company/vacancies/${vacancyUuid}/candidates`;
                             const loginLink = `${process.env.APP_URL}/login?redirect=${encodeURIComponent(redirectUrl)}`;
-                            
+
                             await sendVideoReceivedEmail(
                                 companyUser.email,
                                 company.nome_empresa,
@@ -193,7 +201,7 @@ export async function saveVideoMetadataAction(
 
     } catch (error) {
         console.error("Erro ao salvar metadados do vídeo:", error);
-         return { success: false, error: error instanceof Error ? error.message : "Erro ao salvar vídeo" };
+        return { success: false, error: error instanceof Error ? error.message : "Erro ao salvar vídeo" };
     }
 }
 import { revalidatePath } from "next/cache";
@@ -233,7 +241,7 @@ export async function uploadVideoAction(
 
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
-        
+
         const url = await uploadBufferToCloudinary(buffer, "videos", "video");
 
         const fileId = crypto.randomUUID();
@@ -273,6 +281,13 @@ export async function uploadVideoAction(
                 };
             }
 
+            if (breakdown?.video?.status === 'submitted' && breakdown.video.viewedAt) {
+                return {
+                    success: false,
+                    error: "O vídeo já foi visualizado pela empresa e não pode ser alterado."
+                };
+            }
+
             if (breakdown?.video?.status === 'requested') {
                 const deadline = new Date(breakdown.video.deadline);
                 const now = new Date();
@@ -287,7 +302,7 @@ export async function uploadVideoAction(
 
             const submittedAt = new Date();
             const expiresAt = new Date(submittedAt);
-            expiresAt.setDate(expiresAt.getDate() + 7); 
+            expiresAt.setDate(expiresAt.getDate() + 7);
 
             const newBreakdown = {
                 ...breakdown,
@@ -328,14 +343,14 @@ export async function uploadVideoAction(
 
                         if (companyUser && companyUser.email) {
                             const { shouldCompanyReceiveEmails } = await import("@/src/lib/company-settings");
-                            
+
                             if (await shouldCompanyReceiveEmails(vacancy.empresa_id)) {
                                 const { sendVideoReceivedEmail } = await import("@/src/lib/mail");
                                 const candidateName = `${candidate.nome || ''} ${candidate.sobrenome || ''}`.trim() || "Candidato";
-    
+
                                 const redirectUrl = `/company/vacancies/${vacancyUuid}/candidates`;
                                 const loginLink = `${process.env.APP_URL}/login?redirect=${encodeURIComponent(redirectUrl)}`;
-                                
+
                                 await sendVideoReceivedEmail(
                                     companyUser.email,
                                     company.nome_empresa,

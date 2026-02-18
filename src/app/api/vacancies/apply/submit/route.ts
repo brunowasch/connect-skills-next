@@ -3,7 +3,7 @@ import { prisma } from "@/src/lib/prisma";
 import { sendNewApplicationEmail } from "@/src/lib/mail";
 import { randomUUID } from "crypto";
 
-const IA_SUGGEST_URL = process.env.IA_SUGGEST_URL;
+const SUGGEST_CANDIDATE_AI = process.env.SUGGEST_CANDIDATE_AI;
 
 export async function POST(req: NextRequest) {
     try {
@@ -70,9 +70,9 @@ export async function POST(req: NextRequest) {
             matchedSkills: [] as string[]
         };
 
-        if (IA_SUGGEST_URL) {
+        if (SUGGEST_CANDIDATE_AI) {
             try {
-                const aiResponse = await fetch(IA_SUGGEST_URL, {
+                const aiResponse = await fetch(SUGGEST_CANDIDATE_AI, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(aiPayload)

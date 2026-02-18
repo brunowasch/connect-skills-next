@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { X, Play, BrainCircuit, FileText, Activity, MessageSquare, CheckCircle2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { markVideoAsViewed } from "../../../actions";
 
 interface VideoAnalysisModalProps {
     isOpen: boolean;
@@ -48,6 +49,10 @@ export function VideoAnalysisModal({ isOpen, onClose, candidateName, videoUrl, o
             if (!data || lastFetchedUrl !== videoUrl) {
                 setLoading(true);
                 setError(null);
+
+                if (candidateId && vacancyUuid) {
+                    markVideoAsViewed(String(candidateId), vacancyUuid).catch(console.error);
+                }
 
                 fetch('/api/ai/video-analysis', {
                     method: 'POST',

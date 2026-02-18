@@ -24,8 +24,8 @@ export async function POST(request: Request) {
             });
 
             if (existingApplication?.breakdown) {
-                const breakdown = typeof existingApplication.breakdown === 'string' 
-                    ? JSON.parse(existingApplication.breakdown) 
+                const breakdown = typeof existingApplication.breakdown === 'string'
+                    ? JSON.parse(existingApplication.breakdown)
                     : existingApplication.breakdown;
 
                 if (breakdown.videoAnalysis) {
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
             );
         }
 
-        const iaUrl = process.env.IA_ANALYZE_VIDEO;
+        const iaUrl = process.env.ANALYZE_VIDEO_AI;
 
         if (!iaUrl) {
             console.error("Environment variable is not defined");

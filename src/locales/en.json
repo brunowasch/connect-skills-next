@@ -61,6 +61,7 @@
     "dont_have_account": "Don't have an account?",
     "register_now": "Sign Up",
     "login_btn": "Sign In",
+    "login_btn_loading": "Signing in...",
     "login_error_generic": "Unknown error",
     "login_error_connection": "Connection error. Try again.",
     "password_min_length": "Minimum of 8 characters",
@@ -156,6 +157,8 @@
     "video_replace_upload": "Click to replace the video",
     "video_current": "Current Video:",
     "video_unavailable": "Video not available for viewing",
+    "video_viewed_title": "Video Viewed",
+    "video_viewed_desc": "The company has already viewed your video. It is no longer possible to change it.",
     "video_removed_after_evaluation": "The video was submitted but is no longer available (removed after company evaluation).",
     "video_expired_title": "Video Expired",
     "video_expired_desc_company": "The video file has been removed after the expiration period, but the full AI analysis has been preserved for your reference.",
@@ -1701,59 +1704,59 @@
                 "title": "Not Selected",
                 "default_message": "The company has chosen not to proceed with your application at this time."
             },
-        "general": {
-            "title": "New Notification"
+            "general": {
+                "title": "New Notification"
+            }
+        },
+        "company_notifications": {
+            "new_candidate_title": "New Application",
+            "new_candidate_message": "{{candidateName}} applied for the job {{vacancyTitle}}.",
+            "video_received_title": "Video Received",
+            "video_received_message": "{{candidateName}} sent a presentation video."
         }
     },
-    "company_notifications": {
-        "new_candidate_title": "New Application",
-        "new_candidate_message": "{{candidateName}} applied for the job {{vacancyTitle}}.",
-        "video_received_title": "Video Received",
-        "video_received_message": "{{candidateName}} sent a presentation video."
-    }
-},
-"companyBlocked": {
-    "title": "Access Temporarily Blocked",
-    "subtitle": "Your account is temporarily suspended",
-    "pendingEvaluation": {
-        "title": "You have pending candidate evaluations",
-        "subtitle": "Functionalities are disabled until you evaluate them"
+    "companyBlocked": {
+        "title": "Access Temporarily Blocked",
+        "subtitle": "Your account is temporarily suspended",
+        "pendingEvaluation": {
+            "title": "You have pending candidate evaluations",
+            "subtitle": "Functionalities are disabled until you evaluate them"
+        },
+        "warning": {
+            "title": "Action Required",
+            "description": "We detected candidate videos that expired without evaluation. To maintain service quality and respect candidates' time, all platform features have been temporarily disabled. Access will be restored once you evaluate all pending videos."
+        },
+        "pendingVideos": {
+            "title": "Videos Pending Evaluation",
+            "vacancy": "Job",
+            "candidate": "Candidate",
+            "submitted": "Submitted on",
+            "expired": "Expired on",
+            "evaluateNow": "Evaluate Now"
+        },
+        "instructions": {
+            "title": "How to Restore Access",
+            "step1": "Click 'Evaluate Now' on each pending video",
+            "step2": "Watch the video and provide honest feedback to the candidate",
+            "step3": "After evaluating all videos, access will be automatically restored"
+        }
     },
-    "warning": {
-        "title": "Action Required",
-        "description": "We detected candidate videos that expired without evaluation. To maintain service quality and respect candidates' time, all platform features have been temporarily disabled. Access will be restored once you evaluate all pending videos."
-    },
-    "pendingVideos": {
-        "title": "Videos Pending Evaluation",
-        "vacancy": "Job",
-        "candidate": "Candidate",
-        "submitted": "Submitted on",
-        "expired": "Expired on",
-        "evaluateNow": "Evaluate Now"
-    },
-    "instructions": {
-        "title": "How to Restore Access",
-        "step1": "Click 'Evaluate Now' on each pending video",
-        "step2": "Watch the video and provide honest feedback to the candidate",
-        "step3": "After evaluating all videos, access will be automatically restored"
-    }
-},
-"video_analysis_error": "Failed to load video analysis.",
-"video_analysis_title": "Smart Video Analysis",
-"candidate_label": "Candidate",
-"overall_score": "Overall Score",
-"excellent_rating": "Excellent",
-"good_rating": "Good",
-"regular_rating": "Regular",
-"average_rating": "Average",
-"needs_improvement_rating": "Needs Improvement",
-"communication": "Communication",
-"adherence": "Adherence",
-"candidate_summary": "Candidate Summary",
-"full_transcript": "Full Transcript",
-"feedback_approved_intro": "Hello! Below is your feedback:\n\nYou seem to fit the job profile. We found your profile interesting and, therefore, you are approved for the next stage of the selection process.",
-"feedback_approved_closing": "Stay tuned for the start of the next stage. Good luck!",
-"feedback_rejected_intro": "Hello! Below is your feedback:\n\nWe appreciate your interest in joining our team and the time dedicated to the selection process. However, unfortunately you were not selected for the next stage of the selection process.",
-"feedback_rejected_closing": "We wish you success in your professional journey and hope that new opportunities will arise in the future.",
-"feedback_select_status_first": "Select a status first"
+    "video_analysis_error": "Failed to load video analysis.",
+    "video_analysis_title": "Smart Video Analysis",
+    "candidate_label": "Candidate",
+    "overall_score": "Overall Score",
+    "excellent_rating": "Excellent",
+    "good_rating": "Good",
+    "regular_rating": "Regular",
+    "average_rating": "Average",
+    "needs_improvement_rating": "Needs Improvement",
+    "communication": "Communication",
+    "adherence": "Adherence",
+    "candidate_summary": "Candidate Summary",
+    "full_transcript": "Full Transcript",
+    "feedback_approved_intro": "Hello! Below is your feedback:\n\nYou seem to fit the job profile. We found your profile interesting and, therefore, you are approved for the next stage of the selection process.",
+    "feedback_approved_closing": "Stay tuned for the start of the next stage. Good luck!",
+    "feedback_rejected_intro": "Hello! Below is your feedback:\n\nWe appreciate your interest in joining our team and the time dedicated to the selection process. However, unfortunately you were not selected for the next stage of the selection process.",
+    "feedback_rejected_closing": "We wish you success in your professional journey and hope that new opportunities will arise in the future.",
+    "feedback_select_status_first": "Select a status first"
 }

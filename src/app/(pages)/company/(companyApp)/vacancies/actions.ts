@@ -227,3 +227,60 @@ export async function submitFeedback(candidateId: string, vacancyUuid: string, s
         return { success: false, error: "Erro ao enviar feedback" };
     }
 }
+
+export async function markVideoAsViewed(candidateId: string, vacancyUuid: string) {
+    try {
+        const vacancy = await prisma.vaga.findFirst({
+            where: {
+                OR: [
+                    { uuid: vacancyUuid },
+                    { id: vacancyUuid }
+                ]
+            }
+        });
+
+        if (!vacancy) throw new Error("Vaga não encontrada");
+
+        const application = await prisma.vaga_avaliacao.findUnique({
+            where: {
+                vaga_id_candidato_id: {
+                    vaga_id: vacancy.id,
+                    candidato_id: candidateId
+                }
+            }
+        });
+
+        if (!application) throw new Error("Candidatura não encontrada");
+
+        let breakdown: any = {};
+        try {
+            if (application.breakdown) {
+                breakdown = typeof application.breakdown === 'string' ? JSON.parse(application.breakdown) : application.breakdown;
+            }
+        } catch (e) { }
+
+        if (breakdown.video?.viewedAt) {
+            return { success: true };
+        }
+
+        const newBreakdown = {
+            ...breakdown,
+            video: {
+                ...breakdown.video,
+                viewedAt: new Date().toISOString()
+            }
+        };
+
+        await prisma.vaga_avaliacao.update({
+            where: { id: application.id },
+            data: {
+                breakdown: JSON.stringify(newBreakdown)
+            }
+        });
+
+        return { success: true };
+    } catch (error) {
+        console.error("Erro ao marcar vídeo como visualizado:", error);
+        return { success: false, error: "Erro ao atualizar status do vídeo" };
+    }
+}
