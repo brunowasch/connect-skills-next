@@ -3,7 +3,7 @@ import { prisma } from "../src/lib/prisma";
 async function main() {
     console.log("=== Setup Teste: Notificação de Vídeo Não Enviado no Prazo ===");
 
-    const VAGA_NOME = ''; 
+    const VAGA_NOME = '';
 
     let vagaFiltro: any = {};
     if (VAGA_NOME) {
@@ -50,8 +50,8 @@ async function main() {
     breakdown.video.deadline = pastDate.toISOString();
 
     if (breakdown.company_notifications?.video_expired_unsubmitted) {
-         breakdown.company_notifications.video_expired_unsubmitted.deleted = false;
-         breakdown.company_notifications.video_expired_unsubmitted.read = false;
+        breakdown.company_notifications.video_expired_unsubmitted.deleted = false;
+        breakdown.company_notifications.video_expired_unsubmitted.read = false;
     }
 
     await prisma.vaga_avaliacao.update({

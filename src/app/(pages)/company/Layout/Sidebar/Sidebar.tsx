@@ -250,14 +250,14 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarPr
                         <div className="mt-6 flex gap-3">
                             <button
                                 onClick={() => setLogoutOpen(false)}
-                                className="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 cursor-pointer hover:bg-slate-100 transition"
+                                className="logout-modal-btn flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 cursor-pointer hover:bg-slate-100 transition"
                             >
                                 {t("logout_modal_cancel")}
                             </button>
 
                             <button
                                 onClick={handleLogout}
-                                className="flex-1 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white cursor-pointer hover:bg-red-700 transition"
+                                className="logout-modal-btn flex-1 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white cursor-pointer hover:bg-red-700 transition"
                             >
                                 {t("logout_modal_confirm")}
                             </button>

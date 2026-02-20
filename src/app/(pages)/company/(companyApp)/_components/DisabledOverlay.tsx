@@ -59,7 +59,7 @@ export default function DisabledOverlay({ expiredVideos }: DisabledOverlayProps)
                - Menu mobile (.menu-toggle-btn)
                - Notificações (.notification-btn)
             */
-            .company-disabled button:not(.sidebar-nav-link):not([class*="evaluate"]):not([class*="banner"]):not(.language-switcher-btn):not(.evaluate-action-btn):not(.menu-toggle-btn):not(.notification-btn):not(.evaluate-video-btn):not(.notification-action-btn) {
+            .company-disabled button:not(.sidebar-nav-link):not([class*="evaluate"]):not([class*="banner"]):not(.language-switcher-btn):not(.evaluate-action-btn):not(.menu-toggle-btn):not(.notification-btn):not(.evaluate-video-btn):not(.notification-action-btn):not(.logout-modal-btn) {
                 pointer-events: none !important;
                 opacity: 0.5 !important;
                 cursor: not-allowed !important;
