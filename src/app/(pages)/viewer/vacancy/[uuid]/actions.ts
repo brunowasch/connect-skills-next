@@ -95,17 +95,6 @@ export async function saveVideoMetadataAction(
         if (!candidate) throw new Error("Candidato não encontrado");
 
         const fileId = crypto.randomUUID();
-        await prisma.candidato_arquivo.create({
-            data: {
-                id: fileId,
-                candidato_id: candidate.id,
-                nome: fileData.fileName,
-                url: fileData.url,
-                mime: fileData.mimeType,
-                tamanho: fileData.size,
-                uuid: crypto.randomUUID()
-            }
-        });
 
         const application = await prisma.vaga_avaliacao.findUnique({
             where: {
@@ -245,17 +234,6 @@ export async function uploadVideoAction(
         const url = await uploadBufferToCloudinary(buffer, "videos", "video");
 
         const fileId = crypto.randomUUID();
-        await prisma.candidato_arquivo.create({
-            data: {
-                id: fileId,
-                candidato_id: candidateId,
-                nome: `${candidate.nome} ${candidate.sobrenome}-${Date.now()}-Video.mp4`,
-                url: url,
-                mime: file.type,
-                tamanho: file.size,
-                uuid: crypto.randomUUID()
-            }
-        });
 
         const application = await prisma.vaga_avaliacao.findUnique({
             where: {

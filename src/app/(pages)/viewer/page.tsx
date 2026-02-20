@@ -23,10 +23,25 @@ function ViewerContent() {
     if (!fileUrl) return <div className="p-10 text-center">Carregando arquivo...</div>;
 
     const fileType = searchParams.get('type');
+    const lowerUrl = fileUrl.toLowerCase();
+    const lowerTitle = title.toLowerCase();
+
     const isPdf = fileType === 'application/pdf' ||
         (fileType && fileType.includes('pdf')) ||
-        (fileUrl && fileUrl.toLowerCase().includes('.pdf')) ||
-        (fileUrl && fileUrl.startsWith('data:application/pdf'));
+        lowerUrl.includes('.pdf') ||
+        lowerUrl.includes('/pdf') ||
+        fileUrl.startsWith('data:application/pdf');
+
+    const isVideo = (fileType && fileType.startsWith('video/')) ||
+        lowerUrl.includes('.mp4') ||
+        lowerUrl.includes('.webm') ||
+        lowerUrl.includes('.mov') ||
+        lowerUrl.includes('.ogg') ||
+        lowerUrl.includes('/video/') ||
+        lowerTitle.endsWith('.mp4') ||
+        lowerTitle.endsWith('.webm') ||
+        lowerTitle.endsWith('.mov') ||
+        fileUrl.startsWith('data:video/');
 
     if (isPdf) {
         const finalUrl = fileUrl;
@@ -63,6 +78,34 @@ function ViewerContent() {
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-external-link"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
                     Abrir em Nova Aba
                 </a>
+            </div>
+        );
+    }
+
+    if (isVideo) {
+        return (
+            <div className="w-full h-screen bg-gray-900 flex flex-col">
+                <div className="p-4 bg-slate-800 text-white flex justify-between items-center">
+                    <h1 className="font-bold truncate">{title}</h1>
+                    <button
+                        onClick={() => window.close()}
+                        className="text-white/70 hover:text-white transition ml-4 shrink-0"
+                    >
+                        Fechar
+                    </button>
+                </div>
+                <div className="flex-1 flex items-center justify-center bg-black">
+                    <video
+                        src={fileUrl}
+                        controls
+                        autoPlay={false}
+                        playsInline
+                        className="max-w-full max-h-full"
+                        style={{ maxHeight: 'calc(100vh - 60px)' }}
+                    >
+                        Seu navegador não suporta a reprodução de vídeo.
+                    </video>
+                </div>
             </div>
         );
     }
