@@ -334,7 +334,11 @@ export default async function Dashboard() {
 
     // Filtrar solicitações de vídeo pendentes
     const videoRequests = appliedVacancies
-        .filter((app: any) => app.videoStatus === 'requested')
+        .filter((app: any) => {
+            if (app.videoStatus !== 'requested') return false;
+            if (app.videoDeadline && new Date() > new Date(app.videoDeadline)) return false;
+            return true;
+        })
         .map((app: any) => ({
             id: app.id,
             uuid: app.uuid,

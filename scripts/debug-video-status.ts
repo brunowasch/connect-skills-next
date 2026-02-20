@@ -56,10 +56,6 @@ async function debugVideoStatus() {
                 console.log(`│Erro ao parsear breakdown`);
             }
 
-            console.log(`│ Breakdown completo:`);
-            console.log(`│  ${JSON.stringify(breakdown, null, 2).split('\n').join('\n│  ')}`);
-            console.log(`│`);
-
             // Análise do vídeo
             if (breakdown.video) {
                 const video = breakdown.video;

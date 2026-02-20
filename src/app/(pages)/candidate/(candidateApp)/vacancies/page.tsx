@@ -302,6 +302,7 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
             // Extrair feedbackStatus e videoStatus do breakdown (se estiver no histórico)
             let feedbackStatus = null;
             let videoStatus = null;
+            let videoDeadline = null;
             if (isHistory) {
                 const applicationData = appliedVacancies.find(av => av.vaga_id === vaga.id);
                 if (applicationData?.breakdown) {
@@ -311,6 +312,7 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
                             : applicationData.breakdown;
                         feedbackStatus = breakdown?.feedback?.status || null;
                         videoStatus = breakdown?.video?.status || null;
+                        videoDeadline = breakdown?.video?.deadline || null;
                     } catch (e) {
                         console.error("Error parsing breakdown", e);
                     }
@@ -342,7 +344,8 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
                 isNear: score >= 50, // Destaque para mesma cidade ou estado
                 isFavorited: favoriteIds.includes(vaga.id),
                 feedbackStatus,
-                videoStatus
+                videoStatus,
+                videoDeadline
             } as any;
         });
 

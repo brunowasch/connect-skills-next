@@ -143,7 +143,7 @@
     "video_upload_rejected_title": "Envio de Vídeo Não Disponível",
     "video_upload_rejected_desc": "A empresa já enviou um feedback sobre sua candidatura. O envio de vídeo não está mais disponível.",
     "video_upload_expired_title": "Prazo Expirado",
-    "video_upload_expired_desc": "O prazo de 1 semana para envio do vídeo expirou. Entre em contato com a empresa se necessário.",
+    "video_upload_expired_desc": "O prazo de 1 semana para envio do vídeo expirou. Por isso, não é possível enviar seu vídeo de apresentação.",
     "video_upload_requested_title": "Vídeo de Apresentação Solicitado",
     "video_upload_requested_desc": "A empresa solicitou um vídeo de apresentação de até 3 minutos.",
     "video_upload_deadline": "Prazo:",
@@ -1516,6 +1516,7 @@
     "notification_delete": "Excluir",
     "notification_mark_read_tooltip": "Marcar como lida",
     "notification_delete_tooltip": "Excluir",
+    "ranking_video_expired": "Prazo do vídeo encerrado",
     "feedback_modal_approved_title": "Parabéns! Você foi aprovado",
     "feedback_modal_rejected_title": "Feedback Recebido",
     "feedback_modal_close_btn": "Fechar",
@@ -1581,7 +1582,9 @@
             "new_candidate_title": "Nova Candidatura",
             "new_candidate_message": "{{candidateName}} se candidatou para a vaga {{vacancyTitle}}.",
             "video_received_title": "Vídeo Recebido",
-            "video_received_message": "{{candidateName}} enviou um vídeo de apresentação."
+            "video_received_message": "{{candidateName}} enviou um vídeo de apresentação.",
+            "video_expired_unsubmitted_title": "Vídeo Não Enviado no Prazo",
+            "video_expired_unsubmitted_message": "{{candidateName}} não submeteu o vídeo dentro do prazo."
         }
     },
     "companyBlocked": {

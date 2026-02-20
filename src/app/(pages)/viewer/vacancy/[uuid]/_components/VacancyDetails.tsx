@@ -213,7 +213,12 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
     const hasShownWelcomeModalRef = useRef(false);
 
     useEffect(() => {
-        if (hasApplied && applicationBreakdown?.video?.status === 'requested' && !hasShownWelcomeModalRef.current) {
+        let isExpired = false;
+        if (applicationBreakdown?.video?.deadline) {
+            isExpired = new Date() > new Date(applicationBreakdown.video.deadline);
+        }
+
+        if (hasApplied && applicationBreakdown?.video?.status === 'requested' && !isExpired && !hasShownWelcomeModalRef.current) {
             hasShownWelcomeModalRef.current = true;
             setModal({
                 isOpen: true,

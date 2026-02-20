@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { Bell, Video, UserPlus, Clock, X, Trash2, Check, Eye } from 'lucide-react';
+import { Bell, Video, UserPlus, Clock, X, Trash2, Check, Eye, AlertTriangle } from 'lucide-react';
 import { useTranslation } from "react-i18next";
 import { useRouter } from 'next/navigation';
 
@@ -49,6 +49,8 @@ export function NotificationDropdown({ notifications: initialNotifications }: No
                 return <Video size={18} className="text-purple-600" />;
             case 'new_candidate':
                 return <UserPlus size={18} className="text-blue-600" />;
+            case 'video_expired_unsubmitted':
+                return <AlertTriangle size={18} className="text-red-500" />;
             default:
                 return <Bell size={18} className="text-slate-600" />;
         }
@@ -60,6 +62,8 @@ export function NotificationDropdown({ notifications: initialNotifications }: No
                 return 'bg-purple-50 border-purple-100';
             case 'new_candidate':
                 return 'bg-blue-50 border-blue-100';
+            case 'video_expired_unsubmitted':
+                return 'bg-red-50 border-red-100';
             default:
                 return 'bg-slate-50 border-slate-100';
         }
@@ -174,6 +178,7 @@ export function NotificationDropdown({ notifications: initialNotifications }: No
     const getNotificationTitle = (notification: Notification) => {
         if (notification.type === 'new_candidate') return t('notifications.company_notifications.new_candidate_title', 'Nova Candidatura');
         if (notification.type === 'video_received') return t('notifications.company_notifications.video_received_title', 'Vídeo Recebido');
+        if (notification.type === 'video_expired_unsubmitted') return t('notifications.company_notifications.video_expired_unsubmitted_title', 'Vídeo Não Enviado no Prazo');
         return notification.title;
     };
 
@@ -186,6 +191,11 @@ export function NotificationDropdown({ notifications: initialNotifications }: No
         }
         if (notification.type === 'video_received') {
             return t('notifications.company_notifications.video_received_message', {
+                candidateName: notification.candidateName || 'Candidato'
+            });
+        }
+        if (notification.type === 'video_expired_unsubmitted') {
+            return t('notifications.company_notifications.video_expired_unsubmitted_message', {
                 candidateName: notification.candidateName || 'Candidato'
             });
         }

@@ -289,6 +289,9 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, pendingCandida
                     sortedCandidates.map((candidate, index) => {
                         const breakdown = parseBreakdown(candidate.application?.breakdown);
 
+                        const isExpired = breakdown?.video?.status === 'requested' && breakdown?.video?.deadline 
+                            ? new Date() > new Date(breakdown.video.deadline) 
+                            : false;
                         const isPendingTarget = pendingCandidateId && candidate.id === pendingCandidateId;
                         const isDisabled = pendingCandidateId && !isPendingTarget;
 
@@ -296,7 +299,7 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, pendingCandida
                             <div
                                 key={candidate.id}
                                 className={`relative bg-white p-6 rounded-xl border transition-all
-                                    ${isDisabled ? 'grayscale opacity-40 pointer-events-none' : 'hover:shadow-md'}
+                                    ${isDisabled ? 'grayscale opacity-60 pointer-events-none' : 'hover:shadow-md'}
                                     ${isPendingTarget ? 'border-amber-400 ring-4 ring-amber-50 shadow-lg scale-[1.01] z-10' : 'border-gray-100 shadow-sm'}
                                 `}
                             >
@@ -443,7 +446,14 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, pendingCandida
                                         );
                                     })()}
 
-                                    {renderFeedbackButton(candidate, breakdown)}
+                                     {renderFeedbackButton(candidate, breakdown)}
+
+                                     {isExpired && (
+                                         <div className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-xs font-bold border border-red-200 shadow-sm">
+                                             <AlertTriangle size={14} className="stroke-[2.5px]" />
+                                             {t('ranking_video_expired', 'Prazo do vídeo encerrado')}
+                                         </div>
+                                     )}
                                 </div>
                             </div>
                         );
@@ -451,7 +461,6 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, pendingCandida
                 )}
             </div >
 
-            {/* Feedback Modal */}
             {
                 feedbackCandidate && (
                     <FeedbackModal

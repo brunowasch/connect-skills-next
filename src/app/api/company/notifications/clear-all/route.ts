@@ -64,6 +64,9 @@ export async function POST(request: NextRequest) {
             if (!breakdown.company_notifications.video_received) breakdown.company_notifications.video_received = {};
             breakdown.company_notifications.video_received.deleted = true;
 
+            if (!breakdown.company_notifications.video_expired_unsubmitted) breakdown.company_notifications.video_expired_unsubmitted = {};
+            breakdown.company_notifications.video_expired_unsubmitted.deleted = true;
+
             await prisma.vaga_avaliacao.update({
                 where: { id: app.id },
                 data: {

@@ -91,6 +91,9 @@ export async function POST(request: NextRequest) {
         } else if (type === 'video_received') {
              if (!breakdown.company_notifications.video_received) breakdown.company_notifications.video_received = {};
             breakdown.company_notifications.video_received.read = true;
+        } else if (type === 'video_expired_unsubmitted') {
+             if (!breakdown.company_notifications.video_expired_unsubmitted) breakdown.company_notifications.video_expired_unsubmitted = {};
+            breakdown.company_notifications.video_expired_unsubmitted.read = true;
         }
 
         await prisma.vaga_avaliacao.update({

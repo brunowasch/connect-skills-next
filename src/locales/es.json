@@ -136,7 +136,7 @@
     "video_upload_rejected_title": "Video No Disponible",
     "video_upload_rejected_desc": "La empresa ya ha enviado su opinión sobre su candidatura. El envío de vídeo ya no está disponible.",
     "video_upload_expired_title": "Plazo Expirado",
-    "video_upload_expired_desc": "El plazo de 1 semana para enviar el vídeo ha expirado. Póngase en contacto con la empresa si es necesario.",
+    "video_upload_expired_desc": "El plazo de 1 semana para enviar el vídeo ha expirado. Por lo tanto, no es posible enviar su vídeo de presentación.",
     "video_upload_requested_title": "Video de Presentación Solicitado",
     "video_upload_requested_desc": "La empresa ha solicitado un video de presentación de hasta 3 minutos.",
     "video_upload_deadline": "Plazo:",
@@ -1648,6 +1648,7 @@
     "notification_delete": "Eliminar",
     "notification_mark_read_tooltip": "Marcar como leída",
     "notification_delete_tooltip": "Eliminar",
+    "ranking_video_expired": "Plazo del video expirado",
     "feedback_modal_approved_title": "¡Felicidades! Has sido aprobado",
     "feedback_modal_rejected_title": "Feedback Recibido",
     "feedback_modal_close_btn": "Cerrar",
@@ -1710,13 +1711,15 @@
         },
         "general": {
             "title": "Nueva Notificación"
+        },
+        "company_notifications": {
+            "new_candidate_title": "Nueva Candidatura",
+            "new_candidate_message": "{{candidateName}} se postuló para la vacante {{vacancyTitle}}.",
+            "video_received_title": "Video Recibido",
+            "video_received_message": "{{candidateName}} envió un video de presentación.",
+            "video_expired_unsubmitted_title": "Video No Enviado a Tiempo",
+            "video_expired_unsubmitted_message": "{{candidateName}} no ha enviado el video dentro del plazo."
         }
-    },
-    "company_notifications": {
-        "new_candidate_title": "Nueva Candidatura",
-        "new_candidate_message": "{{candidateName}} se postuló para la vacante {{vacancyTitle}}.",
-        "video_received_title": "Video Recibido",
-        "video_received_message": "{{candidateName}} envió un video de presentación."
     },
     "companyBlocked": {
         "title": "Acceso Temporalmente Bloqueado",

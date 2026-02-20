@@ -36,10 +36,12 @@ export function ApplicationHistory({ historicoAplicacoes }: ApplicationHistoryPr
                         {historicoAplicacoes.slice(0, 5).map((item, index) => {
                             const dataAplicacao = item?.created_at ? new Date(item.created_at) : new Date();
 
-                            // Se o vídeo foi solicitado e temos o UUID, redirecionar para a vaga
-                            const linkHref = item.videoStatus === 'requested' && item.uuid
+                            const isExpired = item.videoStatus === 'requested' && item.videoDeadline && new Date() > new Date(item.videoDeadline);
+
+ 
+                            const linkHref = item.videoStatus === 'requested' && item.uuid && !isExpired
                                 ? `/viewer/vacancy/${item.uuid}?action=upload_video`
-                                : `/candidate/vacancies`;
+                                : item.uuid ? `/viewer/vacancy/${item.uuid}` : `/candidate/vacancies`;
 
                             return (
                                 <Link
@@ -81,10 +83,16 @@ export function ApplicationHistory({ historicoAplicacoes }: ApplicationHistoryPr
                                                 {t("not_listed")}
                                             </span>
                                         )}
-                                        {item.videoStatus === 'requested' && (
+                                        {item.videoStatus === 'requested' && !isExpired && (
                                             <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-purple-50 border border-purple-200 text-[9px] sm:text-[10px] font-bold text-purple-600 shadow-sm">
                                                 <Camera size={10} className="mr-1" />
                                                 {t("video_requested")}
+                                            </span>
+                                        )}
+                                        {item.videoStatus === 'requested' && isExpired && (
+                                            <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-orange-50 border border-orange-200 text-[9px] sm:text-[10px] font-bold text-orange-600 shadow-sm">
+                                                <Clock size={10} className="mr-1" />
+                                                {t("video_upload_expired_title", "Prazo Expirado")}
                                             </span>
                                         )}
                                         {item.videoStatus === 'submitted' && (

@@ -20,9 +20,9 @@ export interface Application {
     }>;
     created_at?: Date;
     videoStatus?: string | null;
+    videoDeadline?: string | null;
     feedbackStatus?: 'APPROVED' | 'REJECTED' | null;
 }
-
 export interface ApplicationHistoryProps {
     historicoAplicacoes: Application[];
 }

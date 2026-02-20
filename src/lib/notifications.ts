@@ -2,7 +2,7 @@ import { prisma } from "@/src/lib/prisma";
 
 export interface Notification {
     id: string;
-    type: 'video_request' | 'feedback_approved' | 'feedback_rejected' | 'general' | 'video_received' | 'new_candidate';
+    type: 'video_request' | 'feedback_approved' | 'feedback_rejected' | 'general' | 'video_received' | 'new_candidate' | 'video_expired_unsubmitted';
     title: string;
     message: string;
     vacancyTitle: string;
@@ -86,6 +86,28 @@ export async function getCompanyNotifications(companyId: string): Promise<Notifi
                     date: new Date(breakdown.video.submittedAt),
                     read: breakdown?.company_notifications?.video_received?.read || false
                 });
+            }
+
+            if (breakdown?.video?.status === 'requested' && breakdown?.video?.deadline && !breakdown?.company_notifications?.video_expired_unsubmitted?.deleted) {
+                const deadlineDate = new Date(breakdown.video.deadline);
+                const isExpired = new Date() > deadlineDate;
+
+                if (isExpired) {
+                    notifications.push({
+                         id: `video_expired_unsubmitted_${app.id}`,
+                         type: 'video_expired_unsubmitted',
+                         title: 'Prazo de Vídeo Expirado',
+                         message: `${candidateName} não enviou o vídeo dentro do prazo estipulado.`,
+                         vacancyTitle: vacancy.cargo,
+                         vacancyUuid: vacancy.uuid ?? undefined,
+                         vacancyId: vacancy.id,
+                         companyName: '',
+                         candidateName: candidateName,
+                         candidateId: app.candidato_id,
+                         date: deadlineDate,
+                         read: breakdown?.company_notifications?.video_expired_unsubmitted?.read || false
+                     });
+                }
             }
 
         } catch (e) {

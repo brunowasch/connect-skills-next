@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from 'react';
-import { X, Trash2, Bell, Video, UserPlus, Clock, Check, Eye } from 'lucide-react';
+import { X, Trash2, Bell, Video, UserPlus, Clock, Check, Eye, AlertTriangle } from 'lucide-react';
 import { useTranslation } from "react-i18next";
 import { Notification } from "@/src/lib/notifications";
 
@@ -45,6 +45,8 @@ export function AllNotificationsModal({
                 return <Video size={20} className="text-purple-600" />;
             case 'new_candidate':
                 return <UserPlus size={20} className="text-blue-600" />;
+            case 'video_expired_unsubmitted':
+                return <AlertTriangle size={20} className="text-red-500" />;
             default:
                 return <Bell size={20} className="text-slate-600" />;
         }
@@ -56,6 +58,8 @@ export function AllNotificationsModal({
                 return 'bg-purple-50 border-purple-100';
             case 'new_candidate':
                 return 'bg-blue-50 border-blue-100';
+            case 'video_expired_unsubmitted':
+                return 'bg-red-50 border-red-100';
             default:
                 return 'bg-slate-50 border-slate-100';
         }
@@ -64,6 +68,7 @@ export function AllNotificationsModal({
     const getNotificationTitle = (notification: Notification) => {
         if (notification.type === 'new_candidate') return t('notifications.company_notifications.new_candidate_title', 'Nova Candidatura');
         if (notification.type === 'video_received') return t('notifications.company_notifications.video_received_title', 'Vídeo Recebido');
+        if (notification.type === 'video_expired_unsubmitted') return t('notifications.company_notifications.video_expired_unsubmitted_title', 'Vídeo Não Enviado no Prazo');
         return notification.title;
     };
 
@@ -76,6 +81,11 @@ export function AllNotificationsModal({
         }
         if (notification.type === 'video_received') {
             return t('notifications.company_notifications.video_received_message', {
+                candidateName: notification.candidateName || 'Candidato'
+            });
+        }
+        if (notification.type === 'video_expired_unsubmitted') {
+            return t('notifications.company_notifications.video_expired_unsubmitted_message', {
                 candidateName: notification.candidateName || 'Candidato'
             });
         }
@@ -200,6 +210,11 @@ export function AllNotificationsModal({
                                                         <>
                                                             <Video size={14} />
                                                             {t('notifications.view_video', 'Ver Vídeo')}
+                                                        </>
+                                                    ) : notification.type === 'video_expired_unsubmitted' ? (
+                                                        <>
+                                                            <Video size={14} className="text-red-500" />
+                                                            <span className="text-red-600">{t('notifications.view_details', 'Ver Detalhes')}</span>
                                                         </>
                                                     ) : (
                                                         <>
