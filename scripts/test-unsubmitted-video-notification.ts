@@ -76,7 +76,16 @@ async function main() {
     console.log(`Candidato: ${candidato?.nome}`);
     console.log(`Status do vídeo mantido como: 'requested'`);
     console.log(`Prazo (deadline) alterado para: ${pastDate.toLocaleString()}`);
-    console.log("\nAgora você pode acessar o painel da empresa associada a esta vaga e verificar se a notificação 'Vídeo Não Enviado no Prazo' aparece no dropdown de notificações.");
+    console.log(`\nAgora você pode acessar o painel da empresa associada a esta vaga e verificar se a notificação 'Vídeo Não Enviado no Prazo' aparece no dropdown de notificações.`);
+
+    console.log("\n[TESTE] Disparando Endpoint de Cron de Emails...");
+    try {
+        const response = await fetch(`${process.env.APP_URL || 'http://localhost:3000'}/api/cron/video-expiration`);
+        const data = await response.json();
+        console.log("Resultado da Cron:", data);
+    } catch (err) {
+        console.error("Falha ao chamar a cron route localmente:", err?.toString());
+    }
 }
 
 main()

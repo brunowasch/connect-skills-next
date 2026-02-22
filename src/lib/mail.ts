@@ -279,7 +279,7 @@ export async function sendFeedbackEmail(
                     ? `
                     <div style="background-color: #f9fafb; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 20px;">
                         <p style="font-weight: bold; color: #374151; margin-bottom: 5px;">Mensagem da Empresa:</p>
-                        <p style="color: #4b5563; font-style: italic;">"${justification}"</p>
+                        <p style="color: #4b5563; font-style: italic;">"${justification.replace(/\n/g, '<br />')}"</p>
                     </div>
                 `
                     : ""
@@ -383,8 +383,84 @@ export async function sendNewApplicationEmail(
   try {
     await transporter.sendMail(mailOptions);
     return true;
-  } catch (error) {
-    console.error("Erro ao enviar email de nova candidatura:", error);
-    return false;
-  }
+    } catch (error) {
+        console.error("Erro ao enviar email de nova candidatura:", error);
+        return false;
+    }
+}
+
+export async function sendVideoExpiredCandidateEmail(
+    email: string,
+    candidateName: string,
+    vacancyTitle: string,
+) {
+    const mailOptions = {
+        from: process.env.EMAIL_FROM,
+        to: email,
+        subject: `Prazo Encerrado: Vídeo - Vaga: ${vacancyTitle}`,
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+                <h2 style="color: #EF4444; text-align: center;">Prazo do Vídeo Encerrado</h2>
+                <p style="text-align: center; color: #555;">Olá <strong>${candidateName}</strong>,</p>
+                <p style="text-align: center; color: #555;">
+                    O prazo estipulado para envio do vídeo de apresentação para a vaga de <strong>${vacancyTitle}</strong> chegou ao fim.
+                </p>
+                <p style="text-align: center; color: #555;">
+                    Para manter a organização e agilidade do processo seletivo, o seu link de gravação/envio não está mais disponível.
+                </p>
+                <p style="text-align: center; font-size: 14px; color: #666; margin-top: 30px;">
+                    Desejamos sucesso nas suas próximas candidaturas.
+                </p>
+            </div>
+        `,
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        return true;
+    } catch (error) {
+        console.error("Erro ao enviar email de video expired (candidate):", error);
+        return false;
+    }
+}
+
+export async function sendVideoExpiredCompanyEmail(
+    email: string,
+    companyName: string,
+    candidateName: string,
+    vacancyTitle: string,
+    platformLink: string,
+) {
+    const mailOptions = {
+        from: process.env.EMAIL_FROM,
+        to: email,
+        subject: `Prazo Encerrado: Vídeo de ${candidateName} - Vaga: ${vacancyTitle}`,
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+                <h2 style="color: #F59E0B; text-align: center;">Aviso: Prazo de Vídeo Encerrado</h2>
+                <p style="text-align: center; color: #555;">Olá <strong>${companyName}</strong>,</p>
+                <p style="text-align: center; color: #555;">
+                    O candidato <strong>${candidateName}</strong> não enviou o vídeo de apresentação dentro do prazo estipulado para a vaga de <strong>${vacancyTitle}</strong>.
+                </p>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="${platformLink}" style="background-color: #4F46E5; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+                        Acessar a Plataforma
+                    </a>
+                </div>
+
+                <p style="text-align: center; font-size: 14px; color: #666; margin-top: 30px;">
+                    Você pode acessar o Ranking da vaga para tomar sua decisão quanto a esta candidatura.
+                </p>
+            </div>
+        `,
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        return true;
+    } catch (error) {
+        console.error("Erro ao enviar email de video expired (company):", error);
+        return false;
+    }
 }

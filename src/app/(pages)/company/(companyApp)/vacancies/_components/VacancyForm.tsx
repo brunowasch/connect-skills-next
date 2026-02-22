@@ -93,6 +93,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyUuid, compa
         dias_home_office: initialData?.dias_home_office || "",
         salario: initialData?.salario || "",
         moeda: initialData?.moeda || "BRL",
+        vagas_disponiveis: existingOptions.vagas_disponiveis || "",
         descricao: initDescription,
         beneficio: initialData?.beneficio || "",
         pergunta: initialData?.pergunta || "",
@@ -343,6 +344,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyUuid, compa
             dias_home_office: initialData?.dias_home_office || "",
             salario: initialData?.salario || "",
             moeda: initialData?.moeda || "BRL",
+            vagas_disponiveis: existingOptions.vagas_disponiveis || "",
             descricao: initDescription,
             beneficio: initialData?.beneficio || "",
             pergunta: initialData?.pergunta || "",
@@ -372,6 +374,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyUuid, compa
         if (normalize(formData.dias_presenciais) !== normalize(defaultFormData.dias_presenciais)) return true;
         if (normalize(formData.dias_home_office) !== normalize(defaultFormData.dias_home_office)) return true;
         if (normalize(formData.salario) !== normalize(defaultFormData.salario)) return true;
+        if (normalize(formData.vagas_disponiveis) !== normalize(defaultFormData.vagas_disponiveis)) return true;
         if (normalize(formData.moeda) !== normalize(defaultFormData.moeda)) return true;
         if (normalize(formData.descricao) !== normalize(defaultFormData.descricao)) return true;
         if (normalize(formData.beneficio) !== normalize(defaultFormData.beneficio)) return true;
@@ -434,7 +437,8 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyUuid, compa
                     ...formData.inclusivity,
                     cidade: formData.cidade,
                     estado: formData.estado,
-                    pais: formData.pais
+                    pais: formData.pais,
+                    vagas_disponiveis: formData.vagas_disponiveis ? Number(formData.vagas_disponiveis) : null
                 }
             };
 
@@ -614,6 +618,21 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyUuid, compa
                                 <option value="EUR">EUR (€)</option>
                             </select>
                         </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                            {t('vacancy_slots_label', 'Vagas Disponíveis')} <span className="text-xs text-gray-400 font-normal">({t('vacancy_slots_hint', 'opcional')})</span>
+                        </label>
+                        <input
+                            type="number"
+                            name="vagas_disponiveis"
+                            min={1}
+                            value={formData.vagas_disponiveis}
+                            onChange={handleChange}
+                            className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder={t('vacancy_slots_placeholder', 'Ex: 3')}
+                        />
                     </div>
                 </div>
             </div>

@@ -759,6 +759,14 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                         </span>
                                     </div>
                                 )}
+                                {inclusivity?.vagas_disponiveis && (
+                                    <div className="flex items-center gap-1.5">
+                                        <Briefcase size={16} className="text-gray-400" />
+                                        <span className="font-medium text-gray-700">
+                                            {inclusivity.vagas_disponiveis} {inclusivity.vagas_disponiveis === 1 ? t('vacancy_slot_singular', 'vaga disponível') : t('vacancy_slot_plural', 'vagas disponíveis')}
+                                        </span>
+                                    </div>
+                                )}
                                 {isOwner && (
                                     <div className="flex items-center gap-1.5">
                                         <Users size={16} className="text-gray-400" />

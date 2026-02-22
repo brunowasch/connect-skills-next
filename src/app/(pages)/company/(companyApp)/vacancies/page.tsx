@@ -30,6 +30,7 @@ export default async function VacanciesPage() {
             escala_trabalho: true,
             created_at: true,
             empresa_id: true,
+            opcao: true,
         },
         orderBy: { created_at: 'desc' },
     });
@@ -46,11 +47,11 @@ export default async function VacanciesPage() {
         }
     });
 
-    const statsMap = new Map<string, { total: number, pendingVideo: number, noVideo: number, feedbackGiven: number }>();
+    const statsMap = new Map<string, { total: number, pendingVideo: number, noVideo: number, feedbackGiven: number, approved: number }>();
 
     // Initialize map
     vacancyIds.forEach(id => {
-        statsMap.set(id, { total: 0, pendingVideo: 0, noVideo: 0, feedbackGiven: 0 });
+        statsMap.set(id, { total: 0, pendingVideo: 0, noVideo: 0, feedbackGiven: 0, approved: 0 });
     });
 
     // Calculate stats
@@ -75,6 +76,7 @@ export default async function VacanciesPage() {
 
             if (feedbackStatus) {
                 stats.feedbackGiven++;
+                if (feedbackStatus === 'APPROVED') stats.approved++;
             } else if (videoStatus === 'submitted') {
                 stats.pendingVideo++;
             } else {
@@ -89,7 +91,7 @@ export default async function VacanciesPage() {
     });
 
     const vacanciesWithCounts = vacancies.map(vacancy => {
-        const stats = statsMap.get(vacancy.id) || { total: 0, pendingVideo: 0, noVideo: 0, feedbackGiven: 0 };
+        const stats = statsMap.get(vacancy.id) || { total: 0, pendingVideo: 0, noVideo: 0, feedbackGiven: 0, approved: 0 };
         const statusRecord = statuses.find(s => s.vaga_id === vacancy.id);
         const rawStatus = statusRecord ? statusRecord.situacao.toUpperCase() : 'ATIVA';
         const status = ['INATIVA', 'FECHADA', 'ENCERRADA'].includes(rawStatus) ? 'inactive' : 'active';
@@ -98,6 +100,18 @@ export default async function VacanciesPage() {
             ...vacancy,
             uuid: vacancy.uuid || vacancy.id,
             status,
+            opcao: (() => {
+                try {
+                    if (vacancy.opcao) {
+                        const parsed = JSON.parse(vacancy.opcao);
+                        if (parsed.vagas_disponiveis) {
+                            const remaining = Math.max(0, parsed.vagas_disponiveis - stats.approved);
+                            return JSON.stringify({ ...parsed, vagas_disponiveis: remaining });
+                        }
+                    }
+                } catch (e) {}
+                return vacancy.opcao;
+            })(),
             _count: {
                 vaga_avaliacao: stats.total
             },

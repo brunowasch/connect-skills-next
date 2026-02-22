@@ -13,6 +13,7 @@ export interface CompanyVacancy {
     tipo_local_trabalho: 'Presencial' | 'Home_Office' | 'H_brido';
     created_at: Date;
     status: string;
+    opcao?: string | null;
     _count?: {
         vaga_avaliacao?: number;
     };
@@ -66,6 +67,14 @@ export function CompanyVacancyCard({
     const applicationCount = vacancy._count?.vaga_avaliacao || 0;
     const statusLabel = vacancy.status === 'active' ? t('active') : t('inactive');
 
+    let vagasDisponiveis: number | null = null;
+    try {
+        if (vacancy.opcao) {
+            const opcao = typeof vacancy.opcao === 'string' ? JSON.parse(vacancy.opcao) : vacancy.opcao;
+            vagasDisponiveis = opcao?.vagas_disponiveis || null;
+        }
+    } catch (e) { }
+
     const handleToggleStatus = async (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
@@ -108,6 +117,7 @@ export function CompanyVacancyCard({
 
     return (
         <div className="group bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all hover:border-blue-200 relative">
+
             {/* Card clicável para ver detalhes */}
             <Link
                 href={`/viewer/vacancy/${vacancy.uuid}`}
@@ -138,9 +148,18 @@ export function CompanyVacancyCard({
                                 </span>
                             </div>
                         )}
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-gray-500 mb-2">
                             {tipoMap[vacancy.tipo_local_trabalho]} • {t('created_at_label')} {vacancy.created_at.toLocaleDateString()}
                         </div>
+
+                        {vagasDisponiveis && (
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 border border-blue-100 text-[11px] font-bold text-blue-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                                    {vagasDisponiveis} {vagasDisponiveis === 1 ? t('vacancy_slot_singular', 'vaga disponível') : t('vacancy_slot_plural', 'vagas disponíveis')}
+                                </span>
+                            </div>
+                        )}
                     </div>
                 </div>
 

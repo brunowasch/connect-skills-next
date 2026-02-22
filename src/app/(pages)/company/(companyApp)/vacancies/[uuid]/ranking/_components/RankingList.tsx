@@ -417,7 +417,7 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, pendingCandida
                                     {(() => {
                                         const status = breakdown?.video?.status;
                                         const hasFeedback = breakdown?.feedback?.status;
-                                        const hasVideoRequest = status === 'requested' || status === 'submitted';
+                                        const hasActiveVideoRequest = (status === 'requested' && !isExpired) || status === 'submitted';
 
                                         if (status === 'submitted') {
                                             return (
@@ -434,14 +434,14 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, pendingCandida
                                         return (
                                             <button
                                                 onClick={() => handleRequestVideoClick(candidate.id)}
-                                                disabled={hasVideoRequest || hasFeedback || isPending}
+                                                disabled={hasActiveVideoRequest || hasFeedback || isPending}
                                                 className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer
-                                                    ${hasVideoRequest || hasFeedback
+                                                    ${hasActiveVideoRequest || hasFeedback
                                                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                                         : 'bg-green-50 text-green-600 hover:bg-green-100'}`}
                                             >
                                                 <Video size={14} />
-                                                {hasVideoRequest ? t('ranking_video_requested') : t('ranking_request_video')}
+                                                {hasActiveVideoRequest ? t('ranking_video_requested') : t('ranking_request_video')}
                                             </button>
                                         );
                                     })()}

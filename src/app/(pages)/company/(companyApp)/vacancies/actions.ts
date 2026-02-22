@@ -86,18 +86,35 @@ export async function requestVideo(candidateId: string, vacancyUuid: string) {
             throw new Error("Não é possível solicitar vídeo após enviar feedback ao candidato");
         }
 
+        const existingVideoStatus = (breakdownData as any).video?.status;
+        if (existingVideoStatus === 'submitted') {
+            throw new Error("O candidato já enviou um vídeo para esta vaga");
+        }
+
+        const existingDeadline = (breakdownData as any).video?.deadline;
+        const isExpiredRequest = existingVideoStatus === 'requested' && existingDeadline && new Date() > new Date(existingDeadline);
+
+        if (existingVideoStatus === 'requested' && !isExpiredRequest) {
+            throw new Error("Já existe uma solicitação de vídeo ativa para este candidato");
+        }
+
         const requestDate = new Date();
         const deadline = new Date(requestDate);
         deadline.setDate(deadline.getDate() + 7); // 1 week for candidate to submit
 
-        const newBreakdown = {
+        const newBreakdown: any = {
             ...breakdownData,
             video: {
                 status: 'requested',
                 requestedAt: requestDate.toISOString(),
-                deadline: deadline.toISOString() // Candidate has 1 week to submit
+                deadline: deadline.toISOString(),
+                expiredEmailSent: false
             }
         };
+
+        if (newBreakdown.company_notifications?.video_expired_unsubmitted) {
+            newBreakdown.company_notifications.video_expired_unsubmitted = { read: false, deleted: true };
+        }
 
         await prisma.vaga_avaliacao.update({
             where: { id: application.id },

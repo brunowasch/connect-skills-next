@@ -128,6 +128,15 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
                     {vaga.cargo}
                 </h3>
 
+                {inclusivity?.vagas_disponiveis && (
+                    <div className="flex items-center gap-1.5 mb-2">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 border border-blue-100 text-[10px] sm:text-[11px] font-semibold text-blue-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            {inclusivity.vagas_disponiveis} {inclusivity.vagas_disponiveis === 1 ? t('vacancy_slot_singular', 'vaga disponível') : t('vacancy_slot_plural', 'vagas disponíveis')}
+                        </span>
+                    </div>
+                )}
+
                 <div className="space-y-1 sm:space-y-2 mb-2 sm:mb-4">
                     <div className="flex items-center text-[11px] sm:text-xs text-gray-500 gap-1.5 min-w-0">
                         <MapPin className="text-slate-400 flex-shrink-0 w-3.5 h-3.5 sm:w-[15px] sm:h-[15px]" />
