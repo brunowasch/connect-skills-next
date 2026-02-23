@@ -52,7 +52,7 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
         where: { candidato_id: candidateComplete.id },
         select: { vaga_id: true }
     });
-    const appliedVacanciesIds = appliedVacancies.map(av => av.vaga_id);
+    const appliedVacanciesIds = appliedVacancies.map((av: any) => av.vaga_id);
 
     let vacancies: Vacancy[] = [];
     const isSearch = !!(searchParams?.q || searchParams?.loc || searchParams?.type);
