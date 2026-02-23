@@ -3,7 +3,7 @@ import nodemailer from "nodemailer";
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: Number(process.env.SMTP_PORT) || 587,
-  secure: false, 
+  secure: false,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
@@ -11,9 +11,9 @@ const transporter = nodemailer.createTransport({
   tls: {
     rejectUnauthorized: false,
   },
-  connectionTimeout: 10000, 
-  greetingTimeout: 5000, 
-  socketTimeout: 10000, 
+  connectionTimeout: 10000,
+  greetingTimeout: 5000,
+  socketTimeout: 10000,
 });
 
 export async function sendVerificationEmail(email: string, code: string) {
@@ -253,7 +253,7 @@ export async function sendFeedbackEmail(
   justification?: string,
 ) {
   const isApproved = status === "APPROVED";
-  const statusText = isApproved ? "Aprovado" : "Reprovado";
+  const statusText = isApproved ? "Aprovado" : "Não Selecionado";
   const color = isApproved ? "#10B981" : "#EF4444";
 
   const mailOptions = {
@@ -279,7 +279,7 @@ export async function sendFeedbackEmail(
                     ? `
                     <div style="background-color: #f9fafb; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 20px;">
                         <p style="font-weight: bold; color: #374151; margin-bottom: 5px;">Mensagem da Empresa:</p>
-                        <p style="color: #4b5563; font-style: italic;">"${justification.replace(/\n/g, '<br />')}"</p>
+                        <p style="color: #4b5563; font-style: italic;">"${justification.replace(/\n/g, "<br />")}"</p>
                     </div>
                 `
                     : ""
@@ -383,22 +383,22 @@ export async function sendNewApplicationEmail(
   try {
     await transporter.sendMail(mailOptions);
     return true;
-    } catch (error) {
-        console.error("Erro ao enviar email de nova candidatura:", error);
-        return false;
-    }
+  } catch (error) {
+    console.error("Erro ao enviar email de nova candidatura:", error);
+    return false;
+  }
 }
 
 export async function sendVideoExpiredCandidateEmail(
-    email: string,
-    candidateName: string,
-    vacancyTitle: string,
+  email: string,
+  candidateName: string,
+  vacancyTitle: string,
 ) {
-    const mailOptions = {
-        from: process.env.EMAIL_FROM,
-        to: email,
-        subject: `Prazo Encerrado: Vídeo - Vaga: ${vacancyTitle}`,
-        html: `
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to: email,
+    subject: `Prazo Encerrado: Vídeo - Vaga: ${vacancyTitle}`,
+    html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
                 <h2 style="color: #EF4444; text-align: center;">Prazo do Vídeo Encerrado</h2>
                 <p style="text-align: center; color: #555;">Olá <strong>${candidateName}</strong>,</p>
@@ -413,29 +413,29 @@ export async function sendVideoExpiredCandidateEmail(
                 </p>
             </div>
         `,
-    };
+  };
 
-    try {
-        await transporter.sendMail(mailOptions);
-        return true;
-    } catch (error) {
-        console.error("Erro ao enviar email de video expired (candidate):", error);
-        return false;
-    }
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error("Erro ao enviar email de video expired (candidate):", error);
+    return false;
+  }
 }
 
 export async function sendVideoExpiredCompanyEmail(
-    email: string,
-    companyName: string,
-    candidateName: string,
-    vacancyTitle: string,
-    platformLink: string,
+  email: string,
+  companyName: string,
+  candidateName: string,
+  vacancyTitle: string,
+  platformLink: string,
 ) {
-    const mailOptions = {
-        from: process.env.EMAIL_FROM,
-        to: email,
-        subject: `Prazo Encerrado: Vídeo de ${candidateName} - Vaga: ${vacancyTitle}`,
-        html: `
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to: email,
+    subject: `Prazo Encerrado: Vídeo de ${candidateName} - Vaga: ${vacancyTitle}`,
+    html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
                 <h2 style="color: #F59E0B; text-align: center;">Aviso: Prazo de Vídeo Encerrado</h2>
                 <p style="text-align: center; color: #555;">Olá <strong>${companyName}</strong>,</p>
@@ -454,13 +454,13 @@ export async function sendVideoExpiredCompanyEmail(
                 </p>
             </div>
         `,
-    };
+  };
 
-    try {
-        await transporter.sendMail(mailOptions);
-        return true;
-    } catch (error) {
-        console.error("Erro ao enviar email de video expired (company):", error);
-        return false;
-    }
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error("Erro ao enviar email de video expired (company):", error);
+    return false;
+  }
 }
