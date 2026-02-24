@@ -1,6 +1,6 @@
 'use server'
 
-const API_URL = process.env.IA_GEN_DESC;
+const API_URL = process.env.GEN_DESC_AI;
 
 interface GenerateVacancyRequest {
     shortDesc: string;
@@ -20,7 +20,7 @@ export interface GenerateVacancyResponse {
 
 export async function generateVacancyAI(data: GenerateVacancyRequest): Promise<GenerateVacancyResponse> {
     if (!API_URL) {
-        throw new Error("A URL da IA (IA_GEN_DESC) não está configurada nas variáveis de ambiente.");
+        throw new Error("A URL da IA não está configurada nas variáveis de ambiente.");
     }
 
     console.log(`[AI] Iniciando geração de vaga. Contexto: "${data.shortDesc}". Total de skills enviadas: ${data.skills.length + data.softSkills.length}`);

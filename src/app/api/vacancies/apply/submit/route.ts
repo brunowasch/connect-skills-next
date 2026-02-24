@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
+import { sendNewApplicationEmail } from "@/src/lib/mail";
 import { randomUUID } from "crypto";
 
-const IA_SUGGEST_URL = process.env.IA_SUGGEST_URL;
+const SUGGEST_CANDIDATE_AI = process.env.SUGGEST_CANDIDATE_AI;
 
 export async function POST(req: NextRequest) {
     try {
@@ -69,9 +70,9 @@ export async function POST(req: NextRequest) {
             matchedSkills: [] as string[]
         };
 
-        if (IA_SUGGEST_URL) {
+        if (SUGGEST_CANDIDATE_AI) {
             try {
-                const aiResponse = await fetch(IA_SUGGEST_URL, {
+                const aiResponse = await fetch(SUGGEST_CANDIDATE_AI, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(aiPayload)
@@ -137,6 +138,29 @@ export async function POST(req: NextRequest) {
                 updated_at: new Date()
             }
         });
+
+        // Buscar dados da empresa para obter o email
+        const company = await prisma.empresa.findUnique({
+            where: { id: vacancy.empresa_id },
+            include: { usuario: true }
+        });
+
+        // Buscar dados do candidato para o email
+        const candidate = await prisma.candidato.findUnique({
+            where: { id: candidato_id }
+        });
+
+        // Enviar email para a empresa
+        if (company?.usuario?.email && candidate) {
+            const vacancyLink = `${process.env.APP_URL}/company/vacancies/${vacancy.uuid}/candidates`;
+            await sendNewApplicationEmail(
+                company.usuario.email,
+                company.nome_empresa || "Empresa",
+                `${candidate.nome || ''} ${candidate.sobrenome || ''}`.trim() || 'Candidato',
+                vacancy.cargo,
+                vacancyLink
+            );
+        }
 
         return NextResponse.json({ success: true });
 

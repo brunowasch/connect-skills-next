@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.0.x"]
 }
 
 datasource db {
@@ -16,25 +17,25 @@ model area_interesse {
 }
 
 model candidato {
-  id                String              @id
-  usuario_id        String              @unique
-  nome              String?
-  sobrenome         String?
-  data_nascimento   DateTime?
-  pais              String?
-  consentimento_parental Boolean?       @default(false)
-  email_responsavel String?
-  descricao         String?             @db.Text
-  estado            String?
-  cidade            String?
-  telefone          String?
-  foto_perfil       String?
-  uuid              String?             @unique @db.VarChar(36)
-  usuario           usuario             @relation(fields: [usuario_id], references: [id])
-  candidato_area    candidato_area[]
-  candidato_arquivo candidato_arquivo[]
-  candidato_link    candidato_link[]
-  vaga_favorita     vaga_favorita[]
+  id                     String              @id
+  usuario_id             String              @unique
+  nome                   String?
+  sobrenome              String?
+  data_nascimento        DateTime?
+  pais                   String?
+  descricao              String?             @db.Text
+  estado                 String?
+  cidade                 String?
+  telefone               String?
+  foto_perfil            String?
+  uuid                   String?             @unique @db.VarChar(36)
+  consentimento_parental Boolean?            @default(false)
+  email_responsavel      String?
+  usuario                usuario             @relation(fields: [usuario_id], references: [id])
+  candidato_area         candidato_area[]
+  candidato_arquivo      candidato_arquivo[]
+  candidato_link         candidato_link[]
+  vaga_favorita          vaga_favorita[]
 }
 
 model candidato_area {

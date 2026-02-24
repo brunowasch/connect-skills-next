@@ -54,7 +54,7 @@ export function LanguageSwitcher({ align = "right" }: LanguageSwitcherProps) {
         <div className="relative inline-block text-left">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 transition-all text-gray-700 border border-gray-200 shadow-sm cursor-pointer"
+                className="language-switcher-btn flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 transition-all text-gray-700 border border-gray-200 shadow-sm cursor-pointer"
             >
                 <Globe size={16} className="text-blue-500 flex-shrink-0" />
                 <span className="text-xs font-bold uppercase tracking-wider">{currentLanguage.code}</span>
@@ -78,7 +78,7 @@ export function LanguageSwitcher({ align = "right" }: LanguageSwitcherProps) {
                                         i18n.changeLanguage(lang.code);
                                         setIsOpen(false);
                                     }}
-                                    className={`flex items-center gap-3 w-full px-4 py-3 text-sm transition-colors hover:bg-slate-50 cursor-pointer ${i18n.language.startsWith(lang.code) ? "text-blue-600 font-bold bg-blue-50/50" : "text-slate-700"
+                                    className={`language-switcher-btn flex items-center gap-3 w-full px-4 py-3 text-sm transition-colors hover:bg-slate-50 cursor-pointer ${i18n.language.startsWith(lang.code) ? "text-blue-600 font-bold bg-blue-50/50" : "text-slate-700"
                                         }`}
                                 >
                                     <span className="text-lg">{lang.flag}</span>

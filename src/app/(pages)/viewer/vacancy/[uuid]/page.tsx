@@ -3,8 +3,11 @@ import { cookies } from "next/headers";
 import { prisma } from "@/src/lib/prisma";
 import { VacancyDetails } from "@/src/app/(pages)/viewer/vacancy/[uuid]/_components/VacancyDetails";
 
-export default async function VacancyDetailsPage({ params }: { params: Promise<{ uuid: string }> }) {
+import { redirect } from "next/navigation";
+
+export default async function VacancyDetailsPage({ params, searchParams }: { params: Promise<{ uuid: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
     const { uuid } = await params;
+    const { action } = await searchParams;
 
     // Buscar a vaga por UUID
     const vacancy = await prisma.vaga.findUnique({
@@ -85,6 +88,7 @@ export default async function VacancyDetailsPage({ params }: { params: Promise<{
     const cookieStore = await cookies();
     const userId = cookieStore.get("time_user_id")?.value;
 
+
     let userType: string | undefined;
     let isOwner = false;
 
@@ -106,9 +110,18 @@ export default async function VacancyDetailsPage({ params }: { params: Promise<{
         }
     }
 
+    // Se a ação for upload_video, verificar se o usuário está logado E se é candidato.
+    if (action === 'upload_video') {
+         if (!userId || (userId && userType?.toUpperCase() !== 'CANDIDATO')) {
+            const redirectUrl = `/viewer/vacancy/${uuid}?action=upload_video`;
+            redirect(`/login?redirect=${encodeURIComponent(redirectUrl)}`);
+         }
+    }
+
     // Verificar se o candidato já se candidatou
     let hasApplied = false;
     let applicationResponses: any = null;
+    let applicationBreakdown: any = null;
     if (userId && userType?.toUpperCase() === 'CANDIDATO') {
         const candidate = await prisma.candidato.findUnique({
             where: { usuario_id: userId },
@@ -123,7 +136,7 @@ export default async function VacancyDetailsPage({ params }: { params: Promise<{
                         candidato_id: candidate.id
                     }
                 },
-                select: { resposta: true }
+                select: { resposta: true, breakdown: true }
             });
             hasApplied = !!application;
             if (application?.resposta) {
@@ -131,6 +144,13 @@ export default async function VacancyDetailsPage({ params }: { params: Promise<{
                     applicationResponses = JSON.parse(application.resposta);
                 } catch (e) {
                     console.error("Erro ao fazer parse das respostas");
+                }
+            }
+            if (application?.breakdown) {
+                try {
+                    applicationBreakdown = JSON.parse(application.breakdown);
+                } catch (e) { 
+                    // ignore
                 }
             }
         }
@@ -168,6 +188,7 @@ export default async function VacancyDetailsPage({ params }: { params: Promise<{
             userId={userId}
             hasApplied={hasApplied}
             applicationResponses={applicationResponses}
+            applicationBreakdown={applicationBreakdown}
         />
     );
 }

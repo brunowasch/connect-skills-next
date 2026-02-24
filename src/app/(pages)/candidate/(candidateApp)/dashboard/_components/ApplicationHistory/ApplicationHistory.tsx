@@ -1,23 +1,12 @@
 "use client";
 
 import Link from 'next/link';
-import { Clock, ChevronRight } from 'lucide-react';
+import { Clock, ChevronRight, Camera, Check, CheckCircle, XCircle } from 'lucide-react';
 import { ApplicationHistoryProps } from '@/src/app/(pages)/candidate/(candidateApp)/types/ApplicationHistory';
 import { useTranslation } from "react-i18next";
 
 export function ApplicationHistory({ historicoAplicacoes }: ApplicationHistoryProps) {
     const { t, i18n } = useTranslation();
-
-    {/* Helper para formatar o status (será usado futuramente)
-    const formatStatus = (status: string) => {
-        const statusMap: Record<string, string> = {
-            'pendente': 'Pendente',
-            'em_analise': 'Em Análise',
-            'selecionado': 'Selecionado',
-            'reprovado': 'Finalizado',
-        };
-        return statusMap[status.toLowerCase()] || status;
-    }; */}
 
     return (
         <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm p-4 sm:p-5 border border-slate-100 h-full flex flex-col">
@@ -47,14 +36,24 @@ export function ApplicationHistory({ historicoAplicacoes }: ApplicationHistoryPr
                         {historicoAplicacoes.slice(0, 5).map((item, index) => {
                             const dataAplicacao = item?.created_at ? new Date(item.created_at) : new Date();
 
+                            const isExpired = item.videoStatus === 'requested' && item.videoDeadline && new Date() > new Date(item.videoDeadline);
+
+ 
+                            const linkHref = item.videoStatus === 'requested' && item.uuid && !isExpired
+                                ? `/viewer/vacancy/${item.uuid}?action=upload_video`
+                                : item.uuid ? `/viewer/vacancy/${item.uuid}` : `/candidate/vacancies`;
+
                             return (
                                 <Link
                                     key={index}
-                                    href={`/candidate/vacancies`}
+                                    href={linkHref}
                                     className="group flex justify-between items-start gap-2 sm:gap-3 py-2.5 sm:py-3 first:pt-0 last:pb-0 hover:bg-slate-50/50 transition-colors rounded-lg px-0.5 sm:px-1"
                                 >
                                     <div className="flex-1 min-w-0">
-                                        <div className="font-semibold text-slate-800 text-xs sm:text-sm truncate">
+                                        <div className={`font-semibold text-xs sm:text-sm truncate 
+                                            ${item.feedbackStatus === 'APPROVED' ? 'text-emerald-600' :
+                                                item.feedbackStatus === 'REJECTED' ? 'text-red-600' :
+                                                    'text-slate-800'}`}>
                                             {item?.cargo || t("vacancy")}
                                         </div>
                                         <div className="text-[11px] sm:text-xs text-slate-500 truncate mt-0.5">
@@ -72,9 +71,41 @@ export function ApplicationHistory({ historicoAplicacoes }: ApplicationHistoryPr
                                     </div>
 
                                     <div className="flex flex-col items-end gap-1.5 sm:gap-2 flex-shrink-0">
-                                        <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-white border border-slate-200 text-[9px] sm:text-[10px] font-bold text-slate-600 shadow-sm">
-                                            {t("pending")}
-                                        </span>
+                                        {item.feedbackStatus === 'APPROVED' && (
+                                            <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[9px] sm:text-[10px] font-bold text-emerald-600 shadow-sm">
+                                                <CheckCircle size={10} className="mr-1" />
+                                                {t("approved")}
+                                            </span>
+                                        )}
+                                        {item.feedbackStatus === 'REJECTED' && (
+                                            <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-red-50 border border-red-200 text-[9px] sm:text-[10px] font-bold text-red-600 shadow-sm">
+                                                <XCircle size={10} className="mr-1" />
+                                                {t("not_listed")}
+                                            </span>
+                                        )}
+                                        {item.videoStatus === 'requested' && !isExpired && (
+                                            <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-purple-50 border border-purple-200 text-[9px] sm:text-[10px] font-bold text-purple-600 shadow-sm">
+                                                <Camera size={10} className="mr-1" />
+                                                {t("video_requested")}
+                                            </span>
+                                        )}
+                                        {item.videoStatus === 'requested' && isExpired && (
+                                            <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-orange-50 border border-orange-200 text-[9px] sm:text-[10px] font-bold text-orange-600 shadow-sm">
+                                                <Clock size={10} className="mr-1" />
+                                                {t("video_upload_expired_title", "Prazo Expirado")}
+                                            </span>
+                                        )}
+                                        {item.videoStatus === 'submitted' && (
+                                            <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-green-50 border border-green-200 text-[9px] sm:text-[10px] font-bold text-green-600 shadow-sm">
+                                                <Check size={10} className="mr-1" />
+                                                {t("video_submitted")}
+                                            </span>
+                                        )}
+                                        {!item.videoStatus && !item.feedbackStatus && (
+                                            <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-white border border-slate-200 text-[9px] sm:text-[10px] font-bold text-slate-600 shadow-sm">
+                                                {t("pending")}
+                                            </span>
+                                        )}
                                         <ChevronRight size={12} className="text-slate-300 group-hover:text-blue-500 transition-colors sm:w-3.5 sm:h-3.5" />
                                     </div>
                                 </Link>

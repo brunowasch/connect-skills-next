@@ -9,10 +9,15 @@ import { Footer } from "@/src/app/(pages)/candidate/layout/Footer/Footer";
 import { GlobalToast } from "./_components/GlobalToast";
 import { LanguageSwitcher } from "@/src/app/_components/Layout/LanguageSwitcher";
 
+import { NotificationDropdown } from "./_components/NotificationDropdown";
+import { Notification } from "@/src/lib/notifications";
+
 export default function CandidateLayout({
     children,
+    notifications = []
 }: {
     children: React.ReactNode;
+    notifications?: Notification[];
 }) {
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
     const pathname = usePathname();
@@ -53,18 +58,16 @@ export default function CandidateLayout({
                             />
                         </div>
 
-                        {/* Espaço vazio em desktop quando sidebar está visível */}
                         <div className="hidden lg:block flex-1" />
 
-                        {/* Language Switcher - sempre visível */}
-                        <div className="flex items-center">
+                        <div className="flex items-center gap-4">
+                            <NotificationDropdown notifications={notifications} />
+                            <div className="h-6 w-px bg-gray-200" />
                             <LanguageSwitcher />
                         </div>
                     </header>
 
-                    {/* Conteúdo */}
                     <main className="flex-1 overflow-hidden px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 lg:py-6 w-full min-w-0">
-                        {/* Container fluido */}
                         <div className="w-full max-w-[1400px] mx-auto min-w-0">
                             {children}
                         </div>

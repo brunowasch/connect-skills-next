@@ -159,7 +159,7 @@ export function PublicCompanyProfile({ company, fotoPerfil, localidade, contato,
                         <div className="flex flex-wrap justify-center sm:justify-start items-center gap-4 text-sm text-gray-600">
                             <div className="flex items-center gap-1.5 bg-white/50 px-3 py-1 rounded-full border border-blue-100">
                                 <MapPin size={16} className="text-blue-600" />
-                                <span>{localidade}</span>
+                                <span>{localidade === 'Localidade não informada' ? t('location_not_informed') : localidade}</span>
                             </div>
                         </div>
                     </div>
@@ -287,36 +287,35 @@ export function PublicCompanyProfile({ company, fotoPerfil, localidade, contato,
                         </div>
                     </div>
 
-                    {/* Profile Links */}
-                    {links && links.length > 0 && (
-                        <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm animate-in fade-in slide-in-from-right-4 hover:shadow-md transition-shadow">
-                            <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                                <ExternalLink size={20} className="text-blue-600" />
-                                {t('links_and_socials')}
-                            </h3>
-                            <div className="flex flex-col gap-2">
-                                {links.map((link) => (
-                                    <a
-                                        key={link.id}
-                                        href={link.url.startsWith('http') ? link.url : `https://${link.url}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center justify-between p-3 rounded-xl border border-gray-50 bg-gray-50/30 hover:bg-blue-50 hover:border-blue-100 hover:text-blue-700 transition-all group"
-                                    >
-                                        <div className="flex items-center gap-3 min-w-0">
-                                            <div className="p-2 rounded-lg bg-white shadow-sm ring-1 ring-gray-100 group-hover:ring-blue-100 group-hover:bg-blue-50 transition-all">
-                                                <ExternalLink size={16} className="text-gray-400 group-hover:text-blue-600" />
-                                            </div>
-                                            <span className="text-sm font-semibold truncate">
-                                                {link.label || t('visit_link')}
-                                            </span>
+                {links && links.filter(l => l.label !== '__CONFIG_RECEIVE_EMAILS__').length > 0 && (
+                    <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm animate-in fade-in slide-in-from-right-4 hover:shadow-md transition-shadow">
+                        <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                            <ExternalLink size={20} className="text-blue-600" />
+                            {t('links_and_socials')}
+                        </h3>
+                        <div className="flex flex-col gap-2">
+                            {links.filter(link => link.label !== '__CONFIG_RECEIVE_EMAILS__').map((link) => (
+                                <a
+                                    key={link.id}
+                                    href={link.url.startsWith('http') ? link.url : `https://${link.url}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-between p-3 rounded-xl border border-gray-50 bg-gray-50/30 hover:bg-blue-50 hover:border-blue-100 hover:text-blue-700 transition-all group"
+                                >
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="p-2 rounded-lg bg-white shadow-sm ring-1 ring-gray-100 group-hover:ring-blue-100 group-hover:bg-blue-50 transition-all">
+                                            <ExternalLink size={16} className="text-gray-400 group-hover:text-blue-600" />
                                         </div>
-                                        <ExternalLink size={14} className="text-gray-300 group-hover:text-blue-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                                    </a>
-                                ))}
-                            </div>
+                                        <span className="text-sm font-semibold truncate">
+                                            {link.label || t('visit_link')}
+                                        </span>
+                                    </div>
+                                    <ExternalLink size={14} className="text-gray-300 group-hover:text-blue-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                                </a>
+                            ))}
                         </div>
-                    )}
+                    </div>
+                )}
                 </div>
             </div>
             {/* Vacancies Section */}

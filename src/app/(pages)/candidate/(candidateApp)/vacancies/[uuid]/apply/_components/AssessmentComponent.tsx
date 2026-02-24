@@ -141,15 +141,20 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
         }));
     }, [t, i18n.language]);
 
+    const stateRef = useRef({ isFinished, isSubmitting, isStarted, showConfirmModal, showPenaltyModal });
+    useEffect(() => {
+        stateRef.current = { isFinished, isSubmitting, isStarted, showConfirmModal, showPenaltyModal };
+    }, [isFinished, isSubmitting, isStarted, showConfirmModal, showPenaltyModal]);
+
     const handleScreenLeave = useCallback(() => {
-        // Bloqueia o reset se a prova já tiver sido finalizada ou estiver enviando ou ainda não começou
-        if (isFinished || isSubmitting || !isStarted) return;
+        const { isFinished, isSubmitting, isStarted, showConfirmModal, showPenaltyModal } = stateRef.current;
+        if (isFinished || isSubmitting || !isStarted || showConfirmModal || showPenaltyModal) return;
 
         setPenaltyCount(prev => prev + 1);
         generateQuestions();
         setAnswers({});
         setShowPenaltyModal(true);
-    }, [isFinished, isSubmitting, isStarted, generateQuestions]);
+    }, [generateQuestions]);
 
     useEffect(() => {
         if (isStarted && !initializedRef.current) {
@@ -168,10 +173,9 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
             }
         };
 
-        // 3. Detecção de Perda de Foco da Janela (Alt + Tab)
         const handleWindowBlur = () => {
             setTimeout(() => {
-                if (document.visibilityState === "hidden") {
+                if (document.visibilityState === "hidden" || !document.hasFocus()) {
                     handleScreenLeave();
                 }
             }, 150);

@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
-import { Hero, KPI, RecommendedVacancies, ApplicationHistory, ProfileCompletion, DashboardHeader } from "@/src/app/(pages)/candidate/(candidateApp)/dashboard/_components/index";
+import { Hero, KPI, RecommendedVacancies, ApplicationHistory, ProfileCompletion, DashboardHeader, VideoRequests } from "@/src/app/(pages)/candidate/(candidateApp)/dashboard/_components/index";
 
 export default async function Dashboard() {
     const cookieStore = await cookies();
@@ -71,6 +71,7 @@ export default async function Dashboard() {
         select: {
             vaga_id: true,
             created_at: true,
+            breakdown: true,
         }
     });
 
@@ -125,7 +126,7 @@ export default async function Dashboard() {
                     moeda: true,
                     empresa_id: true,
                 },
-                take: 3 // Limitar a 3 vagas já que o componente só mostra 3
+                take: 3 
             });
 
             // Buscar dados das empresas
@@ -208,12 +209,14 @@ export default async function Dashboard() {
         }
     }
 
-    // Buscar dados completos das vagas aplicadas
     let appliedVacancies: any[] = [];
+    let appliedVagas: any[] = [];
+    let appliedEmpresas: any[] = [];
+    
     if (appliedVacanciesData.length > 0) {
         const appliedVagasIds = appliedVacanciesData.map((av: any) => av.vaga_id);
 
-        const appliedVagas = await prisma.vaga.findMany({
+        appliedVagas = await prisma.vaga.findMany({
             where: {
                 id: {
                     in: appliedVagasIds
@@ -232,7 +235,7 @@ export default async function Dashboard() {
 
         // Buscar dados das empresas
         const appliedEmpresaIds = [...new Set(appliedVagas.map((v: any) => v.empresa_id))];
-        const appliedEmpresas = await prisma.empresa.findMany({
+        appliedEmpresas = await prisma.empresa.findMany({
             where: {
                 id: {
                     in: appliedEmpresaIds
@@ -291,6 +294,20 @@ export default async function Dashboard() {
 
             const applicationData = appliedVacanciesData.find((av: any) => av.vaga_id === vaga.id);
 
+            let videoStatus = null;
+            let videoDeadline = null;
+            let feedbackStatus = null;
+            try {
+                if (applicationData?.breakdown) {
+                    const breakdown = typeof applicationData.breakdown === 'string' ? JSON.parse(applicationData.breakdown) : applicationData.breakdown;
+                    videoStatus = breakdown?.video?.status || null;
+                    videoDeadline = breakdown?.video?.deadline || null;
+                    feedbackStatus = breakdown?.feedback?.status || null;
+                }
+            } catch (e) {
+                console.error("Error parsing breakdown", e);
+            }
+
             return {
                 id: vaga.id,
                 uuid: vaga.uuid,
@@ -308,24 +325,45 @@ export default async function Dashboard() {
                 } : undefined,
                 vaga_area: vagaAreasData,
                 created_at: applicationData?.created_at,
+                videoStatus,
+                videoDeadline,
+                feedbackStatus,
             };
         });
     }
+
+    // Filtrar solicitações de vídeo pendentes
+    const videoRequests = appliedVacancies
+        .filter((app: any) => {
+            if (app.videoStatus !== 'requested') return false;
+            if (app.videoDeadline && new Date() > new Date(app.videoDeadline)) return false;
+            return true;
+        })
+        .map((app: any) => ({
+            id: app.id,
+            uuid: app.uuid,
+            cargo: app.cargo,
+            empresa: app.empresa,
+            deadline: app.videoDeadline,
+            action: 'upload_video'
+        }));
 
     return (
         <>
             <DashboardHeader />
             <Hero candidato={candidate} />
             <ProfileCompletion candidato={candidate} usuario={userId} areas={areas} />
+            <VideoRequests requests={videoRequests} />
             <KPI
                 recommendedVacanciesCount={recommendedVacanciesCount}
                 appliedVacanciesCount={appliedVacanciesCount}
                 areas={areas}
             />
+
             <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 <RecommendedVacancies vacanciesRecommended={recommendedVacancies} />
                 <ApplicationHistory historicoAplicacoes={appliedVacancies} />
             </div>
         </>
     );
-}   
+}

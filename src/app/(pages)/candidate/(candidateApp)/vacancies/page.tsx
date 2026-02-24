@@ -50,7 +50,11 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
     // Buscar vagas já aplicadas pelo candidato
     const appliedVacancies = await prisma.vaga_avaliacao.findMany({
         where: { candidato_id: candidateComplete.id },
-        select: { vaga_id: true }
+        select: { 
+            vaga_id: true,
+            breakdown: true,
+            created_at: true
+        }
     });
     const appliedVacanciesIds = appliedVacancies.map(av => av.vaga_id);
 
@@ -216,6 +220,30 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
         });
     }
 
+    // Filtrar vagas inativas para as visualizações de Explorar e Recomendadas
+    if (!isHistory && !isFavorites) {
+        const vagaIdsToCheck = vagasLocalizadas.map(v => v.id);
+        
+        if (vagaIdsToCheck.length > 0) {
+            const statuses = await prisma.vaga_status.findMany({
+                where: { vaga_id: { in: vagaIdsToCheck } },
+                orderBy: { criado_em: 'desc' }
+            });
+
+            const latestStatusMap = new Map<string, string>();
+            for (const s of statuses) {
+                if (!latestStatusMap.has(s.vaga_id)) {
+                    latestStatusMap.set(s.vaga_id, s.situacao);
+                }
+            }
+
+            vagasLocalizadas = vagasLocalizadas.filter(v => {
+                const status = latestStatusMap.get(v.id);
+                return status === 'Ativa';
+            });
+        }
+    }
+
     const vagas = vagasLocalizadas;
 
     if (vagas.length > 0) {
@@ -240,6 +268,20 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
             where: { id: { in: areaIds } },
             select: { id: true, nome: true }
         });
+
+        const allVagaEvals = await prisma.vaga_avaliacao.findMany({
+            where: { vaga_id: { in: vagas.map(v => v.id) } },
+            select: { vaga_id: true, breakdown: true }
+        });
+        const approvedCountMap = new Map<string, number>();
+        for (const ev of allVagaEvals) {
+            try {
+                const bd = typeof ev.breakdown === 'string' ? JSON.parse(ev.breakdown as string) : ev.breakdown as any;
+                if (bd?.feedback?.status === 'APPROVED') {
+                    approvedCountMap.set(ev.vaga_id, (approvedCountMap.get(ev.vaga_id) || 0) + 1);
+                }
+            } catch (e) {}
+        }
 
         // Mapear para o tipo Vacancy e Calcular Relevância de Localização
         vacancies = vagas.map(vaga => {
@@ -271,6 +313,41 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
                 score = 0; // Sem localização nenhuma
             }
 
+            // Extrair feedbackStatus e videoStatus do breakdown (se estiver no histórico)
+            let feedbackStatus = null;
+            let videoStatus = null;
+            let videoDeadline = null;
+            if (isHistory) {
+                const applicationData = appliedVacancies.find(av => av.vaga_id === vaga.id);
+                if (applicationData?.breakdown) {
+                    try {
+                        const breakdown = typeof applicationData.breakdown === 'string' 
+                            ? JSON.parse(applicationData.breakdown) 
+                            : applicationData.breakdown;
+                        feedbackStatus = breakdown?.feedback?.status || null;
+                        videoStatus = breakdown?.video?.status || null;
+                        videoDeadline = breakdown?.video?.deadline || null;
+                    } catch (e) {
+                        console.error("Error parsing breakdown", e);
+                    }
+                }
+            }
+
+            let opcaoAjustado = vaga.opcao;
+            try {
+                if (vaga.opcao) {
+                    const parsed = JSON.parse(vaga.opcao);
+                    if (isHistory) {
+                        const { vagas_disponiveis: _, ...rest } = parsed;
+                        opcaoAjustado = JSON.stringify(rest);
+                    } else if (parsed.vagas_disponiveis) {
+                        const approved = approvedCountMap.get(vaga.id) || 0;
+                        const remaining = Math.max(0, parsed.vagas_disponiveis - approved);
+                        opcaoAjustado = JSON.stringify({ ...parsed, vagas_disponiveis: remaining });
+                    }
+                }
+            } catch (e) {}
+
             return {
                 id: vaga.id,
                 uuid: vaga.uuid,
@@ -288,13 +365,16 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
                 } : undefined,
                 vaga_area: areasData,
                 descricao: vaga.descricao,
-                opcao: vaga.opcao,
+                opcao: opcaoAjustado,
                 created_at: vaga.created_at.toISOString(),
                 vinculo_empregaticio: vaga.vinculo_empregaticio || undefined,
                 // Adicionamos flags extras para o componente
                 score,
                 isNear: score >= 50, // Destaque para mesma cidade ou estado
-                isFavorited: favoriteIds.includes(vaga.id)
+                isFavorited: favoriteIds.includes(vaga.id),
+                feedbackStatus,
+                videoStatus,
+                videoDeadline
             } as any;
         });
 
