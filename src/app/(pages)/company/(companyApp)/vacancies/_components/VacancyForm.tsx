@@ -683,7 +683,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyUuid, compa
                             <button
                                 type="button"
                                 onClick={() => openRewriteModal('descricao')}
-                                className="absolute bottom-3 right-3 p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 cursor-pointer shadow-sm border border-blue-200"
+                                className="absolute bottom-5 right-5 p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 cursor-pointer shadow-sm border border-blue-200"
                                 title={t('ai_rewrite_btn', 'Reescrever com IA')}
                             >
                                 <Sparkles size={16} />
@@ -883,7 +883,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyUuid, compa
                             <button
                                 type="button"
                                 onClick={() => openRewriteModal('candidatoIdeal')}
-                                className="absolute bottom-3 right-3 p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 cursor-pointer shadow-sm border border-blue-200"
+                                className="absolute bottom-5 right-5 p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 cursor-pointer shadow-sm border border-blue-200"
                                 title={t('ai_rewrite_btn', 'Reescrever com IA')}
                             >
                                 <Sparkles size={16} />
@@ -908,7 +908,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyUuid, compa
                             <button
                                 type="button"
                                 onClick={() => openRewriteModal('pergunta')}
-                                className="absolute bottom-3 right-3 p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 cursor-pointer shadow-sm border border-blue-200"
+                                className="absolute bottom-5 right-5 p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 cursor-pointer shadow-sm border border-blue-200"
                                 title={t('ai_rewrite_btn', 'Reescrever com IA')}
                             >
                                 <Sparkles size={16} />
