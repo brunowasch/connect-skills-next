@@ -4,7 +4,6 @@ import { useState, useMemo, useEffect } from "react";
 import skillsData from "@/src/data/skills.json";
 import { FiSearch } from "react-icons/fi";
 import { useRouter } from "next/navigation";
-import Cookies from "js-cookie";
 import { useTranslation } from "react-i18next";
 
 export function SelectAreas() {
