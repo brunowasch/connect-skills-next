@@ -9,4 +9,5 @@ export interface RecentVacancyItem {
 
 export interface RecentVacanciesProps {
     vacancies: RecentVacancyItem[];
+    isRestricted?: boolean;
 }

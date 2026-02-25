@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { selectVacancyForRanking, selectVacancyForEditing } from "../actions";
 import { AlertCircle, X, Lock, Unlock, Ban, Eye, Edit, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -14,8 +13,15 @@ export interface CompanyVacancy {
     tipo_local_trabalho: 'Presencial' | 'Home_Office' | 'H_brido';
     created_at: Date;
     status: string;
+    opcao?: string | null;
     _count?: {
         vaga_avaliacao?: number;
+    };
+    stats?: {
+        total: number;
+        pendingVideo: number;
+        noVideo: number;
+        feedbackGiven: number;
     };
 }
 
@@ -30,10 +36,14 @@ interface ModalConfig {
 
 export function CompanyVacancyCard({
     vacancy,
-    isSelectionMode = false
+    isSelectionMode = false,
+    isPendingEvaluation = false,
+    pendingCandidateId
 }: {
     vacancy: CompanyVacancy,
-    isSelectionMode?: boolean
+    isSelectionMode?: boolean,
+    isPendingEvaluation?: boolean,
+    pendingCandidateId?: string
 }) {
     const { t } = useTranslation();
     const router = useRouter();
@@ -50,12 +60,20 @@ export function CompanyVacancyCard({
 
     const tipoMap: Record<string, string> = {
         Presencial: t('Presencial'),
-        Home_Office: t('Home Office'),
-        H_brido: t('Híbrido'),
+        Home_Office: t('Home_Office'),
+        H_brido: t('H_brido'),
     };
 
     const applicationCount = vacancy._count?.vaga_avaliacao || 0;
     const statusLabel = vacancy.status === 'active' ? t('active') : t('inactive');
+
+    let vagasDisponiveis: number | null = null;
+    try {
+        if (vacancy.opcao) {
+            const opcao = typeof vacancy.opcao === 'string' ? JSON.parse(vacancy.opcao) : vacancy.opcao;
+            vagasDisponiveis = opcao?.vagas_disponiveis || null;
+        }
+    } catch (e) { }
 
     const handleToggleStatus = async (e: React.MouseEvent) => {
         e.preventDefault();
@@ -75,7 +93,7 @@ export function CompanyVacancyCard({
             onConfirm: async () => {
                 setIsUpdating(true);
                 try {
-                    const res = await fetch(`/api/vacancies/${vacancy.id}/status`, {
+                    const res = await fetch(`/api/vacancies/${vacancy.uuid}/status`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ situacao: newStatus })
@@ -99,6 +117,7 @@ export function CompanyVacancyCard({
 
     return (
         <div className="group bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all hover:border-blue-200 relative">
+
             {/* Card clicável para ver detalhes */}
             <Link
                 href={`/viewer/vacancy/${vacancy.uuid}`}
@@ -129,19 +148,53 @@ export function CompanyVacancyCard({
                                 </span>
                             </div>
                         )}
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-gray-500 mb-2">
                             {tipoMap[vacancy.tipo_local_trabalho]} • {t('created_at_label')} {vacancy.created_at.toLocaleDateString()}
                         </div>
+
+                        {vagasDisponiveis && (
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 border border-blue-100 text-[11px] font-bold text-blue-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                                    {vagasDisponiveis} {vagasDisponiveis === 1 ? t('vacancy_slot_singular', 'vaga disponível') : t('vacancy_slot_plural', 'vagas disponíveis')}
+                                </span>
+                            </div>
+                        )}
                     </div>
                 </div>
 
-                <div className="flex items-center gap-6 text-sm text-gray-600">
-                    <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2" title={t('total_candidates')}>
                         <Users size={16} className="text-blue-500" />
                         <span>
-                            <span className="font-semibold text-slate-900">{applicationCount}</span> {t('candidates')}
+                            <span className="font-semibold text-slate-900">{vacancy.stats?.total ?? applicationCount}</span> <span className="hidden sm:inline">{t('total_candidates')}</span>
                         </span>
                     </div>
+
+                    {vacancy.stats && (
+                        <>
+                            <div className="flex items-center gap-2" title={t('pending_video_evaluations', 'Vídeos pendentes de avaliação')}>
+                                <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                                <span>
+                                    <span className="font-semibold text-slate-900">{vacancy.stats.pendingVideo}</span> <span className="text-xs text-gray-500">{t('stat_pending_video', 'Pendentes')}</span>
+                                </span>
+                            </div>
+
+                            <div className="flex items-center gap-2" title={t('no_video_sent', 'Não enviaram vídeo')}>
+                                <div className="w-2 h-2 rounded-full bg-slate-300"></div>
+                                <span>
+                                    <span className="font-semibold text-slate-900">{vacancy.stats.noVideo}</span> <span className="text-xs text-gray-500">{t('stat_no_video', 'Sem vídeo')}</span>
+                                </span>
+                            </div>
+
+                            <div className="flex items-center gap-2" title={t('feedback_given', 'Feedback realizado')}>
+                                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                <span>
+                                    <span className="font-semibold text-slate-900">{vacancy.stats.feedbackGiven}</span> <span className="text-xs text-gray-500">{t('stat_feedback', 'Avaliados')}</span>
+                                </span>
+                            </div>
+                        </>
+                    )}
                 </div>
             </Link>
 
@@ -149,16 +202,31 @@ export function CompanyVacancyCard({
                 <button
                     onClick={(e) => {
                         e.preventDefault();
-                        startTransition(() => selectVacancyForRanking(vacancy.id));
+                        if (vacancy.uuid) {
+                            if (isPendingEvaluation && pendingCandidateId) {
+                                router.push(`/company/vacancies/${vacancy.uuid}/ranking?pendingCandidate=${pendingCandidateId}`);
+                            } else {
+                                router.push(`/company/vacancies/${vacancy.uuid}/ranking`);
+                            }
+                        }
                     }}
-                    className="w-full sm:w-auto sm:flex-1 flex items-center justify-center gap-2 h-10 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold cursor-pointer hover:bg-blue-100 transition-colors whitespace-nowrap order-1 sm:order-none"
+                    className={`evaluate-action-btn w-full sm:w-auto sm:flex-1 flex items-center justify-center gap-2 h-10 rounded-lg text-sm font-semibold cursor-pointer transition-colors whitespace-nowrap order-1 sm:order-none
+                        ${isPendingEvaluation
+                            ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-md'
+                            : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                        }`}
                 >
                     <Users size={16} />
-                    {t('view_candidates_btn')}
+                    {isPendingEvaluation ? t('view_candidates_btn') : t('view_candidates_btn')}
                 </button>
                 <Link
-                    href={`/viewer/vacancy/${vacancy.uuid}`}
-                    className="w-full sm:w-auto sm:flex-1 flex items-center justify-center gap-2 h-10 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold cursor-pointer hover:bg-blue-100 transition-colors whitespace-nowrap order-2 sm:order-none"
+                    href={isPendingEvaluation ? '#' : `/viewer/vacancy/${vacancy.uuid}`}
+                    className={`w-full sm:w-auto sm:flex-1 flex items-center justify-center gap-2 h-10 rounded-lg text-sm font-semibold whitespace-nowrap order-2 sm:order-none transition-colors
+                        ${isPendingEvaluation
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed pointer-events-none'
+                            : 'bg-blue-50 text-blue-600 hover:bg-blue-100 cursor-pointer'
+                        }`}
+                    aria-disabled={isPendingEvaluation}
                 >
                     <Eye size={16} />
                     {t('view_vacancy_btn')}
@@ -168,7 +236,9 @@ export function CompanyVacancyCard({
                     <button
                         onClick={(e) => {
                             e.preventDefault();
-                            startTransition(() => selectVacancyForEditing(vacancy.id));
+                            if (vacancy.uuid) {
+                                router.push(`/company/vacancies/${vacancy.uuid}/edit`);
+                            }
                         }}
                         className="flex-1 sm:flex-none flex shrink-0 items-center justify-center w-full sm:w-10 h-10 text-gray-400 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-colors border border-gray-200 cursor-pointer"
                         title={t('edit_vacancy_btn')}

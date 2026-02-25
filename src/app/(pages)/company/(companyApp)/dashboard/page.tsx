@@ -1,7 +1,8 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
-import { CompanyHero, CompanyKPI, ProfileCompletion, RecentVacancies, RecentCandidates, DashboardHeader } from '@/src/app/(pages)/company/(companyApp)/dashboard/_components';
+import { checkCompanyRestrictions } from "@/src/lib/companyRestrictions";
+import { CompanyHero, CompanyKPI, ProfileCompletion, RecentVacancies, RecentCandidates, DashboardHeader, VideoEvaluations } from '@/src/app/(pages)/company/(companyApp)/dashboard/_components';
 
 export default async function Dashboard() {
     const cookieStore = await cookies();
@@ -98,13 +99,6 @@ export default async function Dashboard() {
 
     const candidateCountMap = new Map(candidateCounts.map((c: { vaga_id: string; _count: { vaga_id: number } }) => [c.vaga_id, c._count.vaga_id]));
 
-    // Fetch Latest Statuses for recent vacancies
-    // We could reuse 'latestStatuses' but that might contain stale data if we fetched all? 
-    // Actually 'latestStatuses' fetched *all* statuses for *all* vacancies of the company.
-    // So we can reuse 'latestStatuses' to find status for recent vacancies.
-    // We already processed it into a map sort of (processedVagas set).
-    // Let's create a map from latestStatuses directly.
-
     const statusMap = new Map<string, string>();
     const processedStatusVagas = new Set<string>();
 
@@ -137,7 +131,15 @@ export default async function Dashboard() {
             vaga_id: { in: vacancyIds }
         },
         orderBy: { created_at: 'desc' },
-        take: 5
+        take: 5,
+        select: {
+            id: true,
+            candidato_id: true,
+            vaga_id: true,
+            created_at: true,
+            score: true,
+            breakdown: true
+        }
     });
 
     // Buscar detalhes dos candidatos e vagas para as aplicações
@@ -160,7 +162,7 @@ export default async function Dashboard() {
         }),
         prisma.vaga.findMany({
             where: { id: { in: appVacancyIds } },
-            select: { id: true, cargo: true }
+            select: { id: true, cargo: true, uuid: true }
         })
     ]);
 
@@ -171,6 +173,16 @@ export default async function Dashboard() {
         const candidate: any = appCandidateMap.get(app.candidato_id);
         const vacancy: any = appVacancyMap.get(app.vaga_id);
 
+        // Parse breakdown para obter status do vídeo
+        let videoStatus = null;
+        try {
+            if (app.breakdown) {
+                const breakdown = JSON.parse(app.breakdown);
+                videoStatus = breakdown?.video?.status || null;
+            }
+        } catch (e) {
+        }
+
         return {
             id: app.id,
             candidateName: candidate ? `${candidate.nome || ''} ${candidate.sobrenome || ''}`.trim() || 'Candidato' : 'Candidato Desconhecido',
@@ -179,23 +191,109 @@ export default async function Dashboard() {
             date: app.created_at,
             score: app.score,
             candidateId: app.candidato_id,
-            vacancyId: app.vaga_id
+            vacancyId: vacancy?.uuid || app.vaga_id,
+            videoStatus
         };
     });
+
+    // Buscar avaliações de vídeo pendentes
+    const pendingVideoEvaluationsRaw = await prisma.vaga_avaliacao.findMany({
+        where: {
+            vaga_id: { in: vacancyIds },
+            breakdown: {
+                contains: '"status":"submitted"'
+            }
+        },
+        select: {
+            id: true,
+            vaga_id: true,
+            candidato_id: true,
+            breakdown: true
+        }
+    });
+
+    const pendingVacancyIds = pendingVideoEvaluationsRaw.map((p: { vaga_id: string }) => p.vaga_id);
+    const pendingCandidateIds = pendingVideoEvaluationsRaw.map((p: { candidato_id: string }) => p.candidato_id);
+
+    const [pendingVacancies, pendingCandidates] = await Promise.all([
+        prisma.vaga.findMany({
+            where: { id: { in: pendingVacancyIds } },
+            select: { id: true, uuid: true, cargo: true }
+        }),
+        prisma.candidato.findMany({
+            where: { id: { in: pendingCandidateIds } },
+            select: {
+                id: true,
+                uuid: true,
+                nome: true,
+                sobrenome: true,
+                foto_perfil: true,
+                usuario: {
+                    select: { avatarUrl: true }
+                }
+            }
+        })
+    ]);
+
+    const pendingVacancyMap = new Map(pendingVacancies.map((v: any) => [v.id, v]));
+    const pendingCandidateMap = new Map(pendingCandidates.map((c: any) => [c.id, c]));
+
+    const videoEvaluations = pendingVideoEvaluationsRaw
+        .map((app: any) => {
+            try {
+                if (!app.breakdown) return null;
+                const breakdown = typeof app.breakdown === 'string' ? JSON.parse(app.breakdown) : app.breakdown;
+
+                const hasVideo = breakdown.video?.status === 'submitted';
+                const hasFeedback = breakdown.feedback?.status;
+
+                if (hasVideo && !hasFeedback) {
+                    const vaga = pendingVacancyMap.get(app.vaga_id);
+                    const candidato = pendingCandidateMap.get(app.candidato_id);
+
+                    if (!vaga || !candidato) return null;
+
+                    return {
+                        id: app.id,
+                        vacancyUuid: vaga.uuid,
+                        cargo: vaga.cargo,
+                        candidato: {
+                            id: candidato.id,
+                            uuid: candidato.uuid,
+                            nome: candidato.nome || '',
+                            sobrenome: candidato.sobrenome || '',
+                            foto_perfil: candidato.foto_perfil,
+                            avatarUrl: candidato.usuario?.avatarUrl
+                        },
+                        submittedAt: breakdown.video.submittedAt,
+                        aiSuggestions: breakdown.suggestions
+                    };
+                }
+                return null;
+            } catch (e) {
+                return null;
+            }
+        })
+        .filter((item): item is NonNullable<typeof item> => item !== null);
+
+    // Verificar se há restrições devido a vídeos expirados
+    const expiredVideos = await checkCompanyRestrictions(companyId);
+    const isRestricted = !!expiredVideos && expiredVideos.length > 0;
 
     return (
         <>
             <DashboardHeader />
             <CompanyHero companyData={heroData} />
             <ProfileCompletion company={companyData} />
+            <VideoEvaluations evaluations={videoEvaluations} />
             <CompanyKPI
                 PublishedVacancies={PublishedVacancies}
                 ReceivedCandidates={ReceivedCandidates}
                 OpenVacancies={OpenVacancies}
             />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <RecentVacancies vacancies={recentVacancies} />
-                <RecentCandidates applications={applications} />
+                <RecentVacancies vacancies={recentVacancies} isRestricted={isRestricted} />
+                <RecentCandidates applications={applications} isRestricted={isRestricted} />
             </div>
 
         </>

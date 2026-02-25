@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 
 
+import { ExpiredVideo } from "@/src/lib/companyRestrictions";
+
 interface Vacancy {
     id: string;
     uuid: string | null;
@@ -19,9 +21,15 @@ interface Vacancy {
     _count: {
         vaga_avaliacao: number;
     };
+    stats?: {
+        total: number;
+        pendingVideo: number;
+        noVideo: number;
+        feedbackGiven: number;
+    };
 }
 
-export function VacanciesList({ initialVacancies }: { initialVacancies: any[] }) {
+export function VacanciesList({ initialVacancies, expiredVideos }: { initialVacancies: any[], expiredVideos?: ExpiredVideo[] | null }) {
     const { t } = useTranslation();
     const router = useRouter();
     const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -41,17 +49,19 @@ export function VacanciesList({ initialVacancies }: { initialVacancies: any[] })
         setSelectedIds([]);
     };
 
-    const toggleSelectVacancy = (id: string) => {
+    const toggleSelectVacancy = (uuid: string) => {
+        if (!uuid) return;
         setSelectedIds(prev =>
-            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+            prev.includes(uuid) ? prev.filter(i => i !== uuid) : [...prev, uuid]
         );
     };
 
     const selectAll = () => {
-        if (selectedIds.length === initialVacancies.length) {
+        const selectables = initialVacancies.map(v => v.uuid).filter(Boolean) as string[];
+        if (selectedIds.length === selectables.length) {
             setSelectedIds([]);
         } else {
-            setSelectedIds(initialVacancies.map(v => v.id));
+            setSelectedIds(selectables);
         }
     };
 
@@ -161,8 +171,8 @@ export function VacanciesList({ initialVacancies }: { initialVacancies: any[] })
                             onClick={selectAll}
                             className="flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-800 cursor-pointer"
                         >
-                            {selectedIds.length === initialVacancies.length ? <CheckSquare size={18} /> : <Square size={18} />}
-                            {selectedIds.length === initialVacancies.length ? t('deselect_all') : t('select_all')}
+                            {selectedIds.length > 0 && selectedIds.length === initialVacancies.filter(v => v.uuid).length ? <CheckSquare size={18} /> : <Square size={18} />}
+                            {selectedIds.length > 0 && selectedIds.length === initialVacancies.filter(v => v.uuid).length ? t('deselect_all') : t('select_all')}
                         </button>
                         <span className="text-sm text-blue-600 font-medium">
                             {selectedIds.length} {selectedIds.length !== 1 ? t('selected_plural') : t('selected')}
@@ -198,33 +208,62 @@ export function VacanciesList({ initialVacancies }: { initialVacancies: any[] })
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
-                {initialVacancies.map((vacancy) => (
-                    <div key={vacancy.id} className="relative group">
-                        {isSelectionMode && (
-                            <div
-                                onClick={() => toggleSelectVacancy(vacancy.id)}
-                                className={`absolute inset-0 z-10 rounded-xl cursor-pointer transition-all border-2 ${selectedIds.includes(vacancy.id)
-                                    ? 'bg-blue-600/5 border-blue-600'
-                                    : 'bg-white/40 border-transparent hover:border-blue-200'
-                                    }`}
-                            >
-                                <div className={`absolute top-4 right-4 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${selectedIds.includes(vacancy.id)
-                                    ? 'bg-blue-600 border-blue-600 text-white'
-                                    : 'bg-white border-gray-300'
-                                    }`}>
-                                    {selectedIds.includes(vacancy.id) && <Check size={16} />}
+                {initialVacancies.map((vacancy) => {
+                    // Verifica se esta vaga tem avaliação pendente (usando o prop expiredVideos)
+                    const pendingVideo = expiredVideos?.find(v => v.vacancyUuid === vacancy.uuid);
+                    const isPending = !!pendingVideo;
+
+                    // Se houver ALGUMA vaga pendente, o modo de restrição está ativo
+                    const isRestrictionMode = expiredVideos && expiredVideos.length > 0;
+
+                    // Se estiver em modo restrição e esta não for a vaga pendente, desabilita
+                    const isDisabled = isRestrictionMode && !isPending;
+
+                    return (
+                        <div
+                            key={vacancy.id}
+                            className={`relative group transition-all duration-300
+                                ${isDisabled ? 'opacity-40 grayscale pointer-events-none' : ''}
+                                ${isPending ? 'scale-[1.02] z-10' : ''}
+                            `}
+                        >
+                            {isSelectionMode && !isDisabled && (
+                                <div
+                                    onClick={() => vacancy.uuid && toggleSelectVacancy(vacancy.uuid)}
+                                    className={`absolute inset-0 z-10 rounded-xl cursor-pointer transition-all border-2 ${vacancy.uuid && selectedIds.includes(vacancy.uuid)
+                                        ? 'bg-blue-600/5 border-blue-600'
+                                        : 'bg-white/40 border-transparent hover:border-blue-200'
+                                        }`}
+                                >
+                                    <div className={`absolute top-4 right-4 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${vacancy.uuid && selectedIds.includes(vacancy.uuid)
+                                        ? 'bg-blue-600 border-blue-600 text-white'
+                                        : 'bg-white border-gray-300'
+                                        }`}>
+                                        {vacancy.uuid && selectedIds.includes(vacancy.uuid) && <Check size={16} />}
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                        <CompanyVacancyCard
-                            vacancy={{
-                                ...vacancy,
-                                tipo_local_trabalho: vacancy.tipo_local_trabalho as any
-                            }}
-                            isSelectionMode={isSelectionMode}
-                        />
-                    </div>
-                ))}
+                            )}
+
+                            {/* Banner de Pendência */}
+                            {isPending && (
+                                <div className="absolute -top-3 right-4 z-20 bg-red-600 text-white px-4 py-1 rounded-full text-xs font-bold shadow-md flex items-center gap-1.5 whitespace-nowrap">
+                                    <AlertCircle size={12} />
+                                    {t('ranking_pending_feedback', 'Avaliação Pendente')}
+                                </div>
+                            )}
+
+                            <CompanyVacancyCard
+                                vacancy={{
+                                    ...vacancy,
+                                    tipo_local_trabalho: vacancy.tipo_local_trabalho as any
+                                }}
+                                isSelectionMode={isSelectionMode}
+                                isPendingEvaluation={isPending}
+                                pendingCandidateId={pendingVideo?.candidateId}
+                            />
+                        </div>
+                    );
+                })}
             </div>
 
             {/* Modal de Confirmação em Massa */}

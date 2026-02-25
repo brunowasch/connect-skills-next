@@ -117,7 +117,7 @@ export function CompanyProfile({ company, fotoPerfil, localidade, contato, email
                         <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
                             <div className="flex items-center gap-1.5">
                                 <MapPin size={16} className="text-blue-600" />
-                                <span>{localidade}</span>
+                                <span>{localidade === 'Localidade não informada' ? t('location_not_informed') : localidade}</span>
                             </div>
                         </div>
                     </div>
@@ -235,15 +235,14 @@ export function CompanyProfile({ company, fotoPerfil, localidade, contato, email
                         </div>
                     </div>
 
-                    {/* Profile Links */}
-                    {links && links.length > 0 && (
+                    {links && links.filter(l => l.label !== '__CONFIG_RECEIVE_EMAILS__').length > 0 && (
                         <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm animate-in fade-in slide-in-from-right-4">
                             <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
                                 <ExternalLink size={20} className="text-blue-600" />
                                 {t('links_and_socials')}
                             </h3>
                             <div className="flex flex-col gap-2">
-                                {links.map((link) => (
+                                {links.filter(link => link.label !== '__CONFIG_RECEIVE_EMAILS__').map((link) => (
                                     <a
                                         key={link.id}
                                         href={link.url.startsWith('http') ? link.url : `https://${link.url}`}

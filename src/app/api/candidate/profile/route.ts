@@ -123,7 +123,6 @@ export async function PUT(req: NextRequest) {
                 }
             }
 
-            // Remove todos e insere os processados
             await prisma.candidato_arquivo.deleteMany({
                 where: { candidato_id: candidate.id }
             });

@@ -26,16 +26,27 @@ import {
     BarChart3,
     X,
     AlertCircle,
+    RotateCcw,
     Trash2,
     Ban,
     ChevronUp,
     Loader2,
+    Video,
+    Mic,
+    Upload,
+    VolumeX,
+    Sparkles,
+    Info,
+    AlertTriangle,
 } from "lucide-react";
+import { VideoRecorder } from "./VideoRecorder";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useTransition } from "react";
-import { selectVacancyForRanking, selectVacancyForEditing } from "@/src/app/(pages)/company/(companyApp)/vacancies/actions";
+import { useState, useEffect, useRef, useCallback, ReactNode, useTransition } from "react";
 import { LanguageSwitcher } from "@/src/app/_components/Layout/LanguageSwitcher";
+
+import { uploadVideoAction, getVideoUploadSignatureAction, saveVideoMetadataAction } from "../actions";
+import { toast } from "sonner";
 
 interface ModalConfig {
     isOpen: boolean;
@@ -44,6 +55,9 @@ interface ModalConfig {
     onConfirm: () => void;
     confirmText: string;
     variant: 'danger' | 'warning' | 'success' | 'info';
+    size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+    cancelText?: ReactNode;
+    hideCancel?: boolean;
 }
 
 interface VacancyDetailsProps {
@@ -103,12 +117,14 @@ interface VacancyDetailsProps {
     isOwner?: boolean;
     userId?: string;
     hasApplied?: boolean;
+
     applicationResponses?: any;
+    applicationBreakdown?: any;
 }
 
 import { useTranslation } from "react-i18next";
 
-export function VacancyDetails({ vacancy, company, isActive, applicationCount, userType, isOwner, userId, hasApplied, applicationResponses }: VacancyDetailsProps) {
+export function VacancyDetails({ vacancy, company, isActive, applicationCount, userType, isOwner, userId, hasApplied, applicationResponses, applicationBreakdown }: VacancyDetailsProps) {
     const { t, i18n } = useTranslation();
     const router = useRouter();
     const stickyCardRef = useRef<HTMLDivElement>(null);
@@ -132,6 +148,31 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
 
     const [isStickyVisible, setIsStickyVisible] = useState(true);
     const [hasScroll, setHasScroll] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const [isRecordingMode, setIsRecordingMode] = useState(false);
+    const isApplyingRef = useRef(false);
+
+    useEffect(() => {
+        const onFocus = async () => {
+            if (isApplyingRef.current) {
+                try {
+                    const res = await fetch(`/api/vacancies/${vacancy.uuid}/check-application`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.applied) {
+                            router.refresh();
+                            isApplyingRef.current = false;
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error verifying application status:", error);
+                }
+            }
+        };
+
+        window.addEventListener("focus", onFocus);
+        return () => window.removeEventListener("focus", onFocus);
+    }, [vacancy.id, router]);
     const [linkCopied, setLinkCopied] = useState(false);
     const [isPending, startTransition] = useTransition();
     const [modal, setModal] = useState<ModalConfig>({
@@ -147,19 +188,78 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
     const [showBackButton, setShowBackButton] = useState(false);
 
     useEffect(() => {
-        if (typeof window !== 'undefined' && document.referrer) {
-            try {
-                const referrerUrl = new URL(document.referrer);
-                if (referrerUrl.host === window.location.host) {
-                    setShowBackButton(true);
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('action') === 'upload_video') {
+                const videoSection = document.getElementById('video-upload-section');
+                if (videoSection) {
+                    setTimeout(() => {
+                        videoSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 500);
                 }
-            } catch (e) {
-                // Invalid URL
+            } else if (document.referrer) {
+                try {
+                    const referrerUrl = new URL(document.referrer);
+                    if (referrerUrl.host === window.location.host) {
+                        setShowBackButton(true);
+                    }
+                } catch (e) {
+
+                }
             }
         }
     }, []);
 
-    // Normalize responses list handling both array (legacy) and object (new) formats
+    const hasShownWelcomeModalRef = useRef(false);
+
+    useEffect(() => {
+        let isExpired = false;
+        if (applicationBreakdown?.video?.deadline) {
+            isExpired = new Date() > new Date(applicationBreakdown.video.deadline);
+        }
+
+        if (hasApplied && applicationBreakdown?.video?.status === 'requested' && !isExpired && !hasShownWelcomeModalRef.current) {
+            hasShownWelcomeModalRef.current = true;
+            setModal({
+                isOpen: true,
+                title: t('video_instructions_title', 'Instruções Importantes'),
+                description: (
+                    <div className="space-y-4">
+                        <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-800">
+                                <div className="flex items-start gap-3 bg-white/60 p-3 rounded-lg border border-blue-100/50">
+                                    <VolumeX size={18} className="mt-0.5 shrink-0 text-blue-500" />
+                                    <span>{t('video_instruction_quiet', 'Grave em local silencioso e fechado. Ruídos podem impedir a análise.')}</span>
+                                </div>
+                                <div className="flex items-start gap-3 bg-white/60 p-3 rounded-lg border border-blue-100/50">
+                                    <AlertTriangle size={18} className="mt-0.5 shrink-0 text-amber-500" />
+                                    <span>{t('video_instruction_noise_warning', 'Vídeos com muito ruído não são compreendidos pelo sistema e podem resultar na perda da vaga.')}</span>
+                                </div>
+                                <div className="flex items-start gap-3 bg-white/60 p-3 rounded-lg border border-blue-100/50">
+                                    <Clock size={18} className="mt-0.5 shrink-0 text-blue-500" />
+                                    <span>{t('video_instruction_duration', 'Você tem até 3 minutos. Fale sem interrupções.')}</span>
+                                </div>
+                                <div className="flex items-start gap-3 bg-white/60 p-3 rounded-lg border border-blue-100/50">
+                                    <Eye size={18} className="mt-0.5 shrink-0 text-blue-500" />
+                                    <span>{t('video_instruction_visibility', 'O vídeo analisado será visto pela empresa contratante e pelo RH.')}</span>
+                                </div>
+                            </div>
+                            <div className="mt-4 pt-4 border-t border-blue-200/50 text-sm font-semibold text-blue-900 flex items-center gap-2">
+                                <Sparkles size={16} className="text-amber-500" />
+                                {t('good_luck', 'Boa sorte!')}
+                            </div>
+                        </div>
+                    </div>
+                ),
+                confirmText: "Entendido!",
+                variant: 'info',
+                size: '2xl',
+                hideCancel: true,
+                onConfirm: () => setModal(prev => ({ ...prev, isOpen: false }))
+            });
+        }
+    }, [hasApplied, applicationBreakdown, t]);
+
     const responsesList = Array.isArray(applicationResponses)
         ? applicationResponses
         : (applicationResponses?.responses || []);
@@ -304,7 +404,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
             ...config,
             onConfirm: async () => {
                 try {
-                    const res = await fetch(`/api/vacancies/${vacancy.id}/status`, {
+                    const res = await fetch(`/api/vacancies/${vacancy.uuid}/status`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ situacao: newStatus })
@@ -325,15 +425,11 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
     };
 
     const handleRankCandidates = () => {
-        startTransition(() => {
-            selectVacancyForRanking(vacancy.id);
-        });
+        router.push(`/company/vacancies/${vacancy.uuid}/ranking`);
     };
 
     const handleEditVacancy = () => {
-        startTransition(() => {
-            selectVacancyForEditing(vacancy.id);
-        });
+        router.push(`/company/vacancies/${vacancy.uuid}/edit`);
     };
 
     const handleDeleteVacancy = () => {
@@ -345,7 +441,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
             variant: 'danger',
             onConfirm: async () => {
                 try {
-                    const res = await fetch(`/api/vacancies/${vacancy.id}`, {
+                    const res = await fetch(`/api/vacancies/${vacancy.uuid}`, {
                         method: 'DELETE',
                     });
 
@@ -373,9 +469,24 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
         }
 
         setIsCheckingApplication(true);
+        console.log("Checking application for vacancy:", vacancy.uuid, vacancy);
         try {
             // Verificar se já se candidatou
-            const res = await fetch(`/api/vacancies/${vacancy.id}/check-application`);
+            const apiUrl = `/api/vacancies/${vacancy.uuid}/check-application`;
+            console.log("Fetching application status from:", apiUrl);
+            const res = await fetch(apiUrl);
+
+            if (!res.ok) {
+                const text = await res.text();
+                let errorData;
+                try {
+                    errorData = JSON.parse(text);
+                } catch (e) {
+                    throw new Error(`Erro do servidor (${res.status}): ${text.substring(0, 100)}...`);
+                }
+                throw new Error(errorData.details || errorData.error || `Erro ${res.status}`);
+            }
+
             const data = await res.json();
 
             if (data.applied) {
@@ -410,15 +521,149 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                 onConfirm: () => {
                     const assessmentUrl = `/candidate/vacancies/${vacancy.uuid}/apply`;
                     window.open(assessmentUrl, '_blank');
+                    isApplyingRef.current = true;
                     setModal(prev => ({ ...prev, isOpen: false }));
                 }
             });
         } catch (error) {
             console.error(error);
-            alert("Erro ao verificar candidatura.");
+            alert(`Erro ao verificar candidatura: ${error instanceof Error ? error.message : String(error)}`);
         } finally {
             setIsCheckingApplication(false);
         }
+    };
+
+    const submitVideoFile = (file: File) => {
+        if (file.size > 100 * 1024 * 1024) { // 100MB limit
+            toast.error(t('video_error_size', 'O vídeo deve ter no máximo 100MB'));
+            return;
+        }
+
+        // Validate duration
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+
+        video.onloadedmetadata = function () {
+            window.URL.revokeObjectURL(video.src);
+            // Check if duration is valid and finite. MediaRecorder blobs can have Infinity duration.
+            const duration = video.duration;
+            if (Number.isFinite(duration) && duration > 185) { // 3 minutes tolerance
+                toast.error(t('video_error_duration', 'O vídeo deve ter no máximo 3 minutos'));
+                return;
+            }
+
+            setModal({
+                isOpen: true,
+                title: t('video_confirm_modal_title'),
+                description: (
+                    <div className="space-y-4">
+                        <p className="text-gray-600">
+                            {t('video_confirm_modal_desc')}
+                        </p>
+                        <div className="rounded-lg overflow-hidden bg-black border border-gray-200">
+                            <video
+                                src={URL.createObjectURL(file)}
+                                controls
+                                playsInline
+                                className="w-full max-h-[60vh] object-contain bg-black"
+                            />
+                        </div>
+                        <p className="text-xs text-gray-500">
+                            {t('video_confirm_modal_warning')}
+                        </p>
+                    </div>
+                ),
+                confirmText: t('video_confirm_modal_btn_confirm'),
+                cancelText: isRecordingMode ? (
+                    <div className="flex items-center justify-center gap-2">
+                        <RotateCcw size={18} />
+                        {t('retake', 'Gravar Novamente')}
+                    </div>
+                ) : t('video_confirm_modal_btn_cancel', 'Cancelar'),
+                variant: 'info',
+                size: '2xl',
+                onConfirm: async () => {
+                    if (isUploading) return;
+                    setIsUploading(true);
+
+                    try {
+                        // 1. Obter assinatura (Server Action)
+                        const res = await getVideoUploadSignatureAction(vacancy.uuid, userId!);
+
+                        if (!res.success) {
+                            throw new Error(res.error || "Erro ao iniciar upload");
+                        }
+
+                        // Casting para garantir acesso às propriedades
+                        const signatureResult = res as { success: true, signature: string, timestamp: number, apiKey: string, cloudName: string, folder: string };
+
+                        // 2. Upload direto para o Cloudinary (Client -> Cloudinary)
+                        const cloudFormData = new FormData();
+                        cloudFormData.append("file", file);
+                        cloudFormData.append("api_key", signatureResult.apiKey!);
+                        cloudFormData.append("timestamp", String(signatureResult.timestamp));
+                        cloudFormData.append("signature", signatureResult.signature!);
+                        cloudFormData.append("folder", signatureResult.folder!);
+                        cloudFormData.append("resource_type", "video");
+
+                        const uploadUrl = `https://api.cloudinary.com/v1_1/${signatureResult.cloudName}/video/upload`;
+
+                        const uploadResponse = await fetch(uploadUrl, {
+                            method: "POST",
+                            body: cloudFormData,
+                        });
+
+                        if (!uploadResponse.ok) {
+                            const errorData = await uploadResponse.json().catch(() => ({}));
+                            console.error("Cloudinary error:", errorData);
+                            throw new Error(errorData.error?.message || "Falha no upload para o servidor de arquivos");
+                        }
+
+                        const uploadData = await uploadResponse.json();
+
+                        // 3. Salvar metadados no banco (Server Action)
+                        const saveResult = await saveVideoMetadataAction(vacancy.uuid, userId!, {
+                            url: uploadData.secure_url,
+                            fileName: file.name,
+                            mimeType: "video/" + (uploadData.format || "mp4"),
+                            size: uploadData.bytes
+                        });
+
+                        if (saveResult.success) {
+                            toast.success(t('video_success_upload', 'Vídeo enviado com sucesso!'));
+                            setModal(prev => ({ ...prev, isOpen: false }));
+                            setIsRecordingMode(false);
+
+                            // Redirecionar/Atualizar
+                            setTimeout(() => {
+                                router.refresh();
+                            }, 1000);
+                        } else {
+                            throw new Error(saveResult.error || "Erro ao salvar informações do vídeo");
+                        }
+
+                    } catch (error) {
+                        console.error(error);
+                        toast.error(t('video_error_upload', 'Erro ao enviar vídeo: ') + (error instanceof Error ? error.message : String(error)));
+                        setModal(prev => ({ ...prev, isOpen: false }));
+                    } finally {
+                        setIsUploading(false);
+                    }
+                }
+            });
+        };
+
+        video.onerror = function () {
+            toast.error(t('video_error_format', 'Formato de vídeo inválido ou erro ao carregar'));
+        };
+
+        video.src = URL.createObjectURL(file);
+    };
+
+    const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        submitVideoFile(file);
     };
 
     return (
@@ -442,7 +687,6 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                 {t("vacancy_back")}
                             </button>
                         )}
-                        <LanguageSwitcher />
                     </div>
 
                     <div className="flex items-start gap-4 mb-6">
@@ -487,6 +731,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                             <Copy size={18} className="text-gray-600 group-hover:text-gray-900" />
                                         )}
                                     </button>
+                                    <LanguageSwitcher />
                                     {isActive && (
                                         <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200">
                                             Vaga Ativa
@@ -514,6 +759,14 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                         </span>
                                     </div>
                                 )}
+                                {inclusivity?.vagas_disponiveis && (
+                                    <div className="flex items-center gap-1.5">
+                                        <Briefcase size={16} className="text-gray-400" />
+                                        <span className="font-medium text-gray-700">
+                                            {inclusivity.vagas_disponiveis} {inclusivity.vagas_disponiveis === 1 ? t('vacancy_slot_singular', 'vaga disponível') : t('vacancy_slot_plural', 'vagas disponíveis')}
+                                        </span>
+                                    </div>
+                                )}
                                 {isOwner && (
                                     <div className="flex items-center gap-1.5">
                                         <Users size={16} className="text-gray-400" />
@@ -528,10 +781,357 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
 
             {/* Conteúdo principal */}
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {hasApplied && applicationBreakdown?.video?.status === 'requested' && (() => {
+                    // Check if deadline has expired
+                    const deadline = applicationBreakdown?.video?.deadline ? new Date(applicationBreakdown.video.deadline) : null;
+                    const now = new Date();
+                    const isExpired = deadline && now > deadline;
+
+                    // Calculate remaining time
+                    const timeRemaining = deadline ? Math.max(0, deadline.getTime() - now.getTime()) : 0;
+                    const daysRemaining = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
+                    const hoursRemaining = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+
+                    return (
+                        <>
+                            {/* Check if rejected */}
+                            {applicationBreakdown?.feedback?.status === 'REJECTED' ? (
+                                <div id="video-upload-section" className="mt-6 bg-red-50 border border-red-200 p-6 rounded-lg animate-in fade-in slide-in-from-top-2">
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center text-red-600 flex-shrink-0">
+                                            <Ban size={24} />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900">{t('video_upload_rejected_title')}</h3>
+                                            <p className="text-sm text-gray-600 mt-1">
+                                                {t('video_upload_rejected_desc')}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : isExpired ? (
+                                <div id="video-upload-section" className="mt-6 bg-orange-50 border border-orange-200 p-6 rounded-lg animate-in fade-in slide-in-from-top-2">
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center text-orange-600 flex-shrink-0">
+                                            <Clock size={24} />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900">{t('video_upload_expired_title')}</h3>
+                                            <p className="text-sm text-gray-600 mt-1">
+                                                {t('video_upload_expired_desc')}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div id="video-upload-section" className="mt-6 bg-purple-50 border border-purple-200 p-6 rounded-lg animate-in fade-in slide-in-from-top-2">
+                                    <div className="flex items-start gap-4 mb-4">
+                                        <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 flex-shrink-0">
+                                            <Video size={24} />
+                                        </div>
+                                        <div className="flex-1">
+                                            <h3 className="font-bold text-gray-900">{t('video_upload_requested_title')}</h3>
+                                            <p className="text-sm text-gray-600 mt-1">{t('video_upload_requested_desc')}</p>
+                                            {deadline && (
+                                                <div className="mt-2 flex items-center gap-2 text-sm">
+                                                    <Clock size={14} className="text-purple-600" />
+                                                    <span className="font-medium text-purple-700">
+                                                        {t('video_upload_deadline')} {daysRemaining > 0
+                                                            ? t(daysRemaining === 1 ? 'video_upload_days_remaining' : 'video_upload_days_remaining_plural', { count: daysRemaining })
+                                                            : t(hoursRemaining === 1 ? 'video_upload_hours_remaining' : 'video_upload_hours_remaining_plural', { count: hoursRemaining })
+                                                        }
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 mb-6">
+                                        <h4 className="font-bold text-blue-900 mb-4 flex items-center gap-2">
+                                            <div className="bg-blue-100 p-1.5 rounded-lg">
+                                                <Info size={18} className="text-blue-600" />
+                                            </div>
+                                            {t('video_instructions_title', 'Instruções Importantes')}
+                                        </h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-800">
+                                            <div className="flex items-start gap-3 bg-white/60 p-3 rounded-lg border border-blue-100/50">
+                                                <VolumeX size={18} className="mt-0.5 shrink-0 text-blue-500" />
+                                                <span>{t('video_instruction_quiet', 'Grave em local silencioso e fechado. Ruídos podem impedir a análise.')}</span>
+                                            </div>
+                                            <div className="flex items-start gap-3 bg-white/60 p-3 rounded-lg border border-blue-100/50">
+                                                <AlertTriangle size={18} className="mt-0.5 shrink-0 text-amber-500" />
+                                                <span>{t('video_instruction_noise_warning', 'Vídeos com muito ruído não são compreendidos pelo sistema e podem resultar na perda da vaga.')}</span>
+                                            </div>
+                                            <div className="flex items-start gap-3 bg-white/60 p-3 rounded-lg border border-blue-100/50">
+                                                <Clock size={18} className="mt-0.5 shrink-0 text-blue-500" />
+                                                <span>{t('video_instruction_duration', 'Você tem até 3 minutos. Fale sem interrupções.')}</span>
+                                            </div>
+                                            <div className="flex items-start gap-3 bg-white/60 p-3 rounded-lg border border-blue-100/50">
+                                                <Eye size={18} className="mt-0.5 shrink-0 text-blue-500" />
+                                                <span>{t('video_instruction_visibility', 'O vídeo analisado será visto pela empresa contratante e pelo RH.')}</span>
+                                            </div>
+                                        </div>
+                                        <div className="mt-4 pt-4 border-t border-blue-200/50 text-sm font-semibold text-blue-900 flex items-center gap-2">
+                                            <Sparkles size={16} className="text-amber-500" />
+                                            {t('good_luck', 'Boa sorte!')}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex bg-white p-1 rounded-lg border border-slate-200 mb-6 w-fit mx-auto shadow-sm">
+                                        <button
+                                            onClick={() => setIsRecordingMode(false)}
+                                            className={`flex items-center gap-2 px-6 py-2 rounded-md text-sm font-bold transition-all cursor-pointer ${!isRecordingMode
+                                                ? 'bg-slate-900 text-white shadow-md'
+                                                : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                                                }`}
+                                        >
+                                            <Upload size={16} />
+                                            {t('tab_upload_video', 'Fazer Upload')}
+                                        </button>
+                                        <button
+                                            onClick={() => setIsRecordingMode(true)}
+                                            className={`flex items-center gap-2 px-6 py-2 rounded-md text-sm font-bold transition-all cursor-pointer ${isRecordingMode
+                                                ? 'bg-slate-900 text-white shadow-md'
+                                                : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                                                }`}
+                                        >
+                                            <Video size={16} />
+                                            {t('tab_record_video', 'Gravar Agora')}
+                                        </button>
+                                    </div>
+
+                                    {isRecordingMode ? (
+                                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                            <VideoRecorder
+                                                onRecordingComplete={submitVideoFile}
+                                                onCancel={() => setIsRecordingMode(false)}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                            <label className="block w-full">
+                                                <span className="sr-only">{t('video_upload_choose_video')}</span>
+                                                <div className={`
+                                                        w-full flex items-center justify-center px-4 py-12 border-2 border-dashed rounded-xl cursor-pointer hover:bg-white transition-all
+                                                        ${(isPending || isUploading) ? 'border-gray-300 bg-gray-100 cursor-not-allowed' : 'border-slate-300 bg-slate-50/50 hover:border-purple-400 hover:shadow-lg hover:shadow-purple-500/5'}
+                                                    `}>
+                                                    <input
+                                                        type="file"
+                                                        accept="video/*"
+                                                        className="hidden"
+                                                        onChange={handleVideoUpload}
+                                                        disabled={isPending || isUploading}
+                                                    />
+                                                    <div className="text-center">
+                                                        {(isPending || isUploading) ? (
+                                                            <div className="flex flex-col items-center gap-3">
+                                                                <Loader2 size={32} className="animate-spin text-purple-600" />
+                                                                <span className="text-sm font-medium text-slate-600">{t('video_upload_sending')}</span>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="group">
+                                                                <div className="mx-auto w-16 h-16 mb-4 rounded-full bg-purple-50 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                                                    <Upload size={32} className="text-purple-600" />
+                                                                </div>
+                                                                <p className="font-bold text-lg text-slate-800 mb-1">{t('video_upload_click_to_upload')}</p>
+                                                                <p className="text-sm text-slate-500">{t('video_upload_formats')}</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </>
+                    );
+                })()}
+
+                {hasApplied && applicationBreakdown?.video?.status === 'submitted' && (() => {
+                    const expiresAt = applicationBreakdown?.video?.expiresAt ? new Date(applicationBreakdown.video.expiresAt) : null;
+                    const now = new Date();
+                    const isExpired = expiresAt && now > expiresAt;
+
+                    // Calculate remaining time
+                    const timeRemaining = expiresAt ? Math.max(0, expiresAt.getTime() - now.getTime()) : 0;
+                    const daysRemaining = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
+
+                    if (applicationBreakdown?.feedback?.status === 'REJECTED') {
+                        return (
+                            <div className="mt-6 bg-red-50 border border-red-200 p-6 rounded-lg animate-in fade-in slide-in-from-top-2">
+                                <div className="flex items-start gap-4">
+                                    <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center text-red-600 flex-shrink-0">
+                                        <Ban size={24} />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-gray-900">{t('application_status_not_listed_title')}</h3>
+                                        <p className="text-sm text-gray-600 mt-1">
+                                            {t('application_status_not_listed_desc')}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    }
+
+                    if (applicationBreakdown?.feedback?.status === 'APPROVED') {
+                        return (
+                            <div className="mt-6 bg-green-50 border border-green-200 p-6 rounded-lg animate-in fade-in slide-in-from-top-2">
+                                <div className="flex items-start gap-4">
+                                    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center text-green-600 flex-shrink-0">
+                                        <CheckCircle2 size={24} />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-gray-900">{t('application_status_approved_title')}</h3>
+                                        <p className="text-sm text-gray-600 mt-1">
+                                            {t('application_status_approved_desc')}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    }
+
+                    return (
+                        <div className={`mt-6 border p-6 rounded-lg ${isExpired ? 'bg-gray-50 border-gray-200' : 'bg-green-50 border-green-200'}`}>
+                            <div className="flex items-start gap-4">
+                                <CheckCircle2 size={24} className={`flex-shrink-0 ${isExpired ? 'text-gray-600' : 'text-green-600'}`} />
+                                <div className="flex-1">
+                                    <p className={`font-semibold ${isExpired ? 'text-gray-800' : 'text-green-800'}`}>{t('video_upload_success_title')}</p>
+                                    <p className={`text-sm ${isExpired ? 'text-gray-700' : 'text-green-700'}`}>
+                                        {t('video_upload_success_desc')}
+                                    </p>
+                                    {expiresAt && (
+                                        <div className="mt-2 flex flex-col gap-1">
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <Clock size={14} className={isExpired ? 'text-gray-600' : 'text-green-600'} />
+                                                <span className={`font-medium ${isExpired ? 'text-gray-700' : 'text-green-700'}`}>
+                                                    {isExpired
+                                                        ? t('video_upload_success_expired')
+                                                        : t(daysRemaining === 1 ? 'video_upload_success_available' : 'video_upload_success_available_plural', { count: daysRemaining })
+                                                    }
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {!isExpired && (
+                                        <div className="mt-4 pt-4 border-t border-green-200">
+                                            {applicationBreakdown?.video?.url && (
+                                                <div className="mb-6">
+                                                    <p className="text-sm font-semibold text-green-800 mb-2">
+                                                        {t('video_current')}
+                                                    </p>
+                                                    <div className="rounded-lg overflow-hidden bg-black border border-green-200 shadow-sm max-w-md">
+                                                        <video
+                                                            src={applicationBreakdown.video.url}
+                                                            controls
+                                                            playsInline
+                                                            className="w-full max-h-[300px] object-contain bg-black"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+
+
+                                            {applicationBreakdown?.video?.viewedAt ? (
+                                                <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg flex items-center gap-3 mt-4">
+                                                    <div className="bg-blue-100 p-2 rounded-full text-blue-600">
+                                                        <Eye size={20} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-blue-900 text-sm">
+                                                            {t('video_viewed_title', 'Vídeo Visualizado')}
+                                                        </p>
+                                                        <p className="text-sm text-blue-800">
+                                                            {t('video_viewed_desc', 'A empresa já visualizou seu vídeo. Não é mais possível alterá-lo.')}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <p className="text-sm text-green-700 mb-3">
+                                                        {t('video_replace_desc', 'Você pode substituir seu vídeo antes da empresa avaliar.')}
+                                                    </p>
+                                                    <div className="flex bg-white p-1 rounded-lg border border-green-200 mb-4 w-fit shadow-sm">
+                                                        <button
+                                                            onClick={() => setIsRecordingMode(false)}
+                                                            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-bold transition-all cursor-pointer ${!isRecordingMode
+                                                                ? 'bg-green-600 text-white shadow-md'
+                                                                : 'text-green-700 hover:text-green-900 hover:bg-green-50'
+                                                                }`}
+                                                        >
+                                                            <Upload size={16} />
+                                                            {t('tab_upload_video', 'Fazer Upload')}
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setIsRecordingMode(true)}
+                                                            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-bold transition-all cursor-pointer ${isRecordingMode
+                                                                ? 'bg-green-600 text-white shadow-md'
+                                                                : 'text-green-700 hover:text-green-900 hover:bg-green-50'
+                                                                }`}
+                                                        >
+                                                            <Video size={16} />
+                                                            {t('tab_record_video', 'Gravar Agora')}
+                                                        </button>
+                                                    </div>
+
+                                                    {isRecordingMode ? (
+                                                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                                            <VideoRecorder
+                                                                onRecordingComplete={submitVideoFile}
+                                                                onCancel={() => setIsRecordingMode(false)}
+                                                            />
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                                            <label className="block w-full">
+                                                                <span className="sr-only">{t('video_upload_choose_video')}</span>
+                                                                <div className={`
+                                                                        w-full flex items-center justify-center px-4 py-8 border-2 border-dashed rounded-xl cursor-pointer hover:bg-white transition-all
+                                                                        ${isPending ? 'border-gray-300 bg-gray-100 cursor-not-allowed' : 'border-green-300 bg-green-50/50 hover:border-green-400 hover:shadow-lg hover:shadow-green-500/5'}
+                                                                    `}>
+                                                                    <input
+                                                                        type="file"
+                                                                        accept="video/*"
+                                                                        className="hidden"
+                                                                        onChange={handleVideoUpload}
+                                                                        disabled={isPending}
+                                                                    />
+                                                                    <div className="text-center">
+                                                                        {isPending ? (
+                                                                            <div className="flex flex-col items-center gap-3">
+                                                                                <Loader2 size={32} className="animate-spin text-green-600" />
+                                                                                <span className="text-sm font-medium text-green-600">{t('video_upload_sending')}</span>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <div className="group">
+                                                                                <div className="mx-auto w-12 h-12 mb-3 rounded-full bg-green-100 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                                                                    <Upload size={24} className="text-green-600" />
+                                                                                </div>
+                                                                                <p className="font-bold text-sm text-green-800 mb-1">{t('video_replace_upload', 'Clique para substituir o vídeo')}</p>
+                                                                                <p className="text-xs text-green-600">{t('video_upload_formats')}</p>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </label>
+                                                        </div>
+                                                    )}
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })()}
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
                     {/* Coluna principal */}
                     <div className="lg:col-span-2 space-y-6">
-
 
                         {/* Descrição da vaga */}
                         <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -715,25 +1315,60 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                 )}
                             </div>
 
-                            {/* CTA Button or Management Actions */}
                             {!isOwner && isActive && (isCandidate || isGuest) && (
                                 hasApplied ? (
-                                    <div className="w-full mt-6 bg-emerald-50 border border-emerald-200 text-emerald-700 py-3 px-4 rounded-lg flex flex-col items-center gap-2 text-center animate-in fade-in slide-in-from-top-2 duration-500">
-                                        <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 mb-1">
-                                            <CheckCircle2 size={24} />
+                                    applicationBreakdown?.feedback?.status === 'REJECTED' ? (
+                                        <div className="w-full mt-6 bg-red-50 border border-red-200 text-red-700 py-3 px-4 rounded-lg flex flex-col items-center gap-2 text-center animate-in fade-in slide-in-from-top-2 duration-500">
+                                            <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center text-red-600 mb-1">
+                                                <Ban size={24} />
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-sm uppercase tracking-wide">{t("application_status_not_listed_title")}</p>
+                                                <p className="text-[11px] opacity-80 mt-0.5">{t("application_status_not_listed_desc")}</p>
+                                            </div>
+                                            <button
+                                                onClick={() => setShowResponsesModal(true)}
+                                                className="mt-3 w-full py-2 bg-white text-red-700 text-xs font-bold rounded-lg border border-red-200 hover:bg-red-100 transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                                            >
+                                                <Eye size={14} />
+                                                {t("vacancy_view_responses")}
+                                            </button>
                                         </div>
-                                        <div>
-                                            <p className="font-bold text-sm uppercase tracking-wide">{t("vacancy_applied_title")}</p>
-                                            <p className="text-[11px] opacity-80 mt-0.5">{t("vacancy_applied_desc")}</p>
+                                    ) : applicationBreakdown?.feedback?.status === 'APPROVED' ? (
+                                        <div className="w-full mt-6 bg-green-50 border border-green-200 text-green-700 py-3 px-4 rounded-lg flex flex-col items-center gap-2 text-center animate-in fade-in slide-in-from-top-2 duration-500">
+                                            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-1">
+                                                <CheckCircle2 size={24} />
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-sm uppercase tracking-wide">{t("application_status_approved_title")}</p>
+                                                <p className="text-[11px] opacity-80 mt-0.5">{t("application_status_approved_desc")}</p>
+                                            </div>
+                                            <button
+                                                onClick={() => setShowResponsesModal(true)}
+                                                className="mt-3 w-full py-2 bg-white text-green-700 text-xs font-bold rounded-lg border border-green-200 hover:bg-green-100 transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                                            >
+                                                <Eye size={14} />
+                                                {t("vacancy_view_responses")}
+                                            </button>
                                         </div>
-                                        <button
-                                            onClick={() => setShowResponsesModal(true)}
-                                            className="mt-3 w-full py-2 bg-white text-emerald-700 text-xs font-bold rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
-                                        >
-                                            <Eye size={14} />
-                                            {t("vacancy_view_responses")}
-                                        </button>
-                                    </div>
+                                    ) : (
+                                        <div className="w-full mt-6 bg-emerald-50 border border-emerald-200 text-emerald-700 py-3 px-4 rounded-lg flex flex-col items-center gap-2 text-center animate-in fade-in slide-in-from-top-2 duration-500">
+                                            <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 mb-1">
+                                                <CheckCircle2 size={24} />
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-sm uppercase tracking-wide">{t("vacancy_applied_title")}</p>
+                                                <p className="text-[11px] opacity-80 mt-0.5">{t("vacancy_applied_desc")}</p>
+                                            </div>
+                                            <button
+                                                onClick={() => setShowResponsesModal(true)}
+                                                className="mt-3 w-full py-2 bg-white text-emerald-700 text-xs font-bold rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                                            >
+                                                <Eye size={14} />
+                                                {t("vacancy_view_responses")}
+                                            </button>
+                                        </div>
+                                    )
                                 ) : (
                                     <button
                                         onClick={handleApply}
@@ -744,18 +1379,105 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                         {t("vacancy_apply_btn")}
                                     </button>
                                 )
+
                             )}
+
                         </div>
                     </div>
                 </div>
 
-                {/* Seção de Gerenciamento para o Dono da Vaga */}
+                {modal.isOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+                        ]
+                        <div
+                            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300"
+                            onClick={() => setModal(prev => ({ ...prev, isOpen: false }))}
+                        />
+
+                        <div className={`relative w-full bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 fade-in duration-300 scale-100 ${modal.size === 'sm' ? 'max-w-sm' :
+                            modal.size === 'lg' ? 'max-w-lg' :
+                                modal.size === 'xl' ? 'max-w-xl' :
+                                    modal.size === '2xl' ? 'max-w-2xl' :
+                                        'max-w-md'
+                            }`}>
+                            <div className="p-6">
+                                <div className="flex items-start gap-4">
+                                    <div className={`p-3 rounded-xl shrink-0 ${modal.variant === 'danger' ? 'bg-red-50 text-red-600' :
+                                        modal.variant === 'warning' ? 'bg-amber-50 text-amber-600' :
+                                            modal.variant === 'success' ? 'bg-emerald-50 text-emerald-600' :
+                                                'bg-blue-50 text-blue-600'
+                                        }`}>
+                                        <AlertCircle size={24} />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="text-xl font-bold text-slate-900 mb-2 leading-tight">
+                                            {modal.title}
+                                        </h3>
+                                        <p className="text-slate-600 leading-relaxed">
+                                            {modal.description}
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={() => setModal(prev => ({ ...prev, isOpen: false }))}
+                                        className="text-slate-400 hover:text-slate-600 transition-colors p-1 cursor-pointer"
+                                    >
+                                        <X size={20} />
+                                    </button>
+                                </div>
+
+                                <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                                    {!modal.hideCancel && (
+                                        <button
+                                            onClick={() => setModal(prev => ({ ...prev, isOpen: false }))}
+                                            className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-all active:scale-95 cursor-pointer"
+                                        >
+                                            {modal.cancelText || 'Cancelar'}
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={modal.onConfirm}
+                                        disabled={isUploading || isPending}
+                                        className={`flex-1 px-4 py-2.5 text-white font-semibold rounded-xl transition-all active:scale-95 shadow-lg shadow-opacity-20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${modal.variant === 'danger' ? 'bg-red-600 hover:bg-red-700 shadow-red-500/30' :
+                                            modal.variant === 'warning' ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/30' :
+                                                modal.variant === 'success' ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/30' :
+                                                    'bg-blue-600 hover:bg-blue-700 shadow-blue-500/30'
+                                            }`}
+                                    >
+                                        {(isUploading || isPending) && <Loader2 className="w-4 h-4 animate-spin" />}
+                                        {modal.confirmText}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* CTA Button no final da página */}
+                {!isOwner && isActive && hasScroll && !isStickyVisible && (isCandidate || isGuest) && !hasApplied && (
+                    <div className="mt-10">
+                        <div className="bg-white rounded-lg border border-gray-200 p-6 lg:p-8 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4">
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-1">{t('vacancy_interested_title')}</h3>
+                                    <p className="text-sm text-gray-600">{t('vacancy_interested_desc', { company: company?.nome_empresa })}</p>
+                                </div>
+                                <button
+                                    onClick={handleApply}
+                                    disabled={isCheckingApplication}
+                                    className="w-full sm:w-auto px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors whitespace-nowrap cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    {isCheckingApplication && <Loader2 size={18} className="animate-spin" />}
+                                    {t('vacancy_apply_action')}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 {isOwner && (
                     <div className="mt-10 pt-8 border-t border-gray-100">
                         <h2 className="text-lg font-semibold text-gray-900 mb-4">{t("management_title")}</h2>
                         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
                             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                                {/* Lado Esquerdo */}
                                 <div>
                                     <button
                                         onClick={handleRankCandidates}
@@ -767,7 +1489,6 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                     </button>
                                 </div>
 
-                                {/* Lado Direito */}
                                 <div className="flex flex-wrap items-center gap-3">
                                     <button
                                         onClick={handleEditVacancy}
@@ -804,86 +1525,6 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                         {t("management_delete")}
                                     </button>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {modal.isOpen && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-                        {/* Backdrop */}
-                        <div
-                            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300"
-                            onClick={() => setModal(prev => ({ ...prev, isOpen: false }))}
-                        />
-
-                        {/* Modal Card */}
-                        <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 fade-in duration-300 scale-100">
-                            <div className="p-6">
-                                <div className="flex items-start gap-4">
-                                    <div className={`p-3 rounded-xl shrink-0 ${modal.variant === 'danger' ? 'bg-red-50 text-red-600' :
-                                        modal.variant === 'warning' ? 'bg-amber-50 text-amber-600' :
-                                            modal.variant === 'success' ? 'bg-emerald-50 text-emerald-600' :
-                                                'bg-blue-50 text-blue-600'
-                                        }`}>
-                                        <AlertCircle size={24} />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <h3 className="text-xl font-bold text-slate-900 mb-2 leading-tight">
-                                            {modal.title}
-                                        </h3>
-                                        <p className="text-slate-600 leading-relaxed">
-                                            {modal.description}
-                                        </p>
-                                    </div>
-                                    <button
-                                        onClick={() => setModal(prev => ({ ...prev, isOpen: false }))}
-                                        className="text-slate-400 hover:text-slate-600 transition-colors p-1 cursor-pointer"
-                                    >
-                                        <X size={20} />
-                                    </button>
-                                </div>
-
-                                <div className="mt-8 flex flex-col sm:flex-row gap-3">
-                                    <button
-                                        onClick={() => setModal(prev => ({ ...prev, isOpen: false }))}
-                                        className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-all active:scale-95 cursor-pointer"
-                                    >
-                                        Cancelar
-                                    </button>
-                                    <button
-                                        onClick={modal.onConfirm}
-                                        className={`flex-1 px-4 py-2.5 text-white font-semibold rounded-xl transition-all active:scale-95 shadow-lg shadow-opacity-20 cursor-pointer ${modal.variant === 'danger' ? 'bg-red-600 hover:bg-red-700 shadow-red-500/30' :
-                                            modal.variant === 'warning' ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/30' :
-                                                modal.variant === 'success' ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/30' :
-                                                    'bg-blue-600 hover:bg-blue-700 shadow-blue-500/30'
-                                            }`}
-                                    >
-                                        {modal.confirmText}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* CTA Button no final da página */}
-                {!isOwner && isActive && hasScroll && !isStickyVisible && (isCandidate || isGuest) && !hasApplied && (
-                    <div className="mt-10">
-                        <div className="bg-white rounded-lg border border-gray-200 p-6 lg:p-8 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4">
-                            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                                <div>
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-1">{t('vacancy_interested_title')}</h3>
-                                    <p className="text-sm text-gray-600">{t('vacancy_interested_desc', { company: company?.nome_empresa })}</p>
-                                </div>
-                                <button
-                                    onClick={handleApply}
-                                    disabled={isCheckingApplication}
-                                    className="w-full sm:w-auto px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors whitespace-nowrap cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
-                                >
-                                    {isCheckingApplication && <Loader2 size={18} className="animate-spin" />}
-                                    {t('vacancy_apply_action')}
-                                </button>
                             </div>
                         </div>
                     </div>

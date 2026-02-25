@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from 'react';
+import { MapPin, Briefcase, HeartHandshake, Building2, Star, CheckCircle, XCircle, Camera, Check, Clock } from "lucide-react";
 import { Vacancy } from '@/src/app/(pages)/candidate/(candidateApp)/types/Vacancy';
-import { MapPin, Briefcase, HeartHandshake, Building2, Star } from "lucide-react";
 import Image from 'next/image';
 import Link from 'next/link';
 import { useFavorites } from '../_hooks/useFavorites';
@@ -12,6 +13,7 @@ const DEFAULT_AVATAR = <Building2 className="w-5 h-5 sm:w-7 sm:h-7 text-slate-50
 export function VacancyCard({ vaga }: { vaga: Vacancy }) {
     const { t } = useTranslation();
     const { isFavorite, toggleFavorite, isInitialized } = useFavorites();
+    const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
 
     const tipoMap: Record<string, string> = {
         Presencial: t("Presencial"),
@@ -46,12 +48,32 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
 
     const displayCidade = inclusivity?.cidade || vaga.empresa?.cidade;
     const displayEstado = inclusivity?.estado || vaga.empresa?.estado;
+    const isRejected = vaga.feedbackStatus === 'REJECTED';
+    const isVideoExpired = vaga.videoStatus === 'requested' && vaga.videoDeadline && new Date() > new Date(vaga.videoDeadline);
+
+    const handleToggleFavorite = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Se já está processando, ignora o clique
+        if (isTogglingFavorite) return;
+
+        setIsTogglingFavorite(true);
+        toggleFavorite(vaga.id);
+
+        // Delay de 500ms antes de permitir novo clique
+        setTimeout(() => {
+            setIsTogglingFavorite(false);
+        }, 500);
+    };
 
     return (
         <Link
             href={`/viewer/vacancy/${vaga.uuid}`}
-            className={`group bg-white rounded-xl shadow-sm border ${vaga.isNear ? 'border-blue-300 ring-2 ring-blue-500/5' : 'border-gray-100'} 
-                hover:shadow-md transition-all hover:border-blue-400 active:scale-[0.98]
+            className={`group bg-white rounded-xl shadow-sm border 
+                ${vaga.isNear ? 'border-blue-300 ring-2 ring-blue-500/5' : 'border-gray-100'} 
+                ${isRejected ? 'opacity-60 hover:opacity-100 grayscale hover:grayscale-0' : 'hover:shadow-md hover:border-blue-400'}
+                transition-all active:scale-[0.98]
                 flex flex-col h-full block relative min-w-0 overflow-hidden`}
         >
             {vaga.isNear && (
@@ -62,6 +84,7 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
                     </span>
                 </div>
             )}
+
             <div className="p-3 sm:p-5 flex-grow">
                 <div className="flex items-center justify-between mb-2 sm:mb-4">
                     <div className="flex items-center gap-2 sm:gap-3">
@@ -70,7 +93,7 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
                                 src={vaga.empresa.foto_perfil}
                                 width={40}
                                 height={40}
-                                className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg object-cover border border-gray-100"
+                                className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg object-cover border border-gray-100 ${isRejected ? 'grayscale' : ''}`}
                                 alt="Logo"
                             />
                         ) : (
@@ -84,12 +107,11 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
                     </div>
 
                     <button
-                        onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            toggleFavorite(vaga.id);
-                        }}
-                        className={`p-2 rounded-full transition-all mt-4 hover:bg-gray-100 active:bg-gray-200 group/star ${favorited ? 'text-yellow-500' : 'text-gray-300'}`}
+                        onClick={handleToggleFavorite}
+                        disabled={isTogglingFavorite}
+                        className={`p-2 rounded-full transition-all mt-4 hover:bg-gray-100 active:bg-gray-200 group/star cursor-pointer 
+                            ${favorited ? 'text-yellow-500' : 'text-gray-300'}
+                            ${isTogglingFavorite ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                         <Star
                             size={18}
@@ -99,9 +121,21 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
                     </button>
                 </div>
 
-                <h3 className="font-bold text-sm sm:text-base text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2 mb-1 sm:mb-2">
+                <h3 className={`font-bold text-sm sm:text-base transition-colors line-clamp-2 mb-1 sm:mb-2 
+                    ${vaga.feedbackStatus === 'APPROVED' ? 'text-emerald-600' :
+                        vaga.feedbackStatus === 'REJECTED' ? 'text-red-600' :
+                            'text-slate-900 group-hover:text-blue-600'}`}>
                     {vaga.cargo}
                 </h3>
+
+                {inclusivity?.vagas_disponiveis && (
+                    <div className="flex items-center gap-1.5 mb-2">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 border border-blue-100 text-[10px] sm:text-[11px] font-semibold text-blue-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            {inclusivity.vagas_disponiveis} {inclusivity.vagas_disponiveis === 1 ? t('vacancy_slot_singular', 'vaga disponível') : t('vacancy_slot_plural', 'vagas disponíveis')}
+                        </span>
+                    </div>
+                )}
 
                 <div className="space-y-1 sm:space-y-2 mb-2 sm:mb-4">
                     <div className="flex items-center text-[11px] sm:text-xs text-gray-500 gap-1.5 min-w-0">
@@ -112,6 +146,42 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
                         <Briefcase className="text-slate-400 flex-shrink-0 w-3.5 h-3.5 sm:w-[15px] sm:h-[15px]" />
                         <span>{vinculoMap[vaga.vinculo_empregaticio || '']}</span>
                     </div>
+
+                    {/* Badges de Status (Aprovado/Reprovado/Vídeo) */}
+                    {(vaga.feedbackStatus || vaga.videoStatus) && (
+                        <div className="flex flex-wrap gap-2 mt-1">
+                            {vaga.feedbackStatus === 'APPROVED' && (
+                                <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[9px] sm:text-[10px] font-bold text-emerald-600 shadow-sm">
+                                    <CheckCircle size={10} className="mr-1" />
+                                    {t("approved")}
+                                </span>
+                            )}
+                            {vaga.feedbackStatus === 'REJECTED' && (
+                                <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-red-50 border border-red-200 text-[9px] sm:text-[10px] font-bold text-red-600 shadow-sm">
+                                    <XCircle size={10} className="mr-1" />
+                                    {t("not_listed")}
+                                </span>
+                            )}
+                            {vaga.videoStatus === 'requested' && !isVideoExpired && (
+                                <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-purple-50 border border-purple-200 text-[9px] sm:text-[10px] font-bold text-purple-600 shadow-sm">
+                                    <Camera size={10} className="mr-1" />
+                                    {t("video_requested")}
+                                </span>
+                            )}
+                            {vaga.videoStatus === 'requested' && isVideoExpired && (
+                                <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-orange-50 border border-orange-200 text-[9px] sm:text-[10px] font-bold text-orange-600 shadow-sm">
+                                    <Clock size={10} className="mr-1" />
+                                    {t("video_upload_expired_title", "Prazo Expirado")}
+                                </span>
+                            )}
+                            {vaga.videoStatus === 'submitted' && (
+                                <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-green-50 border border-green-200 text-[9px] sm:text-[10px] font-bold text-green-600 shadow-sm">
+                                    <Check size={10} className="mr-1" />
+                                    {t("video_submitted")}
+                                </span>
+                            )}
+                        </div>
+                    )}
 
                     {affirmativeGroups.length > 0 && (
                         <div className="flex items-center text-[11px] sm:text-xs text-gray-500 font-medium gap-1.5 mt-1">

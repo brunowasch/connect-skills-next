@@ -1,24 +1,29 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 export function LoginCard() {
     const { t } = useTranslation();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const redirectParam = searchParams.get("redirect");
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
     const [rememberMe, setRememberMe] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
 
         try {
+            setIsLoading(true);
+            setError("");
             console.log("Submitting login. RememberMe:", rememberMe);
             const res = await fetch("/api/auth/login", {
                 method: "POST",
@@ -32,6 +37,7 @@ export function LoginCard() {
 
             if (!res.ok) {
                 setError(data.error || t("login_error_generic"));
+                setIsLoading(false);
                 return;
             }
 
@@ -41,6 +47,11 @@ export function LoginCard() {
                     email: data.email,
                     keep: rememberMe ? "true" : "false"
                 });
+
+                if (redirectParam) {
+                    params.append("redirect", redirectParam);
+                }
+
                 router.push(`/login/verify?${params.toString()}`);
                 return;
             }
@@ -51,9 +62,20 @@ export function LoginCard() {
                 sessionStorage.removeItem("cs_session_active");
             }
 
-            router.push(data.redirectTo);
+            // Check if server wants to force a specific flow (like registration)
+            // If the redirection is just to dashboard (default), and we have a specific return url, use that.
+            const isRegistrationFlow = data.redirectTo.includes("/register") || data.redirectTo.includes("/area");
+
+            if (redirectParam && !isRegistrationFlow) {
+                router.push(redirectParam);
+            } else {
+                router.push(data.redirectTo);
+            }
+            router.refresh(); // Ensure the layout updates state (cookies)
+            return;
         } catch {
             setError(t("login_error_connection"));
+            setIsLoading(false);
         }
     }
 
@@ -120,9 +142,17 @@ export function LoginCard() {
 
                 <button
                     type="submit"
-                    className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
+                    disabled={isLoading}
+                    className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                    {t("login_btn")}
+                    {isLoading ? (
+                        <>
+                            <Loader2 className="animate-spin mr-2" size={20} />
+                            {t("login_btn_loading", "Entrando...")}
+                        </>
+                    ) : (
+                        t("login_btn")
+                    )}
                 </button>
 
                 <div className="mt-6 text-center text-sm">
