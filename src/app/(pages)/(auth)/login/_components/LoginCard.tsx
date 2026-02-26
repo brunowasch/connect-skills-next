@@ -43,7 +43,6 @@ export function LoginCard() {
 
             if (data.requireVerification) {
                 const params = new URLSearchParams({
-                    uid: data.userId,
                     email: data.email,
                     keep: rememberMe ? "true" : "false"
                 });

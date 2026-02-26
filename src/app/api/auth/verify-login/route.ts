@@ -4,13 +4,28 @@ import { cookies } from "next/headers";
 
 export async function POST(req: Request) {
     try {
-        const { userId, code, rememberDevice, keepLogin } = await req.json();
+        const { code, rememberDevice, keepLogin } = await req.json();
 
-        if (!userId || !code) {
+
+        const cookieStore = await cookies();
+        const userUuid = cookieStore.get("pending_verify_uuid")?.value;
+
+        if (!userUuid || !code) {
             return NextResponse.json({ error: "Dados incompletos" }, { status: 400 });
         }
 
-        const tokenVal = `${userId}:${code}`;
+        const user = await prisma.usuario.findUnique({
+            where: { uuid: userUuid },
+            include: {
+                candidato: {
+                    include: { candidato_area: true }
+                },
+                empresa: true
+            }
+        });
+        if (!user) return NextResponse.json({ error: "Usuário não encontrado." }, { status: 404 });
+
+        const tokenVal = `${user.id}:${code}`;
 
         const tokenRecord = await prisma.verification_token.findUnique({
             where: { token: tokenVal }
@@ -24,22 +39,8 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Código expirado." }, { status: 400 });
         }
 
-        // Consume token
         await prisma.verification_token.delete({ where: { id: tokenRecord.id } });
 
-        // Get User
-        const user = await prisma.usuario.findUnique({
-            where: { id: userId },
-            include: {
-                candidato: {
-                    include: { candidato_area: true }
-                },
-                empresa: true
-            }
-        });
-        if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
-
-        // Verifica registro completo
         let isRegistrationComplete = false;
         const userType = user.tipo.toUpperCase();
 
@@ -90,7 +91,7 @@ export async function POST(req: Request) {
         };
 
         const shouldKeepLogin = keepLogin === true;
-        console.log(`[VERIFY-LOGIN] User: ${userId}, KeepLogin: ${keepLogin} (Type: ${typeof keepLogin}), ShouldKeep: ${shouldKeepLogin}`);
+        console.log(`[VERIFY-LOGIN] User UUID: ${userUuid}, KeepLogin: ${keepLogin} (Type: ${typeof keepLogin}), ShouldKeep: ${shouldKeepLogin}`);
 
         let cookieValue = user.id;
 
@@ -122,6 +123,12 @@ export async function POST(req: Request) {
         }
 
         response.cookies.set("time_user_id", cookieValue, cookieOptions);
+
+        response.cookies.set("pending_verify_uuid", "", {
+            httpOnly: true,
+            path: "/",
+            maxAge: 0,
+        });
 
         return response;
 

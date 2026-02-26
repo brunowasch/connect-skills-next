@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { hashPassword } from "@/src/lib/auth/hash";
 import { randomUUID } from "crypto";
-import { validateEmailFormat, validateEmailDomain } from "@/src/lib/email-validation";
+import {
+  validateEmailFormat,
+  validateEmailDomain,
+} from "@/src/lib/email-validation";
 import { sendVerificationEmail } from "@/src/lib/mail";
 import { generateVerificationCode } from "@/src/lib/code-generator";
 
@@ -22,7 +25,7 @@ export async function POST(req: Request) {
     if (!email || !senha || !tipo) {
       return NextResponse.json(
         { error: "register_error_missing_fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -30,7 +33,7 @@ export async function POST(req: Request) {
     if (acceptedTerms !== true) {
       return NextResponse.json(
         { error: "register_error_terms_required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -38,7 +41,7 @@ export async function POST(req: Request) {
     if (!validateEmailFormat(email)) {
       return NextResponse.json(
         { error: "Formato de email inválido." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -47,7 +50,7 @@ export async function POST(req: Request) {
     if (!domainValid) {
       return NextResponse.json(
         { error: "Domínio de email inexistente ou inválido." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -57,43 +60,49 @@ export async function POST(req: Request) {
       include: {
         candidato: {
           include: {
-            candidato_area: true
-          }
+            candidato_area: true,
+          },
         },
-        empresa: true
-      }
+        empresa: true,
+      },
     });
 
     if (existingUser) {
-      const isCandidateComplete = existingUser.candidato && existingUser.candidato.nome && existingUser.candidato.candidato_area.length > 0;
-      const isCompanyComplete = existingUser.empresa && existingUser.empresa.nome_empresa && existingUser.empresa.nome_empresa !== "";
+      const isCandidateComplete =
+        existingUser.candidato &&
+        existingUser.candidato.nome &&
+        existingUser.candidato.candidato_area.length > 0;
+      const isCompanyComplete =
+        existingUser.empresa &&
+        existingUser.empresa.nome_empresa &&
+        existingUser.empresa.nome_empresa !== "";
       const isRegistrationComplete = isCandidateComplete || isCompanyComplete;
 
       if (isRegistrationComplete) {
         return NextResponse.json(
           { error: "register_error_user_exists" },
-          { status: 409 }
+          { status: 409 },
         );
       } else {
-        // Usuário existe mas cadastro não foi completado. Permitimos sobrescrever.
-        // Primeiramente limpamos os dados antigos para evitar conflitos ou dados parciais.
         try {
           await prisma.verification_token.deleteMany({
-            where: { usuario_id: existingUser.id }
+            where: { usuario_id: existingUser.id },
           });
 
-          // Tentamos deletar registros dependentes se existirem
-          try {
-            await prisma.candidato.delete({ where: { usuario_id: existingUser.id } });
-          } catch { }
+          if (existingUser.candidato) {
+            await prisma.candidato.delete({
+              where: { usuario_id: existingUser.id },
+            });
+          }
 
-          try {
-            await prisma.empresa.delete({ where: { usuario_id: existingUser.id } });
-          } catch { }
+          if (existingUser.empresa) {
+            await prisma.empresa.delete({
+              where: { usuario_id: existingUser.id },
+            });
+          }
 
           // Deletamos o usuário antigo
           await prisma.usuario.delete({ where: { id: existingUser.id } });
-
         } catch (cleanupError) {
           console.error("Erro ao limpar usuário incompleto:", cleanupError);
           // Se falhar a limpeza, provavelmente falhará a criação, mas deixamos fluir
@@ -155,11 +164,16 @@ export async function POST(req: Request) {
     });
 
     // 5. Enviar email de verificação
-    const emailSent = await sendVerificationEmail(createdUser.email, verificationToken);
+    const emailSent = await sendVerificationEmail(
+      createdUser.email,
+      verificationToken,
+    );
 
     if (!emailSent) {
-      console.error("Falha ao enviar email de verificação para:", createdUser.email);
-      // Não falhamos o registro, mas avisamos (ou poderíamos reverter a transação, mas vou manter para permitir reenvio)
+      console.error(
+        "Falha ao enviar email de verificação para:",
+        createdUser.email,
+      );
     }
 
     // 6. Retorno de sucesso (alterado para indicar necessidade de verificação)
@@ -169,22 +183,19 @@ export async function POST(req: Request) {
         email: createdUser.email,
         tipo: createdUser.tipo,
         requiresVerification: true,
-        message: "Cadastro realizado com sucesso. Verifique seu email para ativar a conta.",
-        redirectTo: "/verify-email-sent" // Nova página sugerida
+        message:
+          "Cadastro realizado com sucesso. Verifique seu email para ativar a conta.",
+        redirectTo: "/verify-email-sent",
       },
-      { status: 201 }
+      { status: 201 },
     );
 
-    // NOTA: NÃO logamos o usuário automaticamente (não setamos o cookie)
-    // porque ele precisa verificar o email primeiro.
-
     return response;
-
   } catch (err) {
     console.error("Erro no POST /api/auth/register:", err);
     return NextResponse.json(
       { error: "register_error_internal" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

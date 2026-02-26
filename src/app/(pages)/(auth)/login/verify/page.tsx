@@ -11,7 +11,6 @@ function VerifyLoginContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    const uid = searchParams.get("uid");
     const email = searchParams.get("email");
     const keepParam = searchParams.get("keep");
     const redirectParam = searchParams.get("redirect");
@@ -72,7 +71,6 @@ function VerifyLoginContent() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    userId: uid,
                     code,
                     rememberDevice,
                     keepLogin

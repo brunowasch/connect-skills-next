@@ -163,15 +163,30 @@ export async function POST(req: Request) {
                 );
             }
 
-            // Retorna indicando que precisa de verificação
-            return NextResponse.json(
+            if (!user.uuid) {
+                return NextResponse.json(
+                    { error: "Erro interno do servidor." },
+                    { status: 500 }
+                );
+            }
+
+            const verifyResponse = NextResponse.json(
                 {
                     requireVerification: true,
-                    userId: user.id,
                     email: user.email
                 },
                 { status: 200 }
             );
+
+            verifyResponse.cookies.set("pending_verify_uuid", user.uuid!, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "lax",
+                path: "/",
+                maxAge: 30 * 60,
+            });
+
+            return verifyResponse;
         }
 
     } catch (err) {
