@@ -37,6 +37,15 @@ export async function POST(req: Request) {
             );
         }
 
+        if (!user.uuid) {
+            const newUuid = randomUUID();
+            await prisma.usuario.update({
+                where: { id: user.id },
+                data: { uuid: newUuid }
+            });
+            user.uuid = newUuid;
+        }
+
         // 3. Verifica a senha
         const isValid = await comparePassword(senha, user.senha);
 
@@ -163,12 +172,7 @@ export async function POST(req: Request) {
                 );
             }
 
-            if (!user.uuid) {
-                return NextResponse.json(
-                    { error: "Erro interno do servidor." },
-                    { status: 500 }
-                );
-            }
+
 
             const verifyResponse = NextResponse.json(
                 {
