@@ -6,6 +6,14 @@ import { generateVerificationCode } from "@/src/lib/code-generator";
 import { sendLoginCodeEmail } from "@/src/lib/mail";
 import { randomUUID } from "crypto";
 
+export async function GET() {
+    return NextResponse.json({
+        status: "active",
+        message: "Endpoint de login disponível. Use POST para autenticar."
+    });
+}
+
+
 export async function POST(req: Request) {
     try {
         const body = await req.json();
@@ -195,8 +203,12 @@ export async function POST(req: Request) {
 
     } catch (err) {
         console.error("Erro no POST /api/auth/login:", err);
+        const errorMessage = err instanceof Error ? err.message : String(err);
         return NextResponse.json(
-            { error: "Erro interno do servidor." },
+            {
+                error: "Erro interno do servidor.",
+                details: errorMessage
+            },
             { status: 500 }
         );
     }

@@ -77,6 +77,7 @@ export async function sendLoginCodeEmail(email: string, code: string) {
     await transporter.sendMail(mailOptions);
     return true;
   } catch (error) {
+    console.error("Erro ao enviar email de código de acesso:", error);
     return false;
   }
 }
@@ -275,16 +276,15 @@ export async function sendFeedbackEmail(
                     </span>
                 </div>
 
-                ${
-                  justification
-                    ? `
+                ${justification
+        ? `
                     <div style="background-color: #f9fafb; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 20px;">
                         <p style="font-weight: bold; color: #374151; margin-bottom: 5px;">Mensagem da Empresa:</p>
                         <p style="color: #4b5563; font-style: italic;">"${justification.replace(/\n/g, "<br />")}"</p>
                     </div>
                 `
-                    : ""
-                }
+        : ""
+      }
 
                 <p style="text-align: center; font-size: 14px; color: #666; margin-top: 30px;">
                     Obrigado por utilizar o Connect Skills!
