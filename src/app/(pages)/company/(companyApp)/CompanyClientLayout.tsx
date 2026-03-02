@@ -21,16 +21,16 @@ export default function CompanyLayout({
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
     return (
-        <div className="flex min-h-screen bg-gray-50">
+        <div className="flex min-h-screen bg-gray-50 overflow-x-hidden w-full max-w-full">
             <GlobalToast />
             <Sidebar
                 mobileOpen={mobileSidebarOpen}
                 setMobileOpen={setMobileSidebarOpen}
             />
 
-            <div className="flex flex-1 flex-col transition-all duration-300 lg:ml-64">
+            <div className="flex flex-1 flex-col transition-all duration-300 lg:ml-64 w-full min-w-0 overflow-x-hidden">
 
-                <header className="flex h-16 items-center justify-between bg-white px-4 shadow-sm">
+                <header className="flex h-16 items-center justify-between bg-white px-4 sm:px-6 shadow-sm sticky top-0 z-40 w-full">
                     <div className="flex items-center gap-4 lg:hidden">
                         <button
                             onClick={() => setMobileSidebarOpen(true)}
@@ -57,7 +57,7 @@ export default function CompanyLayout({
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-x-hidden p-4 lg:p-8">
+                <main className="flex-1 overflow-x-hidden p-3 sm:p-4 lg:p-8 w-full min-w-0">
                     <div className="mx-auto max-w-7xl animate-fade-in">
                         {children}
                     </div>
