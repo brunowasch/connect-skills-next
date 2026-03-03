@@ -251,26 +251,18 @@ export function CandidatesPageContent({ state, vacancy, candidates, vacancyUuid 
                     </div>
 
                     {candidates && candidates.length > 0 && (() => {
-                        console.log('Current activeCandidateId:', activeCandidateId);
-                        console.log('All candidate IDs:', candidates.map(c => ({ id: c.id, type: typeof c.id })));
-                        
                         const activeCandidate = candidates.find(c => String(c.id) === String(activeCandidateId));
-                        console.log('Found activeCandidate:', activeCandidate ? `${activeCandidate.nome} ${activeCandidate.sobrenome}` : 'NOT FOUND');
-                        
                         const finalCandidate = activeCandidate || candidates[0];
                         const feedbackStatus = finalCandidate.breakdown?.feedback?.status;
                         
                         return (
-                            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 max-w-5xl w-full px-4 z-50">
-                                <div className="px-6 py-4 bg-white/95 backdrop-blur-md border border-gray-200/50 flex items-center justify-between gap-8 rounded-2xl shadow-2xl">
-                                    <div className="flex items-center gap-3 min-w-[200px] max-w-[280px] mr-4 flex-shrink-0">
-                                        <User size={16} className="text-blue-600 flex-shrink-0" />
+                            <div className="fixed bottom-4 md:bottom-6 left-0 right-0 lg:left-64 px-3 z-50 flex justify-center pointer-events-none">
+                                <div className="max-w-[1100px] w-full px-3 py-2.5 bg-white/95 backdrop-blur-md border border-gray-200/50 flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4 rounded-2xl shadow-2xl pointer-events-auto">
+                                    <div className="w-full md:w-auto flex-shrink-0 border-b md:border-none pb-2.5 md:pb-0 border-gray-100">
                                         <select
                                             value={String(activeCandidateId ?? candidates[0]?.id ?? '')}
                                             onChange={(e) => {
                                                 const candidateId = e.target.value;
-                                                console.log('Selecting candidate ID:', candidateId);
-                                                console.log('Available candidates:', candidates.map(c => ({ id: c.id, name: `${c.nome} ${c.sobrenome}` })));
                                                 setActiveCandidateId(candidateId);
                                                 setTimeout(() => {
                                                     const element = document.getElementById(`candidate-${candidateId}`);
@@ -279,41 +271,47 @@ export function CandidatesPageContent({ state, vacancy, candidates, vacancyUuid 
                                                     }
                                                 }, 100);
                                             }}
-                                            className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 cursor-pointer hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all truncate"
+                                            className="w-full md:w-auto md:max-w-[140px] xl:max-w-[230px] min-h-[38px] px-2.5 bg-white border border-gray-200 rounded-lg text-[13px] font-semibold text-gray-700 cursor-pointer hover:border-blue-400 focus:outline-none transition-all truncate"
                                         >
                                             {candidates.map((candidate, index) => (
                                                 <option key={candidate.id} value={candidate.id}>
-                                                    #{index + 1} - {candidate.nome} {candidate.sobrenome}
+                                                    #{index + 1} - {candidate.nome}
                                                 </option>
                                             ))}
                                         </select>
                                     </div>
-                                    
-                                    <div className="flex items-center gap-2">
+
+                                    {/* Divider */}
+                                    <div className="hidden md:block w-px h-6 bg-gray-200 flex-shrink-0" />
+
+                                    {/* Action buttons */}
+                                    <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar w-full md:w-auto justify-center">
                                         {finalCandidate.uuid && (
                                             <a
                                                 href={`/viewer/candidate/${finalCandidate.uuid}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="flex items-center gap-1.5 px-3 py-2 bg-gray-50 text-gray-600 rounded-lg text-xs font-bold hover:bg-gray-100 transition-colors cursor-pointer border border-gray-200"
+                                                className="flex items-center justify-center gap-1.5 min-h-[36px] px-2.5 bg-gray-50 text-gray-600 rounded-lg text-xs font-bold hover:bg-gray-100 transition-colors cursor-pointer border border-gray-200 whitespace-nowrap"
                                             >
-                                                <ExternalLink size={14} />
-                                                {t('vacancy_view_public_profile', 'Perfil Público')}
+                                                <ExternalLink size={15} />
+                                                Perfil
                                             </a>
                                         )}
                                         <button
                                             onClick={() => handleShowAnswers(finalCandidate)}
-                                            className="flex items-center gap-1.5 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-100 transition-colors cursor-pointer"
+                                            className="flex items-center justify-center gap-1.5 min-h-[36px] px-2.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-100 transition-colors cursor-pointer whitespace-nowrap border border-blue-100"
                                         >
-                                            <FileText size={14} />
-                                            {t('ranking_view_answers', 'Ver Respostas')}
+                                            <FileText size={15} />
+                                            <span className="hidden xl:inline">{t('ranking_view_answers', 'Ver Respostas')}</span>
+                                            <span className="xl:hidden">Respostas</span>
                                         </button>
                                         <button
                                             onClick={() => handleShowAnalysis(finalCandidate)}
-                                            className="flex items-center gap-1.5 px-3 py-2 bg-purple-50 text-purple-600 rounded-lg text-xs font-bold hover:bg-purple-100 transition-colors cursor-pointer"
+                                            className="flex items-center justify-center gap-1.5 min-h-[36px] px-2.5 bg-purple-50 text-purple-600 rounded-lg text-xs font-bold hover:bg-purple-100 transition-colors cursor-pointer whitespace-nowrap border border-purple-100"
                                         >
-                                            <Brain size={14} />
-                                            {t('ranking_ai_analysis', 'Análise IA')}
+                                            <Brain size={15} />
+                                            <span className="hidden xl:inline">{t('ranking_ai_analysis', 'Análise IA')}</span>
+                                            <span className="xl:hidden">IA</span>
                                         </button>
 
                                         {(() => {
@@ -326,10 +324,10 @@ export function CandidatesPageContent({ state, vacancy, candidates, vacancyUuid 
                                                 return (
                                                     <button
                                                         onClick={() => handleShowVideo(finalCandidate, breakdown.video.url)}
-                                                        className="flex items-center gap-1.5 px-3 py-2 bg-green-600 text-white rounded-lg text-xs font-bold hover:bg-green-700 transition-colors cursor-pointer shadow-sm shadow-green-200"
+                                                        className="flex items-center justify-center gap-1.5 min-h-[36px] px-2.5 bg-green-600 text-white rounded-lg text-xs font-bold hover:bg-green-700 transition-colors cursor-pointer shadow-sm shadow-green-200 whitespace-nowrap"
                                                     >
-                                                        <Play size={14} />
-                                                        {t('watch_video', 'Ver Vídeo')}
+                                                        <Play size={15} />
+                                                        {t('watch_video', 'Vídeo')}
                                                     </button>
                                                 );
                                             }
@@ -338,13 +336,16 @@ export function CandidatesPageContent({ state, vacancy, candidates, vacancyUuid 
                                                 <button
                                                     onClick={() => handleRequestVideoClick(finalCandidate)}
                                                     disabled={hasVideoRequest || !!hasFeedback || isPending}
-                                                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-colors cursor-pointer
+                                                    className={`flex items-center justify-center gap-1.5 min-h-[36px] px-2.5 rounded-lg text-xs font-bold transition-colors cursor-pointer whitespace-nowrap
                                                     ${hasVideoRequest || hasFeedback
-                                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                                            : 'bg-green-50 text-green-600 hover:bg-green-100'}`}
+                                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
+                                                        : 'bg-green-50 text-green-600 hover:bg-green-100 border border-green-200'}`}
                                                 >
-                                                    <Video size={14} />
-                                                    {hasVideoRequest ? t('ranking_video_requested', 'Vídeo Solicitado') : t('ranking_request_video', 'Solicitar Vídeo')}
+                                                    <Video size={15} />
+                                                    {hasVideoRequest
+                                                        ? t('ranking_video_requested', 'Solicitado')
+                                                        : t('ranking_request_video', 'Vídeo')
+                                                    }
                                                 </button>
                                             );
                                         })()}
@@ -352,10 +353,11 @@ export function CandidatesPageContent({ state, vacancy, candidates, vacancyUuid 
                                         {!feedbackStatus && (
                                             <button
                                                 onClick={(e) => handleFeedbackClick(e, finalCandidate)}
-                                                className="flex items-center gap-1.5 px-3 py-2 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-bold hover:bg-indigo-100 transition-colors cursor-pointer"
+                                                className="flex items-center justify-center gap-1.5 min-h-[36px] px-2.5 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-bold hover:bg-indigo-100 transition-colors cursor-pointer whitespace-nowrap border border-indigo-100"
                                             >
-                                                <MessageSquare size={14} />
-                                                {t('ranking_send_feedback', 'Dar Feedback')}
+                                                <MessageSquare size={15} />
+                                                <span className="hidden xl:inline">{t('ranking_send_feedback', 'Enviar Feedback')}</span>
+                                                <span className="xl:hidden">Feedback</span>
                                             </button>
                                         )}
                                     </div>

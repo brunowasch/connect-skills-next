@@ -683,13 +683,23 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyUuid, compa
                             <button
                                 type="button"
                                 onClick={() => openRewriteModal('descricao')}
-                                className="absolute bottom-5 right-5 p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 cursor-pointer shadow-sm border border-blue-200"
+                                className="hidden sm:flex items-center gap-1 absolute bottom-3 right-3 p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 cursor-pointer shadow-sm border border-blue-200"
                                 title={t('ai_rewrite_btn', 'Reescrever com IA')}
                             >
                                 <Sparkles size={16} />
                             </button>
                         )}
                     </div>
+                    {formData.descricao?.trim() && (
+                        <button
+                            type="button"
+                            onClick={() => openRewriteModal('descricao')}
+                            className="sm:hidden flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-all cursor-pointer shadow-sm"
+                        >
+                            <Sparkles size={13} />
+                            {t('ai_rewrite_btn', 'Reescrever com IA')}
+                        </button>
+                    )}
                 </div>
 
                 <div className="space-y-2">
@@ -883,7 +893,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyUuid, compa
                             <button
                                 type="button"
                                 onClick={() => openRewriteModal('candidatoIdeal')}
-                                className="absolute bottom-5 right-5 p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 cursor-pointer shadow-sm border border-blue-200"
+                                className="hidden sm:flex items-center gap-1 absolute bottom-3 right-3 p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 cursor-pointer shadow-sm border border-blue-200"
                                 title={t('ai_rewrite_btn', 'Reescrever com IA')}
                             >
                                 <Sparkles size={16} />
@@ -891,6 +901,16 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyUuid, compa
                         )}
                     </div>
                     <p className="text-xs text-gray-500">{t('ideal_candidate_hint')}</p>
+                    {formData.candidatoIdeal?.trim() && (
+                        <button
+                            type="button"
+                            onClick={() => openRewriteModal('candidatoIdeal')}
+                            className="sm:hidden flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-all cursor-pointer shadow-sm"
+                        >
+                                <Sparkles size={13} />
+                                {t('ai_rewrite_btn', 'Reescrever com IA')}
+                            </button>
+                        )}
                 </div>
 
                 <div className="space-y-2">
@@ -908,13 +928,23 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyUuid, compa
                             <button
                                 type="button"
                                 onClick={() => openRewriteModal('pergunta')}
-                                className="absolute bottom-5 right-5 p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 cursor-pointer shadow-sm border border-blue-200"
+                                className="hidden sm:flex items-center gap-1 absolute bottom-3 right-3 p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 cursor-pointer shadow-sm border border-blue-200"
                                 title={t('ai_rewrite_btn', 'Reescrever com IA')}
                             >
                                 <Sparkles size={16} />
                             </button>
                         )}
                     </div>
+                    {formData.pergunta?.trim() && (
+                        <button
+                            type="button"
+                            onClick={() => openRewriteModal('pergunta')}
+                            className="sm:hidden flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-all cursor-pointer shadow-sm"
+                        >
+                            <Sparkles size={13} />
+                            {t('ai_rewrite_btn', 'Reescrever com IA')}
+                        </button>
+                    )}
                 </div>
             </div>
 

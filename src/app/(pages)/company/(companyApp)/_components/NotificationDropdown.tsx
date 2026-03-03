@@ -228,7 +228,7 @@ export function NotificationDropdown({ notifications: initialNotifications }: No
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-[420px] max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-2xl border border-slate-200 z-50 overflow-hidden">
+                <div className="fixed left-2 right-2 top-[64px] sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-2 w-auto sm:w-[420px] sm:max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-2xl border border-slate-200 z-50 overflow-hidden">
                     <div className="p-4 border-b border-slate-100 bg-slate-50">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
@@ -250,7 +250,7 @@ export function NotificationDropdown({ notifications: initialNotifications }: No
                         </div>
                     </div>
 
-                    <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
+                    <div className="max-h-[60vh] sm:max-h-[400px] overflow-y-auto custom-scrollbar">
                         {notifications.length === 0 ? (
                             <div className="p-8 text-center">
                                 <div className="bg-slate-50 w-12 h-12 rounded-full flex items-center justify-center mb-3 mx-auto text-slate-400">
