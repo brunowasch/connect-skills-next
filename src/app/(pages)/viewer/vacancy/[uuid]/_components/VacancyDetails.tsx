@@ -1498,23 +1498,21 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                     <div className="mt-10 pt-8 border-t border-gray-100">
                         <h2 className="text-lg font-semibold text-gray-900 mb-4">{t("management_title")}</h2>
                         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-                            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                                <div>
-                                    <button
-                                        onClick={handleRankCandidates}
-                                        disabled={isPending}
-                                        className="inline-flex items-center gap-2 px-4 py-2.5 border border-blue-600 text-blue-600 font-medium rounded-lg hover:bg-blue-50 transition-colors cursor-pointer disabled:opacity-50 text-sm"
-                                    >
-                                        <BarChart3 size={18} />
-                                        {t("management_ranking")}
-                                    </button>
-                                </div>
+                            <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+                                <button
+                                    onClick={handleRankCandidates}
+                                    disabled={isPending}
+                                    className="w-full xl:w-fit inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-blue-600 text-blue-600 font-medium rounded-lg hover:bg-blue-50 transition-colors cursor-pointer disabled:opacity-50 text-sm"
+                                >
+                                    <BarChart3 size={18} />
+                                    {t("management_ranking")}
+                                </button>
 
-                                <div className="flex flex-wrap items-center gap-3">
+                                <div className="flex flex-col xl:flex-row gap-3">
                                     <button
                                         onClick={handleEditVacancy}
                                         disabled={isPending}
-                                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors cursor-pointer disabled:opacity-50 text-sm"
+                                        className="w-full xl:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors cursor-pointer disabled:opacity-50 text-sm"
                                     >
                                         <Edit size={18} />
                                         {t("management_edit")}
@@ -1523,7 +1521,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                     {!isActive ? (
                                         <button
                                             onClick={() => handleUpdateStatus('Ativa')}
-                                            className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-600 font-medium rounded-lg hover:bg-gray-50 transition-colors cursor-pointer text-sm"
+                                            className="w-full xl:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-600 font-medium rounded-lg hover:bg-gray-50 transition-colors cursor-pointer text-sm"
                                         >
                                             <Unlock size={18} />
                                             {t("management_open")}
@@ -1531,7 +1529,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                     ) : (
                                         <button
                                             onClick={() => handleUpdateStatus('Fechada')}
-                                            className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-600 font-medium rounded-lg hover:bg-gray-50 transition-colors cursor-pointer text-sm"
+                                            className="w-full xl:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-600 font-medium rounded-lg hover:bg-gray-50 transition-colors cursor-pointer text-sm"
                                         >
                                             <Ban size={18} />
                                             {t("management_close")}
@@ -1540,7 +1538,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
 
                                     <button
                                         onClick={handleDeleteVacancy}
-                                        className="inline-flex items-center gap-2 px-4 py-2.5 border border-red-500 text-red-500 font-medium rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-sm"
+                                        className="w-full xl:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-red-500 text-red-500 font-medium rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-sm"
                                     >
                                         <Trash2 size={18} />
                                         {t("management_delete")}
