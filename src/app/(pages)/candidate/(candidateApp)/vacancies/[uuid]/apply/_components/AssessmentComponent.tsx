@@ -18,7 +18,7 @@ import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/src/app/_components/Layout/LanguageSwitcher";
 
 const SECTION_SIZE = 8;
-const MAX_BANK_QUESTIONS = SECTION_SIZE;
+const MAX_BANK_QUESTIONS = 16;
 
 function shuffleArray<T>(arr: T[]): T[] {
   const copy = [...arr];
@@ -50,6 +50,11 @@ interface AssessmentProps {
     }>;
   };
   candidateId: string;
+  initialState?: {
+    questions: Question[];
+    answers: Record<string, string>;
+    currentSection: number;
+  };
 }
 
 const softSkillToCategory: Record<string, string> = {
@@ -77,19 +82,28 @@ const softSkillToCategory: Record<string, string> = {
 
 const DISC_METHODS = ["Dominância", "Influência", "Estabilidade", "Conformidade"];
 
-export default function AssessmentComponent({ vacancy, candidateId }: AssessmentProps) {
+export default function AssessmentComponent({ vacancy, candidateId, initialState }: AssessmentProps) {
   const { t, i18n } = useTranslation();
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [questions, setQuestions] = useState<Question[]>(initialState?.questions || []);
+  const [answers, setAnswers] = useState<Record<string, string>>(initialState?.answers || {});
+  const [currentSection, setCurrentSection] = useState(initialState?.currentSection || 0);
+
   const [startTime, setStartTime] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [penaltyCount, setPenaltyCount] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
+  
+  const [hasConfirmedCompanyQuestions, setHasConfirmedCompanyQuestions] = useState(false);
+  
+  // Se houver initialState e já houver perguntas, começamos automaticamente ou mostramos a tela de início?
+  // O ideal é mostrar a tela de instruções com texto "Continuar Rascunho", mas para simplificar
+  // isStarted vai ser false de cara, e quando clicar em iniciar ele puxa o log já salvo.
   const [isStarted, setIsStarted] = useState(false);
   const [showPenaltyModal, setShowPenaltyModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showIncompleteModal, setShowIncompleteModal] = useState(false);
-  const [currentSection, setCurrentSection] = useState(0);
+  const [showNextSectionModal, setShowNextSectionModal] = useState(false);
   const initializedRef = useRef(false);
 
   const generateQuestions = useCallback(() => {
@@ -137,9 +151,11 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
         });
     }
 
+    if (questions.length > 0) return;
+
     setQuestions(selectedQuestions);
     setCurrentSection(0);
-  }, [vacancy, t]);
+  }, [vacancy, t, questions.length]);
 
   useEffect(() => {
     if (questions.length === 0) return;
@@ -155,14 +171,14 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
     );
   }, [t, i18n.language]);
 
-  const stateRef = useRef({ isFinished, isSubmitting, isStarted, showConfirmModal, showPenaltyModal });
+  const stateRef = useRef({ isFinished, isSubmitting, isStarted, showConfirmModal, showPenaltyModal, showNextSectionModal });
   useEffect(() => {
-    stateRef.current = { isFinished, isSubmitting, isStarted, showConfirmModal, showPenaltyModal };
-  }, [isFinished, isSubmitting, isStarted, showConfirmModal, showPenaltyModal]);
+    stateRef.current = { isFinished, isSubmitting, isStarted, showConfirmModal, showPenaltyModal, showNextSectionModal };
+  }, [isFinished, isSubmitting, isStarted, showConfirmModal, showPenaltyModal, showNextSectionModal]);
 
   const handleScreenLeave = useCallback(() => {
-    const { isFinished, isSubmitting, isStarted, showConfirmModal, showPenaltyModal } = stateRef.current;
-    if (isFinished || isSubmitting || !isStarted || showConfirmModal || showPenaltyModal) return;
+    const { isFinished, isSubmitting, isStarted, showConfirmModal, showPenaltyModal, showNextSectionModal } = stateRef.current;
+    if (isFinished || isSubmitting || !isStarted || showConfirmModal || showPenaltyModal || showNextSectionModal) return;
 
     setPenaltyCount((prev) => prev + 1);
     generateQuestions();
@@ -227,8 +243,28 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
 
   const handleNextSection = () => {
     if (!allSectionAnswered) { setShowIncompleteModal(true); return; }
+    setShowNextSectionModal(true);
+  };
+
+  const confirmNextSection = () => {
+    setShowNextSectionModal(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
-    setCurrentSection((prev) => prev + 1);
+    const nextSec = currentSection + 1;
+    setCurrentSection(nextSec);
+
+    // Auto-save no background
+    const payload = {
+      vaga_id: vacancy.id,
+      candidato_id: candidateId,
+      currentSection: nextSec,
+      answers,
+      questions
+    };
+    fetch("/api/vacancies/apply/save-partial", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }).catch(console.error);
   };
 
   const handlePrevSection = () => {
@@ -284,6 +320,35 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
     }
   };
 
+  const handleSaveProgress = async () => {
+    setIsSaving(true);
+    const payload = {
+      vaga_id: vacancy.id,
+      candidato_id: candidateId,
+      currentSection,
+      answers,
+      questions
+    };
+
+    try {
+      const res = await fetch("/api/vacancies/apply/save-partial", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        window.location.href = "/candidate/dashboard";
+      } else {
+        throw new Error(t("assessment_error_saving"));
+      }
+    } catch (error) {
+      console.error(error);
+      alert(t("assessment_error_saving"));
+      setIsSaving(false);
+    }
+  };
+
   if (isFinished) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
@@ -311,7 +376,9 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
           <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-6">
             <ShieldAlert size={32} />
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-6">{t("assessment_instructions_title")}</h1>
+          <h1 className="text-3xl font-bold text-slate-900 mb-6">
+            {initialState ? t("assessment_instructions_resume_title") : t("assessment_instructions_title")}
+          </h1>
           <div className="space-y-6 text-slate-600 mb-10">
             {[1, 2, 3, 4].map((n) => (
               <div key={n} className="flex items-start gap-4">
@@ -329,7 +396,7 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
             onClick={() => { setIsStarted(true); setStartTime(Date.now()); }}
             className="w-full py-5 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all active:scale-95 shadow-2xl shadow-slate-300 flex items-center justify-center gap-3 cursor-pointer"
           >
-            <span>{t("assessment_start_btn")}</span>
+            <span>{initialState ? t("assessment_resume_btn") : t("assessment_start_btn")}</span>
             <Send size={18} />
           </button>
           <p className="text-center text-[10px] text-slate-400 mt-6 uppercase tracking-widest font-medium">
@@ -457,38 +524,58 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
               </p>
             </div>
 
-            <div className="p-8 space-y-12">
-              {sectionQuestions.map((q, index) => (
-                <div key={q.id} className="group">
-                  <div className="flex items-start gap-4 mb-4">
-                    <span className="flex-shrink-0 w-8 h-8 rounded-lg bg-slate-100 text-slate-500 font-bold flex items-center justify-center text-sm">
-                      {currentSection * SECTION_SIZE + index + 1}
-                    </span>
-                    <h3 className="text-lg font-semibold text-slate-800 leading-snug pt-1">{q.text}</h3>
-                  </div>
-                  <textarea
-                    className="w-full p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-slate-50 hover:bg-white resize-none min-h-[120px] text-slate-700 leading-relaxed"
-                    placeholder={t("assessment_answer_placeholder")}
-                    value={answers[q.id] || ""}
-                    onChange={(e) => handleAnswerChange(q.id, e.target.value)}
-                    autoComplete="off"
-                  />
+            {isLastSection && questions.some(q => q.isCustom) && !hasConfirmedCompanyQuestions ? (
+              <div className="p-8 text-center space-y-6">
+                <div className="w-20 h-20 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <AlertTriangle size={40} />
                 </div>
-              ))}
-            </div>
+                <h2 className="text-2xl font-bold text-slate-900">{t("assessment_almost_there_title", "Quase lá!")}</h2>
+                <p className="text-slate-600 leading-relaxed max-w-lg mx-auto">
+                  {t("assessment_almost_there_desc", "As últimas perguntas foram registradas pela empresa. A partir do momento em que iniciar o teste, responda as perguntas para enviar. Caso contrário, sua candidatura será enviada sem essas respostas.")}
+                </p>
+                <div className="pt-4">
+                  <button
+                    onClick={() => setHasConfirmedCompanyQuestions(true)}
+                    className="px-8 py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all active:scale-95 shadow-xl shadow-blue-200 cursor-pointer text-sm"
+                  >
+                    {t("assessment_almost_there_confirm", "Confirmar")}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="p-8 space-y-12">
+                {sectionQuestions.map((q, index) => (
+                  <div key={q.id} className="group">
+                    <div className="flex items-start gap-4 mb-4">
+                      <span className="flex-shrink-0 w-8 h-8 rounded-lg bg-slate-100 text-slate-500 font-bold flex items-center justify-center text-sm">
+                        {currentSection * SECTION_SIZE + index + 1}
+                      </span>
+                      <h3 className="text-lg font-semibold text-slate-800 leading-snug pt-1">{q.text}</h3>
+                    </div>
+                    <textarea
+                      className="w-full p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-slate-50 hover:bg-white resize-none min-h-[120px] text-slate-700 leading-relaxed"
+                      placeholder={t("assessment_answer_placeholder")}
+                      value={answers[q.id] || ""}
+                      onChange={(e) => handleAnswerChange(q.id, e.target.value)}
+                      autoComplete="off"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div className="p-6 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="w-full sm:w-auto flex items-center">
+              <div className="w-full sm:w-auto flex flex-col sm:flex-row items-center gap-3">
                 {currentSection > 0 ? (
                   <button
                     onClick={handlePrevSection}
-                    className="flex items-center gap-2 px-6 py-4 bg-white border border-slate-200 text-slate-600 font-semibold rounded-2xl hover:bg-slate-100 transition-all active:scale-95 cursor-pointer"
+                    className="flex items-center gap-2 px-6 py-4 bg-white border border-slate-200 text-slate-600 font-semibold rounded-2xl hover:bg-slate-100 transition-all active:scale-95 cursor-pointer w-full sm:w-auto justify-center"
                   >
                     <ChevronLeft size={18} />
                     {t("assessment_btn_prev")}
                   </button>
                 ) : (
-                  <div className="text-slate-400 text-sm flex items-center gap-2">
+                  <div className="hidden sm:flex text-slate-400 text-sm items-center gap-2 mr-2">
                     <Clock size={16} />
                     <span>{t("assessment_footer_timer")}</span>
                   </div>
@@ -496,26 +583,28 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
               </div>
 
               <div className="w-full sm:w-auto">
-                {isLastSection ? (
-                  <button
-                    onClick={handleConfirmSubmit}
-                    disabled={isSubmitting}
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-10 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl transition-all active:scale-95 shadow-lg shadow-blue-200 disabled:opacity-50 cursor-pointer"
-                  >
-                    {isSubmitting ? (
-                      <><Clock className="animate-spin" size={20} /><span>{t("assessment_btn_sending")}</span></>
-                    ) : (
-                      <><span>{t("assessment_btn_send")}</span><Send size={18} /></>
-                    )}
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleNextSection}
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-10 py-4 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl transition-all active:scale-95 shadow-lg shadow-slate-200 cursor-pointer"
-                  >
-                    <span>{t("assessment_btn_next")}</span>
-                    <ChevronRight size={18} />
-                  </button>
+                {!(isLastSection && questions.some(q => q.isCustom) && !hasConfirmedCompanyQuestions) && (
+                  isLastSection ? (
+                    <button
+                      onClick={handleConfirmSubmit}
+                      disabled={isSubmitting}
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-10 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl transition-all active:scale-95 shadow-lg shadow-blue-200 disabled:opacity-50 cursor-pointer"
+                    >
+                      {isSubmitting ? (
+                        <><Clock className="animate-spin" size={20} /><span>{t("assessment_btn_sending")}</span></>
+                      ) : (
+                        <><span>{t("assessment_btn_send")}</span><Send size={18} /></>
+                      )}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleNextSection}
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-10 py-4 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl transition-all active:scale-95 shadow-lg shadow-slate-200 cursor-pointer"
+                    >
+                      <span>{t("assessment_btn_next")}</span>
+                      <ChevronRight size={18} />
+                    </button>
+                  )
                 )}
               </div>
             </div>
@@ -563,6 +652,47 @@ export default function AssessmentComponent({ vacancy, candidateId }: Assessment
           </div>
         )}
       </div>
+
+      {showNextSectionModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl p-8 text-center border border-slate-100 animate-in zoom-in-95 duration-300">
+            <div className="w-20 h-20 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <ListChecks size={40} />
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900 mb-4">{t("assessment_next_section_title", "Avançar Sessão")}</h2>
+            <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-8 text-left">
+              <ul className="text-sm text-blue-800 space-y-2 font-medium">
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 size={16} className="shrink-0 mt-0.5" />
+                  {t("assessment_next_section_desc", "Ao passar para o próximo passo, suas respostas serão gravadas de forma segura para que você possa continuar de onde parou depois se precisar fechar a janela.")}
+                </li>
+              </ul>
+            </div>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={confirmNextSection}
+                className="w-full py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all active:scale-95 shadow-xl shadow-blue-200 cursor-pointer"
+              >
+                {t("assessment_next_section_confirm", "Prosseguir com a Candidatura")}
+              </button>
+              <button
+                onClick={handleSaveProgress}
+                disabled={isSaving}
+                className="w-full py-4 bg-white border border-slate-200 text-slate-700 font-bold rounded-2xl hover:bg-slate-50 transition-all active:scale-95 cursor-pointer flex justify-center items-center gap-2"
+              >
+                {isSaving ? <Clock className="animate-spin" size={16} /> : null}
+                {t("assessment_save_progress_btn")}
+              </button>
+              <button
+                onClick={() => setShowNextSectionModal(false)}
+                className="w-full py-4 bg-transparent text-slate-400 font-bold rounded-2xl hover:text-slate-500 transition-all cursor-pointer"
+              >
+                {t("assessment_next_section_cancel", "Cancelar")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showConfirmModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">

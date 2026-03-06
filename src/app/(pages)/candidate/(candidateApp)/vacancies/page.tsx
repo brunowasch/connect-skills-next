@@ -317,6 +317,7 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
             let feedbackStatus = null;
             let videoStatus = null;
             let videoDeadline = null;
+            let isDraft = false;
             if (isHistory) {
                 const applicationData = appliedVacancies.find(av => av.vaga_id === vaga.id);
                 if (applicationData?.breakdown) {
@@ -327,6 +328,7 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
                         feedbackStatus = breakdown?.feedback?.status || null;
                         videoStatus = breakdown?.video?.status || null;
                         videoDeadline = breakdown?.video?.deadline || null;
+                        if (breakdown?.status === 'incomplete') isDraft = true;
                     } catch (e) {
                         console.error("Error parsing breakdown", e);
                     }
@@ -374,7 +376,8 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
                 isFavorited: favoriteIds.includes(vaga.id),
                 feedbackStatus,
                 videoStatus,
-                videoDeadline
+                videoDeadline,
+                isDraft
             } as any;
         });
 
