@@ -6,3 +6,4 @@ export { ProfileCompletion } from "@/src/app/(pages)/candidate/(candidateApp)/da
 export { DashboardHeader } from "@/src/app/(pages)/candidate/(candidateApp)/dashboard/_components/DashboardHeader/DashboardHeader";
 export { NotificationCenter } from "@/src/app/(pages)/candidate/(candidateApp)/dashboard/_components/NotificationCenter/NotificationCenter";
 export { VideoRequests } from "@/src/app/(pages)/candidate/(candidateApp)/dashboard/_components/VideoRequests/VideoRequests";
+export { DraftApplications } from "@/src/app/(pages)/candidate/(candidateApp)/dashboard/_components/DraftApplications/DraftApplications";

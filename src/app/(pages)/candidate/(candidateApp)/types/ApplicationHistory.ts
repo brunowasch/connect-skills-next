@@ -22,6 +22,7 @@ export interface Application {
     videoStatus?: string | null;
     videoDeadline?: string | null;
     feedbackStatus?: 'APPROVED' | 'REJECTED' | null;
+    isDraft?: boolean;
 }
 export interface ApplicationHistoryProps {
     historicoAplicacoes: Application[];

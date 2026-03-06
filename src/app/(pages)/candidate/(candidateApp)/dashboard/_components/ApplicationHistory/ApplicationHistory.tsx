@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Clock, ChevronRight, Camera, Check, CheckCircle, XCircle } from 'lucide-react';
+import { Clock, ChevronRight, Camera, Check, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import { ApplicationHistoryProps } from '@/src/app/(pages)/candidate/(candidateApp)/types/ApplicationHistory';
 import { useTranslation } from "react-i18next";
 
@@ -39,9 +39,11 @@ export function ApplicationHistory({ historicoAplicacoes }: ApplicationHistoryPr
                             const isExpired = item.videoStatus === 'requested' && item.videoDeadline && new Date() > new Date(item.videoDeadline);
 
  
-                            const linkHref = item.videoStatus === 'requested' && item.uuid && !isExpired
-                                ? `/viewer/vacancy/${item.uuid}?action=upload_video`
-                                : item.uuid ? `/viewer/vacancy/${item.uuid}` : `/candidate/vacancies`;
+                            const linkHref = item.isDraft && item.uuid
+                                ? `/candidate/vacancies/${item.uuid}/apply`
+                                : item.videoStatus === 'requested' && item.uuid && !isExpired
+                                    ? `/viewer/vacancy/${item.uuid}?action=upload_video`
+                                    : item.uuid ? `/viewer/vacancy/${item.uuid}` : `/candidate/vacancies`;
 
                             return (
                                 <Link
@@ -101,7 +103,13 @@ export function ApplicationHistory({ historicoAplicacoes }: ApplicationHistoryPr
                                                 {t("video_submitted")}
                                             </span>
                                         )}
-                                        {!item.videoStatus && !item.feedbackStatus && (
+                                        {item.isDraft && (
+                                            <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-[9px] sm:text-[10px] font-bold text-amber-600 shadow-sm">
+                                                <AlertTriangle size={10} className="mr-1" />
+                                                {t("dashboard_history_draft", "Incompleto")}
+                                            </span>
+                                        )}
+                                        {!item.isDraft && !item.videoStatus && !item.feedbackStatus && (
                                             <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-white border border-slate-200 text-[9px] sm:text-[10px] font-bold text-slate-600 shadow-sm">
                                                 {t("pending")}
                                             </span>

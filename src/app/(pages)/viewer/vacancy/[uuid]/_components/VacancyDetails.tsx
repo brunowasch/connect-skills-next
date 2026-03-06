@@ -120,11 +120,12 @@ interface VacancyDetailsProps {
 
     applicationResponses?: any;
     applicationBreakdown?: any;
+    isDraft?: boolean;
 }
 
 import { useTranslation } from "react-i18next";
 
-export function VacancyDetails({ vacancy, company, isActive, applicationCount, userType, isOwner, userId, hasApplied, applicationResponses, applicationBreakdown }: VacancyDetailsProps) {
+export function VacancyDetails({ vacancy, company, isActive, applicationCount, userType, isOwner, userId, hasApplied, applicationResponses, applicationBreakdown, isDraft }: VacancyDetailsProps) {
     const { t, i18n } = useTranslation();
     const router = useRouter();
     const stickyCardRef = useRef<HTMLDivElement>(null);
@@ -491,6 +492,14 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
 
             if (data.applied) {
                 alert("Você já se candidatou a esta vaga.");
+                return;
+            }
+
+            if (data.isDraft || isDraft) {
+                // Direto para a página de continuação
+                const assessmentUrl = `/candidate/vacancies/${vacancy.uuid}/apply`;
+                window.location.href = assessmentUrl;
+                isApplyingRef.current = true;
                 return;
             }
 
@@ -1391,14 +1400,27 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                         </div>
                                     )
                                 ) : (
-                                    <button
-                                        onClick={handleApply}
-                                        disabled={isCheckingApplication}
-                                        className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
-                                    >
-                                        {isCheckingApplication && <Loader2 size={18} className="animate-spin" />}
-                                        {t("vacancy_apply_btn")}
-                                    </button>
+                                    <>
+                                        {isDraft && (
+                                            <div className="w-full mt-6 mb-3 bg-amber-50 border border-amber-200 text-amber-700 py-3 px-4 rounded-lg flex flex-col items-center gap-2 text-center animate-in fade-in slide-in-from-top-2 duration-500">
+                                                <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 mb-1">
+                                                    <AlertTriangle size={24} />
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-sm uppercase tracking-wide">{t("dashboard_history_draft", "Incompleto")}</p>
+                                                    <p className="text-[11px] opacity-80 mt-0.5">Você começou a candidatura mas não terminou.</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                        <button
+                                            onClick={handleApply}
+                                            disabled={isCheckingApplication}
+                                            className={`w-full ${isDraft ? 'mt-2 bg-amber-600 hover:bg-amber-700' : 'mt-6 bg-blue-600 hover:bg-blue-700'} text-white font-semibold py-2.5 px-4 rounded-lg transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2`}
+                                        >
+                                            {isCheckingApplication && <Loader2 size={18} className="animate-spin" />}
+                                            {isDraft ? t("assessment_resume_btn", "Continuar Avaliação") : t("vacancy_apply_btn")}
+                                        </button>
+                                    </>
                                 )
 
                             )}
