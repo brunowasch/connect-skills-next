@@ -100,18 +100,7 @@ export default async function VacanciesPage() {
             ...vacancy,
             uuid: vacancy.uuid || vacancy.id,
             status,
-            opcao: (() => {
-                try {
-                    if (vacancy.opcao) {
-                        const parsed = JSON.parse(vacancy.opcao);
-                        if (parsed.vagas_disponiveis) {
-                            const remaining = Math.max(0, parsed.vagas_disponiveis - stats.approved);
-                            return JSON.stringify({ ...parsed, vagas_disponiveis: remaining });
-                        }
-                    }
-                } catch (e) {}
-                return vacancy.opcao;
-            })(),
+            opcao: vacancy.opcao,
             _count: {
                 vaga_avaliacao: stats.total
             },

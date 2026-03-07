@@ -299,6 +299,7 @@ export default async function Dashboard() {
             let feedbackStatus = null;
             let isDraft = false;
             let currentSection = 0;
+            let totalSections = 0;
             try {
                 if (applicationData?.breakdown) {
                     const breakdown = typeof applicationData.breakdown === 'string' ? JSON.parse(applicationData.breakdown) : applicationData.breakdown;
@@ -308,6 +309,7 @@ export default async function Dashboard() {
                     if (breakdown?.status === 'incomplete') {
                         isDraft = true;
                         currentSection = breakdown?.currentSection || 0;
+                        totalSections = breakdown?.totalSections || 0;
                     }
                 }
             } catch (e) {
@@ -336,6 +338,7 @@ export default async function Dashboard() {
                 feedbackStatus,
                 isDraft,
                 currentSection,
+                totalSections,
             };
         });
     }

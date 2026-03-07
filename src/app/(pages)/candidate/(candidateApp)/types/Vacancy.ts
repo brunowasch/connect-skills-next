@@ -30,6 +30,7 @@ export interface Vacancy {
     videoDeadline?: string | null;
     isDraft?: boolean;
     currentSection?: number;
+    totalSections?: number;
 }
 
 export interface RecommendedVacancyProps {

@@ -269,21 +269,6 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
             select: { id: true, nome: true }
         });
 
-        const allVagaEvals = await prisma.vaga_avaliacao.findMany({
-            where: { vaga_id: { in: vagas.map(v => v.id) } },
-            select: { vaga_id: true, breakdown: true }
-        });
-        const approvedCountMap = new Map<string, number>();
-        for (const ev of allVagaEvals) {
-            try {
-                const bd = typeof ev.breakdown === 'string' ? JSON.parse(ev.breakdown as string) : ev.breakdown as any;
-                if (bd?.feedback?.status === 'APPROVED') {
-                    approvedCountMap.set(ev.vaga_id, (approvedCountMap.get(ev.vaga_id) || 0) + 1);
-                }
-            } catch (e) {}
-        }
-
-        // Mapear para o tipo Vacancy e Calcular Relevância de Localização
         vacancies = vagas.map(vaga => {
             const empresa = empresas.find(e => e.id === vaga.empresa_id);
             const areasData = vagaAreas
@@ -342,10 +327,6 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
                     if (isHistory) {
                         const { vagas_disponiveis: _, ...rest } = parsed;
                         opcaoAjustado = JSON.stringify(rest);
-                    } else if (parsed.vagas_disponiveis) {
-                        const approved = approvedCountMap.get(vaga.id) || 0;
-                        const remaining = Math.max(0, parsed.vagas_disponiveis - approved);
-                        opcaoAjustado = JSON.stringify({ ...parsed, vagas_disponiveis: remaining });
                     }
                 }
             } catch (e) {}

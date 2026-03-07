@@ -19,8 +19,10 @@ i18n
             escapeValue: false
         },
         detection: {
-            order: ['cookie', 'localStorage', 'navigator'],
-            caches: ['cookie']
+            order: ['localStorage', 'cookie', 'navigator'],
+            caches: ['localStorage', 'cookie'],
+            lookupLocalStorage: 'i18nextLng',
+            lookupCookie: 'i18next'
         }
     });
 
