@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
-import { Hero, KPI, RecommendedVacancies, ApplicationHistory, ProfileCompletion, DashboardHeader, VideoRequests } from "@/src/app/(pages)/candidate/(candidateApp)/dashboard/_components/index";
+import { Hero, KPI, RecommendedVacancies, ApplicationHistory, ProfileCompletion, DashboardHeader, VideoRequests, DraftApplications } from "@/src/app/(pages)/candidate/(candidateApp)/dashboard/_components/index";
 
 export default async function Dashboard() {
     const cookieStore = await cookies();
@@ -297,12 +297,20 @@ export default async function Dashboard() {
             let videoStatus = null;
             let videoDeadline = null;
             let feedbackStatus = null;
+            let isDraft = false;
+            let currentSection = 0;
+            let totalSections = 0;
             try {
                 if (applicationData?.breakdown) {
                     const breakdown = typeof applicationData.breakdown === 'string' ? JSON.parse(applicationData.breakdown) : applicationData.breakdown;
                     videoStatus = breakdown?.video?.status || null;
                     videoDeadline = breakdown?.video?.deadline || null;
                     feedbackStatus = breakdown?.feedback?.status || null;
+                    if (breakdown?.status === 'incomplete') {
+                        isDraft = true;
+                        currentSection = breakdown?.currentSection || 0;
+                        totalSections = breakdown?.totalSections || 0;
+                    }
                 }
             } catch (e) {
                 console.error("Error parsing breakdown", e);
@@ -328,6 +336,9 @@ export default async function Dashboard() {
                 videoStatus,
                 videoDeadline,
                 feedbackStatus,
+                isDraft,
+                currentSection,
+                totalSections,
             };
         });
     }
@@ -360,7 +371,9 @@ export default async function Dashboard() {
                 areas={areas}
             />
 
-            <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+            <DraftApplications draftVacancies={appliedVacancies.filter(v => v.isDraft)} />
+
+            <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mt-6">
                 <RecommendedVacancies vacanciesRecommended={recommendedVacancies} />
                 <ApplicationHistory historicoAplicacoes={appliedVacancies} />
             </div>

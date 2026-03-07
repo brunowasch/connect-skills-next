@@ -120,6 +120,7 @@ export default async function VacancyDetailsPage({ params, searchParams }: { par
 
     // Verificar se o candidato já se candidatou
     let hasApplied = false;
+    let isDraft = false;
     let applicationResponses: any = null;
     let applicationBreakdown: any = null;
     if (userId && userType?.toUpperCase() === 'CANDIDATO') {
@@ -136,9 +137,12 @@ export default async function VacancyDetailsPage({ params, searchParams }: { par
                         candidato_id: candidate.id
                     }
                 },
-                select: { resposta: true, breakdown: true }
+                select: { resposta: true, breakdown: true, score: true }
             });
-            hasApplied = !!application;
+            hasApplied = application ? application.score >= 0 : false;
+            if (application?.score === -1) {
+                isDraft = true;
+            }
             if (application?.resposta) {
                 try {
                     applicationResponses = JSON.parse(application.resposta);
@@ -156,8 +160,6 @@ export default async function VacancyDetailsPage({ params, searchParams }: { par
         }
     }
 
-    // Montar o objeto de vaga com todos os relacionamentos
-    // Serializar para evitar erro de Decimal e Date não-POJO
     const vacancyWithRelations = JSON.parse(JSON.stringify({
         ...vacancy,
         salario: vacancy.salario ? Number(vacancy.salario) : null,
@@ -189,6 +191,7 @@ export default async function VacancyDetailsPage({ params, searchParams }: { par
             hasApplied={hasApplied}
             applicationResponses={applicationResponses}
             applicationBreakdown={applicationBreakdown}
+            isDraft={isDraft}
         />
     );
 }
