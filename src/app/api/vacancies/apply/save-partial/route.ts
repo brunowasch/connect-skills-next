@@ -22,10 +22,12 @@ export async function POST(req: NextRequest) {
         const answeredCount = Object.values(answers || {}).filter((a: any) => a.trim().length > 0).length;
         const totalCount = (questions || []).length;
         const progressPct = totalCount > 0 ? Math.round((answeredCount / totalCount) * 100) : 0;
+        const totalSections = Math.max(1, Math.ceil(totalCount / 8));
 
         const breakdownData = {
             status: "incomplete",
             currentSection: currentSection || 0,
+            totalSections,
             progressPct
         };
 

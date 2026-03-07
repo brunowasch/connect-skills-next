@@ -53,7 +53,10 @@ export function DraftApplications({ draftVacancies }: DraftApplicationsProps) {
                             <div className="flex items-center gap-1.5 text-xs font-bold px-2.5 py-1.5 rounded-md w-fit bg-slate-100 text-slate-600 border border-slate-200">
                                 <Clock size={14} />
                                 <span>
-                                    {t("assessment_section_badge", { current: (req.currentSection || 0) + 1, total: 3 })}
+                                    {t("assessment_section_badge", { 
+                                        current: (req.currentSection || 0) + 1, 
+                                        total: Math.max(req.totalSections || 3, (req.currentSection || 0) + 1) 
+                                    })}
                                 </span>
                             </div>
                         </div>

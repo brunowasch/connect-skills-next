@@ -106,7 +106,7 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
   const [showNextSectionModal, setShowNextSectionModal] = useState(false);
   const initializedRef = useRef(false);
 
-  const generateQuestions = useCallback(() => {
+  const generateQuestions = useCallback((forceReset = false) => {
     const allBankQuestions: Question[] = [];
     const questionsData = t("questions", { returnObjects: true }) as any;
     const banco = questionsData?.banco_questoes_disc_full || {};
@@ -151,7 +151,7 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
         });
     }
 
-    if (questions.length > 0) return;
+    if (!forceReset && questions.length > 0) return;
 
     setQuestions(selectedQuestions);
     setCurrentSection(0);
@@ -181,8 +181,9 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
     if (isFinished || isSubmitting || !isStarted || showConfirmModal || showPenaltyModal || showNextSectionModal) return;
 
     setPenaltyCount((prev) => prev + 1);
-    generateQuestions();
+    generateQuestions(true);
     setAnswers({});
+    setCurrentSection(0);
     setShowPenaltyModal(true);
   }, [generateQuestions]);
 
@@ -273,7 +274,11 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
   };
 
   const handleJumpToSection = (targetIndex: number) => {
-    if (targetIndex >= currentSection) return;
+    if (targetIndex > currentSection) {
+      for (let j = 0; j < targetIndex; j++) {
+        if (!isSectionComplete(j)) return;
+      }
+    }
     window.scrollTo({ top: 0, behavior: "smooth" });
     setCurrentSection(targetIndex);
   };
@@ -322,10 +327,14 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
 
   const handleSaveProgress = async () => {
     setIsSaving(true);
+    const saveSection = allSectionAnswered && !isLastSection
+      ? currentSection + 1
+      : currentSection;
+
     const payload = {
       vaga_id: vacancy.id,
       candidato_id: candidateId,
-      currentSection,
+      currentSection: saveSection,
       answers,
       questions
     };
@@ -359,7 +368,7 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
           <h1 className="text-3xl font-bold text-slate-900 mb-4">{t("assessment_success_title")}</h1>
           <p className="text-slate-600 mb-8 leading-relaxed">{t("assessment_success_desc")}</p>
           <button
-            onClick={() => window.close()}
+            onClick={() => window.location.href = "/candidate/dashboard"}
             className="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all active:scale-95 shadow-xl shadow-slate-200 cursor-pointer"
           >
             {t("assessment_success_btn")}
@@ -460,23 +469,36 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
               {Array.from({ length: totalSections }).map((_, i) => {
                 const done = isSectionComplete(i);
                 const isCurrent = i === currentSection;
-                const isPast = i < currentSection;
-                const clickable = isPast;
+                
+                let clickable = false;
+                if (i < currentSection) {
+                  clickable = true;
+                } else if (i > currentSection) {
+                  clickable = true;
+                  for (let j = 0; j < i; j++) {
+                    if (!isSectionComplete(j)) {
+                      clickable = false;
+                      break;
+                    }
+                  }
+                }
 
                 return (
                   <div
                     key={i}
                     role={clickable ? "button" : undefined}
-                    aria-label={clickable ? `Voltar para sessão ${i + 1}` : undefined}
+                    aria-label={clickable ? `Ir para sessão ${i + 1}` : undefined}
                     onClick={() => clickable && handleJumpToSection(i)}
-                    title={clickable ? `Editar sessão ${i + 1}` : undefined}
+                    title={clickable ? `Ir para sessão ${i + 1}` : undefined}
                     className={[
                       "flex items-center justify-center rounded-full font-bold text-xs transition-all duration-300",
                       isCurrent
                         ? "w-8 h-8 bg-blue-600 text-white shadow-lg shadow-blue-200 scale-110"
-                        : done
-                          ? "w-7 h-7 bg-emerald-500 text-white cursor-pointer hover:bg-emerald-600 hover:scale-110 ring-2 ring-emerald-200"
-                          : "w-7 h-7 bg-slate-200 text-slate-400",
+                        : clickable
+                          ? done
+                            ? "w-7 h-7 bg-emerald-500 text-white cursor-pointer hover:bg-emerald-600 hover:scale-110 ring-2 ring-emerald-200"
+                            : "w-7 h-7 bg-slate-300 text-slate-600 cursor-pointer hover:bg-slate-400 hover:text-white"
+                          : "w-7 h-7 bg-slate-100 text-slate-300 opacity-50 cursor-not-allowed",
                     ].join(" ")}
                   >
                     {done && !isCurrent ? <CheckCircle2 size={14} /> : i + 1}
