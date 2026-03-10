@@ -28,6 +28,9 @@ export interface Vacancy {
     feedbackStatus?: 'APPROVED' | 'REJECTED' | null;
     videoStatus?: string | null;
     videoDeadline?: string | null;
+    isDraft?: boolean;
+    currentSection?: number;
+    totalSections?: number;
 }
 
 export interface RecommendedVacancyProps {

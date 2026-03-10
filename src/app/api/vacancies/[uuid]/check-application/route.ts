@@ -46,8 +46,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ uuid
                 }
             }
         });
-
-        return NextResponse.json({ applied: !!application });
+        return NextResponse.json({ 
+            applied: application ? application.score >= 0 : false,
+            isDraft: application ? application.score === -1 : false 
+        });
 
     } catch (error) {
         console.error("Error checking application (uuid:", uuid, "):", error);
