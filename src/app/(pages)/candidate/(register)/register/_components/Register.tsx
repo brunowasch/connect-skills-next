@@ -7,11 +7,20 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTranslation, Trans } from "react-i18next";
 
-export function RegisterCandidateName() {
+export function RegisterCandidateName({ initialName = "", initialSurname = "" }: { initialName?: string, initialSurname?: string }) {
     const { t, i18n } = useTranslation();
     const router = useRouter();
-    const [nome, setNome] = useState("");
-    const [sobrenome, setSobrenome] = useState("");
+    const [nome, setNome] = useState(initialName);
+    const [sobrenome, setSobrenome] = useState(initialSurname);
+    
+    useEffect(() => {
+        if (initialName) setNome(initialName);
+    }, [initialName]);
+
+    useEffect(() => {
+        if (initialSurname) setSobrenome(initialSurname);
+    }, [initialSurname]);
+
     const [data_nascimento, setDataNascimento] = useState("");
     const [age, setAge] = useState<number | null>(null);
     const [consentimentoParental, setConsentimentoParental] = useState(false);
