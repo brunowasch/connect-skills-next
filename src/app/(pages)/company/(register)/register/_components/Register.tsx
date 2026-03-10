@@ -4,10 +4,15 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 
-export function RegisterCompany() {
+export function RegisterCompany({ initialName = "" }: { initialName?: string }) {
     const { t } = useTranslation();
     const router = useRouter();
-    const [nome, setNome] = useState("");
+    const [nome, setNome] = useState(initialName);
+    
+    useEffect(() => {
+        if (initialName) setNome(initialName);
+    }, [initialName]);
+
     const [decricao, setDescricao] = useState("");
     const [error, setError] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);

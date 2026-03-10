@@ -26,7 +26,7 @@ export async function DELETE(req: NextRequest) {
         }
 
         await prisma.$transaction(async (tx) => {
-            if (user.tipo === "CANDIDATO" && user.candidato) {
+            if (user.candidato) {
                 const candidatoId = user.candidato.id;
 
                 // Delete candidate relations
@@ -38,11 +38,26 @@ export async function DELETE(req: NextRequest) {
 
                 // Delete candidate
                 await tx.candidato.delete({ where: { id: candidatoId } });
-            } else if (user.tipo === "EMPRESA" && user.empresa) {
+            }
+            
+            if (user.empresa) {
                 const empresaId = user.empresa.id;
 
+                const vagas = await tx.vaga.findMany({ where: { empresa_id: empresaId }, select: { id: true } });
+                const vagaIds = vagas.map(v => v.id);
+
+                if (vagaIds.length > 0) {
+                    await tx.vaga_area.deleteMany({ where: { vaga_id: { in: vagaIds } } });
+                    await tx.vaga_soft_skill.deleteMany({ where: { vaga_id: { in: vagaIds } } });
+                    await tx.vaga_status.deleteMany({ where: { vaga_id: { in: vagaIds } } });
+                    await tx.vaga_arquivo.deleteMany({ where: { vaga_id: { in: vagaIds } } });
+                    await tx.vaga_link.deleteMany({ where: { vaga_id: { in: vagaIds } } });
+                    await tx.vaga_avaliacao.deleteMany({ where: { vaga_id: { in: vagaIds } } });
+                    await tx.vaga_favorita.deleteMany({ where: { vaga_id: { in: vagaIds } } });
+                    await tx.vaga.deleteMany({ where: { id: { in: vagaIds } } });
+                }
+
                 // Delete company relations
-                await tx.vaga.deleteMany({ where: { empresa_id: empresaId } });
                 await tx.empresa_arquivo.deleteMany({ where: { empresa_id: empresaId } });
                 await tx.empresa_link.deleteMany({ where: { empresa_id: empresaId } });
 
@@ -50,12 +65,8 @@ export async function DELETE(req: NextRequest) {
                 await tx.empresa.delete({ where: { id: empresaId } });
             }
 
-            // Delete authentication tokens if any
-            try {
-                await (tx as any).verification_token.deleteMany({ where: { usuario_id: userId } });
-            } catch (e) {
-                // Ignore if table doesn't exist
-            }
+            await tx.password_reset_token.deleteMany({ where: { usuario_id: userId } });
+            await tx.verification_token.deleteMany({ where: { usuario_id: userId } });
 
             // Delete user
             await tx.usuario.delete({ where: { id: userId } });
