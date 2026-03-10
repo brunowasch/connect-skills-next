@@ -89,10 +89,23 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
                         {t("dashboard_history_draft", "Incompleto")}
                     </span>
                 )}
+                <button
+                    onClick={handleToggleFavorite}
+                    disabled={isTogglingFavorite}
+                    className={`p-1.5 rounded-full transition-all hover:bg-gray-100 active:bg-gray-200 group/star cursor-pointer
+                        ${favorited ? 'text-yellow-500' : 'text-gray-300'}
+                        ${isTogglingFavorite ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                    <Star
+                        size={18}
+                        fill={favorited ? "currentColor" : "none"}
+                        className={`transition-transform group-active/star:scale-125 cursor-pointer sm:w-5 sm:h-5 ${favorited ? 'filter drop-shadow-sm' : ''}`}
+                    />
+                </button>
             </div>
 
             <div className="p-3 sm:p-5 flex-grow">
-                <div className="flex items-center justify-between mb-2 sm:mb-4">
+                <div className="flex items-center mb-2 sm:mb-4">
                     <div className="flex items-center gap-2 sm:gap-3">
                         {vaga.empresa?.foto_perfil ? (
                             <Image
@@ -111,23 +124,9 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
                             {vaga.empresa?.nome_empresa}
                         </span>
                     </div>
-
-                    <button
-                        onClick={handleToggleFavorite}
-                        disabled={isTogglingFavorite}
-                        className={`p-2 rounded-full transition-all mt-4 hover:bg-gray-100 active:bg-gray-200 group/star cursor-pointer 
-                            ${favorited ? 'text-yellow-500' : 'text-gray-300'}
-                            ${isTogglingFavorite ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                        <Star
-                            size={18}
-                            fill={favorited ? "currentColor" : "none"}
-                            className={`transition-transform group-active/star:scale-125 cursor-pointer sm:w-5 sm:h-5 ${favorited ? 'filter drop-shadow-sm' : ''}`}
-                        />
-                    </button>
                 </div>
 
-                <h3 className={`font-bold text-sm sm:text-base transition-colors line-clamp-2 mb-1 sm:mb-2 
+                <h3 className={`font-bold text-sm sm:text-base transition-colors line-clamp-2 mb-1 sm:mb-2
                     ${vaga.feedbackStatus === 'APPROVED' ? 'text-emerald-600' :
                         vaga.feedbackStatus === 'REJECTED' ? 'text-red-600' :
                             'text-slate-900 group-hover:text-blue-600'}`}>
