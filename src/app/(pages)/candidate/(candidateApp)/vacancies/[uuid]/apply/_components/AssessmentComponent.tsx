@@ -181,11 +181,8 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
     if (isFinished || isSubmitting || !isStarted || showConfirmModal || showPenaltyModal || showNextSectionModal) return;
 
     setPenaltyCount((prev) => prev + 1);
-    generateQuestions(true);
-    setAnswers({});
-    setCurrentSection(0);
     setShowPenaltyModal(true);
-  }, [generateQuestions]);
+  }, []);
 
   useEffect(() => {
     if (isStarted && !initializedRef.current) {
@@ -493,15 +490,15 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
                     className={[
                       "flex items-center justify-center rounded-full font-bold text-xs transition-all duration-300",
                       isCurrent
-                        ? "w-8 h-8 bg-blue-600 text-white shadow-lg shadow-blue-200 scale-110"
+                        ? "w-8 h-8 bg-blue-600 text-white shadow-lg shadow-blue-200 ring-4 ring-blue-50 scale-110"
                         : clickable
                           ? done
-                            ? "w-7 h-7 bg-emerald-500 text-white cursor-pointer hover:bg-emerald-600 hover:scale-110 ring-2 ring-emerald-200"
+                            ? "w-7 h-7 bg-emerald-500 text-white cursor-pointer hover:bg-emerald-600 hover:scale-110 ring-4 ring-emerald-100"
                             : "w-7 h-7 bg-slate-300 text-slate-600 cursor-pointer hover:bg-slate-400 hover:text-white"
                           : "w-7 h-7 bg-slate-100 text-slate-300 opacity-50 cursor-not-allowed",
                     ].join(" ")}
                   >
-                    {done && !isCurrent ? <CheckCircle2 size={14} /> : i + 1}
+                    {i + 1}
                   </div>
                 );
               })}
