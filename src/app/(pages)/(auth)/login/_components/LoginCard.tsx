@@ -29,6 +29,14 @@ function GoogleIcon() {
     );
 }
 
+function LinkedInIcon() {
+    return (
+        <svg className="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true" fill="#0A66C2">
+            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+        </svg>
+    );
+}
+
 export function LoginCard() {
     const { t } = useTranslation();
     const router = useRouter();
@@ -42,6 +50,7 @@ export function LoginCard() {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+    const [isLinkedInLoading, setIsLinkedInLoading] = useState(false);
     const [error, setError] = useState("");
 
     useEffect(() => {
@@ -49,6 +58,10 @@ export function LoginCard() {
             setError(t("google_auth_error_cancelled"));
         } else if (errorParam && errorParam.startsWith("google_")) {
             setError(t("google_auth_error_generic"));
+        } else if (errorParam === "linkedin_cancelled") {
+            setError(t("linkedin_auth_error_cancelled"));
+        } else if (errorParam && errorParam.startsWith("linkedin_")) {
+            setError(t("linkedin_auth_error_generic"));
         }
     }, [errorParam, t]);
 
@@ -112,6 +125,11 @@ export function LoginCard() {
     function handleGoogleLogin() {
         setIsGoogleLoading(true);
         window.location.href = `/api/auth/google?tipo=CANDIDATO`;
+    }
+
+    function handleLinkedInLogin() {
+        setIsLinkedInLoading(true);
+        window.location.href = `/api/auth/linkedin?tipo=CANDIDATO`;
     }
 
     return (
@@ -200,8 +218,8 @@ export function LoginCard() {
                 <button
                     type="button"
                     onClick={handleGoogleLogin}
-                    disabled={isGoogleLoading || isLoading}
-                    className="w-full flex items-center justify-center gap-3 border border-gray-300 bg-white text-gray-700 py-2.5 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer mb-5 font-medium disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+                    disabled={isGoogleLoading || isLinkedInLoading || isLoading}
+                    className="w-full flex items-center justify-center gap-3 border border-gray-300 bg-white text-gray-700 py-2.5 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer mb-3 font-medium disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
                 >
                     {isGoogleLoading ? (
                         <Loader2 className="animate-spin" size={20} />
@@ -209,6 +227,20 @@ export function LoginCard() {
                         <GoogleIcon />
                     )}
                     {t("login_with_google")}
+                </button>
+
+                <button
+                    type="button"
+                    onClick={handleLinkedInLogin}
+                    disabled={isLinkedInLoading || isGoogleLoading || isLoading}
+                    className="w-full flex items-center justify-center gap-3 border border-[#0A66C2] bg-white text-[#0A66C2] py-2.5 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer mb-5 font-medium disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+                >
+                    {isLinkedInLoading ? (
+                        <Loader2 className="animate-spin" size={20} />
+                    ) : (
+                        <LinkedInIcon />
+                    )}
+                    {t("login_with_linkedin")}
                 </button>
 
                 <div className="mt-6 text-center text-sm">
