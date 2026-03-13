@@ -37,6 +37,14 @@ function LinkedInIcon() {
     );
 }
 
+function FacebookIcon() {
+    return (
+        <svg className="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true" fill="#1877F2">
+            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+        </svg>
+    );
+}
+
 export function LoginCard() {
     const { t } = useTranslation();
     const router = useRouter();
@@ -51,6 +59,7 @@ export function LoginCard() {
     const [isLoading, setIsLoading] = useState(false);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
     const [isLinkedInLoading, setIsLinkedInLoading] = useState(false);
+    const [isFacebookLoading, setIsFacebookLoading] = useState(false);
     const [error, setError] = useState("");
 
     useEffect(() => {
@@ -62,6 +71,10 @@ export function LoginCard() {
             setError(t("linkedin_auth_error_cancelled"));
         } else if (errorParam && errorParam.startsWith("linkedin_")) {
             setError(t("linkedin_auth_error_generic"));
+        } else if (errorParam === "facebook_cancelled") {
+            setError(t("facebook_auth_error_cancelled"));
+        } else if (errorParam && errorParam.startsWith("facebook_")) {
+            setError(t("facebook_auth_error_generic"));
         }
     }, [errorParam, t]);
 
@@ -130,6 +143,11 @@ export function LoginCard() {
     function handleLinkedInLogin() {
         setIsLinkedInLoading(true);
         window.location.href = `/api/auth/linkedin?tipo=CANDIDATO`;
+    }
+
+    function handleFacebookLogin() {
+        setIsFacebookLoading(true);
+        window.location.href = `/api/auth/facebook?tipo=CANDIDATO`;
     }
 
     return (
@@ -218,7 +236,7 @@ export function LoginCard() {
                 <button
                     type="button"
                     onClick={handleGoogleLogin}
-                    disabled={isGoogleLoading || isLinkedInLoading || isLoading}
+                    disabled={isGoogleLoading || isLinkedInLoading || isFacebookLoading || isLoading}
                     className="w-full flex items-center justify-center gap-3 border border-gray-300 bg-white text-gray-700 py-2.5 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer mb-3 font-medium disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
                 >
                     {isGoogleLoading ? (
@@ -232,8 +250,8 @@ export function LoginCard() {
                 <button
                     type="button"
                     onClick={handleLinkedInLogin}
-                    disabled={isLinkedInLoading || isGoogleLoading || isLoading}
-                    className="w-full flex items-center justify-center gap-3 border border-[#0A66C2] bg-white text-[#0A66C2] py-2.5 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer mb-5 font-medium disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+                    disabled={isLinkedInLoading || isGoogleLoading || isFacebookLoading || isLoading}
+                    className="w-full flex items-center justify-center gap-3 border border-[#0A66C2] bg-white text-[#0A66C2] py-2.5 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer mb-3 font-medium disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
                 >
                     {isLinkedInLoading ? (
                         <Loader2 className="animate-spin" size={20} />
@@ -241,6 +259,20 @@ export function LoginCard() {
                         <LinkedInIcon />
                     )}
                     {t("login_with_linkedin")}
+                </button>
+
+                <button
+                    type="button"
+                    onClick={handleFacebookLogin}
+                    disabled={isFacebookLoading || isGoogleLoading || isLinkedInLoading || isLoading}
+                    className="w-full flex items-center justify-center gap-3 border border-[#1877F2] bg-white text-[#1877F2] py-2.5 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer mb-5 font-medium disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+                >
+                    {isFacebookLoading ? (
+                        <Loader2 className="animate-spin" size={20} />
+                    ) : (
+                        <FacebookIcon />
+                    )}
+                    {t("login_with_facebook", "Entrar com Facebook")}
                 </button>
 
                 <div className="mt-6 text-center text-sm">
