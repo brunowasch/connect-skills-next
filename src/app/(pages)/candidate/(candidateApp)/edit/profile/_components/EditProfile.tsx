@@ -367,21 +367,28 @@ export function EditProfile({ initialData }: EditProfileProps) {
                                     />
                                 </div>
                             </div>
-                            <div className="w-20 space-y-1">
-                                <label className="text-sm font-semibold text-gray-600">{t('ddd_label')}</label>
-                                <input type="text" maxLength={2}
-                                    className="w-full px-2 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-blue-500 outline-none"
-                                    value={formData.ddd || ''}
-                                    onChange={(e) => setFormData({ ...formData, ddd: e.target.value })}
-                                    placeholder="00" />
-                            </div>
-                            <div className="flex-1 min-w-[150px] space-y-1">
+                            <div className="flex-1 min-w-[200px] space-y-1">
                                 <label className="text-sm font-semibold text-gray-600">{t('number_label')}</label>
-                                <input type="text"
+                                <input
+                                    type="text"
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                    value={formData.numero || ''}
-                                    onChange={(e) => setFormData({ ...formData, numero: e.target.value })}
-                                    placeholder="00000-0000" />
+                                    value={[formData.ddd, formData.numero].filter(Boolean).join(" ")}
+                                    placeholder="(00) 00000-0000"
+                                    maxLength={15}
+                                    onChange={(e) => {
+                                        let val = e.target.value.replace(/\D/g, '');
+                                        if (val.length > 11) val = val.slice(0, 11);
+                                        
+                                        let ddd = val.slice(0, 2);
+                                        let numero = val.slice(2);
+                                        
+                                        if (numero.length > 5) {
+                                            numero = `${numero.slice(0, numero.length - 4)}-${numero.slice(-4)}`;
+                                        }
+                                        
+                                        setFormData({ ...formData, ddd, numero });
+                                    }}
+                                />
                             </div>
                         </div>
 

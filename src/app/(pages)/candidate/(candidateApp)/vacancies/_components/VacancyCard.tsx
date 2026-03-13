@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { MapPin, Briefcase, HeartHandshake, Building2, Star, CheckCircle, XCircle, Camera, Check, Clock } from "lucide-react";
+import { MapPin, Briefcase, HeartHandshake, Building2, Star, CheckCircle, XCircle, Camera, Check, Clock, AlertTriangle } from "lucide-react";
 import { Vacancy } from '@/src/app/(pages)/candidate/(candidateApp)/types/Vacancy';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -69,24 +69,43 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
 
     return (
         <Link
-            href={`/viewer/vacancy/${vaga.uuid}`}
+            href={vaga.isDraft ? `/candidate/vacancies/${vaga.uuid}/apply` : `/viewer/vacancy/${vaga.uuid}`}
             className={`group bg-white rounded-xl shadow-sm border 
                 ${vaga.isNear ? 'border-blue-300 ring-2 ring-blue-500/5' : 'border-gray-100'} 
                 ${isRejected ? 'opacity-60 hover:opacity-100 grayscale hover:grayscale-0' : 'hover:shadow-md hover:border-blue-400'}
                 transition-all active:scale-[0.98]
                 flex flex-col h-full block relative min-w-0 overflow-hidden`}
         >
-            {vaga.isNear && (
-                <div className="absolute top-2 right-2 z-10 mb-">
+            <div className="absolute top-2 right-2 z-10 flex flex-col gap-1 items-end">
+                {vaga.isNear && (
                     <span className="bg-blue-600 text-white text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg shadow-sm flex items-center gap-0.5 sm:gap-1 animate-pulse">
                         <MapPin size={10} />
                         {t("next_to_you")}
                     </span>
-                </div>
-            )}
+                )}
+                {vaga.isDraft && (
+                    <span className="bg-amber-500 text-white text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg shadow-sm flex items-center gap-0.5 sm:gap-1">
+                        <AlertTriangle size={10} />
+                        {t("dashboard_history_draft", "Incompleto")}
+                    </span>
+                )}
+                <button
+                    onClick={handleToggleFavorite}
+                    disabled={isTogglingFavorite}
+                    className={`p-1.5 rounded-full transition-all hover:bg-gray-100 active:bg-gray-200 group/star cursor-pointer
+                        ${favorited ? 'text-yellow-500' : 'text-gray-300'}
+                        ${isTogglingFavorite ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                    <Star
+                        size={18}
+                        fill={favorited ? "currentColor" : "none"}
+                        className={`transition-transform group-active/star:scale-125 cursor-pointer sm:w-5 sm:h-5 ${favorited ? 'filter drop-shadow-sm' : ''}`}
+                    />
+                </button>
+            </div>
 
             <div className="p-3 sm:p-5 flex-grow">
-                <div className="flex items-center justify-between mb-2 sm:mb-4">
+                <div className="flex items-center mb-2 sm:mb-4">
                     <div className="flex items-center gap-2 sm:gap-3">
                         {vaga.empresa?.foto_perfil ? (
                             <Image
@@ -105,23 +124,9 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
                             {vaga.empresa?.nome_empresa}
                         </span>
                     </div>
-
-                    <button
-                        onClick={handleToggleFavorite}
-                        disabled={isTogglingFavorite}
-                        className={`p-2 rounded-full transition-all mt-4 hover:bg-gray-100 active:bg-gray-200 group/star cursor-pointer 
-                            ${favorited ? 'text-yellow-500' : 'text-gray-300'}
-                            ${isTogglingFavorite ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                        <Star
-                            size={18}
-                            fill={favorited ? "currentColor" : "none"}
-                            className={`transition-transform group-active/star:scale-125 cursor-pointer sm:w-5 sm:h-5 ${favorited ? 'filter drop-shadow-sm' : ''}`}
-                        />
-                    </button>
                 </div>
 
-                <h3 className={`font-bold text-sm sm:text-base transition-colors line-clamp-2 mb-1 sm:mb-2 
+                <h3 className={`font-bold text-sm sm:text-base transition-colors line-clamp-2 mb-1 sm:mb-2
                     ${vaga.feedbackStatus === 'APPROVED' ? 'text-emerald-600' :
                         vaga.feedbackStatus === 'REJECTED' ? 'text-red-600' :
                             'text-slate-900 group-hover:text-blue-600'}`}>
@@ -147,8 +152,7 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
                         <span>{vinculoMap[vaga.vinculo_empregaticio || '']}</span>
                     </div>
 
-                    {/* Badges de Status (Aprovado/Reprovado/Vídeo) */}
-                    {(vaga.feedbackStatus || vaga.videoStatus) && (
+                    {(vaga.feedbackStatus || vaga.videoStatus || vaga.isDraft) && (
                         <div className="flex flex-wrap gap-2 mt-1">
                             {vaga.feedbackStatus === 'APPROVED' && (
                                 <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[9px] sm:text-[10px] font-bold text-emerald-600 shadow-sm">

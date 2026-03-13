@@ -55,6 +55,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyUuid, compa
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+    const vagasInputRef = useRef<HTMLInputElement>(null);
     const [rewriteModal, setRewriteModal] = useState<{
         isOpen: boolean;
         field: 'descricao' | 'candidatoIdeal' | 'pergunta' | null;
@@ -66,6 +67,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyUuid, compa
     });
     const [searchArea, setSearchArea] = useState("");
     const [searchSoftSkill, setSearchSoftSkill] = useState("");
+    const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
     const isEdit = !!vacancyUuid;
 
     let existingOptions: any = {};
@@ -104,7 +106,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyUuid, compa
         dias_home_office: initialData?.dias_home_office || "",
         salario: initialData?.salario || "",
         moeda: initialData?.moeda || "BRL",
-        vagas_disponiveis: existingOptions.vagas_disponiveis || "",
+        vagas_disponiveis: existingOptions.vagas_disponiveis || "1",
         descricao: initDescription,
         beneficio: initialData?.beneficio || "",
         pergunta: initialData?.pergunta || "",
@@ -125,6 +127,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyUuid, compa
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
+        setTouchedFields(prev => new Set(prev).add(name));
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
@@ -369,7 +372,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyUuid, compa
             dias_home_office: initialData?.dias_home_office || "",
             salario: initialData?.salario || "",
             moeda: initialData?.moeda || "BRL",
-            vagas_disponiveis: existingOptions.vagas_disponiveis || "",
+            vagas_disponiveis: existingOptions.vagas_disponiveis || "1",
             descricao: initDescription,
             beneficio: initialData?.beneficio || "",
             pergunta: initialData?.pergunta || "",
@@ -428,6 +431,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyUuid, compa
         if (!normalize(formData.vinculo_empregaticio)) return false;
         if (!normalize(formData.descricao)) return false;
         if (!normalize(formData.candidatoIdeal)) return false;
+        if (!normalize(formData.vagas_disponiveis)) return false;
         if (formData.areas.length === 0) return false;
         if (formData.softSkills.length === 0) return false;
 
@@ -538,6 +542,11 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyUuid, compa
                             <option value="Home_Office">{t('Home_Office')}</option>
                             <option value="H_brido">{t('H_brido')}</option>
                         </select>
+                        {!touchedFields.has('tipo_local_trabalho') && formData.tipo_local_trabalho === 'Presencial' && (
+                            <p className="text-xs text-amber-600">
+                                {t('default_hint_presencial', 'Definido por padrão "Presencial". Altere se necessário.')}
+                            </p>
+                        )}
                     </div>
 
                     {/* Localização da Vaga */}
@@ -616,6 +625,11 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyUuid, compa
                             <option value="Temporario">{t('Temporario')}</option>
                             <option value="Aprendiz">{t('Aprendiz')}</option>
                         </select>
+                        {!touchedFields.has('vinculo_empregaticio') && formData.vinculo_empregaticio === 'CLT_Tempo_Integral' && (
+                            <p className="text-xs text-amber-600">
+                                {t('default_hint_clt', 'Definido por padrão "CLT - Tempo Integral". Altere se necessário.')}
+                            </p>
+                        )}
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -647,17 +661,24 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyUuid, compa
 
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
-                            {t('vacancy_slots_label', 'Vagas Disponíveis')} <span className="text-xs text-gray-400 font-normal">({t('vacancy_slots_hint', 'opcional')})</span>
+                            {t('vacancy_slots_label', 'Vagas Disponíveis')} <span className="text-red-500">*</span>
                         </label>
                         <input
+                            ref={vagasInputRef}
                             type="number"
                             name="vagas_disponiveis"
                             min={1}
+                            required
                             value={formData.vagas_disponiveis}
                             onChange={handleChange}
                             className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder={t('vacancy_slots_placeholder', 'Ex: 3')}
+                            placeholder={t('vacancy_slots_placeholder', 'Ex: 1')}
                         />
+                        {!touchedFields.has('vagas_disponiveis') && String(formData.vagas_disponiveis) === "1" && (
+                            <p className="text-xs text-amber-600">
+                                {t('confirm_single_vacancy', 'Definido "1" por padrão. Altere se necessário')}
+                            </p>
+                        )}
                     </div>
                 </div>
             </div>
@@ -669,27 +690,25 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyUuid, compa
                     <label className="text-sm font-medium text-gray-700">
                         {t('vacancy_description_label')} <span className="text-red-500">*</span>
                     </label>
-                    <div className="relative group">
-                        <textarea
-                            name="descricao"
-                            required
-                            value={formData.descricao}
-                            onChange={handleChange}
-                            rows={6}
-                            className="w-full px-4 py-2 pr-12 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y transition-all"
-                            placeholder={t('vacancy_description_placeholder')}
-                        />
-                        {formData.descricao?.trim() && (
-                            <button
-                                type="button"
-                                onClick={() => openRewriteModal('descricao')}
-                                className="absolute bottom-5 right-5 p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 cursor-pointer shadow-sm border border-blue-200"
-                                title={t('ai_rewrite_btn', 'Reescrever com IA')}
-                            >
-                                <Sparkles size={16} />
-                            </button>
-                        )}
-                    </div>
+                    <textarea
+                        name="descricao"
+                        required
+                        value={formData.descricao}
+                        onChange={handleChange}
+                        rows={6}
+                        className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y transition-all max-sm:min-h-48"
+                        placeholder={t('vacancy_description_placeholder')}
+                    />
+                    {formData.descricao?.trim() && (
+                        <button
+                            type="button"
+                            onClick={() => openRewriteModal('descricao')}
+                            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-all cursor-pointer shadow-sm"
+                        >
+                            <Sparkles size={13} />
+                            {t('ai_rewrite_btn', 'Reescrever com IA')}
+                        </button>
+                    )}
                 </div>
 
                 <div className="space-y-2">
@@ -699,7 +718,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyUuid, compa
                         value={formData.beneficio}
                         onChange={handleChange}
                         rows={3}
-                        className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
+                        className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y max-sm:min-h-36"
                         placeholder={t('benefits_placeholder')}
                     />
                 </div>
@@ -869,52 +888,48 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyUuid, compa
                     <label className="text-sm font-medium text-gray-700">
                         {t('ideal_candidate_profile_label')} <span className="text-red-500">*</span>
                     </label>
-                    <div className="relative group">
-                        <textarea
-                            required
-                            name="candidatoIdeal"
-                            value={formData.candidatoIdeal}
-                            onChange={handleChange}
-                            rows={4}
-                            className="w-full px-4 py-2 pr-12 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y transition-all"
-                            placeholder={t('ideal_candidate_placeholder')}
-                        />
-                        {formData.candidatoIdeal?.trim() && (
-                            <button
-                                type="button"
-                                onClick={() => openRewriteModal('candidatoIdeal')}
-                                className="absolute bottom-5 right-5 p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 cursor-pointer shadow-sm border border-blue-200"
-                                title={t('ai_rewrite_btn', 'Reescrever com IA')}
-                            >
-                                <Sparkles size={16} />
-                            </button>
-                        )}
-                    </div>
+                    <textarea
+                        required
+                        name="candidatoIdeal"
+                        value={formData.candidatoIdeal}
+                        onChange={handleChange}
+                        rows={4}
+                        className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y transition-all max-sm:min-h-40"
+                        placeholder={t('ideal_candidate_placeholder')}
+                    />
                     <p className="text-xs text-gray-500">{t('ideal_candidate_hint')}</p>
+                    {formData.candidatoIdeal?.trim() && (
+                        <button
+                            type="button"
+                            onClick={() => openRewriteModal('candidatoIdeal')}
+                            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-all cursor-pointer shadow-sm"
+                        >
+                            <Sparkles size={13} />
+                            {t('ai_rewrite_btn', 'Reescrever com IA')}
+                        </button>
+                    )}
                 </div>
 
                 <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700">{t('interview_questions_label')}</label>
-                    <div className="relative group">
-                        <textarea
-                            name="pergunta"
-                            value={formData.pergunta}
-                            onChange={handleChange}
-                            rows={4}
-                            className="w-full px-4 py-2 pr-12 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y transition-all"
-                            placeholder={t('interview_questions_placeholder')}
-                        />
-                        {formData.pergunta?.trim() && (
-                            <button
-                                type="button"
-                                onClick={() => openRewriteModal('pergunta')}
-                                className="absolute bottom-5 right-5 p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 cursor-pointer shadow-sm border border-blue-200"
-                                title={t('ai_rewrite_btn', 'Reescrever com IA')}
-                            >
-                                <Sparkles size={16} />
-                            </button>
-                        )}
-                    </div>
+                    <textarea
+                        name="pergunta"
+                        value={formData.pergunta}
+                        onChange={handleChange}
+                        rows={4}
+                        className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y transition-all max-sm:min-h-40"
+                        placeholder={t('interview_questions_placeholder')}
+                    />
+                    {formData.pergunta?.trim() && (
+                        <button
+                            type="button"
+                            onClick={() => openRewriteModal('pergunta')}
+                            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-all cursor-pointer shadow-sm"
+                        >
+                            <Sparkles size={13} />
+                            {t('ai_rewrite_btn', 'Reescrever com IA')}
+                        </button>
+                    )}
                 </div>
             </div>
 

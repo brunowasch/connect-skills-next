@@ -136,6 +136,8 @@ model usuario {
   email_verificado     Boolean                @default(false)
   created_at           DateTime               @default(now())
   googleId             String?                @unique(map: "googleId")
+  linkedinId           String?                @unique(map: "linkedinId")
+  facebookId           String?                @unique(map: "facebookId")
   avatarUrl            String?
   nome                 String?                @db.VarChar(255)
   sobrenome            String?                @db.VarChar(255)

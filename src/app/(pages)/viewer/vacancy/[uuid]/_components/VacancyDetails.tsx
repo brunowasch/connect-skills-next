@@ -120,11 +120,12 @@ interface VacancyDetailsProps {
 
     applicationResponses?: any;
     applicationBreakdown?: any;
+    isDraft?: boolean;
 }
 
 import { useTranslation } from "react-i18next";
 
-export function VacancyDetails({ vacancy, company, isActive, applicationCount, userType, isOwner, userId, hasApplied, applicationResponses, applicationBreakdown }: VacancyDetailsProps) {
+export function VacancyDetails({ vacancy, company, isActive, applicationCount, userType, isOwner, userId, hasApplied, applicationResponses, applicationBreakdown, isDraft }: VacancyDetailsProps) {
     const { t, i18n } = useTranslation();
     const router = useRouter();
     const stickyCardRef = useRef<HTMLDivElement>(null);
@@ -494,6 +495,14 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                 return;
             }
 
+            if (data.isDraft || isDraft) {
+                // Direto para a página de continuação
+                const assessmentUrl = `/candidate/vacancies/${vacancy.uuid}/apply`;
+                window.location.href = assessmentUrl;
+                isApplyingRef.current = true;
+                return;
+            }
+
             setModal({
                 isOpen: true,
                 title: t("modal_apply_title"),
@@ -689,66 +698,87 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                         )}
                     </div>
 
-                    <div className="flex items-start gap-4 mb-6">
+                    <div className="flex items-start gap-3 mb-6">
                         {/* Logo da empresa */}
                         {company?.foto_perfil ? (
                             <img
                                 src={company.foto_perfil}
                                 alt={company.nome_empresa}
-                                className="w-16 h-16 rounded-lg object-cover border border-gray-200"
+                                className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg object-cover border border-gray-200 flex-shrink-0"
                             />
                         ) : (
-                            <div className="w-16 h-16 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center">
-                                <Building2 size={28} className="text-gray-400" />
+                            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center flex-shrink-0">
+                                <Building2 size={24} className="text-gray-400" />
                             </div>
                         )}
 
-                        <div className="flex-1">
-                            <div className="flex items-start justify-between gap-4 mb-2">
-                                <div className="flex-1">
-                                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                                        {vacancy.cargo}
-                                    </h1>
-                                    <p className="text-lg text-gray-600 mt-1">
-                                        {company?.nome_empresa}
-                                    </p>
-                                    {affirmativeGroups.length > 0 && (
-                                        <p className="text-sm text-purple-600 font-medium mt-1.5 flex items-center gap-1.5">
-                                            <HeartHandshake size={14} />
-                                            Vaga afirmativa p/ {affirmativeGroups.join(", ")}
+                        <div className="flex-1 min-w-0">
+                            <div className="flex flex-col gap-2 mb-2">
+                                <div className="flex items-start justify-between gap-2">
+                                    <div className="flex-1 min-w-0">
+                                        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 leading-tight">
+                                            {vacancy.cargo}
+                                        </h1>
+                                        <p className="text-base text-gray-600 mt-1">
+                                            {company?.nome_empresa}
                                         </p>
-                                    )}
+                                        {affirmativeGroups.length > 0 && (
+                                            <p className="text-sm text-purple-600 font-medium mt-1.5 flex items-center gap-1.5">
+                                                <HeartHandshake size={14} />
+                                                Vaga afirmativa p/ {affirmativeGroups.join(", ")}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div className="hidden lg:flex items-center gap-1.5 flex-shrink-0">
+                                        <button
+                                            onClick={handleCopyLink}
+                                            className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 cursor-pointer group relative"
+                                            title="Copiar link da vaga"
+                                        >
+                                            {linkCopied ? (
+                                                <Check size={16} className="text-green-600" />
+                                            ) : (
+                                                <Copy size={16} className="text-gray-600 group-hover:text-gray-900" />
+                                            )}
+                                        </button>
+                                        <LanguageSwitcher />
+                                        {isActive && (
+                                            <span className="px-2 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200 whitespace-nowrap">
+                                                Vaga Ativa
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-2">
+
+                                <div className="flex lg:hidden items-center gap-2 flex-wrap">
                                     <button
                                         onClick={handleCopyLink}
-                                        className="p-2 hover:bg-gray-100 rounded-lg tr ansition-colors border border-gray-200 cursor-pointer group relative"
+                                        className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 cursor-pointer group relative"
                                         title="Copiar link da vaga"
                                     >
                                         {linkCopied ? (
-                                            <Check size={18} className="text-green-600" />
+                                            <Check size={15} className="text-green-600" />
                                         ) : (
-                                            <Copy size={18} className="text-gray-600 group-hover:text-gray-900" />
+                                            <Copy size={15} className="text-gray-600 group-hover:text-gray-900" />
                                         )}
                                     </button>
                                     <LanguageSwitcher />
                                     {isActive && (
-                                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200">
+                                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200 whitespace-nowrap">
                                             Vaga Ativa
                                         </span>
                                     )}
                                 </div>
                             </div>
 
-                            {/* Informações principais */}
-                            <div className="flex flex-wrap gap-4 mt-4 text-sm text-gray-600">
+                            <div className="flex flex-wrap gap-3 mt-3 text-sm text-gray-600">
                                 <div className="flex items-center gap-1.5">
-                                    <WorkTypeIcon size={16} className="text-gray-400" />
+                                    <WorkTypeIcon size={15} className="text-gray-400" />
                                     <span>{workType.label}</span>
                                 </div>
                                 {displayLocation.cidade && (
                                     <div className="flex items-center gap-1.5">
-                                        <MapPin size={16} className="text-gray-400" />
+                                        <MapPin size={15} className="text-gray-400" />
                                         <span>{displayLocation.cidade}, {displayLocation.estado}</span>
                                     </div>
                                 )}
@@ -761,7 +791,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                 )}
                                 {inclusivity?.vagas_disponiveis && (
                                     <div className="flex items-center gap-1.5">
-                                        <Briefcase size={16} className="text-gray-400" />
+                                        <Briefcase size={15} className="text-gray-400" />
                                         <span className="font-medium text-gray-700">
                                             {inclusivity.vagas_disponiveis} {inclusivity.vagas_disponiveis === 1 ? t('vacancy_slot_singular', 'vaga disponível') : t('vacancy_slot_plural', 'vagas disponíveis')}
                                         </span>
@@ -769,7 +799,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                 )}
                                 {isOwner && (
                                     <div className="flex items-center gap-1.5">
-                                        <Users size={16} className="text-gray-400" />
+                                        <Users size={15} className="text-gray-400" />
                                         <span>{applicationCount} {t("candidatos")}</span>
                                     </div>
                                 )}
@@ -1370,14 +1400,27 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                         </div>
                                     )
                                 ) : (
-                                    <button
-                                        onClick={handleApply}
-                                        disabled={isCheckingApplication}
-                                        className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
-                                    >
-                                        {isCheckingApplication && <Loader2 size={18} className="animate-spin" />}
-                                        {t("vacancy_apply_btn")}
-                                    </button>
+                                    <>
+                                        {isDraft && (
+                                            <div className="w-full mt-6 mb-3 bg-amber-50 border border-amber-200 text-amber-700 py-3 px-4 rounded-lg flex flex-col items-center gap-2 text-center animate-in fade-in slide-in-from-top-2 duration-500">
+                                                <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 mb-1">
+                                                    <AlertTriangle size={24} />
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-sm uppercase tracking-wide">{t("dashboard_history_draft", "Incompleto")}</p>
+                                                    <p className="text-[11px] opacity-80 mt-0.5">Você começou a candidatura mas não terminou.</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                        <button
+                                            onClick={handleApply}
+                                            disabled={isCheckingApplication}
+                                            className={`w-full ${isDraft ? 'mt-2 bg-amber-600 hover:bg-amber-700' : 'mt-6 bg-blue-600 hover:bg-blue-700'} text-white font-semibold py-2.5 px-4 rounded-lg transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2`}
+                                        >
+                                            {isCheckingApplication && <Loader2 size={18} className="animate-spin" />}
+                                            {isDraft ? t("assessment_resume_btn", "Continuar Avaliação") : t("vacancy_apply_btn")}
+                                        </button>
+                                    </>
                                 )
 
                             )}
@@ -1477,23 +1520,21 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                     <div className="mt-10 pt-8 border-t border-gray-100">
                         <h2 className="text-lg font-semibold text-gray-900 mb-4">{t("management_title")}</h2>
                         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-                            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                                <div>
-                                    <button
-                                        onClick={handleRankCandidates}
-                                        disabled={isPending}
-                                        className="inline-flex items-center gap-2 px-4 py-2.5 border border-blue-600 text-blue-600 font-medium rounded-lg hover:bg-blue-50 transition-colors cursor-pointer disabled:opacity-50 text-sm"
-                                    >
-                                        <BarChart3 size={18} />
-                                        {t("management_ranking")}
-                                    </button>
-                                </div>
+                            <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+                                <button
+                                    onClick={handleRankCandidates}
+                                    disabled={isPending}
+                                    className="w-full xl:w-fit inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-blue-600 text-blue-600 font-medium rounded-lg hover:bg-blue-50 transition-colors cursor-pointer disabled:opacity-50 text-sm"
+                                >
+                                    <BarChart3 size={18} />
+                                    {t("management_ranking")}
+                                </button>
 
-                                <div className="flex flex-wrap items-center gap-3">
+                                <div className="flex flex-col xl:flex-row gap-3">
                                     <button
                                         onClick={handleEditVacancy}
                                         disabled={isPending}
-                                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors cursor-pointer disabled:opacity-50 text-sm"
+                                        className="w-full xl:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors cursor-pointer disabled:opacity-50 text-sm"
                                     >
                                         <Edit size={18} />
                                         {t("management_edit")}
@@ -1502,7 +1543,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                     {!isActive ? (
                                         <button
                                             onClick={() => handleUpdateStatus('Ativa')}
-                                            className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-600 font-medium rounded-lg hover:bg-gray-50 transition-colors cursor-pointer text-sm"
+                                            className="w-full xl:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-600 font-medium rounded-lg hover:bg-gray-50 transition-colors cursor-pointer text-sm"
                                         >
                                             <Unlock size={18} />
                                             {t("management_open")}
@@ -1510,7 +1551,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                     ) : (
                                         <button
                                             onClick={() => handleUpdateStatus('Fechada')}
-                                            className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-600 font-medium rounded-lg hover:bg-gray-50 transition-colors cursor-pointer text-sm"
+                                            className="w-full xl:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-600 font-medium rounded-lg hover:bg-gray-50 transition-colors cursor-pointer text-sm"
                                         >
                                             <Ban size={18} />
                                             {t("management_close")}
@@ -1519,7 +1560,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
 
                                     <button
                                         onClick={handleDeleteVacancy}
-                                        className="inline-flex items-center gap-2 px-4 py-2.5 border border-red-500 text-red-500 font-medium rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-sm"
+                                        className="w-full xl:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-red-500 text-red-500 font-medium rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-sm"
                                     >
                                         <Trash2 size={18} />
                                         {t("management_delete")}
