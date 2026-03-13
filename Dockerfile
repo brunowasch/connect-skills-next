@@ -1,4 +1,4 @@
-FROM node:24
+FROM node:20
 
 WORKDIR /app
 
@@ -14,6 +14,7 @@ RUN npm run build
 
 EXPOSE 3000
 
-ENV HOSTNAME="0.0.0.0"
+ENV HOSTNAME=0.0.0.0
+ENV PORT=3000
 
 CMD ["npm", "start"]
