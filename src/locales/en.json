@@ -74,6 +74,8 @@
     "register_with_google": "Sign up with Google",
     "login_with_facebook": "Sign in with Facebook",
     "register_with_facebook": "Sign up with Facebook",
+    "register_with_linkedin": "Sign in with LinkedIn",
+    "login_with_linkedin": "Sign in with LinkedIn",
     "or_divider": "or",
     "google_auth_error_cancelled": "Google login cancelled.",
     "google_auth_error_generic": "Error authenticating with Google. Please try again.",
