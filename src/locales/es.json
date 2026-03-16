@@ -74,6 +74,8 @@
     "register_with_google": "Registrarse con Google",
     "login_with_facebook": "Entrar con Facebook",
     "register_with_facebook": "Registrarse con Facebook",
+    "register_with_linkedin": "Registrarse con LinkedIn",
+    "login_with_linkedin": "Entrar con LinkedIn",    
     "or_divider": "o",
     "google_auth_error_cancelled": "Inicio de sesión con Google cancelado.",
     "google_auth_error_generic": "Error al autenticar con Google. Inténtelo de nuevo.",
