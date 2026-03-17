@@ -54,7 +54,7 @@ export async function POST(req: Request) {
         const response = NextResponse.json(
             {
                 message: "Email verificado com sucesso!",
-                redirectTo: user.tipo === "CANDIDATO" ? "/candidate/register" : "/company/register"
+                redirectTo: user.tipo === "CANDIDATO" ? "/candidate/register" : (user.tipo === "MENTOR" ? "/mentor/register" : "/company/register")
             },
             { status: 200 }
         );

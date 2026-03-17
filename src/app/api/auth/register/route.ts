@@ -12,7 +12,7 @@ import { generateVerificationCode } from "@/src/lib/code-generator";
 interface RegisterRequest {
   email: string;
   senha: string;
-  tipo: "CANDIDATO" | "EMPRESA";
+  tipo: "CANDIDATO" | "EMPRESA" | "MENTOR";
   acceptedTerms: boolean;
 }
 
@@ -64,19 +64,26 @@ export async function POST(req: Request) {
           },
         },
         empresa: true,
+        mentor: true,
       },
     });
 
     if (existingUser) {
+      const user = existingUser as any;
       const isCandidateComplete =
-        existingUser.candidato &&
-        existingUser.candidato.nome &&
-        existingUser.candidato.candidato_area.length > 0;
+        user.candidato &&
+        user.candidato.nome &&
+        user.candidato.candidato_area.length > 0;
       const isCompanyComplete =
-        existingUser.empresa &&
-        existingUser.empresa.nome_empresa &&
-        existingUser.empresa.nome_empresa !== "";
-      const isRegistrationComplete = isCandidateComplete || isCompanyComplete;
+        user.empresa &&
+        user.empresa.nome_empresa &&
+        user.empresa.nome_empresa !== "";
+      const isMentorComplete =
+        user.mentor &&
+        user.mentor.nome &&
+        user.mentor.nome !== "";
+      const isRegistrationComplete =
+        isCandidateComplete || isCompanyComplete || isMentorComplete;
 
       if (isRegistrationComplete) {
         return NextResponse.json(
@@ -89,14 +96,20 @@ export async function POST(req: Request) {
             where: { usuario_id: existingUser.id },
           });
 
-          if (existingUser.candidato) {
+          if (user.candidato) {
             await prisma.candidato.delete({
               where: { usuario_id: existingUser.id },
             });
           }
 
-          if (existingUser.empresa) {
+          if (user.empresa) {
             await prisma.empresa.delete({
+              where: { usuario_id: existingUser.id },
+            });
+          }
+
+          if (user.mentor) {
+            await (prisma as any).mentor.delete({
               where: { usuario_id: existingUser.id },
             });
           }
@@ -145,6 +158,16 @@ export async function POST(req: Request) {
             usuario_id: userId,
             nome_empresa: "",
             descricao: "",
+          },
+        });
+      } else if (tipo === "MENTOR") {
+        await (tx as any).mentor.create({
+          data: {
+            id: randomUUID(),
+            uuid: randomUUID(),
+            usuario_id: userId,
+            nome: "",
+            sobrenome: "",
           },
         });
       }

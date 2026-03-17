@@ -14,6 +14,7 @@ model area_interesse {
   uuid           String?          @unique @db.VarChar(36)
   candidato_area candidato_area[]
   vaga_area      vaga_area[]
+  mentor_area    mentor_area[]
 }
 
 model candidato {
@@ -144,8 +145,69 @@ model usuario {
   uuid                 String?                @unique @db.VarChar(36)
   candidato            candidato?
   empresa              empresa?
+  mentor               mentor?
   password_reset_token password_reset_token[]
   verification_tokens  verification_token[]
+}
+
+model mentor {
+  id                     String                   @id
+  usuario_id             String                   @unique
+  nome                   String?
+  sobrenome              String?
+  bio                    String?                  @db.Text
+  foto_perfil            String?
+  pais                   String?
+  estado                 String?
+  cidade                 String?
+  telefone               String?
+  uuid                   String?                  @unique @db.VarChar(36)
+  usuario                usuario                  @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  mentor_area            mentor_area[]
+  mentor_disponibilidade mentor_disponibilidade[]
+  mentor_arquivo         mentor_arquivo[]
+  mentor_link            mentor_link[]
+}
+
+model mentor_link {
+  id        String @id @db.VarChar(36)
+  mentor_id String
+  label     String
+  url       String
+  ordem     Int    @default(0)
+  mentor    mentor @relation(fields: [mentor_id], references: [id], onDelete: Cascade)
+}
+
+model mentor_arquivo {
+  id        String   @id @db.VarChar(36)
+  mentor_id String
+  nome      String
+  url       String
+  mime      String
+  tamanho   Int
+  criadoEm  DateTime @default(now())
+  mentor    mentor   @relation(fields: [mentor_id], references: [id], onDelete: Cascade)
+}
+
+model mentor_area {
+  mentor_id         String
+  area_interesse_id Int
+  area_interesse    area_interesse @relation(fields: [area_interesse_id], references: [id])
+  mentor            mentor         @relation(fields: [mentor_id], references: [id], onDelete: Cascade)
+
+  @@id([mentor_id, area_interesse_id])
+  @@index([area_interesse_id])
+}
+
+model mentor_disponibilidade {
+  id          String   @id @default(uuid())
+  mentor_id   String
+  dia_semana  Int // 0-6 (dom-sab)
+  hora_inicio String   @db.VarChar(5) // HH:mm
+  hora_fim    String   @db.VarChar(5) // HH:mm
+  mentor      mentor   @relation(fields: [mentor_id], references: [id], onDelete: Cascade)
+
+  @@index([mentor_id])
 }
 
 model vaga {

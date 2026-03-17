@@ -59,7 +59,7 @@ export function RegisterCard() {
     const [confirmSenha, setConfirmSenha] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [tipo, setTipo] = useState<"CANDIDATO" | "EMPRESA">("CANDIDATO");
+    const [tipo, setTipo] = useState<"CANDIDATO" | "EMPRESA" | "MENTOR">("CANDIDATO");
     const [code, setCode] = useState("");
 
 
@@ -231,7 +231,7 @@ export function RegisterCard() {
                             type="button"
                             onClick={() => setTipo("CANDIDATO")}
                             className={`flex-1 py-2 rounded-lg border transition-colors cursor-pointer ${tipo === "CANDIDATO"
-                                ? "bg-blue-600 text-white"
+                                ? "bg-blue-600 text-white border-blue-600"
                                 : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
                                 }`}
                         >
@@ -241,11 +241,21 @@ export function RegisterCard() {
                             type="button"
                             onClick={() => setTipo("EMPRESA")}
                             className={`flex-1 py-2 rounded-lg border transition-colors cursor-pointer ${tipo === "EMPRESA"
-                                ? "bg-blue-600 text-white"
+                                ? "bg-blue-600 text-white border-blue-600"
                                 : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
                                 }`}
                         >
                             {t("register_company")}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setTipo("MENTOR")}
+                            className={`flex-1 py-2 rounded-lg border transition-colors cursor-pointer ${tipo === "MENTOR"
+                                ? "bg-blue-600 text-white border-blue-600"
+                                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                                }`}
+                        >
+                            {t("register_mentor")}
                         </button>
                     </div>
                 </div>
