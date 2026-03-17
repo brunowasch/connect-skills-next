@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import { VerificationModal } from "@/src/app/_components/VerificationModal";
 import { Eye, EyeOff, Check, Loader2 } from "lucide-react";
 import { validatePassword, PASSWORD_REQUIREMENTS } from "@/src/lib/password-validation";
@@ -215,7 +215,7 @@ export function RegisterCard() {
     }
 
     return (
-        <div className="flex justify-center items-center min-h-[calc(120vh-12rem)]">
+        <div className="flex justify-center items-center min-h-[calc(100vh-12rem)] py-16">
             <form
                 onSubmit={handleRegisterSubmit}
                 className="bg-white p-8 rounded-xl shadow-md w-full max-w-md"
@@ -408,14 +408,13 @@ export function RegisterCard() {
                 </button>
 
                 <p className="text-xs text-gray-500 text-center mt-1 mb-4">
-                    Ao continuar, você concorda com os nossos{" "}
-                    <Link href="/terms" target="_blank" className="text-blue-600 hover:underline">
-                        {t("footer_terms")}
-                    </Link>{" "}
-                    e{" "}
-                    <Link href="/privacy" target="_blank" className="text-blue-600 hover:underline">
-                        {t("footer_privacy")}
-                    </Link>.
+                    <Trans
+                        i18nKey="social_terms_consent"
+                        components={[
+                            <Link href="/terms" target="_blank" className="text-blue-600 hover:underline font-medium" key="terms" />,
+                            <Link href="/privacy" target="_blank" className="text-blue-600 hover:underline font-medium" key="privacy" />
+                        ]}
+                    />
                 </p>
                 <div className="mt-6 text-center text-sm">
                     <span className="text-gray-600">{t("already_have_account")}</span>{" "}
