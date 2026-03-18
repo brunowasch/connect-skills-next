@@ -21,18 +21,29 @@ export async function POST(req: Request) {
 
         const mentorId = user.mentor.id;
 
-        await prisma.$transaction(async (tx) => {
-            await (tx as any).mentor_disponibilidade.deleteMany({
-                where: { mentor_id: mentorId }
-            });
+        const diasMap: Record<string, number> = {
+            "Domingo": 0,
+            "Segunda-feira": 1,
+            "Terça-feira": 2,
+            "Quarta-feira": 3,
+            "Quinta-feira": 4,
+            "Sexta-feira": 5,
+            "Sábado": 6
+        };
 
+        await prisma.$transaction(async (tx) => {
             for (const slot of slots) {
+                const diaInt = diasMap[slot.dia_semana];
+                
+                if (diaInt === undefined) {
+                    continue;
+                }
+
                 await (tx as any).mentor_disponibilidade.create({
                     data: {
                         id: crypto.randomUUID(),
-                        uuid: crypto.randomUUID(),
                         mentor_id: mentorId,
-                        dia_semana: slot.dia_semana,
+                        dia_semana: diaInt,
                         hora_inicio: slot.hora_inicio,
                         hora_fim: slot.hora_fim,
                     }

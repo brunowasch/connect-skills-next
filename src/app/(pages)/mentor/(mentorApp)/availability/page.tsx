@@ -1,5 +1,4 @@
-import { Header, Footer } from "@/src/app/_components/Layout";
-import { MentorAvailability } from "./_components/MentorAvailability";
+import { MentorAvailabilityList } from "./_components/MentorAvailabilityList";
 import { cookies } from "next/headers";
 import { prisma } from "@/src/lib/prisma";
 import { redirect } from "next/navigation";
@@ -24,6 +23,6 @@ export default async function MentorAvailabilityPage() {
     const currentAvailability = (user.mentor as any)?.mentor_disponibilidade || [];
 
     return (
-        <MentorAvailability initialAvailability={currentAvailability} userId={userId} />
+        <MentorAvailabilityList slots={currentAvailability} />
     );
 }

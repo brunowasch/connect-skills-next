@@ -45,6 +45,13 @@ export function MentorAvailability({ initialAvailability = [], userId }: { initi
             return;
         }
 
+        for (const slot of slots) {
+            if (slot.hora_inicio >= slot.hora_fim) {
+                setError(`O horário de início (${slot.hora_inicio}) não pode ser maior ou igual ao horário de término (${slot.hora_fim}) na ${slot.dia_semana}.`);
+                return;
+            }
+        }
+
         setIsSubmitting(true);
         setError("");
 
@@ -62,7 +69,8 @@ export function MentorAvailability({ initialAvailability = [], userId }: { initi
                 return;
             }
 
-            router.push("/mentor/dashboard");
+            router.push("/mentor/availability");
+            router.refresh();
         } catch {
             setError(t("error_connection"));
             setIsSubmitting(false);
@@ -76,10 +84,10 @@ export function MentorAvailability({ initialAvailability = [], userId }: { initi
                     <FiClock className="w-8 h-8" />
                 </div>
                 <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
-                    {t("mentor_availability_title")}
+                    {t("publish_availability_title", "Publicar Horários")}
                 </h2>
                 <p className="text-slate-500 text-sm sm:text-base max-w-xl mx-auto">
-                    {t("mentor_availability_subtitle", "Defina os dias e horários em que você estará disponível para mentorar novos talentos.")}
+                    {t("publish_availability_subtitle", "Adicione novos dias e horários em que você estará disponível para mentorar novos talentos.")}
                 </p>
             </div>
 
@@ -153,13 +161,13 @@ export function MentorAvailability({ initialAvailability = [], userId }: { initi
                     className="w-full py-4 border-2 border-dashed border-slate-100 rounded-2xl text-slate-400 font-bold flex items-center justify-center gap-2 hover:bg-slate-50 hover:border-slate-200 hover:text-slate-600 transition-all group bg-white cursor-pointer"
                 >
                     <FiPlus className="w-4 h-4" />
-                    {t("add_availability")}
+                    {t("add_availability_slot", "Adicionar novo horário")}
                 </button>
             </div>
 
             <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pb-12">
                 <Link
-                    href="/mentor/dashboard"
+                    href="/mentor/availability"
                     className="px-8 py-3 rounded-xl font-bold text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-all text-base"
                 >
                     {t("back_btn", "Voltar")}
@@ -179,7 +187,7 @@ export function MentorAvailability({ initialAvailability = [], userId }: { initi
                         </div>
                     ) : (
                         <>
-                            <span>{t("save_availability_btn", "Salvar Disponibilidade")}</span>
+                            <span>{t("publish_availability_btn", "Publicar Horários")}</span>
                             <FiCheck className="w-5 h-5" />
                         </>
                     )}

@@ -17,6 +17,8 @@ export default async function Home() {
     if (user) {
       if (user.tipo.toLowerCase() === 'candidato') {
         redirect("/candidate/dashboard");
+      } else if (user.tipo.toLowerCase() === 'mentor') {
+        redirect("/mentor/dashboard");
       } else {
         redirect("/company/dashboard");
       }
