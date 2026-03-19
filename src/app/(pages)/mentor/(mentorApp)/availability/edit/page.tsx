@@ -24,23 +24,13 @@ export default async function MentorAvailabilityEditPage() {
 
     const user = await prisma.usuario.findUnique({
         where: { id: userId },
-        include: { mentor: { include: { mentor_disponibilidade: true } } }
     });
 
     if (!user || user.tipo !== "MENTOR") {
         redirect("/");
     }
 
-    const dbAvailability = (user.mentor as any)?.mentor_disponibilidade || [];
-    
-    const currentAvailability = dbAvailability.map((slot: any) => ({
-        id: slot.id,
-        dia_semana: diasMapReverso[slot.dia_semana] || "Segunda-feira",
-        hora_inicio: slot.hora_inicio,
-        hora_fim: slot.hora_fim
-    }));
-
     return (
-        <MentorAvailability initialAvailability={currentAvailability} userId={userId} />
+        <MentorAvailability userId={userId} />
     );
 }

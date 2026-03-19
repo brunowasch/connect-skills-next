@@ -1867,5 +1867,11 @@
     "end": "Fin",
     "day": "Día",
     "saved_successfully": "Disponibilidad guardada",
-    "add_availability_slot": "Añadir nuevo horario"
+    "add_availability_slot": "Añadir nuevo horario",
+    "error_empty_times": "Por favor completa los horarios de inicio y fin.",
+    "error_invalid_interval": "El horario de inicio no puede ser mayor o igual al horario de fin.",
+    "error_update": "Error al actualizar el horario.",
+    "edit_availability_title": "Editar Horario",
+    "edit_availability_desc": "Actualiza el día y el horario de este bloque en tu agenda de mentorías.",
+    "edit_slot": "Editar horario"
 }

@@ -1863,5 +1863,11 @@
     "end": "End",
     "day": "Day",
     "saved_successfully": "Availability saved",
-    "add_availability_slot": "Add new time slot"
+    "add_availability_slot": "Add new time slot",
+    "error_empty_times": "Please fill in the start and end times.",
+    "error_invalid_interval": "The start time cannot be greater than or equal to the end time.",
+    "error_update": "Error updating time slot.",
+    "edit_availability_title": "Edit Time Slot",
+    "edit_availability_desc": "Update the day and time of this block in your mentoring schedule.",
+    "edit_slot": "Edit time slot"
 }

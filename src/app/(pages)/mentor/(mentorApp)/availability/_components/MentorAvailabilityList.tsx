@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
-import { FiClock, FiCheck, FiPlus, FiTrash2 } from "react-icons/fi";
+import { FiClock, FiCheck, FiPlus, FiTrash2, FiEdit2 } from "react-icons/fi";
 import { AlertCircle, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -106,6 +106,13 @@ export function MentorAvailabilityList({ slots = [] }: { slots: DbSlot[] }) {
                                             <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold flex-shrink-0 bg-green-100 text-green-800">
                                                 {t("active", "Ativa")}
                                             </span>
+                                            <Link 
+                                                href={`/mentor/availability/edit/${slot.id}`}
+                                                className="ml-auto p-1.5 text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
+                                                title={t("edit_slot", "Editar horário")}
+                                            >
+                                                <FiEdit2 className="w-5 h-5" />
+                                            </Link>
                                             <button 
                                                 onClick={() => handleDeleteClick(slot.id)}
                                                 disabled={isDeleting === slot.id}
