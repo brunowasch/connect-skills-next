@@ -12,7 +12,7 @@ export async function GET(req: Request) {
 
     try {
         // Find token
-        const verificationToken = await (prisma as any).verification_token.findUnique({
+        const verificationToken = await prisma.verification_token.findUnique({
             where: { token },
             include: { usuario: true }
         });
@@ -33,7 +33,7 @@ export async function GET(req: Request) {
         });
 
         // Delete token
-        await (prisma as any).verification_token.delete({
+        await prisma.verification_token.delete({
             where: { id: verificationToken.id }
         });
 

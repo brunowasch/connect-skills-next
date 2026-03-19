@@ -21,7 +21,7 @@ export async function POST(req: Request) {
         }
 
         // 2. Find Token associated with User
-        const verificationToken = await (prisma as any).verification_token.findFirst({
+        const verificationToken = await prisma.verification_token.findFirst({
             where: {
                 usuario_id: user.id,
                 token: code
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
         });
 
         // 5. Delete Token
-        await (prisma as any).verification_token.delete({
+        await prisma.verification_token.delete({
             where: { id: verificationToken.id }
         });
 

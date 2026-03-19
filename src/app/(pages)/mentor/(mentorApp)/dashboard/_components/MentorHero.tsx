@@ -45,7 +45,7 @@ export function MentorHero({ mentor }: MentorHeroProps) {
 
                     <div className="flex-1 min-w-0">
                         <h1 className="text-base sm:text-lg md:text-xl font-semibold text-slate-900 m-0 truncate">
-                            {t("dashboard_hero_welcome", "Bem-vindo(a) de volta,")} {mentor.nome} {mentor.sobrenome}!
+                            {t("mentor_hero_welcome", "Bem-vindo(a),")} {mentor.nome} {mentor.sobrenome}!
                         </h1>
                         <div className="flex items-center text-xs sm:text-sm text-slate-500 mt-0.5 sm:mt-1 truncate">
                             <MapPin size={12} className="mr-1 flex-shrink-0 sm:w-3.5 sm:h-3.5" />

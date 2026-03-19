@@ -151,7 +151,7 @@ export function EditMentorProfile({ initialData }: EditMentorProfileProps) {
             if (res.ok) {
                 localStorage.setItem('global_toast', JSON.stringify({
                     type: 'success',
-                    text: t('profile_updated', 'Perfil atualizado com sucesso!')
+                    text: t('edit_profile_success', 'Perfil atualizado com sucesso!')
                 }));
                 window.dispatchEvent(new Event('storage'));
                 router.refresh();

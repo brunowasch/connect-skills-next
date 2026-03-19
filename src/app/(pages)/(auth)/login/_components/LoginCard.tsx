@@ -120,7 +120,7 @@ export function LoginCard() {
                 sessionStorage.removeItem("cs_session_active");
             }
 
-            const isRegistrationFlow = data.redirectTo.includes("/register") || data.redirectTo.includes("/area");
+            const isRegistrationFlow = data.redirectTo.includes("/register") || data.redirectTo.includes("/area") || data.redirectTo.includes("/specialties");
 
             if (redirectParam && !isRegistrationFlow) {
                 router.push(redirectParam);

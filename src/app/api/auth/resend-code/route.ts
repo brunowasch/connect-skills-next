@@ -39,11 +39,11 @@ export async function POST(req: Request) {
         const verificationToken = generateVerificationCode();
 
         // Salva novo token no banco
-        await (prisma as any).verification_token.deleteMany({
+        await prisma.verification_token.deleteMany({
             where: { usuario_id: user.id }
         });
 
-        await (prisma as any).verification_token.create({
+        await prisma.verification_token.create({
             data: {
                 id: randomUUID(),
                 token: verificationToken,

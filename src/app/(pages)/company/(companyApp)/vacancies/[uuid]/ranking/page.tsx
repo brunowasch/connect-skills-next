@@ -46,8 +46,15 @@ export default async function RankingPage({ params, searchParams }: Props) {
         }
     });
 
+    // Fetch scheduled interviews for this vacancy
+    const interviews = await prisma.entrevista_mentor.findMany({
+        where: { vaga_id: vacancyId },
+        select: { candidato_id: true, status: true }
+    });
+
     const candidatesWithApp = candidates.map(c => {
         const app = applications.find(a => a.candidato_id === c.id);
+        const interview = interviews.find(i => i.candidato_id === c.id);
         return {
             ...c,
             application: app ? {
@@ -55,7 +62,8 @@ export default async function RankingPage({ params, searchParams }: Props) {
                 score: app.score,
                 created_at: app.created_at,
                 breakdown: app.breakdown,
-                resposta: app.resposta
+                resposta: app.resposta,
+                interviewStatus: interview?.status
             } : undefined
         };
     });

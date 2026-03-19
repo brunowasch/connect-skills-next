@@ -2,7 +2,7 @@ import { prisma } from "@/src/lib/prisma";
 
 export interface Notification {
     id: string;
-    type: 'video_request' | 'feedback_approved' | 'feedback_rejected' | 'general' | 'video_received' | 'new_candidate' | 'video_expired_unsubmitted';
+    type: 'video_request' | 'feedback_approved' | 'feedback_rejected' | 'general' | 'video_received' | 'new_candidate' | 'video_expired_unsubmitted' | 'interview_scheduled' | 'interview_confirmed';
     title: string;
     message: string;
     vacancyTitle: string;
@@ -17,6 +17,7 @@ export interface Notification {
         status: 'APPROVED' | 'REJECTED';
         justification: string;
     };
+    extraData?: Record<string, any>;
 }
 
 export async function getCompanyNotifications(companyId: string): Promise<Notification[]> {
@@ -40,7 +41,7 @@ export async function getCompanyNotifications(companyId: string): Promise<Notifi
         where: { id: { in: candidateIds } },
         select: { id: true, nome: true }
     });
-    
+
     const candidateMap = new Map(candidates.map(c => [c.id, c]));
 
     const notifications: Notification[] = [];
@@ -55,7 +56,7 @@ export async function getCompanyNotifications(companyId: string): Promise<Notifi
             const candidateName = candidate?.nome || 'Candidato';
 
             if (app.created_at && !breakdown?.company_notifications?.new_candidate?.deleted) {
-                 notifications.push({
+                notifications.push({
                     id: `new_candidate_${app.id}`,
                     type: 'new_candidate',
                     title: 'Nova Candidatura',
@@ -94,19 +95,19 @@ export async function getCompanyNotifications(companyId: string): Promise<Notifi
 
                 if (isExpired) {
                     notifications.push({
-                         id: `video_expired_unsubmitted_${app.id}`,
-                         type: 'video_expired_unsubmitted',
-                         title: 'Prazo de Vídeo Expirado',
-                         message: `${candidateName} não enviou o vídeo dentro do prazo estipulado.`,
-                         vacancyTitle: vacancy.cargo,
-                         vacancyUuid: vacancy.uuid ?? undefined,
-                         vacancyId: vacancy.id,
-                         companyName: '',
-                         candidateName: candidateName,
-                         candidateId: app.candidato_id,
-                         date: deadlineDate,
-                         read: breakdown?.company_notifications?.video_expired_unsubmitted?.read || false
-                     });
+                        id: `video_expired_unsubmitted_${app.id}`,
+                        type: 'video_expired_unsubmitted',
+                        title: 'Prazo de Vídeo Expirado',
+                        message: `${candidateName} não enviou o vídeo dentro do prazo estipulado.`,
+                        vacancyTitle: vacancy.cargo,
+                        vacancyUuid: vacancy.uuid ?? undefined,
+                        vacancyId: vacancy.id,
+                        companyName: '',
+                        candidateName: candidateName,
+                        candidateId: app.candidato_id,
+                        date: deadlineDate,
+                        read: breakdown?.company_notifications?.video_expired_unsubmitted?.read || false
+                    });
                 }
             }
 
@@ -125,7 +126,7 @@ export async function getCandidateNotifications(candidateId: string): Promise<No
         select: {
             vaga_id: true,
             breakdown: true,
-            created_at: true 
+            created_at: true
         }
     });
 
@@ -170,7 +171,7 @@ export async function getCandidateNotifications(candidateId: string): Promise<No
     for (const app of applications) {
         try {
             if (!app.breakdown) continue;
-            
+
             const breakdown = JSON.parse(app.breakdown as string);
             const vaga = vagaMap.get(app.vaga_id);
             const empresa = vaga ? empresaMap.get(vaga.empresa_id) : undefined;
@@ -232,6 +233,38 @@ export async function getCandidateNotifications(candidateId: string): Promise<No
         } catch (e) {
             console.error("Error parsing breakdown for notifications", e);
         }
+    }
+    try {
+        const usuarioData = await prisma.candidato.findUnique({
+            where: { id: candidateId },
+            include: { usuario: { select: { id: true } } }
+        });
+
+        if (usuarioData?.usuario?.id) {
+            const interviewNotifications = await (prisma as any).notificacao.findMany({
+                where: {
+                    usuario_id: usuarioData.usuario.id,
+                    tipo: { in: ['ENTREVISTA_AGENDADA', 'ENTREVISTA_CONFIRMADA', 'ENTREVISTA_CANCELADA'] }
+                },
+                orderBy: { criado_em: 'desc' }
+            });
+
+            for (const notif of interviewNotifications) {
+                const extraData = notif.dados ? JSON.parse(notif.dados) : {};
+                notifications.push({
+                    id: `notificacao_${notif.id}`,
+                    type: notif.tipo === 'ENTREVISTA_AGENDADA' ? 'interview_scheduled' : 'interview_confirmed',
+                    title: notif.titulo,
+                    message: notif.mensagem,
+                    vacancyTitle: '',
+                    date: new Date(notif.criado_em),
+                    read: !!notif.lida,
+                    extraData
+                });
+            }
+        }
+    } catch (e) {
+        console.error("Error fetching interview notifications using ORM:", e);
     }
 
     return notifications.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());

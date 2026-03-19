@@ -14,11 +14,22 @@ export default async function MentorRegisterPage() {
 
     const user = await prisma.usuario.findUnique({
         where: { id: userId },
-        include: { mentor: true }
+        include: { mentor: { include: { mentor_area: true } } }
     });
 
     if (!user || user.tipo !== "MENTOR") {
         redirect("/");
+    }
+
+    const hasName = !!(user.mentor?.nome?.trim() && user.mentor?.sobrenome?.trim());
+    const hasAreas = !!(user.mentor?.mentor_area && user.mentor.mentor_area.length > 0);
+
+    if (hasName && hasAreas) {
+        redirect("/mentor/dashboard");
+    }
+
+    if (hasName && !hasAreas) {
+        redirect("/mentor/specialties");
     }
 
     const initialName = user.mentor?.nome || user.nome || "";

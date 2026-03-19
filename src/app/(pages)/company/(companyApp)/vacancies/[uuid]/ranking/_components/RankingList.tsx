@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Mail, FileText, Brain, User, ExternalLink, Video, MessageSquare, Eye, AlertTriangle, Play } from "lucide-react";
+import { Mail, FileText, Brain, User, ExternalLink, Video, MessageSquare, AlertTriangle, Play, CalendarPlus } from "lucide-react";
 import { AnswersModal } from "./AnswersModal";
 import { AnalysisModal } from "./AnalysisModal";
 import { VideoAnalysisModal } from "../../candidates/_components/VideoAnalysisModal";
 import { FeedbackModal } from "./FeedbackModal";
+import { ScheduleInterviewModal } from "./ScheduleInterviewModal";
 import { useTranslation } from "react-i18next";
 import { requestVideo, submitFeedback } from "../../../actions";
 import { useRouter } from "next/navigation";
@@ -17,6 +18,7 @@ interface Application {
     created_at: Date;
     breakdown?: string | null;
     resposta?: string | null;
+    interviewStatus?: string;
 }
 
 interface Candidate {
@@ -38,12 +40,13 @@ interface RankingListProps {
     candidates: Candidate[];
     vacancyUuid: string;
     vacancyId?: string;
+    vacancyTitle?: string;
     pendingCandidateId?: string;
 }
 
 type SortOption = 'score' | 'score_D' | 'score_I' | 'score_S' | 'score_C';
 
-export function RankingList({ candidates, vacancyUuid, vacancyId, pendingCandidateId }: RankingListProps) {
+export function RankingList({ candidates, vacancyUuid, vacancyId, vacancyTitle, pendingCandidateId }: RankingListProps) {
     const { t } = useTranslation();
     const [sortBy, setSortBy] = useState<SortOption>('score');
     const [filter, setFilter] = useState<'all' | 'approved' | 'rejected'>('all');
@@ -55,6 +58,7 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, pendingCandida
     const [showFeedback, setShowFeedback] = useState(false);
     const [feedbackCandidate, setFeedbackCandidate] = useState<string | null>(null);
     const [videoRequestCandidate, setVideoRequestCandidate] = useState<string | null>(null);
+    const [scheduleCandidate, setScheduleCandidate] = useState<Candidate | null>(null);
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
 
@@ -289,8 +293,8 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, pendingCandida
                     sortedCandidates.map((candidate, index) => {
                         const breakdown = parseBreakdown(candidate.application?.breakdown);
 
-                        const isExpired = breakdown?.video?.status === 'requested' && breakdown?.video?.deadline 
-                            ? new Date() > new Date(breakdown.video.deadline) 
+                        const isExpired = breakdown?.video?.status === 'requested' && breakdown?.video?.deadline
+                            ? new Date() > new Date(breakdown.video.deadline)
                             : false;
                         const isPendingTarget = pendingCandidateId && candidate.id === pendingCandidateId;
                         const isDisabled = pendingCandidateId && !isPendingTarget;
@@ -446,14 +450,38 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, pendingCandida
                                         );
                                     })()}
 
-                                     {renderFeedbackButton(candidate, breakdown)}
+                                    {renderFeedbackButton(candidate, breakdown)}
 
-                                     {isExpired && (
-                                         <div className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-xs font-bold border border-red-200 shadow-sm">
-                                             <AlertTriangle size={14} className="stroke-[2.5px]" />
-                                             {t('ranking_video_expired', 'Prazo do vídeo encerrado')}
-                                         </div>
-                                     )}
+                                    {breakdown?.feedback?.status === 'APPROVED' && (
+                                        <button
+                                            onClick={() => setScheduleCandidate(candidate)}
+                                            disabled={!!candidate.application?.interviewStatus && candidate.application?.interviewStatus !== 'CANCELADA'}
+                                            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-colors cursor-pointer
+                                                ${(() => {
+                                                    const status = candidate.application?.interviewStatus;
+                                                    if (status === 'PENDENTE_CANDIDATO') return 'bg-amber-50 text-amber-600 border border-amber-200 cursor-not-allowed';
+                                                    if (status === 'CONFIRMADA') return 'bg-green-50 text-green-600 border border-green-200 cursor-not-allowed';
+                                                    if (status === 'CANCELADA') return 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100'; // Allow reschedule if canceled?
+                                                    return 'bg-emerald-500 text-white hover:bg-emerald-600';
+                                                })()}`}
+                                        >
+                                            <CalendarPlus size={14} />
+                                            {(() => {
+                                                const status = candidate.application?.interviewStatus;
+                                                if (status === 'PENDENTE_CANDIDATO') return t('interview_status_requested', 'Solicitada');
+                                                if (status === 'CONFIRMADA') return t('interview_status_confirmed', 'Aceita');
+                                                if (status === 'CANCELADA') return t('interview_status_cancelled', 'Recusada');
+                                                return t('schedule_interview_btn', 'Agendar Entrevista');
+                                            })()}
+                                        </button>
+                                    )}
+
+                                    {isExpired && (
+                                        <div className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-xs font-bold border border-red-200 shadow-sm">
+                                            <AlertTriangle size={14} className="stroke-[2.5px]" />
+                                            {t('ranking_video_expired', 'Prazo do vídeo encerrado')}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         );
@@ -605,6 +633,16 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, pendingCandida
                     </div>
                 )
             }
+            {scheduleCandidate && (
+                <ScheduleInterviewModal
+                    isOpen={!!scheduleCandidate}
+                    onClose={() => setScheduleCandidate(null)}
+                    candidateId={scheduleCandidate.id}
+                    candidateName={`${scheduleCandidate.nome || ''} ${scheduleCandidate.sobrenome || ''}`.trim()}
+                    vacancyId={vacancyId || ''}
+                    vacancyTitle={vacancyTitle || ''}
+                />
+            )}
         </>
     );
 }

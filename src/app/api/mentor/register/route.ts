@@ -11,7 +11,7 @@ export async function POST(req: Request) {
         }
 
         // Update or create mentor profile
-        await (prisma as any).mentor.upsert({
+        await prisma.mentor.upsert({
             where: { usuario_id },
             update: {
                 nome,

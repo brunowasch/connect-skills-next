@@ -109,7 +109,7 @@ export async function POST(req: Request) {
           }
 
           if (user.mentor) {
-            await (prisma as any).mentor.delete({
+            await prisma.mentor.delete({
               where: { usuario_id: existingUser.id },
             });
           }
@@ -161,7 +161,7 @@ export async function POST(req: Request) {
           },
         });
       } else if (tipo === "MENTOR") {
-        await (tx as any).mentor.create({
+        await tx.mentor.create({
           data: {
             id: randomUUID(),
             uuid: randomUUID(),
@@ -173,8 +173,7 @@ export async function POST(req: Request) {
       }
 
       // Criar token de verificação
-      // Usamos any para evitar erro de tipo se o prisma client não estiver atualizado com o modelo
-      await (tx as any).verification_token.create({
+      await tx.verification_token.create({
         data: {
           id: randomUUID(),
           token: verificationToken,

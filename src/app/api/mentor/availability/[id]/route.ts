@@ -22,7 +22,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
 
         const { id } = await params;
 
-        const slot = await (prisma as any).mentor_disponibilidade.findUnique({
+        const slot = await prisma.mentor_disponibilidade.findUnique({
             where: { id }
         });
 
@@ -30,7 +30,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
             return NextResponse.json({ error: "Horário não encontrado ou não pertence a você." }, { status: 404 });
         }
 
-        await (prisma as any).mentor_disponibilidade.delete({
+        await prisma.mentor_disponibilidade.delete({
             where: { id }
         });
 
@@ -64,7 +64,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         const body = await req.json();
         const { data: slotData, hora_inicio, hora_fim } = body;
 
-        const slot = await (prisma as any).mentor_disponibilidade.findUnique({
+        const slot = await prisma.mentor_disponibilidade.findUnique({
             where: { id }
         });
 
@@ -80,7 +80,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
             return NextResponse.json({ error: "Horário de início não pode ser maior ou igual ao de término." }, { status: 400 });
         }
 
-        const updatedSlot = await (prisma as any).mentor_disponibilidade.update({
+        await prisma.mentor_disponibilidade.update({
             where: { id },
             data: {
                 data: slotData,
@@ -89,7 +89,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
             }
         });
 
-        return NextResponse.json(updatedSlot);
+        return NextResponse.json({ id, data: slotData, hora_inicio, hora_fim });
 
     } catch (error) {
         console.error("Erro ao atualizar disponibilidade:", error);

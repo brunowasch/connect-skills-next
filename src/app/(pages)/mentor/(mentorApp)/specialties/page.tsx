@@ -21,6 +21,11 @@ export default async function MentorSpecialtiesPage() {
         redirect("/");
     }
 
+    const hasAreas = !!(user.mentor?.mentor_area && user.mentor.mentor_area.length > 0);
+    if (hasAreas) {
+        redirect("/mentor/dashboard");
+    }
+
     const currentSpecialties = (user.mentor as any)?.mentor_area.map((ma: any) => ma.area_interesse.nome) || [];
 
     return (

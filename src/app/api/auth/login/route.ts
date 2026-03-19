@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { generateVerificationCode } from "@/src/lib/code-generator";
 import { sendLoginCodeEmail } from "@/src/lib/mail";
 import { randomUUID } from "crypto";
+import { getRedirectTo } from "@/src/lib/auth-utils";
 
 export async function GET() {
     return NextResponse.json({
@@ -95,27 +96,7 @@ export async function POST(req: Request) {
         const trustedDeviceCookie = cookieStore.get(`trusted_device_${user.id}`);
 
         if (trustedDeviceCookie) {
-            let redirectTo = userType === 'CANDIDATO' ? "/candidate/dashboard" : (userType === 'MENTOR' ? "/mentor/dashboard" : "/company/dashboard");
-
-            if (!isRegistrationComplete) {
-                if (userType === 'CANDIDATO') {
-                    const hasName = !!(user.candidato && user.candidato.nome && user.candidato.nome.trim() !== "");
-                    if (hasName) {
-                        redirectTo = "/candidate/area";
-                    } else {
-                        redirectTo = "/candidate/register";
-                    }
-                } else if (userType === 'MENTOR') {
-                    const hasName = !!(user.mentor && user.mentor.nome && user.mentor.nome.trim() !== "");
-                    if (hasName) {
-                        redirectTo = "/mentor/specialties";
-                    } else {
-                        redirectTo = "/mentor/register";
-                    }
-                } else {
-                    redirectTo = "/company/register";
-                }
-            }
+            const redirectTo = getRedirectTo(user as any);
 
             const response = NextResponse.json(
                 {

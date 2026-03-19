@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useEffect } from 'react';
-import { X, Trash2, Bell, Video, CheckCircle, XCircle, MessageSquare, Clock, Eye, Check } from 'lucide-react';
+import { X, Trash2, Bell, Video, CheckCircle, XCircle, MessageSquare, Clock, Eye, Check, CalendarCheck } from 'lucide-react';
 import { useTranslation } from "react-i18next";
 import { Notification } from "@/src/lib/notifications";
+import { useRouter } from 'next/navigation';
 
 interface AllNotificationsModalProps {
     isOpen: boolean;
@@ -25,6 +26,7 @@ export function AllNotificationsModal({
     onNotificationClick
 }: AllNotificationsModalProps) {
     const { t, i18n } = useTranslation();
+    const router = useRouter();
 
     useEffect(() => {
         if (isOpen) {
@@ -47,6 +49,10 @@ export function AllNotificationsModal({
                 return <CheckCircle size={20} className="text-green-600" />;
             case 'feedback_rejected':
                 return <XCircle size={20} className="text-red-600" />;
+            case 'interview_scheduled':
+                return <CalendarCheck size={20} className="text-indigo-600" />;
+            case 'interview_confirmed':
+                return <CalendarCheck size={20} className="text-emerald-600" />;
             default:
                 return <MessageSquare size={20} className="text-blue-600" />;
         }
@@ -60,6 +66,10 @@ export function AllNotificationsModal({
                 return 'bg-green-50 border-green-100';
             case 'feedback_rejected':
                 return 'bg-red-50 border-red-100';
+            case 'interview_scheduled':
+                return 'bg-indigo-50 border-indigo-100';
+            case 'interview_confirmed':
+                return 'bg-emerald-50 border-emerald-100';
             default:
                 return 'bg-blue-50 border-blue-100';
         }
@@ -211,6 +221,18 @@ export function AllNotificationsModal({
                                                 >
                                                     <Video size={16} />
                                                     {t('notifications.send_video')}
+                                                </button>
+                                            )}
+                                            {notification.type === 'interview_scheduled' && notification.extraData?.entrevistaId && (
+                                                <button
+                                                    onClick={() => {
+                                                        router.push(`/candidate/interviews/${notification.extraData!.entrevistaId}/confirm`);
+                                                        onClose();
+                                                    }}
+                                                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors cursor-pointer"
+                                                >
+                                                    <CalendarCheck size={16} />
+                                                    {t('schedule_confirm_btn', 'Confirmar Presença')}
                                                 </button>
                                             )}
                                             {!notification.read && (
