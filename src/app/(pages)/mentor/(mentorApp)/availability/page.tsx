@@ -16,13 +16,52 @@ export default async function MentorAvailabilityPage() {
         include: { mentor: { include: { mentor_disponibilidade: true } } }
     });
 
-    if (!user || user.tipo !== "MENTOR") {
+    if (!user || user.tipo !== "MENTOR" || !user.mentor) {
         redirect("/");
     }
 
-    const currentAvailability = (user.mentor as any)?.mentor_disponibilidade || [];
+    const currentAvailability = user.mentor.mentor_disponibilidade || [];
+
+    const entrevistas = await prisma.entrevista_mentor.findMany({
+        where: { mentor_id: user.mentor.id }
+    });
+
+    const vagaIds = entrevistas.map(e => e.vaga_id).filter(Boolean);
+    const vagas = vagaIds.length > 0 ? await prisma.vaga.findMany({
+        where: { id: { in: vagaIds } }
+    }) : [];
+    
+    const empresaIds = vagas.map(v => v.empresa_id).filter(Boolean);
+    const empresas = empresaIds.length > 0 ? await prisma.empresa.findMany({
+        where: { id: { in: empresaIds } },
+        select: { id: true, nome_empresa: true, foto_perfil: true }
+    }) : [];
+
+    const empresasMap = new Map(empresas.map(e => [e.id, e]));
+    const vagasMap = new Map(vagas.map(v => [v.id, v]));
+
+    const enrichedAvailability = currentAvailability.map((slot: any) => {
+        const agendado = entrevistas.find(e => e.disponibilidade_id === slot.id);
+        let agendamento = null;
+        if (agendado) {
+            const vaga = vagasMap.get(agendado.vaga_id);
+            if (vaga) {
+                const empresa = empresasMap.get(vaga.empresa_id);
+                if (empresa) {
+                    agendamento = {
+                        empresaNome: empresa.nome_empresa,
+                        empresaFoto: empresa.foto_perfil
+                    };
+                }
+            }
+        }
+        return {
+            ...slot,
+            agendamento
+        };
+    });
 
     return (
-        <MentorAvailabilityList slots={currentAvailability} />
+        <MentorAvailabilityList slots={enrichedAvailability} />
     );
 }

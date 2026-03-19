@@ -12,6 +12,10 @@ interface DbSlot {
     data: string;
     hora_inicio: string;
     hora_fim: string;
+    agendamento?: {
+        empresaNome: string;
+        empresaFoto: string | null;
+    } | null;
 }
 
 export function MentorAvailabilityList({ slots = [] }: { slots: DbSlot[] }) {
@@ -109,24 +113,34 @@ export function MentorAvailabilityList({ slots = [] }: { slots: DbSlot[] }) {
                                             <h3 className="font-bold text-lg text-slate-900 transition-colors group-hover:text-green-600 flex-1 capitalize">
                                                 {formattedDate}
                                             </h3>
-                                            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold flex-shrink-0 bg-green-100 text-green-800">
-                                                {t("active", "Ativa")}
-                                            </span>
-                                            <Link 
-                                                href={`/mentor/availability/edit/${slot.id}`}
-                                                className="ml-auto p-1.5 text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
-                                                title={t("edit_slot", "Editar horário")}
-                                            >
-                                                <FiEdit2 className="w-5 h-5" />
-                                            </Link>
-                                            <button 
-                                                onClick={() => handleDeleteClick(slot.id)}
-                                                disabled={isDeleting === slot.id}
-                                                className={`ml-2 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer ${isDeleting === slot.id ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                title={t("delete_slot", "Remover horário")}
-                                            >
-                                                <FiTrash2 className="w-5 h-5" />
-                                            </button>
+                                            {slot.agendamento ? (
+                                                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold flex-shrink-0 bg-blue-100 text-blue-800">
+                                                    {t("scheduled", "Agendado")}
+                                                </span>
+                                            ) : (
+                                                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold flex-shrink-0 bg-green-100 text-green-800">
+                                                    {t("active", "Ativa")}
+                                                </span>
+                                            )}
+                                            {!slot.agendamento && (
+                                                <>
+                                                    <Link 
+                                                        href={`/mentor/availability/edit/${slot.id}`}
+                                                        className="ml-auto p-1.5 text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
+                                                        title={t("edit_slot", "Editar horário")}
+                                                    >
+                                                        <FiEdit2 className="w-5 h-5" />
+                                                    </Link>
+                                                    <button 
+                                                        onClick={() => handleDeleteClick(slot.id)}
+                                                        disabled={isDeleting === slot.id}
+                                                        className={`ml-2 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer ${isDeleting === slot.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                        title={t("delete_slot", "Remover horário")}
+                                                    >
+                                                        <FiTrash2 className="w-5 h-5" />
+                                                    </button>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
 
@@ -147,11 +161,30 @@ export function MentorAvailabilityList({ slots = [] }: { slots: DbSlot[] }) {
                                     </div>
                                 </div>
                                 
-                                <div className="flex items-center justify-between px-6 md:px-7 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
-                                        <span className="text-xs font-semibold text-green-700 flex items-center gap-1.5">
-                                            <FiCheck className="w-3.5 h-3.5"/> {t("saved_successfully", "Disponibilidade salva")}
-                                        </span>
-                                </div>
+                                {slot.agendamento ? (
+                                    <div className="flex items-center justify-between px-6 md:px-7 py-4 border-t border-gray-100 bg-blue-50/50 rounded-b-2xl">
+                                        <div className="flex items-center gap-3">
+                                            {slot.agendamento.empresaFoto ? (
+                                                // eslint-disable-next-line @next/next/no-img-element
+                                                <img src={slot.agendamento.empresaFoto} alt={slot.agendamento.empresaNome} className="w-8 h-8 rounded-full object-cover border border-blue-200" />
+                                            ) : (
+                                                <div className="w-8 h-8 rounded-full bg-blue-200 flex items-center justify-center text-blue-700 font-bold text-xs">
+                                                    {slot.agendamento.empresaNome.charAt(0).toUpperCase()}
+                                                </div>
+                                            )}
+                                            <div className="flex flex-col">
+                                                <span className="text-xs text-slate-500 font-medium">{t("scheduled_by", "Agendado por")}</span>
+                                                <span className="text-sm font-semibold text-slate-900">{slot.agendamento.empresaNome}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center justify-between px-6 md:px-7 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
+                                            <span className="text-xs font-semibold text-green-700 flex items-center gap-1.5">
+                                                <FiCheck className="w-3.5 h-3.5"/> {t("saved_successfully", "Disponibilidade salva")}
+                                            </span>
+                                    </div>
+                                )}
                             </div>
                         );
                     })}
