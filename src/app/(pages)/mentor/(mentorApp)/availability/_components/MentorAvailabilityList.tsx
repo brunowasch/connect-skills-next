@@ -15,6 +15,7 @@ interface DbSlot {
     agendamento?: {
         empresaNome: string;
         empresaFoto: string | null;
+        empresaUuid: string | null;
     } | null;
 }
 
@@ -163,20 +164,37 @@ export function MentorAvailabilityList({ slots = [] }: { slots: DbSlot[] }) {
                                 
                                 {slot.agendamento ? (
                                     <div className="flex items-center justify-between px-6 md:px-7 py-4 border-t border-gray-100 bg-blue-50/50 rounded-b-2xl">
-                                        <div className="flex items-center gap-3">
-                                            {slot.agendamento.empresaFoto ? (
-                                                // eslint-disable-next-line @next/next/no-img-element
-                                                <img src={slot.agendamento.empresaFoto} alt={slot.agendamento.empresaNome} className="w-8 h-8 rounded-full object-cover border border-blue-200" />
-                                            ) : (
-                                                <div className="w-8 h-8 rounded-full bg-blue-200 flex items-center justify-center text-blue-700 font-bold text-xs">
-                                                    {slot.agendamento.empresaNome.charAt(0).toUpperCase()}
+                                        {slot.agendamento.empresaUuid ? (
+                                            <Link href={`/viewer/company/${slot.agendamento.empresaUuid}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity" title={t("view_company_profile", "Ver perfil da empresa")}>
+                                                {slot.agendamento.empresaFoto ? (
+                                                    // eslint-disable-next-line @next/next/no-img-element
+                                                    <img src={slot.agendamento.empresaFoto} alt={slot.agendamento.empresaNome} className="w-8 h-8 rounded-full object-cover border border-blue-200" />
+                                                ) : (
+                                                    <div className="w-8 h-8 rounded-full bg-blue-200 flex items-center justify-center text-blue-700 font-bold text-xs">
+                                                        {slot.agendamento.empresaNome.charAt(0).toUpperCase()}
+                                                    </div>
+                                                )}
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs text-slate-500 font-medium">{t("scheduled_by", "Agendado por")}</span>
+                                                    <span className="text-sm font-semibold text-blue-600 hover:text-blue-800 hover:underline">{slot.agendamento.empresaNome}</span>
                                                 </div>
-                                            )}
-                                            <div className="flex flex-col">
-                                                <span className="text-xs text-slate-500 font-medium">{t("scheduled_by", "Agendado por")}</span>
-                                                <span className="text-sm font-semibold text-slate-900">{slot.agendamento.empresaNome}</span>
+                                            </Link>
+                                        ) : (
+                                            <div className="flex items-center gap-3">
+                                                {slot.agendamento.empresaFoto ? (
+                                                    // eslint-disable-next-line @next/next/no-img-element
+                                                    <img src={slot.agendamento.empresaFoto} alt={slot.agendamento.empresaNome} className="w-8 h-8 rounded-full object-cover border border-blue-200" />
+                                                ) : (
+                                                    <div className="w-8 h-8 rounded-full bg-blue-200 flex items-center justify-center text-blue-700 font-bold text-xs">
+                                                        {slot.agendamento.empresaNome.charAt(0).toUpperCase()}
+                                                    </div>
+                                                )}
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs text-slate-500 font-medium">{t("scheduled_by", "Agendado por")}</span>
+                                                    <span className="text-sm font-semibold text-slate-900">{slot.agendamento.empresaNome}</span>
+                                                </div>
                                             </div>
-                                        </div>
+                                        )}
                                     </div>
                                 ) : (
                                     <div className="flex items-center justify-between px-6 md:px-7 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl">

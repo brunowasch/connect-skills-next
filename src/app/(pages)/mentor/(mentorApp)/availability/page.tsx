@@ -34,7 +34,7 @@ export default async function MentorAvailabilityPage() {
     const empresaIds = vagas.map(v => v.empresa_id).filter(Boolean);
     const empresas = empresaIds.length > 0 ? await prisma.empresa.findMany({
         where: { id: { in: empresaIds } },
-        select: { id: true, nome_empresa: true, foto_perfil: true }
+        select: { id: true, uuid: true, nome_empresa: true, foto_perfil: true }
     }) : [];
 
     const empresasMap = new Map(empresas.map(e => [e.id, e]));
@@ -50,7 +50,8 @@ export default async function MentorAvailabilityPage() {
                 if (empresa) {
                     agendamento = {
                         empresaNome: empresa.nome_empresa,
-                        empresaFoto: empresa.foto_perfil
+                        empresaFoto: empresa.foto_perfil,
+                        empresaUuid: empresa.uuid
                     };
                 }
             }
