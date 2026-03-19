@@ -7,25 +7,15 @@ import { AlertCircle, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-const diasMapReverso: Record<number, string> = {
-    0: "Domingo",
-    1: "Segunda-feira",
-    2: "Terça-feira",
-    3: "Quarta-feira",
-    4: "Quinta-feira",
-    5: "Sexta-feira",
-    6: "Sábado"
-};
-
 interface DbSlot {
     id: string;
-    dia_semana: number;
+    data: string;
     hora_inicio: string;
     hora_fim: string;
 }
 
 export function MentorAvailabilityList({ slots = [] }: { slots: DbSlot[] }) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const router = useRouter();
     const [isDeleting, setIsDeleting] = useState<string | null>(null);
     const [deleteModalSlotId, setDeleteModalSlotId] = useState<string | null>(null);
@@ -50,6 +40,22 @@ export function MentorAvailabilityList({ slots = [] }: { slots: DbSlot[] }) {
             alert(t("error_connection", "Erro de conexão."));
         } finally {
             setIsDeleting(null);
+        }
+    };
+
+    const formatDate = (dateString: string) => {
+        if (!dateString) return "Data Inválida";
+        try {
+            const [year, month, day] = dateString.split("-");
+            const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+            return new Intl.DateTimeFormat(i18n.language === 'en' ? 'en-US' : 'pt-BR', {
+                weekday: 'short',
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            }).format(date);
+        } catch (e) {
+            return dateString;
         }
     };
 
@@ -94,14 +100,14 @@ export function MentorAvailabilityList({ slots = [] }: { slots: DbSlot[] }) {
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {slots.map((slot) => {
-                        const nomeDia = diasMapReverso[slot.dia_semana] || "Dia";
+                        const formattedDate = formatDate(slot.data);
                         return (
                             <div key={slot.id} className="group bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all hover:border-green-400 relative">
                                 <div className="p-6 md:p-7 pb-5 md:pb-6">
                                     <div className="mb-0">
                                         <div className="flex items-start gap-3 mb-2">
-                                            <h3 className="font-bold text-lg text-slate-900 transition-colors group-hover:text-green-600 flex-1">
-                                                {t(nomeDia)}
+                                            <h3 className="font-bold text-lg text-slate-900 transition-colors group-hover:text-green-600 flex-1 capitalize">
+                                                {formattedDate}
                                             </h3>
                                             <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold flex-shrink-0 bg-green-100 text-green-800">
                                                 {t("active", "Ativa")}
@@ -122,11 +128,6 @@ export function MentorAvailabilityList({ slots = [] }: { slots: DbSlot[] }) {
                                                 <FiTrash2 className="w-5 h-5" />
                                             </button>
                                         </div>
-                                        <div className="flex flex-col gap-1.5">
-                                            <div className="text-sm text-gray-500 mb-2">
-                                                {t("mentorship", "Mentoria")} • {t("configured_time", "Horário configurado")}
-                                            </div>
-                                        </div>
                                     </div>
 
                                     <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-600 mt-2">
@@ -141,13 +142,6 @@ export function MentorAvailabilityList({ slots = [] }: { slots: DbSlot[] }) {
                                             <div className="w-2 h-2 rounded-full bg-slate-300"></div>
                                             <span>
                                                 <span className="font-semibold text-slate-900">{slot.hora_fim}</span> <span className="text-xs text-gray-500">{t("end", "Término")}</span>
-                                            </span>
-                                        </div>
-                                        
-                                        <div className="flex items-center gap-2">
-                                                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                                            <span>
-                                                <span className="font-semibold text-slate-900">{nomeDia.substring(0, 3)}</span> <span className="text-xs text-gray-500">{t("day", "Dia")}</span>
                                             </span>
                                         </div>
                                     </div>

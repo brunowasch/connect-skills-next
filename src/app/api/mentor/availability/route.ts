@@ -21,21 +21,9 @@ export async function POST(req: Request) {
 
         const mentorId = user.mentor.id;
 
-        const diasMap: Record<string, number> = {
-            "Domingo": 0,
-            "Segunda-feira": 1,
-            "Terça-feira": 2,
-            "Quarta-feira": 3,
-            "Quinta-feira": 4,
-            "Sexta-feira": 5,
-            "Sábado": 6
-        };
-
         await prisma.$transaction(async (tx) => {
             for (const slot of slots) {
-                const diaInt = diasMap[slot.dia_semana];
-                
-                if (diaInt === undefined) {
+                if (!slot.data || !slot.hora_inicio || !slot.hora_fim) {
                     continue;
                 }
 
@@ -43,7 +31,7 @@ export async function POST(req: Request) {
                     data: {
                         id: crypto.randomUUID(),
                         mentor_id: mentorId,
-                        dia_semana: diaInt,
+                        data: slot.data,
                         hora_inicio: slot.hora_inicio,
                         hora_fim: slot.hora_fim,
                     }

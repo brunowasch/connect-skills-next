@@ -31,7 +31,7 @@ export default function MentorClientLayout({
                     setMobileOpen={setMobileSidebarOpen}
                 />
 
-                <div className="flex flex-1 flex-col transition-all duration-300 lg:ml-64 w-full min-w-0 overflow-x-hidden">
+                <div className="flex flex-1 flex-col transition-all duration-300 lg:ml-64 w-full min-w-0">
                     <header className="flex h-20 items-center justify-between bg-white px-4 sm:px-6 shadow-sm sticky top-0 z-40 w-full max-w-full">
                         <div className="flex items-center gap-4 lg:hidden">
                             <button
@@ -59,7 +59,7 @@ export default function MentorClientLayout({
                         </div>
                     </header>
 
-                    <main className="flex-1 overflow-hidden px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 lg:py-6 w-full min-w-0">
+                    <main className="flex-1 px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 lg:py-6 w-full min-w-0">
                         <div className="w-full max-w-[1400px] mx-auto min-w-0">
                             {children}
                         </div>

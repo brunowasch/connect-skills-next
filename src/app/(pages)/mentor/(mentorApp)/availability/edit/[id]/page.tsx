@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { prisma } from "@/src/lib/prisma";
 import { redirect } from "next/navigation";
 
-export default async function MentorAvailabilityEditIdPage({ params }: { params: { id: string } }) {
+export default async function MentorAvailabilityEditIdPage({ params }: { params: Promise<{ id: string }> }) {
     const cookieStore = await cookies();
     const userId = cookieStore.get("time_user_id")?.value;
 

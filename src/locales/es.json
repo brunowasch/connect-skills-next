@@ -1873,5 +1873,22 @@
     "error_update": "Error al actualizar el horario.",
     "edit_availability_title": "Editar Horario",
     "edit_availability_desc": "Actualiza el día y el horario de este bloque en tu agenda de mentorías.",
-    "edit_slot": "Editar horario"
+    "edit_slot": "Editar horario",
+    "datepicker_placeholder": "Seleccionar fecha",
+    "datepicker_select": "Seleccionar",
+    "datepicker_date": "Fecha",
+    "datepicker_days_short": ["D", "L", "M", "M", "J", "V", "S"],
+    "datepicker_months": ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
+    "datepicker_days": ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"],
+    "mentor_availability_error_min_slots": "Agregue al menos un horario de disponibilidad.",
+    "mentor_availability_error_empty_date": "Complete todas las fechas.",
+    "mentor_availability_error_empty_times_day": "Complete los horarios de inicio y fin para el {{date}}.",
+    "mentor_availability_error_invalid_interval_day": "El horario de inicio ({{start}}) no puede ser mayor o igual al horario de término ({{end}}) en el {{date}}.",
+    "mentor_availability_error_save": "Error al guardar disponibilidad.",
+    "mentor_availability_modal_title": "Nueva Mentoría",
+    "mentor_availability_modal_desc": "Elija el día en el calendario de abajo.",
+    "mentor_availability_edit_error_date": "Por favor complete la fecha.",
+    "mentor_availability_edit_error_times": "Por favor complete los horarios de inicio y fin.",
+    "mentor_availability_edit_error_interval": "El horario de inicio ({{start}}) no puede ser mayor o igual al horario de término ({{end}}) en el {{date}}.",
+    "mentor_availability_edit_error_update": "Error al actualizar el horario."
 }

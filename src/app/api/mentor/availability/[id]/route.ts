@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const cookieStore = await cookies();
         const userId = cookieStore.get("time_user_id")?.value;
@@ -42,7 +42,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     }
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const cookieStore = await cookies();
         const userId = cookieStore.get("time_user_id")?.value;
@@ -62,7 +62,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 
         const { id } = await params;
         const body = await req.json();
-        const { dia_semana, hora_inicio, hora_fim } = body;
+        const { data: slotData, hora_inicio, hora_fim } = body;
 
         const slot = await (prisma as any).mentor_disponibilidade.findUnique({
             where: { id }
@@ -72,19 +72,8 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
             return NextResponse.json({ error: "Horário não encontrado ou não pertence a você." }, { status: 404 });
         }
 
-        const diasMap: Record<string, number> = {
-            "Domingo": 0,
-            "Segunda-feira": 1,
-            "Terça-feira": 2,
-            "Quarta-feira": 3,
-            "Quinta-feira": 4,
-            "Sexta-feira": 5,
-            "Sábado": 6
-        };
-        const diaInt = diasMap[dia_semana];
-
-        if (diaInt === undefined) {
-            return NextResponse.json({ error: "Dia da semana inválido." }, { status: 400 });
+        if (!slotData) {
+            return NextResponse.json({ error: "Data inválida." }, { status: 400 });
         }
 
         if (hora_inicio >= hora_fim) {
@@ -94,7 +83,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         const updatedSlot = await (prisma as any).mentor_disponibilidade.update({
             where: { id },
             data: {
-                dia_semana: diaInt,
+                data: slotData,
                 hora_inicio,
                 hora_fim
             }

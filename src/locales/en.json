@@ -1869,5 +1869,22 @@
     "error_update": "Error updating time slot.",
     "edit_availability_title": "Edit Time Slot",
     "edit_availability_desc": "Update the day and time of this block in your mentoring schedule.",
-    "edit_slot": "Edit time slot"
+    "edit_slot": "Edit time slot",
+    "datepicker_placeholder": "Select date",
+    "datepicker_select": "Select",
+    "datepicker_date": "Date",
+    "datepicker_days_short": ["S", "M", "T", "W", "T", "F", "S"],
+    "datepicker_months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+    "datepicker_days": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    "mentor_availability_error_min_slots": "Add at least one availability slot.",
+    "mentor_availability_error_empty_date": "Fill in all dates.",
+    "mentor_availability_error_empty_times_day": "Fill in the start and end times for {{date}}.",
+    "mentor_availability_error_invalid_interval_day": "The start time ({{start}}) cannot be greater than or equal to the end time ({{end}}) on {{date}}.",
+    "mentor_availability_error_save": "Error saving availability.",
+    "mentor_availability_modal_title": "New Mentorship",
+    "mentor_availability_modal_desc": "Choose the day in the calendar below.",
+    "mentor_availability_edit_error_date": "Please fill in the date.",
+    "mentor_availability_edit_error_times": "Please fill in the start and end times.",
+    "mentor_availability_edit_error_interval": "The start time ({{start}}) cannot be greater than or equal to the end time ({{end}}) on {{date}}.",
+    "mentor_availability_edit_error_update": "Error updating time slot."
 }

@@ -202,7 +202,7 @@ model mentor_area {
 model mentor_disponibilidade {
   id          String   @id @default(uuid())
   mentor_id   String
-  dia_semana  Int // 0-6 (dom-sab)
+  data        String   @db.VarChar(10) @default("") // YYYY-MM-DD
   hora_inicio String   @db.VarChar(5) // HH:mm
   hora_fim    String   @db.VarChar(5) // HH:mm
   mentor      mentor   @relation(fields: [mentor_id], references: [id], onDelete: Cascade)
