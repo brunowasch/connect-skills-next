@@ -298,7 +298,7 @@ export default async function Dashboard() {
         });
         const mentor = await prisma.mentor.findUnique({
             where: { id: int.mentor_id },
-            select: { nome: true, sobrenome: true }
+            select: { nome: true, sobrenome: true, foto_perfil: true }
         });
 
         return {
@@ -308,6 +308,7 @@ export default async function Dashboard() {
             candidato: `${candidato?.nome || ""} ${candidato?.sobrenome || ""}`.trim(),
             candidatoFoto: candidato?.foto_perfil || null,
             mentor: `${mentor?.nome || ""} ${mentor?.sobrenome || ""}`.trim(),
+            mentorFoto: mentor?.foto_perfil || null,
             data: int.data,
             hora_inicio: int.hora_inicio,
             hora_fim: int.hora_fim

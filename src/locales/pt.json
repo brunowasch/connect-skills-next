@@ -1880,5 +1880,7 @@
     "notifications.mark_read": "Marcar como lida",
     "mentor_dashboard_scheduled_mentorships": "Mentorias Confirmadas (Próximas)",
     "mentor_technical_interview_with": "Entrevista técnica para a empresa",
-    "notifications.company_notifications.interview_confirmed_title": "Mentoria Confirmada"
+    "notifications.company_notifications.interview_confirmed_title": "Mentoria Confirmada",
+    "dashboard_candidate_label": "Candidato",
+    "dashboard_mentor_label": "Mentor(a)"
 }

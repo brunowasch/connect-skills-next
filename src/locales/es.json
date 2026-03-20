@@ -1988,5 +1988,7 @@
     "notifications.mark_read": "Marcar como leída",
     "mentor_dashboard_scheduled_mentorships": "Mentorías Confirmadas (Próximas)",
     "mentor_technical_interview_with": "Entrevista técnica para la empresa",
-    "notifications.company_notifications.interview_confirmed_title": "Mentoría Confirmada"
+    "notifications.company_notifications.interview_confirmed_title": "Mentoría Confirmada",
+    "dashboard_candidate_label": "Candidato",
+    "dashboard_mentor_label": "Mentor(a)"
 }

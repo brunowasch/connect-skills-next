@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, Clock, ArrowRight, CheckCircle, ExternalLink } from "lucide-react";
+import { Calendar, Clock, ArrowRight, CheckCircle, ExternalLink, Building2 } from "lucide-react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 
@@ -42,17 +42,17 @@ export function MentorshipRequests({ requests }: MentorshipRequestsProps) {
                             
                             <div className="flex justify-between items-start mb-3">
                                 <div className="flex items-center gap-3">
-                                    {req.empresa?.foto_perfil ? (
-                                        <img 
-                                            src={req.empresa.foto_perfil} 
-                                            alt={req.empresa.nome_empresa} 
-                                            className="w-10 h-10 rounded-lg object-cover border border-gray-100"
-                                        />
-                                    ) : (
-                                        <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400">
-                                            <Calendar size={20} />
-                                        </div>
-                                    )}
+                                    <div className="w-10 h-10 rounded-lg border border-gray-100 shrink-0 overflow-hidden flex items-center justify-center bg-gray-50">
+                                        {req.empresa?.foto_perfil ? (
+                                            <img 
+                                                src={req.empresa.foto_perfil} 
+                                                alt={req.empresa.nome_empresa || "Empresa"} 
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <Building2 className="w-5 h-5 text-gray-400" />
+                                        )}
+                                    </div>
                                     <div>
                                         <h3 className="font-semibold text-gray-900 line-clamp-1">{req.cargo}</h3>
                                         <p className="text-xs text-gray-500">{req.empresa?.nome_empresa || t('company_default', 'Empresa')}</p>

@@ -1981,5 +1981,7 @@
     "notifications.mark_read": "Mark as read",
     "mentor_dashboard_scheduled_mentorships": "Confirmed Mentorships (Upcoming)",
     "mentor_technical_interview_with": "Technical interview for the company",
-    "notifications.company_notifications.interview_confirmed_title": "Mentorship Confirmed"
+    "notifications.company_notifications.interview_confirmed_title": "Mentorship Confirmed",
+    "dashboard_candidate_label": "Candidate",
+    "dashboard_mentor_label": "Mentor"
 }

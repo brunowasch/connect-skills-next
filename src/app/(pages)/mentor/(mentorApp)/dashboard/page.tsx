@@ -47,13 +47,13 @@ export default async function MentorDashboardPage() {
         if (vaga?.empresa_id) {
             empresaData = await prisma.empresa.findUnique({
                 where: { id: vaga.empresa_id },
-                select: { nome_empresa: true }
+                select: { nome_empresa: true, foto_perfil: true }
             });
         }
 
         const candidato = await prisma.candidato.findUnique({
             where: { id: int.candidato_id },
-            select: { nome: true, sobrenome: true }
+            select: { nome: true, sobrenome: true, foto_perfil: true }
         });
 
         return {
@@ -63,7 +63,9 @@ export default async function MentorDashboardPage() {
             hora_fim: int.hora_fim,
             cargo: vaga?.cargo || "Mentoria",
             empresa: empresaData?.nome_empresa || "Empresa",
-            candidato: `${candidato?.nome || ""} ${candidato?.sobrenome || ""}`.trim()
+            empresaFoto: empresaData?.foto_perfil || null,
+            candidato: `${candidato?.nome || ""} ${candidato?.sobrenome || ""}`.trim(),
+            candidatoFoto: candidato?.foto_perfil || null
         };
     }));
 
