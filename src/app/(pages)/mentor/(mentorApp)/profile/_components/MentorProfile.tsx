@@ -104,7 +104,7 @@ export function MentorProfile({ mentor, fotoPerfil, localidade, contato, perfilS
                             <h3 className="font-bold text-slate-800 flex items-center gap-2">
                                 <Target className="text-blue-600" size={18} /> {t("mentor_specialties_title", "Especialidades")}
                             </h3>
-                            <Link href="/mentor/specialties">
+                            <Link href="/mentor/edit/area">
                                 <button className="text-blue-600 text-sm font-bold cursor-pointer hover:underline">{t("edit_areas", "Alterar")}</button>
                             </Link>
                         </div>

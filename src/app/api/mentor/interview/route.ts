@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
-import { sendInterviewScheduledEmail, sendInterviewConfirmedToMentorEmail } from "@/src/lib/mail";
+import { sendInterviewScheduledEmail, sendInterviewConfirmedToMentorEmail, sendInterviewConfirmedToCompanyEmail } from "@/src/lib/mail";
+
 import { randomUUID } from "crypto";
 
 export async function POST(req: Request) {
@@ -82,7 +83,6 @@ export async function POST(req: Request) {
             await sendInterviewScheduledEmail(
                 candidato.usuario.email,
                 candidateFullName,
-                mentorFullName,
                 vaga.cargo,
                 formattedDate,
                 slot.hora_inicio,
@@ -158,7 +158,7 @@ export async function PATCH(req: Request) {
                     usuario_id: mentor.usuario.id,
                     tipo: "ENTREVISTA_CONFIRMADA",
                     titulo: "Entrevista Confirmada pelo Candidato",
-                    mensagem: `O candidato ${candidateFullName} confirmou presença na entrevista para a vaga "${vaga.cargo}". Data: ${formattedDate}, ${interview.hora_inicio}–${interview.hora_fim}.`,
+                    mensagem: `Um candidato confirmou presença na entrevista para a vaga de "${vaga.cargo}". Data: ${formattedDate}, ${interview.hora_inicio}–${interview.hora_fim}.`,
                     dados: JSON.stringify({ entrevistaId, vagaId: interview.vaga_id, candidatoId: interview.candidato_id })
                 }
             });
@@ -169,7 +169,7 @@ export async function PATCH(req: Request) {
                     usuario_id: candidato.usuario.id,
                     tipo: "ENTREVISTA_CONFIRMADA",
                     titulo: "Presença Confirmada com Sucesso",
-                    mensagem: `Sua presença na entrevista com o mentor ${mentorFullName} para a vaga "${vaga.cargo}" foi confirmada. Data: ${formattedDate}, ${interview.hora_inicio}–${interview.hora_fim}.`,
+                    mensagem: `Sua presença na entrevista para a vaga "${vaga.cargo}" foi confirmada. Data: ${formattedDate}, ${interview.hora_inicio}–${interview.hora_fim}.`,
                     dados: JSON.stringify({ entrevistaId, vagaId: interview.vaga_id })
                 }
             });
@@ -188,6 +188,41 @@ export async function PATCH(req: Request) {
                 console.error("Warning: failed to send email to mentor:", emailErr);
             }
 
+            const company = await prisma.empresa.findUnique({
+                where: { id: vaga.empresa_id },
+                include: { usuario: { select: { id: true, email: true } } }
+            });
+
+            if (company?.usuario) {
+                await prisma.notificacao.create({
+                    data: {
+                        id: randomUUID(),
+                        usuario_id: company.usuario.id,
+                        tipo: "ENTREVISTA_CONFIRMADA",
+                        titulo: "Mentoria Confirmada",
+                        mensagem: `A mentoria do candidato ${candidateFullName} com o mentor ${mentorFullName} para a vaga "${vaga.cargo}" foi confirmada. Data: ${formattedDate}, ${interview.hora_inicio}–${interview.hora_fim}.`,
+                        dados: JSON.stringify({ entrevistaId, vagaId: interview.vaga_id, candidatoId: interview.candidato_id })
+                    }
+                });
+
+                try {
+                    const vacancyLink = `${process.env.APP_URL}/company/vacancies/${vaga.uuid || vaga.id}/ranking`;
+                    await sendInterviewConfirmedToCompanyEmail(
+                        company.usuario.email,
+                        company.nome_empresa,
+                        candidateFullName,
+                        mentorFullName,
+                        vaga.cargo,
+                        formattedDate,
+                        interview.hora_inicio,
+                        interview.hora_fim,
+                        vacancyLink
+                    );
+                } catch (emailErr) {
+                    console.error("Warning: failed to send email to company:", emailErr);
+                }
+            }
+
             // Invalidate/Mark as read original invitation notification
             await (prisma as any).notificacao.updateMany({
                 where: {
@@ -199,6 +234,7 @@ export async function PATCH(req: Request) {
             });
 
             return NextResponse.json({ success: true, status: "CONFIRMADA" });
+
 
         } else if (action === "CANCEL") {
             if (interview.status === "CANCELADA") {

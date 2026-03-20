@@ -27,6 +27,46 @@ export default async function MentorDashboardPage() {
         redirect("/mentor/register");
     }
 
+    const upcomingInterviewsRaw = await prisma.entrevista_mentor.findMany({
+        where: {
+            mentor_id: user.mentor.id,
+            status: "CONFIRMADA",
+        },
+        orderBy: {
+            data: 'asc'
+        }
+    });
+
+    const upcomingInterviews = await Promise.all(upcomingInterviewsRaw.map(async (int: any) => {
+        const vaga = await prisma.vaga.findUnique({
+            where: { id: int.vaga_id },
+            select: { cargo: true, empresa_id: true }
+        });
+        
+        let empresaData = null;
+        if (vaga?.empresa_id) {
+            empresaData = await prisma.empresa.findUnique({
+                where: { id: vaga.empresa_id },
+                select: { nome_empresa: true }
+            });
+        }
+
+        const candidato = await prisma.candidato.findUnique({
+            where: { id: int.candidato_id },
+            select: { nome: true, sobrenome: true }
+        });
+
+        return {
+            id: int.id,
+            data: int.data,
+            hora_inicio: int.hora_inicio,
+            hora_fim: int.hora_fim,
+            cargo: vaga?.cargo || "Mentoria",
+            empresa: empresaData?.nome_empresa || "Empresa",
+            candidato: `${candidato?.nome || ""} ${candidato?.sobrenome || ""}`.trim()
+        };
+    }));
+
     const mentor: MentorData = {
         nome: user.mentor.nome,
         sobrenome: user.mentor.sobrenome,
@@ -39,6 +79,6 @@ export default async function MentorDashboardPage() {
     };
 
     return (
-        <MentorDashboardContent mentor={mentor} />
+        <MentorDashboardContent mentor={mentor} upcomingInterviews={upcomingInterviews} />
     );
 }

@@ -8,12 +8,15 @@ import { usePathname } from "next/navigation";
 import { Footer } from "@/src/app/(pages)/candidate/layout/Footer/Footer";
 import { LanguageSwitcher } from "@/src/app/_components/Layout/LanguageSwitcher";
 import { GlobalToast } from "@/src/app/(pages)/candidate/(candidateApp)/_components/GlobalToast";
-import { NotificationDropdown } from "@/src/app/(pages)/candidate/(candidateApp)/_components/NotificationDropdown";
+import { MentorNotificationDropdown } from "./_components/MentorNotificationDropdown";
+import { Notification } from "@/src/lib/notifications";
 
 export default function MentorClientLayout({
     children,
+    notifications = [],
 }: {
     children: React.ReactNode;
+    notifications?: Notification[];
 }) {
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
     const pathname = usePathname();
@@ -53,7 +56,7 @@ export default function MentorClientLayout({
                         <div className="hidden lg:block flex-1" />
 
                         <div className="flex items-center gap-4">
-                            <NotificationDropdown notifications={[]} />
+                            <MentorNotificationDropdown notifications={notifications} />
                             <div className="h-6 w-px bg-gray-200" />
                             <LanguageSwitcher />
                         </div>

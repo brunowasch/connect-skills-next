@@ -18,7 +18,17 @@ export interface MentorData {
     pais?: string | null;
 }
 
-export function MentorDashboardContent({ mentor }: { mentor: MentorData }) {
+export interface UpcomingInterview {
+    id: string;
+    data: string;
+    hora_inicio: string;
+    hora_fim: string;
+    cargo: string;
+    empresa: string;
+    candidato: string;
+}
+
+export function MentorDashboardContent({ mentor, upcomingInterviews = [] }: { mentor: MentorData, upcomingInterviews?: UpcomingInterview[] }) {
     const { t } = useTranslation();
 
     return (
@@ -30,19 +40,66 @@ export function MentorDashboardContent({ mentor }: { mentor: MentorData }) {
             <MentorProfileCompletion mentor={mentor} />
 
             <MentorKPI
-                mentoringsCount={0}
+                mentoringsCount={upcomingInterviews.length}
                 availabilityCount={mentor.availabilityCount}
                 specialties={mentor.specialties}
             />
 
-            <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mt-6">
-                <section className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-100 min-h-[300px]">
-                    <h3 className="text-lg font-bold text-slate-900 mb-4">{t("mentor_next_sessions", "Próximas Mentorias")}</h3>
-                    <div className="flex flex-col items-center justify-center h-48 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                        <p className="text-slate-500 text-sm">{t("no_upcoming_sessions", "Nenhuma mentoria agendada no momento.")}</p>
-                    </div>
-                </section>
+            {upcomingInterviews.length > 0 && (
+                <div className="w-full mb-6 mt-6">
+                    <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600">
+                            <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+                            <line x1="16" x2="16" y1="2" y2="6"/>
+                            <line x1="8" x2="8" y1="2" y2="6"/>
+                            <line x1="3" x2="21" y1="10" y2="10"/>
+                        </svg>
+                        {t('mentor_dashboard_scheduled_mentorships', 'Mentorias Confirmadas (Próximas)')}
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {upcomingInterviews.map((ment) => (
+                            <div key={ment.id} className="bg-white border border-emerald-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500" />
 
+                                <div className="flex justify-between items-start mb-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 font-bold shrink-0">
+                                            {ment.candidato.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <h3 className="font-semibold text-gray-900 line-clamp-1">{ment.candidato}</h3>
+                                            <p className="text-xs text-gray-500 line-clamp-1">{ment.cargo}</p>
+                                        </div>
+                                    </div>
+                                    <div className="bg-emerald-50 p-1.5 rounded-full text-emerald-600 shrink-0">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                            <polyline points="22 4 12 14.01 9 11.01"/>
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                <div className="mb-3">
+                                    <p className="text-sm text-gray-600 mb-3">
+                                        {t('mentor_technical_interview_with', 'Entrevista técnica para a empresa')} <strong>{ment.empresa}</strong>.
+                                    </p>
+                                    <div className="flex items-center gap-1.5 text-xs font-medium px-2 py-1.5 rounded w-fit bg-emerald-50 text-emerald-600">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <circle cx="12" cy="12" r="10"/>
+                                            <polyline points="12 6 12 12 16 14"/>
+                                        </svg>
+                                        <span>
+                                            {ment.data.split('-').reverse().join('/')} · {ment.hora_inicio} – {ment.hora_fim}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mt-6">
                 <section className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-100 min-h-[300px]">
                     <h3 className="text-lg font-bold text-slate-900 mb-4">{t("mentor_tips_resources", "Dicas e Recursos")}</h3>
                     <div className="space-y-4">

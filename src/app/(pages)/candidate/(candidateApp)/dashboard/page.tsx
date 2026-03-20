@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
-import { Hero, KPI, RecommendedVacancies, ApplicationHistory, ProfileCompletion, DashboardHeader, VideoRequests, DraftApplications } from "@/src/app/(pages)/candidate/(candidateApp)/dashboard/_components/index";
+import { Hero, KPI, RecommendedVacancies, ApplicationHistory, ProfileCompletion, DashboardHeader, VideoRequests, DraftApplications, MentorshipRequests } from "@/src/app/(pages)/candidate/(candidateApp)/dashboard/_components/index";
 
 export default async function Dashboard() {
     const cookieStore = await cookies();
@@ -359,11 +359,44 @@ export default async function Dashboard() {
             action: 'upload_video'
         }));
 
+    const pendingInterviews = await prisma.entrevista_mentor.findMany({
+        where: {
+            candidato_id: candidateComplete.id,
+            status: { in: ["PENDENTE_CANDIDATO", "CONFIRMADA"] }
+        }
+    });
+
+    const mentorshipRequests = await Promise.all(pendingInterviews.map(async (interview: any) => {
+        const vaga = await prisma.vaga.findUnique({
+            where: { id: interview.vaga_id },
+            select: { cargo: true, empresa_id: true }
+        });
+        let empresaData = null;
+        if (vaga?.empresa_id) {
+            empresaData = await prisma.empresa.findUnique({
+                where: { id: vaga.empresa_id },
+                select: { nome_empresa: true, foto_perfil: true }
+            });
+        }
+        return {
+            id: interview.id,
+            status: interview.status,
+            cargo: vaga?.cargo || "Mentoria",
+            empresa: {
+                nome_empresa: empresaData?.nome_empresa || "Empresa",
+                foto_perfil: empresaData?.foto_perfil || null
+            },
+            data: interview.data,
+            hora_inicio: interview.hora_inicio
+        };
+    }));
+
     return (
         <>
             <DashboardHeader />
             <Hero candidato={candidate} />
             <ProfileCompletion candidato={candidate} usuario={userId} areas={areas} />
+            <MentorshipRequests requests={mentorshipRequests} />
             <VideoRequests requests={videoRequests} />
             <KPI
                 recommendedVacanciesCount={recommendedVacanciesCount}

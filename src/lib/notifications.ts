@@ -2,7 +2,7 @@ import { prisma } from "@/src/lib/prisma";
 
 export interface Notification {
     id: string;
-    type: 'video_request' | 'feedback_approved' | 'feedback_rejected' | 'general' | 'video_received' | 'new_candidate' | 'video_expired_unsubmitted' | 'interview_scheduled' | 'interview_confirmed';
+    type: 'video_request' | 'feedback_approved' | 'feedback_rejected' | 'general' | 'video_received' | 'new_candidate' | 'video_expired_unsubmitted' | 'interview_scheduled' | 'interview_confirmed' | 'interview_confirmed_mentor' | 'interview_cancelled_mentor';
     title: string;
     message: string;
     vacancyTitle: string;
@@ -116,8 +116,42 @@ export async function getCompanyNotifications(companyId: string): Promise<Notifi
         }
     }
 
+    try {
+        const companyUser = await prisma.empresa.findUnique({
+            where: { id: companyId },
+            include: { usuario: { select: { id: true } } }
+        });
+
+        if (companyUser?.usuario?.id) {
+            const interviewNotifs = await (prisma as any).notificacao.findMany({
+                where: {
+                    usuario_id: companyUser.usuario.id,
+                    tipo: { in: ['ENTREVISTA_CONFIRMADA', 'ENTREVISTA_RECUSADA'] }
+                },
+                orderBy: { criado_em: 'desc' }
+            });
+
+            for (const notif of interviewNotifs) {
+                const extraData = notif.dados ? JSON.parse(notif.dados) : {};
+                notifications.push({
+                    id: `notificacao_${notif.id}`,
+                    type: 'interview_confirmed',
+                    title: notif.titulo,
+                    message: notif.mensagem,
+                    vacancyTitle: '',
+                    date: new Date(notif.criado_em),
+                    read: !!notif.lida,
+                    extraData: { ...extraData, rawId: notif.id }
+                });
+            }
+        }
+    } catch (e) {
+        console.error("Error fetching company interview notifications from notificacao:", e);
+    }
+
     return notifications.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
+
 
 export async function getCandidateNotifications(candidateId: string): Promise<Notification[]> {
     // 1. Buscar todas as avaliações do candidato
@@ -268,4 +302,43 @@ export async function getCandidateNotifications(candidateId: string): Promise<No
     }
 
     return notifications.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+}
+
+export async function getMentorNotifications(mentorId: string): Promise<Notification[]> {
+    try {
+        const mentor = await prisma.mentor.findUnique({
+            where: { id: mentorId },
+            include: { usuario: { select: { id: true } } }
+        });
+
+        if (!mentor?.usuario?.id) return [];
+
+        const rows = await (prisma as any).notificacao.findMany({
+            where: {
+                usuario_id: mentor.usuario.id,
+                tipo: { in: ['ENTREVISTA_CONFIRMADA', 'ENTREVISTA_CANCELADA'] }
+            },
+            orderBy: { criado_em: 'desc' },
+            take: 50
+        });
+
+        return rows.map((notif: any) => {
+            const extraData = notif.dados ? JSON.parse(notif.dados) : {};
+            const typeMapped: Notification['type'] =
+                notif.tipo === 'ENTREVISTA_CONFIRMADA' ? 'interview_confirmed_mentor' : 'interview_cancelled_mentor';
+            return {
+                id: `notificacao_${notif.id}`,
+                type: typeMapped,
+                title: notif.titulo,
+                message: notif.mensagem,
+                vacancyTitle: '',
+                date: new Date(notif.criado_em),
+                read: !!notif.lida,
+                extraData: { ...extraData, rawId: notif.id }
+            } as Notification;
+        });
+    } catch (e) {
+        console.error('Error fetching mentor notifications:', e);
+        return [];
+    }
 }
