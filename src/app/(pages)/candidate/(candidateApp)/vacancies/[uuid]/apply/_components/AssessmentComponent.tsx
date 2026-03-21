@@ -352,6 +352,14 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
     }
   };
 
+  const handleAcknowledgePenalty = () => {
+    setShowPenaltyModal(false);
+    generateQuestions(true);
+    setAnswers({});
+    setCurrentSection(0);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   if (isFinished) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
@@ -659,7 +667,7 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
               <h2 className="text-2xl font-bold text-slate-900 mb-4">{t("assessment_penalty_title")}</h2>
               <p className="text-slate-600 mb-8 leading-relaxed">{t("assessment_penalty_desc")}</p>
               <button
-                onClick={() => setShowPenaltyModal(false)}
+                onClick={handleAcknowledgePenalty}
                 className="w-full py-4 bg-amber-600 text-white font-bold rounded-2xl hover:bg-amber-700 transition-all active:scale-95 shadow-xl shadow-amber-200 cursor-pointer"
               >
                 {t("assessment_penalty_btn")}

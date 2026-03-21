@@ -387,7 +387,8 @@ export default async function Dashboard() {
                 foto_perfil: empresaData?.foto_perfil || null
             },
             data: interview.data,
-            hora_inicio: interview.hora_inicio
+            hora_inicio: interview.hora_inicio,
+            criado_em: interview.criado_em.toISOString()
         };
     }));
 
@@ -396,13 +397,13 @@ export default async function Dashboard() {
             <DashboardHeader />
             <Hero candidato={candidate} />
             <ProfileCompletion candidato={candidate} usuario={userId} areas={areas} />
-            <MentorshipRequests requests={mentorshipRequests} />
             <VideoRequests requests={videoRequests} />
             <KPI
                 recommendedVacanciesCount={recommendedVacanciesCount}
                 appliedVacanciesCount={appliedVacanciesCount}
                 areas={areas}
             />
+            <MentorshipRequests requests={mentorshipRequests} />
 
             <DraftApplications draftVacancies={appliedVacancies.filter(v => v.isDraft)} />
 

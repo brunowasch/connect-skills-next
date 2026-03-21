@@ -320,13 +320,13 @@ export default async function Dashboard() {
             <DashboardHeader />
             <CompanyHero companyData={heroData} />
             <ProfileCompletion company={companyData} />
-            <CompanyMentorships mentorships={mentorshipsForCompany} />
             <VideoEvaluations evaluations={videoEvaluations} />
             <CompanyKPI
                 PublishedVacancies={PublishedVacancies}
                 ReceivedCandidates={ReceivedCandidates}
                 OpenVacancies={OpenVacancies}
             />
+            <CompanyMentorships mentorships={mentorshipsForCompany} />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <RecentVacancies vacancies={recentVacancies} isRestricted={isRestricted} />
                 <RecentCandidates applications={applications} isRestricted={isRestricted} />

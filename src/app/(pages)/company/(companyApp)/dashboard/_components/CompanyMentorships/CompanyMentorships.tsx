@@ -1,6 +1,7 @@
 "use client";
 
-import { Calendar, Clock, ExternalLink, CheckCircle, User } from "lucide-react";
+import { useState } from "react";
+import { Calendar, Clock, ExternalLink, CheckCircle, User, ChevronDown, ChevronUp } from "lucide-react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 
@@ -23,17 +24,27 @@ interface CompanyMentorshipsProps {
 
 export function CompanyMentorships({ mentorships }: CompanyMentorshipsProps) {
     const { t } = useTranslation();
+    const [isOpen, setIsOpen] = useState(true);
 
     if (!mentorships || mentorships.length === 0) return null;
 
     return (
         <div className="w-full mb-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <Calendar className="text-emerald-600" />
-                {t('dashboard_scheduled_mentorships_title', 'Mentorias Confirmadas (Próximas)')}
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {mentorships.map((ment) => (
+            <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                    <Calendar className="text-emerald-600" />
+                    {t('dashboard_scheduled_mentorships_title', 'Mentorias Confirmadas (Próximas)')}
+                </h2>
+                <button 
+                    onClick={() => setIsOpen(!isOpen)}
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors flex items-center justify-center cursor-pointer"
+                >
+                    {isOpen ? <ChevronUp size={24} strokeWidth={1.5} /> : <ChevronDown size={24} strokeWidth={1.5} />}
+                </button>
+            </div>
+            {isOpen && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {mentorships.map((ment) => (
                     <div key={ment.id} className="bg-white border border-emerald-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
                         <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500" />
                         
@@ -99,7 +110,8 @@ export function CompanyMentorships({ mentorships }: CompanyMentorshipsProps) {
                         </Link>
                     </div>
                 ))}
-            </div>
+                </div>
+            )}
         </div>
     );
 }

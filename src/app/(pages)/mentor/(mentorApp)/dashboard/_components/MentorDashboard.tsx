@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { User, Building2 } from "lucide-react";
+import { User, Building2, ChevronDown, ChevronUp } from "lucide-react";
 import { MentorDashboardHeader } from "./MentorDashboardHeader";
 import { MentorHero } from "./MentorHero";
 import { MentorKPI } from "./MentorKPI";
@@ -33,6 +34,7 @@ export interface UpcomingInterview {
 
 export function MentorDashboardContent({ mentor, upcomingInterviews = [] }: { mentor: MentorData, upcomingInterviews?: UpcomingInterview[] }) {
     const { t } = useTranslation();
+    const [isMentorshipsOpen, setIsMentorshipsOpen] = useState(true);
 
     return (
         <div className="w-full font-outfit">
@@ -50,29 +52,47 @@ export function MentorDashboardContent({ mentor, upcomingInterviews = [] }: { me
 
             {upcomingInterviews.length > 0 && (
                 <div className="w-full mb-6 mt-6">
-                    <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600">
-                            <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
-                            <line x1="16" x2="16" y1="2" y2="6"/>
-                            <line x1="8" x2="8" y1="2" y2="6"/>
-                            <line x1="3" x2="21" y1="10" y2="10"/>
-                        </svg>
-                        {t('mentor_dashboard_scheduled_mentorships', 'Mentorias Confirmadas (Próximas)')}
-                    </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {upcomingInterviews.map((ment) => (
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600">
+                                <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+                                <line x1="16" x2="16" y1="2" y2="6"/>
+                                <line x1="8" x2="8" y1="2" y2="6"/>
+                                <line x1="3" x2="21" y1="10" y2="10"/>
+                            </svg>
+                            {t('mentor_dashboard_scheduled_mentorships', 'Mentorias Confirmadas (Próximas)')}
+                        </h2>
+                        <button 
+                            onClick={() => setIsMentorshipsOpen(!isMentorshipsOpen)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors flex items-center justify-center cursor-pointer"
+                        >
+                            {isMentorshipsOpen ? <ChevronUp size={24} strokeWidth={1.5} /> : <ChevronDown size={24} strokeWidth={1.5} />}
+                        </button>
+                    </div>
+                    {isMentorshipsOpen && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {upcomingInterviews.map((ment) => (
                             <div key={ment.id} className="bg-white border border-emerald-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
                                 <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500" />
 
                                 <div className="flex flex-col gap-4 mb-4">
                                     <div className="flex justify-between items-start">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
-                                                <User className="w-5 h-5" />
+                                            <div className="w-10 h-10 rounded-full border border-gray-100 shrink-0 overflow-hidden flex items-center justify-center bg-gray-50">
+                                                {ment.empresaFoto ? (
+                                                    <img 
+                                                        src={ment.empresaFoto} 
+                                                        alt={ment.empresa} 
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <Building2 className="w-5 h-5 text-gray-400" />
+                                                )}
                                             </div>
                                             <div>
-                                                <p className="text-[10px] uppercase tracking-wider font-semibold text-gray-400 mb-0.5">{t('dashboard_candidate_label', 'Candidato')}</p>
-                                                <h3 className="font-semibold text-gray-900 line-clamp-1 leading-tight">{t('dashboard_candidate_label', 'Candidato')}</h3>
+                                                <p className="text-[10px] uppercase tracking-wider font-semibold text-gray-400 mb-0.5">{t('company_default', 'Empresa')}</p>
+                                                <h3 className="font-semibold text-gray-900 line-clamp-1 leading-tight">{ment.empresa}</h3>
+                                                <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">{ment.cargo}</p>
                                             </div>
                                         </div>
                                         <div className="bg-emerald-50 p-1.5 rounded-full text-emerald-600 shrink-0">
@@ -80,25 +100,6 @@ export function MentorDashboardContent({ mentor, upcomingInterviews = [] }: { me
                                                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
                                                 <polyline points="22 4 12 14.01 9 11.01"/>
                                             </svg>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full border border-gray-100 shrink-0 overflow-hidden flex items-center justify-center bg-gray-50">
-                                            {ment.empresaFoto ? (
-                                                <img 
-                                                    src={ment.empresaFoto} 
-                                                    alt={ment.empresa} 
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            ) : (
-                                                <Building2 className="w-5 h-5 text-gray-400" />
-                                            )}
-                                        </div>
-                                        <div>
-                                            <p className="text-[10px] uppercase tracking-wider font-semibold text-gray-400 mb-0.5">{t('company_default', 'Empresa')}</p>
-                                            <h3 className="font-semibold text-gray-900 line-clamp-1 leading-tight">{ment.empresa}</h3>
-                                            <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">{ment.cargo}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -116,7 +117,8 @@ export function MentorDashboardContent({ mentor, upcomingInterviews = [] }: { me
                                 </div>
                             </div>
                         ))}
-                    </div>
+                        </div>
+                    )}
                 </div>
             )}
 
