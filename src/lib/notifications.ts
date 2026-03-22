@@ -2,7 +2,7 @@ import { prisma } from "@/src/lib/prisma";
 
 export interface Notification {
     id: string;
-    type: 'video_request' | 'feedback_approved' | 'feedback_rejected' | 'general' | 'video_received' | 'new_candidate' | 'video_expired_unsubmitted' | 'interview_scheduled' | 'interview_confirmed' | 'interview_confirmed_mentor' | 'interview_cancelled_mentor';
+    type: 'video_request' | 'feedback_approved' | 'feedback_rejected' | 'general' | 'video_received' | 'new_candidate' | 'video_expired_unsubmitted' | 'interview_scheduled' | 'interview_confirmed' | 'interview_confirmed_mentor' | 'interview_cancelled_mentor' | 'interview_expired';
     title: string;
     message: string;
     vacancyTitle: string;
@@ -39,7 +39,7 @@ export async function getCompanyNotifications(companyId: string): Promise<Notifi
     const candidateIds = applications.map(app => app.candidato_id);
     const candidates = await prisma.candidato.findMany({
         where: { id: { in: candidateIds } },
-        select: { id: true, nome: true }
+        select: { id: true, nome: true, sobrenome: true }
     });
 
     const candidateMap = new Map(candidates.map(c => [c.id, c]));
@@ -53,7 +53,7 @@ export async function getCompanyNotifications(companyId: string): Promise<Notifi
             if (!vacancy) continue;
 
             const breakdown = app.breakdown ? JSON.parse(app.breakdown as string) : {};
-            const candidateName = candidate?.nome || 'Candidato';
+            const candidateName = candidate ? (candidate.sobrenome ? `${candidate.nome} ${candidate.sobrenome}`.trim() : candidate.nome) : 'Candidato';
 
             if (app.created_at && !breakdown?.company_notifications?.new_candidate?.deleted) {
                 notifications.push({
@@ -63,10 +63,10 @@ export async function getCompanyNotifications(companyId: string): Promise<Notifi
                     message: `${candidateName} se candidatou para a vaga ${vacancy.cargo}.`,
                     vacancyTitle: vacancy.cargo,
                     vacancyUuid: vacancy.uuid ?? undefined,
-                    vacancyId: vacancy.id,
+                    vacancyId: vacancy.id ?? undefined,
                     companyName: '',
-                    candidateName: candidateName,
-                    candidateId: app.candidato_id,
+                    candidateName: candidateName ?? undefined,
+                    candidateId: app.candidato_id ?? undefined,
                     date: new Date(app.created_at),
                     read: breakdown?.company_notifications?.new_candidate?.read || false
                 });
@@ -80,10 +80,10 @@ export async function getCompanyNotifications(companyId: string): Promise<Notifi
                     message: `${candidateName} enviou um vídeo de apresentação.`,
                     vacancyTitle: vacancy.cargo,
                     vacancyUuid: vacancy.uuid ?? undefined,
-                    vacancyId: vacancy.id,
+                    vacancyId: vacancy.id ?? undefined,
                     companyName: '',
-                    candidateName: candidateName,
-                    candidateId: app.candidato_id,
+                    candidateName: candidateName ?? undefined,
+                    candidateId: app.candidato_id ?? undefined,
                     date: new Date(breakdown.video.submittedAt),
                     read: breakdown?.company_notifications?.video_received?.read || false
                 });
@@ -101,10 +101,10 @@ export async function getCompanyNotifications(companyId: string): Promise<Notifi
                         message: `${candidateName} não enviou o vídeo dentro do prazo estipulado.`,
                         vacancyTitle: vacancy.cargo,
                         vacancyUuid: vacancy.uuid ?? undefined,
-                        vacancyId: vacancy.id,
+                        vacancyId: vacancy.id ?? undefined,
                         companyName: '',
-                        candidateName: candidateName,
-                        candidateId: app.candidato_id,
+                        candidateName: candidateName ?? undefined,
+                        candidateId: app.candidato_id ?? undefined,
                         date: deadlineDate,
                         read: breakdown?.company_notifications?.video_expired_unsubmitted?.read || false
                     });
@@ -126,19 +126,49 @@ export async function getCompanyNotifications(companyId: string): Promise<Notifi
             const interviewNotifs = await (prisma as any).notificacao.findMany({
                 where: {
                     usuario_id: companyUser.usuario.id,
-                    tipo: { in: ['ENTREVISTA_CONFIRMADA', 'ENTREVISTA_RECUSADA'] }
+                    tipo: { in: ['ENTREVISTA_CONFIRMADA', 'ENTREVISTA_RECUSADA', 'MENTORIA_EXPIRADA'] }
                 },
                 orderBy: { criado_em: 'desc' }
             });
 
             for (const notif of interviewNotifs) {
                 const extraData = notif.dados ? JSON.parse(notif.dados) : {};
+                const typeMapped: Notification['type'] =
+                    notif.tipo === 'MENTORIA_EXPIRADA'
+                        ? 'interview_expired'
+                        : 'interview_confirmed';
+                
+                let candidateName = extraData.candidateName;
+                if (!candidateName && extraData.candidatoId) {
+                    const c = candidateMap.get(extraData.candidatoId);
+                    if (c) {
+                        candidateName = c.sobrenome ? `${c.nome} ${c.sobrenome}`.trim() : c.nome;
+                    } else {
+                        const candDB = await prisma.candidato.findUnique({ where: { id: extraData.candidatoId }, select: { nome: true, sobrenome: true } });
+                        if (candDB) candidateName = candDB.sobrenome ? `${candDB.nome} ${candDB.sobrenome}`.trim() : candDB.nome;
+                    }
+                }
+                if (!candidateName) candidateName = 'Candidato';
+
+                let vacancyTitle = extraData.vacancyTitle;
+                if (!vacancyTitle && extraData.vagaId) {
+                    const v = vacancyMap.get(extraData.vagaId);
+                    if (v) {
+                        vacancyTitle = v.cargo;
+                    } else {
+                        const vagaDB = await prisma.vaga.findUnique({ where: { id: extraData.vagaId }, select: { cargo: true } });
+                        if (vagaDB) vacancyTitle = vagaDB.cargo;
+                    }
+                }
+                if (!vacancyTitle) vacancyTitle = 'Vaga';
+
                 notifications.push({
                     id: `notificacao_${notif.id}`,
-                    type: 'interview_confirmed',
+                    type: typeMapped,
                     title: notif.titulo,
                     message: notif.mensagem,
-                    vacancyTitle: '',
+                    vacancyTitle,
+                    candidateName,
                     date: new Date(notif.criado_em),
                     read: !!notif.lida,
                     extraData: { ...extraData, rawId: notif.id }

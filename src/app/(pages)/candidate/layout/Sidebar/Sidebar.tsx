@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { FaHome, FaBriefcase, FaUser, FaSignOutAlt, FaWhatsapp } from "react-icons/fa";
+import { FaHome, FaBriefcase, FaUser, FaSignOutAlt, FaWhatsapp, FaCalendarAlt } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 
 interface SidebarProps {
@@ -22,6 +22,7 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarPr
     const navItems = [
         { label: t("sidebar_home"), href: "/candidate/dashboard", icon: FaHome },
         { label: t("sidebar_vacancies"), href: "/candidate/vacancies", icon: FaBriefcase },
+        { label: t("sidebar_mentorings", "Mentorias"), href: "/candidate/mentorships", icon: FaCalendarAlt },
         { label: t("sidebar_profile"), href: "/candidate/profile", icon: FaUser },
     ];
 

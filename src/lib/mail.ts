@@ -603,3 +603,45 @@ export async function sendInterviewConfirmedToCompanyEmail(
     return false;
   }
 }
+
+export async function sendInterviewExpiredToCompanyEmail(
+  companyEmail: string,
+  companyName: string,
+  candidateName: string,
+  vacancyTitle: string,
+  vacancyLink: string,
+) {
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to: companyEmail,
+    subject: `Convite de Mentoria Expirado: ${candidateName} – Vaga: ${vacancyTitle}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+        <h2 style="color: #F59E0B; text-align: center;">Convite de Mentoria Expirado</h2>
+        <p style="text-align: center; color: #555;">Olá <strong>${companyName}</strong>,</p>
+        <p style="text-align: center; color: #555;">
+          O candidato <strong>${candidateName}</strong> não respondeu ao convite de mentoria para a vaga de <strong>${vacancyTitle}</strong> dentro do prazo de 3 dias.
+        </p>
+        <p style="text-align: center; color: #555;">
+          O convite foi automaticamente marcado como <strong style="color: #EF4444;">Expirado</strong>.
+        </p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${vacancyLink}" style="background-color: #4F46E5; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+            Ver Vaga no Painel
+          </a>
+        </div>
+        <p style="text-align: center; font-size: 14px; color: #666; margin-top: 30px;">
+          Você pode agendar uma nova sessão de mentoria para este candidato, se desejar.
+        </p>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error("Erro ao enviar email de mentoria expirada (empresa):", error);
+    return false;
+  }
+}

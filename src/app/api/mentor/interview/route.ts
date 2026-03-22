@@ -201,7 +201,13 @@ export async function PATCH(req: Request) {
                         tipo: "ENTREVISTA_CONFIRMADA",
                         titulo: "Mentoria Confirmada",
                         mensagem: `A mentoria do candidato ${candidateFullName} com o mentor ${mentorFullName} para a vaga "${vaga.cargo}" foi confirmada. Data: ${formattedDate}, ${interview.hora_inicio}–${interview.hora_fim}.`,
-                        dados: JSON.stringify({ entrevistaId, vagaId: interview.vaga_id, candidatoId: interview.candidato_id })
+                        dados: JSON.stringify({
+                            entrevistaId,
+                            vagaId: interview.vaga_id,
+                            candidatoId: interview.candidato_id,
+                            candidateName: candidateFullName,
+                            vacancyTitle: vaga.cargo
+                        })
                     }
                 });
 
