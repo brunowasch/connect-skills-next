@@ -455,13 +455,15 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, vacancyTitle, 
                                     {breakdown?.feedback?.status === 'APPROVED' && (
                                         <button
                                             onClick={() => setScheduleCandidate(candidate)}
-                                            disabled={!!candidate.application?.interviewStatus && candidate.application?.interviewStatus !== 'CANCELADA'}
+                                            disabled={!!candidate.application?.interviewStatus && !['CANCELADA', 'RECUSADA', 'EXPIRADA'].includes(candidate.application?.interviewStatus)}
                                             className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-colors cursor-pointer
                                                 ${(() => {
                                                     const status = candidate.application?.interviewStatus;
                                                     if (status === 'PENDENTE_CANDIDATO') return 'bg-amber-50 text-amber-600 border border-amber-200 cursor-not-allowed';
                                                     if (status === 'CONFIRMADA') return 'bg-green-50 text-green-600 border border-green-200 cursor-not-allowed';
-                                                    if (status === 'CANCELADA') return 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100'; // Allow reschedule if canceled?
+                                                    if (status === 'CANCELADA' || status === 'RECUSADA') return 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100';
+                                                    
+                                                    if (status === 'EXPIRADA') return 'bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100';
                                                     return 'bg-emerald-500 text-white hover:bg-emerald-600';
                                                 })()}`}
                                         >
@@ -470,7 +472,8 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, vacancyTitle, 
                                                 const status = candidate.application?.interviewStatus;
                                                 if (status === 'PENDENTE_CANDIDATO') return t('interview_status_requested', 'Solicitada');
                                                 if (status === 'CONFIRMADA') return t('interview_status_confirmed', 'Aceita');
-                                                if (status === 'CANCELADA') return t('interview_status_cancelled', 'Recusada');
+                                                if (status === 'CANCELADA' || status === 'RECUSADA') return t('interview_status_cancelled', 'Recusada');
+                                                if (status === 'EXPIRADA') return t('interview_status_expired', 'Expirada');
                                                 return t('schedule_interview_btn', 'Agendar Entrevista');
                                             })()}
                                         </button>

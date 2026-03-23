@@ -1957,6 +1957,7 @@
     "interview_status_requested": "Solicitada",
     "interview_status_confirmed": "Aceptada",
     "interview_status_cancelled": "Rechazada",
+    "interview_status_expired": "Expirada",
     "interview_confirm_not_found_title": "Entrevista no encontrada",
     "interview_confirm_not_found_desc": "Este enlace puede ser inválido o haber expirado.",
     "interview_confirm_success_title": "¡Presencia Confirmada!",

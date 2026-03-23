@@ -181,20 +181,7 @@ export default function CandidateMentorshipsClient({ mentorships }: { mentorship
                 </div>
 
                 <div className="flex-1 min-w-0 pr-8">
-                    <div className="flex items-center gap-2 mb-2 pt-2 md:pt-0">
-                        <div className="h-6 w-6 rounded flex items-center justify-center bg-slate-100 overflow-hidden shrink-0">
-                            {m.mentor?.foto_perfil ? (
-                                <Image src={m.mentor.foto_perfil} alt="Mentor" width={24} height={24} className="h-full w-full object-cover" />
-                            ) : (
-                                <User size={14} className="text-slate-400" />
-                            )}
-                        </div>
-                        <h3 className="text-sm font-semibold text-slate-600 truncate">
-                            {m.mentor ? `${m.mentor.nome} ${m.mentor.sobrenome || ''}` : t("mentorship_card_mentor_unavailable")}
-                        </h3>
-                    </div>
-
-                    <h2 className="text-lg font-bold text-slate-900 mb-4 line-clamp-1">{m.cargo}</h2>
+                    <h2 className="text-lg font-bold text-slate-900 mb-4 line-clamp-1 mt-2 md:mt-0">{m.cargo}</h2>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="flex items-center gap-2.5 text-slate-600">

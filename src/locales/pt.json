@@ -1849,6 +1849,7 @@
     "interview_status_requested": "Solicitada",
     "interview_status_confirmed": "Aceita",
     "interview_status_cancelled": "Recusada",
+    "interview_status_expired": "Expirada",
     "interview_confirm_not_found_title": "Entrevista não encontrada",
     "interview_confirm_not_found_desc": "Este link pode ser inválido ou expirado.",
     "interview_confirm_success_title": "Presença Confirmada!",
