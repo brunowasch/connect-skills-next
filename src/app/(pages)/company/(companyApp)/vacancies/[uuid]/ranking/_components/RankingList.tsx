@@ -327,7 +327,7 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, vacancyTitle, 
                                     <div className="flex items-center gap-4 ml-2">
                                         <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xl overflow-hidden flex-shrink-0 border border-blue-200">
                                             {candidate.foto_perfil || candidate.usuario?.avatarUrl ? (
-                                                <img src={candidate.foto_perfil || candidate.usuario?.avatarUrl!} alt="" className="w-full h-full object-cover" />
+                                                <img src={candidate.foto_perfil || candidate.usuario?.avatarUrl!} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                                             ) : (
                                                 <User size={32} className="text-blue-400" />
                                             )}
@@ -386,6 +386,36 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, vacancyTitle, 
                                                 </span>
                                             </div>
                                         </div>
+
+                                        {(() => {
+                                            const warnings: string[] = [];
+                                            if (isExpired) warnings.push(t('ranking_video_expired', 'Prazo do vídeo encerrado'));
+                                            if (candidate.application?.interviewStatus === 'CANCELADA' || candidate.application?.interviewStatus === 'RECUSADA') warnings.push('Candidato recusou a entrevista');
+                                            if (candidate.application?.interviewStatus === 'EXPIRADA') warnings.push('Convite de entrevista encerrado');
+                                            if (warnings.length === 0) return null;
+                                            return (
+                                                <div className="flex justify-end mt-1.5">
+                                                    <div className="relative group">
+                                                        <div className="p-1 rounded-full bg-red-50 border border-red-200 text-red-500 cursor-help hover:bg-red-100 transition-colors">
+                                                            <AlertTriangle size={15} className="stroke-[2.5px]" />
+                                                        </div>
+                                                        <div className="absolute right-0 top-full mt-2 z-50 hidden group-hover:block">
+                                                            <div className="bg-white border border-red-400 text-red-700 text-xs rounded-lg py-2 px-3 shadow-xl min-w-[180px] max-w-[240px]">
+                                                                <div className="flex flex-col gap-1.5">
+                                                                    {warnings.map((w, i) => (
+                                                                        <div key={i} className="flex items-start gap-1.5">
+                                                                            <span className="text-red-400 mt-0.5">•</span>
+                                                                            <span>{w}</span>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                                <div className="absolute -top-1.5 right-3 w-3 h-3 bg-white border-l border-t border-red-400 rotate-45" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
                                 </div>
 
@@ -461,9 +491,6 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, vacancyTitle, 
                                                     const status = candidate.application?.interviewStatus;
                                                     if (status === 'PENDENTE_CANDIDATO') return 'bg-amber-50 text-amber-600 border border-amber-200 cursor-not-allowed';
                                                     if (status === 'CONFIRMADA') return 'bg-green-50 text-green-600 border border-green-200 cursor-not-allowed';
-                                                    if (status === 'CANCELADA' || status === 'RECUSADA') return 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100';
-                                                    
-                                                    if (status === 'EXPIRADA') return 'bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100';
                                                     return 'bg-emerald-500 text-white hover:bg-emerald-600';
                                                 })()}`}
                                         >
@@ -472,18 +499,9 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, vacancyTitle, 
                                                 const status = candidate.application?.interviewStatus;
                                                 if (status === 'PENDENTE_CANDIDATO') return t('interview_status_requested', 'Solicitada');
                                                 if (status === 'CONFIRMADA') return t('interview_status_confirmed', 'Aceita');
-                                                if (status === 'CANCELADA' || status === 'RECUSADA') return t('interview_status_cancelled', 'Recusada');
-                                                if (status === 'EXPIRADA') return t('interview_status_expired', 'Expirada');
                                                 return t('schedule_interview_btn', 'Agendar Entrevista');
                                             })()}
                                         </button>
-                                    )}
-
-                                    {isExpired && (
-                                        <div className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-xs font-bold border border-red-200 shadow-sm">
-                                            <AlertTriangle size={14} className="stroke-[2.5px]" />
-                                            {t('ranking_video_expired', 'Prazo do vídeo encerrado')}
-                                        </div>
                                     )}
                                 </div>
                             </div>

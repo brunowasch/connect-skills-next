@@ -1950,6 +1950,7 @@
     "validation_name_required": "Name is required.",
     "interview_status_requested": "Requested",
     "interview_status_confirmed": "Accepted",
+    "schedule_interview_btn": "Schedule Interview",
     "interview_status_cancelled": "Rejected",
     "interview_status_expired": "Expired",
     "interview_confirm_not_found_title": "Interview not found",

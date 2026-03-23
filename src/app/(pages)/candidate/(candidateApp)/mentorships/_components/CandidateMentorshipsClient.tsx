@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { format } from "date-fns";
 import { ptBR, enUS, es } from "date-fns/locale";
-import { Calendar, Clock, Building2, User, CheckCircle, XCircle, AlertTriangle, ChevronRight, Timer, FlaskConical } from "lucide-react";
+import { Calendar, Clock, Building2, User, CheckCircle, XCircle, AlertTriangle, ChevronRight, Timer, FlaskConical, History } from "lucide-react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
@@ -234,6 +234,7 @@ export default function CandidateMentorshipsClient({ mentorships }: { mentorship
                     className={`pb-3 whitespace-nowrap text-sm font-semibold transition-colors relative ${activeTab === 'scheduled' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
                 >
                     <div className="flex items-center gap-2 cursor-pointer">
+                        <Calendar size={16} />
                         {t("mentorships_tab_scheduled")}
                         <span className={`inline-flex items-center justify-center h-5 px-2 rounded-full text-xs ${activeTab === 'scheduled' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
                             {scheduled.length}
@@ -248,6 +249,7 @@ export default function CandidateMentorshipsClient({ mentorships }: { mentorship
                     className={`pb-3 whitespace-nowrap text-sm font-semibold transition-colors relative ${activeTab === 'pending' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
                 >
                     <div className="flex items-center gap-2 cursor-pointer">
+                        <Timer size={16} />
                         {t("mentorships_tab_pending")}
                         <span className={`inline-flex items-center justify-center h-5 px-2 rounded-full text-xs ${activeTab === 'pending' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
                             {pending.length}
@@ -262,6 +264,7 @@ export default function CandidateMentorshipsClient({ mentorships }: { mentorship
                     className={`pb-3 whitespace-nowrap text-sm font-semibold transition-colors relative ${activeTab === 'history' ? 'text-slate-900' : 'text-slate-500 hover:text-slate-800'}`}
                 >
                     <div className="flex items-center gap-2 cursor-pointer">
+                        <History size={16} />
                         {t("mentorships_tab_history")}
                         <span className={`inline-flex items-center justify-center h-5 px-2 rounded-full text-xs ${activeTab === 'history' ? 'bg-slate-200 text-slate-800' : 'bg-slate-100 text-slate-600'}`}>
                             {history.length}

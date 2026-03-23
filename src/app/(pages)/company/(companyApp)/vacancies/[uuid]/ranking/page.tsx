@@ -1,4 +1,3 @@
-
 import { prisma } from "@/src/lib/prisma";
 import { RankingPageContent } from "./_components/RankingPageContent";
 
@@ -46,10 +45,10 @@ export default async function RankingPage({ params, searchParams }: Props) {
         }
     });
 
-    // Fetch scheduled interviews for this vacancy
     const interviews = await prisma.entrevista_mentor.findMany({
         where: { vaga_id: vacancyId },
-        select: { candidato_id: true, status: true }
+        select: { candidato_id: true, status: true },
+        orderBy: { criado_em: 'desc' }
     });
 
     const candidatesWithApp = candidates.map(c => {

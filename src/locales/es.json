@@ -1956,6 +1956,7 @@
     "validation_name_required": "El nombre es obligatorio.",
     "interview_status_requested": "Solicitada",
     "interview_status_confirmed": "Aceptada",
+    "schedule_interview_btn": "Programar Entrevista",
     "interview_status_cancelled": "Rechazada",
     "interview_status_expired": "Expirada",
     "interview_confirm_not_found_title": "Entrevista no encontrada",
