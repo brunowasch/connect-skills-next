@@ -1,33 +1,41 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
 import { PublicCompanyProfile } from "./_components/PublicCompanyProfile";
+import { randomUUID } from "node:crypto";
+
+const companyInclude = {
+    usuario: { select: { email: true } },
+    empresa_arquivo: { orderBy: { criadoEm: 'desc' as const } },
+    empresa_link: { orderBy: { ordem: 'asc' as const } },
+};
 
 export default async function CompanyPublicProfilePage({ params }: { params: Promise<{ uuid: string }> }) {
     const { uuid } = await params;
 
-    const company = await prisma.empresa.findUnique({
+    let company = await prisma.empresa.findUnique({
         where: { uuid },
-        include: {
-            usuario: {
-                select: {
-                    email: true
-                }
-            },
-            empresa_arquivo: {
-                orderBy: {
-                    criadoEm: 'desc'
-                }
-            },
-            empresa_link: {
-                orderBy: {
-                    ordem: 'asc'
-                }
-            }
-        }
+        include: companyInclude,
     });
 
     if (!company) {
+        company = await prisma.empresa.findUnique({
+            where: { id: uuid },
+            include: companyInclude,
+        });
+    }
+
+    if (!company) {
         notFound();
+    }
+
+    // Auto-generate uuid if missing and persist it
+    if (!company.uuid) {
+        const newUuid = randomUUID();
+        await prisma.empresa.update({
+            where: { id: company.id },
+            data: { uuid: newUuid },
+        });
+        company = { ...company, uuid: newUuid };
     }
 
     const localidade = company.cidade && company.estado

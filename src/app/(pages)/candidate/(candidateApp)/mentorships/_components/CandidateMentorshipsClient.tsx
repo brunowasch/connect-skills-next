@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { format } from "date-fns";
 import { ptBR, enUS, es } from "date-fns/locale";
-import { Calendar, Clock, Building2, User, CheckCircle, XCircle, AlertTriangle, ChevronRight, Timer, FlaskConical, History } from "lucide-react";
+import { Calendar, Clock, Building2, User, CheckCircle, XCircle, AlertTriangle, ChevronRight, Timer, FlaskConical, History, Video } from "lucide-react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
@@ -39,8 +39,8 @@ function CountdownChip({ criado_em }: { criado_em: string }) {
 
     if (!remaining) {
         return (
-            <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs font-semibold w-fit">
-                <AlertTriangle size={13} className="flex-shrink-0" />
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-red-50 border border-red-200 text-red-700 text-[10px] sm:text-[11px] font-semibold w-fit">
+                <AlertTriangle size={12} className="flex-shrink-0" />
                 {t("mentorship_countdown_expired")}
             </div>
         );
@@ -58,8 +58,8 @@ function CountdownChip({ criado_em }: { criado_em: string }) {
         : t("mentorship_countdown_expires_hours", { hours, minutes });
 
     return (
-        <div className={`mt-3 flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-semibold w-fit ${colorClass}`}>
-            <Timer size={13} className={`flex-shrink-0 ${isUrgent ? "animate-pulse" : ""}`} />
+        <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full border text-[10px] sm:text-[11px] font-semibold w-fit ${colorClass}`}>
+            <Timer size={12} className={`flex-shrink-0 ${isUrgent ? "animate-pulse" : ""}`} />
             {label}
         </div>
     );
@@ -154,69 +154,78 @@ export default function CandidateMentorshipsClient({ mentorships }: { mentorship
         }
 
         return (
-            <div key={m.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 hover:shadow-md transition-shadow group flex flex-col md:flex-row gap-6 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${statusColor}`}>
-                        {m.status === 'CONFIRMADA' && <CheckCircle size={14} />}
-                        {m.status === 'CONCLUIDA' && <CheckCircle size={14} />}
-                        {m.status === 'PENDENTE_CANDIDATO' && <AlertTriangle size={14} />}
-                        {(m.status === 'CANCELADA' || m.status === 'RECUSADA' || m.status === 'EXPIRADA') && <XCircle size={14} />}
-                        {statusText}
-                    </span>
-                </div>
-
-                {/* Company avatar */}
-                <div className="flex-shrink-0 flex flex-col items-center justify-center p-4 bg-slate-50 rounded-xl border border-slate-100 min-w-[120px]">
-                    <div className="h-14 w-14 rounded-full bg-white shadow-sm ring-2 ring-slate-100 flex items-center justify-center overflow-hidden mb-3">
-                        {m.empresa?.foto_perfil ? (
-                            <Image src={m.empresa.foto_perfil} alt={t("mentorship_card_company_label")} width={56} height={56} className="h-full w-full object-cover" />
-                        ) : (
-                            <Building2 size={24} className="text-slate-400" />
-                        )}
-                    </div>
-                    <p className="text-xs font-bold text-slate-800 text-center uppercase tracking-wide">{t("mentorship_card_company_label")}</p>
-                    <p className="text-xs text-slate-500 font-medium text-center">
-                        {m.empresa ? m.empresa.nome_empresa : t("mentorship_card_company_unavailable")}
-                    </p>
-                </div>
-
-                <div className="flex-1 min-w-0 pr-8">
-                    <h2 className="text-lg font-bold text-slate-900 mb-4 line-clamp-1 mt-2 md:mt-0">{m.cargo}</h2>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="flex items-center gap-2.5 text-slate-600">
-                            <div className="p-2 rounded-lg bg-blue-50 text-blue-600">
-                                <Calendar size={16} />
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t("mentorship_card_date_label")}</p>
-                                <p className="text-sm font-medium">{format(new Date(`${m.data}T00:00:00`), 'dd/MM/yyyy')}</p>
-                            </div>
+            <div key={m.id} className="group bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md hover:border-blue-400 transition-all flex flex-col h-full relative min-w-0 overflow-hidden">
+                <div className="p-4 sm:p-5 flex-grow flex flex-col">
+                    <div className="flex items-center mb-3 sm:mb-4">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                            {m.empresa?.foto_perfil ? (
+                                <Image
+                                    src={m.empresa.foto_perfil}
+                                    width={40}
+                                    height={40}
+                                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg object-cover border border-gray-100"
+                                    alt={t("mentorship_card_company_label")}
+                                />
+                            ) : (
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg border border-gray-100 flex items-center justify-center bg-gray-50">
+                                    <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500" />
+                                </div>
+                            )}
+                            <span className="text-xs sm:text-sm font-medium text-gray-600 truncate max-w-[150px] sm:max-w-[200px]">
+                                {m.empresa ? m.empresa.nome_empresa : t("mentorship_card_company_unavailable")}
+                            </span>
                         </div>
-                        <div className="flex items-center gap-2.5 text-slate-600">
-                            <div className="p-2 rounded-lg bg-emerald-50 text-emerald-600">
-                                <Clock size={16} />
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t("mentorship_card_time_label")}</p>
-                                <p className="text-sm font-medium">{m.hora_inicio} - {m.hora_fim}</p>
-                            </div>
+                    </div>
+
+                    <h3 className="font-bold text-sm sm:text-base transition-colors line-clamp-2 mb-2 text-slate-900 group-hover:text-blue-600">
+                        {m.cargo}
+                    </h3>
+
+                    <div className="flex flex-wrap items-center gap-2 mb-4">
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] sm:text-[11px] font-semibold whitespace-nowrap ${statusColor}`}>
+                            {m.status === 'CONFIRMADA' && <CheckCircle size={10} />}
+                            {m.status === 'CONCLUIDA' && <CheckCircle size={10} />}
+                            {m.status === 'PENDENTE_CANDIDATO' && <AlertTriangle size={10} />}
+                            {(m.status === 'CANCELADA' || m.status === 'RECUSADA' || m.status === 'EXPIRADA') && <XCircle size={10} />}
+                            {statusText}
+                        </span>
+                        
+                        <div className="flex items-center text-[11px] sm:text-xs text-gray-500 gap-1 min-w-0">
+                            <Calendar className="text-slate-400 flex-shrink-0 w-3.5 h-3.5" />
+                            <span className="truncate">{format(new Date(`${m.data}T00:00:00`), 'dd/MM/yyyy')}</span>
+                        </div>
+
+                        <div className="flex items-center text-[11px] sm:text-xs text-gray-500 gap-1 min-w-0">
+                            <Clock className="text-slate-400 flex-shrink-0 w-3.5 h-3.5" />
+                            <span className="truncate">{m.hora_inicio} - {m.hora_fim}</span>
                         </div>
                     </div>
 
                     {isPending && m.criado_em && (
-                        <CountdownChip criado_em={m.criado_em} />
-                    )}
-
-                    {(isScheduled || isPending) && (
-                        <div className="mt-6 flex flex-wrap gap-3">
-                            <Link href="/candidate/dashboard" className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition shadow-sm hover:shadow active:scale-95">
-                                {t("mentorship_card_details_btn")}
-                                <ChevronRight size={16} />
-                            </Link>
+                        <div className="mb-4">
+                            <CountdownChip criado_em={m.criado_em} />
                         </div>
                     )}
+
+                    <div className="mt-auto pt-2 flex flex-col gap-2">
+                        {(isScheduled || isPending) && (
+                            <Link href={`/viewer/mentorship/${m.id}`} className="inline-flex w-full items-center justify-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition shadow-sm hover:shadow active:scale-95">
+                                {t("mentorship_card_details_btn")}
+                                <ChevronRight size={14} />
+                            </Link>
+                        )}
+                    </div>
                 </div>
+
+                {isScheduled && (
+                    <div className="px-4 py-2.5 sm:py-3 border-t border-gray-100 bg-gray-50/80 flex flex-wrap justify-between items-center gap-2 text-[10px] sm:text-[11px] text-gray-500 font-medium mt-auto">
+                        <span>{t("mentorship_or_access_link", { defaultValue: "Ou acesse pelo link:" })}</span>
+                        <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition border border-indigo-200 font-semibold shadow-sm cursor-pointer whitespace-nowrap">
+                            <Video size={12} />
+                            {t("mentorship_meeting_link", { defaultValue: "Link da Reunião" })}
+                        </button>
+                    </div>
+                )}
             </div>
         );
     };
@@ -276,10 +285,10 @@ export default function CandidateMentorshipsClient({ mentorships }: { mentorship
                 </button>
             </div>
 
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 w-full overflow-hidden">
                 {activeTab === 'scheduled' && (
                     scheduled.length > 0 ? scheduled.map(renderCard) : (
-                        <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300">
+                        <div className="col-span-full text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300">
                             <Calendar className="mx-auto h-12 w-12 text-slate-300 mb-3" />
                             <h3 className="text-lg font-semibold text-slate-900">{t("mentorship_empty_scheduled_title")}</h3>
                             <p className="text-slate-500 mt-1 max-w-sm mx-auto text-sm">{t("mentorship_empty_scheduled_desc")}</p>
@@ -290,7 +299,7 @@ export default function CandidateMentorshipsClient({ mentorships }: { mentorship
                 {activeTab === 'pending' && (
                     <>
                         {pending.length > 0 && (
-                            <div className="flex items-center gap-3 p-3 bg-purple-50 border border-purple-200 rounded-xl">
+                            <div className="col-span-full flex items-center gap-3 p-3 bg-purple-50 border border-purple-200 rounded-xl">
                                 <FlaskConical size={16} className="text-purple-600 flex-shrink-0" />
                                 <p className="text-xs text-purple-700 font-medium flex-1">
                                     {t("mentorship_test_banner_desc")}
@@ -300,7 +309,7 @@ export default function CandidateMentorshipsClient({ mentorships }: { mentorship
                         )}
 
                         {pending.length > 0 ? pending.map(renderCard) : (
-                            <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300">
+                            <div className="col-span-full text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300">
                                 <AlertTriangle className="mx-auto h-12 w-12 text-slate-300 mb-3" />
                                 <h3 className="text-lg font-semibold text-slate-900">{t("mentorship_empty_pending_title")}</h3>
                                 <p className="text-slate-500 mt-1 max-w-sm mx-auto text-sm">{t("mentorship_empty_pending_desc")}</p>
@@ -311,7 +320,7 @@ export default function CandidateMentorshipsClient({ mentorships }: { mentorship
 
                 {activeTab === 'history' && (
                     history.length > 0 ? history.map(renderCard) : (
-                        <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300">
+                        <div className="col-span-full text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300">
                             <Clock className="mx-auto h-12 w-12 text-slate-300 mb-3" />
                             <h3 className="text-lg font-semibold text-slate-900">{t("mentorship_empty_history_title")}</h3>
                             <p className="text-slate-500 mt-1 max-w-sm mx-auto text-sm">{t("mentorship_empty_history_desc")}</p>
