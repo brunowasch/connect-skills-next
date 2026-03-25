@@ -1849,6 +1849,7 @@
     "feedback_rejected_intro": "See your feedback below:\n\nWe appreciate your interest in joining our team and the time dedicated to the selection process. However, unfortunately you were not selected for the next stage of the selection process.",
     "feedback_rejected_closing": "We wish you success in your professional journey and hope that new opportunities will arise in the future.",
     "feedback_select_status_first": "Select a status first",
+<<<<<<< HEAD
     "publish_availability_title": "Publish Availability",
     "publish_availability_subtitle": "Add new days and times when you will be available to mentor new talents.",
     "publish_availability_btn": "Publish Availability",
@@ -2041,4 +2042,21 @@
     "mentorship_details_info_title": "Mentorship Information",
     "mentorship_details_scheduled_date": "Scheduled Date",
     "mentorship_details_time": "Time"
+=======
+    "feedback_analyze_button": "Verify with AI",
+    "feedback_analyzing_short": "Verifying...",
+    "feedback_analyzing": "Analyzing feedback with AI...",
+    "feedback_blocked_button": "Fix your feedback",
+    "feedback_confirm_submit": "Confirm & Send",
+    "feedback_quality_great": "Good",
+    "feedback_quality_poor": "Poor",
+    "feedback_chars": "characters",
+    "feedback_analysis_error": "Could not analyze the feedback. Please try again.",
+    "feedback_unacceptable_title": "Feedback cannot be sent",
+    "feedback_corrected_suggestion": "Suggested correction:",
+    "feedback_use_suggested": "Use suggested text",
+    "feedback_acceptable_title": "Feedback approved by AI",
+    "feedback_ready_to_send": "Click \"Confirm & Send\" to finalize.",
+    "feedback_corrected_optional": "AI-improved version (optional):"
+>>>>>>> 18d5373 (feat: Implement AI feedback analysis and quality check with new UI and translations in the feedback modal.)
 }
