@@ -4,6 +4,7 @@ import { X, CheckCircle2, XCircle, Send, Sparkles, AlertTriangle, Wand2 } from "
 import { useEffect, useState, useTransition } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { LanguageSwitcher } from "@/src/app/_components/Layout/LanguageSwitcher";
 
 interface FeedbackModalProps {
     isOpen: boolean;
@@ -42,7 +43,7 @@ function QualityBadge({ quality }: { quality: number }) {
 }
 
 export function FeedbackModal({ isOpen, onClose, candidateName, onSubmit, aiSuggestions }: FeedbackModalProps) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [status, setStatus] = useState<'APPROVED' | 'REJECTED' | null>(null);
     const [justification, setJustification] = useState("");
     const [isPending, startTransition] = useTransition();
@@ -127,7 +128,7 @@ export function FeedbackModal({ isOpen, onClose, candidateName, onSubmit, aiSugg
             const res = await fetch('/api/ai/check-feedback', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ profile: 'company', feedback: justification, language: 'pt' }),
+                body: JSON.stringify({ profile: 'company', feedback: justification, language: i18n.language.split('-')[0] }),
             });
 
             if (!res.ok) throw new Error(`AI service error: ${res.status}`);
@@ -196,14 +197,17 @@ export function FeedbackModal({ isOpen, onClose, candidateName, onSubmit, aiSugg
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
-                    <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-gray-50 to-gray-100">
+                <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-gray-50 to-gray-100">
                     <div>
                         <h2 className="text-xl font-bold text-slate-900">{t('feedback_modal_title', 'Enviar Feedback')}</h2>
                         <p className="text-sm text-gray-600 mt-1">{candidateName}</p>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-white/50 rounded-lg transition-colors cursor-pointer" disabled={isBusy}>
-                        <X size={24} className="text-gray-600" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <LanguageSwitcher align="right" />
+                        <button onClick={onClose} className="p-2 hover:bg-white/50 rounded-lg transition-colors cursor-pointer" disabled={isBusy}>
+                            <X size={24} className="text-gray-600" />
+                        </button>
+                    </div>
                 </div>
 
                 <div className="p-6 space-y-5 overflow-y-auto max-h-[70vh]">
