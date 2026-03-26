@@ -321,28 +321,29 @@ export function FeedbackModal({ isOpen, onClose, candidateName, onSubmit, aiSugg
                                         {t('feedback_unacceptable_title', 'Feedback não pode ser enviado')}
                                     </p>
                                     {analysis.cause && (
-                                        <p className="text-xs text-red-600 mt-1">{analysis.cause}</p>
+                                        <p className="text-xs text-red-600 mt-1">
+                                            {(() => {
+                                                switch (analysis.cause.toLowerCase()) {
+                                                    case 'short':
+                                                        return t('feedback_cause_short', 'Motivo: Texto muito curto.');
+                                                    case 'agressive':
+                                                    case 'aggressive':
+                                                        return t('feedback_cause_agressive', 'Motivo: texto agressivo ou ofensivo.');
+                                                    case 'unknown':
+                                                        return t('feedback_cause_unknown', 'Motivo: Texto não aceitável como feedback.');
+                                                    case 'language':
+                                                        return t('feedback_cause_language', 'Motivo: Texto com linguagem inaceitável.');
+                                                    case 'nosense':
+                                                    case 'nonsense':
+                                                        return t('feedback_cause_nosense', 'Motivo: Texto sem sentido para um feedback.');
+                                                    default:
+                                                        return `${t('feedback_cause_default', 'Motivo:')} ${analysis.cause}`;
+                                                }
+                                            })()}
+                                        </p>
                                     )}
                                 </div>
                             </div>
-
-                            {analysis.corrected && (
-                                <div className="space-y-2">
-                                    <p className="text-xs font-semibold text-red-700">
-                                        {t('feedback_corrected_suggestion', 'Sugestão de correção:')}
-                                    </p>
-                                    <div className="text-xs text-gray-700 bg-white border border-red-100 rounded-lg p-3 leading-relaxed whitespace-pre-wrap">
-                                        {analysis.corrected}
-                                    </div>
-                                    <button
-                                        onClick={handleUseCorrectedText}
-                                        className="flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-2 py-1 rounded-md transition-colors cursor-pointer"
-                                    >
-                                        <Wand2 size={12} />
-                                        {t('feedback_use_suggested', 'Usar texto sugerido')}
-                                    </button>
-                                </div>
-                            )}
                         </div>
                     )}
 
