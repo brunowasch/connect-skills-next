@@ -41,11 +41,15 @@ export async function GET(req: Request) {
     }
 
     let tipo: "CANDIDATO" | "EMPRESA" | "MENTOR" = "CANDIDATO";
+    let origin = "";
     if (stateParam) {
         try {
             const stateObj = JSON.parse(decodeURIComponent(stateParam));
             if (stateObj.tipo === "EMPRESA" || stateObj.tipo === "CANDIDATO" || stateObj.tipo === "MENTOR") {
                 tipo = stateObj.tipo;
+            }
+            if (stateObj.origin) {
+                origin = stateObj.origin;
             }
         } catch {}
     }
@@ -121,8 +125,8 @@ export async function GET(req: Request) {
                 user.uuid = newUuid;
             }
 
-            const redirectTo = getRedirectTo(user);
-            const response = NextResponse.redirect(`${appUrl}${redirectTo}`);
+            const redirectTo = origin === "mentorconnect" ? `http://localhost:3001/api/auth/social-callback?userId=${user.id}` : getRedirectTo(user);
+            const response = origin === "mentorconnect" ? NextResponse.redirect(redirectTo) : NextResponse.redirect(`${appUrl}${redirectTo}`);
             response.cookies.set("time_user_id", user.id, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
@@ -207,11 +211,24 @@ export async function GET(req: Request) {
             return created;
         });
 
-        let redirectTo = "/company/register";
-        if (tipo === "CANDIDATO") redirectTo = "/candidate/register";
-        if (tipo === "MENTOR") redirectTo = "/mentor/register";
+        try {
+            if (tipo === "CANDIDATO" || (tipo as string) === "MENTOR") {
+                await fetch("http://localhost:3000/api/sync-user", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        usuario_id: newUser.id,
+                        tipo: tipo,
+                    }),
+                });
+            }
+        } catch (err) {
+            console.error("Erro ao sincronizar usuário no webhook (Facebook):", err);
+        }
 
-        const response = NextResponse.redirect(`${appUrl}${redirectTo}`);
+        const defaultRedirectTo = tipo === "CANDIDATO" ? "/candidate/register" : (tipo === "MENTOR" ? "/mentor/register" : "/company/register");
+        const redirectTo = origin === "mentorconnect" ? `http://localhost:3001/api/auth/social-callback?userId=${newUser.id}` : defaultRedirectTo;
+        const response = origin === "mentorconnect" ? NextResponse.redirect(redirectTo) : NextResponse.redirect(`${appUrl}${redirectTo}`);
         response.cookies.set("time_user_id", newUser.id, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
