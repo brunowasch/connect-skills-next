@@ -8,6 +8,7 @@ import {
 } from "@/src/lib/email-validation";
 import { sendVerificationEmail } from "@/src/lib/mail";
 import { generateVerificationCode } from "@/src/lib/code-generator";
+import { syncUserWithMentorConnect } from "@/src/lib/mentorconnect-sync";
 
 interface RegisterRequest {
   email: string;
@@ -198,25 +199,11 @@ export async function POST(req: Request) {
       );
     }
 
-    try {
-      if (tipo === "CANDIDATO" || (tipo as string) === "MENTOR") {
-        await fetch("http://localhost:3000/api/sync-user", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            usuario_id: createdUser.id,
-            tipo: tipo,
-          }),
-        });
-      }
-    } catch (err) {
-      console.error("Erro ao sincronizar usuário no webhook:", err);
-    }
+    await syncUserWithMentorConnect(createdUser.id);
 
     // 6. Retorno de sucesso (alterado para indicar necessidade de verificação)
     const response = NextResponse.json(
       {
-        id: createdUser.id,
         email: createdUser.email,
         tipo: createdUser.tipo,
         requiresVerification: true,

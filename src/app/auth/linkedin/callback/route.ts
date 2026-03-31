@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { randomUUID } from "crypto";
 import { getRedirectTo } from "@/src/lib/auth-utils";
+import { syncUserWithMentorConnect } from "@/src/lib/mentorconnect-sync";
 
 interface LinkedInTokenResponse {
     access_token: string;
@@ -154,7 +155,10 @@ export async function GET(req: Request) {
                 user.uuid = newUuid;
             }
 
-            const redirectTo = origin === "mentorconnect" ? `http://localhost:3001/api/auth/social-callback?userId=${user.id}` : getRedirectTo(user);
+            await syncUserWithMentorConnect(user.id);
+
+            const mentorConnectUrl = process.env.MENTORCONNECT_URL || "http://localhost:3001";
+            const redirectTo = origin === "mentorconnect" ? `${mentorConnectUrl}/api/auth/social-callback?userId=${user.id}` : getRedirectTo(user);
             const response = origin === "mentorconnect" ? NextResponse.redirect(redirectTo) : NextResponse.redirect(`${appUrl}${redirectTo}`);
             response.cookies.set("time_user_id", user.id, {
                 httpOnly: true,
@@ -170,6 +174,11 @@ export async function GET(req: Request) {
             });
 
             return response;
+        }
+
+        if (origin === "mentorconnect") {
+            const mentorConnectUrl = process.env.MENTORCONNECT_URL || "http://localhost:3001";
+            return NextResponse.redirect(`${mentorConnectUrl}/login?error=account_not_found`);
         }
 
         const userId = randomUUID();
@@ -240,23 +249,12 @@ export async function GET(req: Request) {
             return created;
         });
 
-        try {
-            if (tipo === "CANDIDATO" || (tipo as string) === "MENTOR") {
-                await fetch("http://localhost:3000/api/sync-user", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        usuario_id: newUser.id,
-                        tipo: tipo,
-                    }),
-                });
-            }
-        } catch (err) {
-            console.error("Erro ao sincronizar usuário no webhook (LinkedIn):", err);
-        }
+        // Sincronizar com MentorConnect (candidatos e mentores)
+        await syncUserWithMentorConnect(newUser.id);
 
+        const mentorConnectUrl = process.env.MENTORCONNECT_URL || "http://localhost:3001";
         const defaultRedirectTo = tipo === "CANDIDATO" ? "/candidate/register" : (tipo === "MENTOR" ? "/mentor/register" : "/company/register");
-        const redirectTo = origin === "mentorconnect" ? `http://localhost:3001/api/auth/social-callback?userId=${newUser.id}` : defaultRedirectTo;
+        const redirectTo = origin === "mentorconnect" ? `${mentorConnectUrl}/api/auth/social-callback?userId=${newUser.id}` : defaultRedirectTo;
         const response = origin === "mentorconnect" ? NextResponse.redirect(redirectTo) : NextResponse.redirect(`${appUrl}${redirectTo}`);
         response.cookies.set("time_user_id", newUser.id, {
             httpOnly: true,

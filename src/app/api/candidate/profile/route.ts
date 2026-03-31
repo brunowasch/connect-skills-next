@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { randomUUID } from "crypto";
 import { uploadToCloudinary } from "@/src/lib/cloudinary";
+import { syncUserWithMentorConnect } from "@/src/lib/mentorconnect-sync";
 
 export async function PUT(req: NextRequest) {
     try {
@@ -136,6 +137,8 @@ export async function PUT(req: NextRequest) {
 
         revalidatePath("/(pages)/candidate/(candidateApp)/dashboard", "page");
         revalidatePath("/(pages)/candidate/(candidateApp)/profile", "page");
+
+        await syncUserWithMentorConnect(userId);
 
         return NextResponse.json({ message: "Perfil atualizado!" });
     } catch (error: any) {
