@@ -58,9 +58,37 @@ export async function syncUserWithMentorConnect(usuarioId: string): Promise<void
             const body = await response.text();
             console.error(`[MentorConnect Sync] Falha ao sincronizar usuário ${usuarioId}. Status: ${response.status}. Body: ${body}`);
         } else {
-            console.log(`[MentorConnect Sync] Usuário ${usuarioId} sincronizado com sucesso.`);
         }
     } catch (err) {
         console.error(`[MentorConnect Sync] Erro inesperado ao sincronizar usuário ${usuarioId}:`, err);
+    }
+}
+
+export async function deleteUserInMentorConnect(usuarioId: string): Promise<void> {
+    const mentorconnectUrl = process.env.MENTORCONNECT_URL || "http://localhost:3001";
+    const syncSecret = process.env.MENTORCONNECT_SYNC_SECRET;
+
+    if (!mentorconnectUrl || !syncSecret) {
+        console.warn("[MentorConnect Sync] MENTORCONNECT_URL ou MENTORCONNECT_SYNC_SECRET não configurados. Sincronização de exclusão ignorada.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${mentorconnectUrl}/api/delete-user`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "x-sync-secret": syncSecret,
+            },
+            body: JSON.stringify({ usuario_id: usuarioId }),
+        });
+
+        if (!response.ok) {
+            const body = await response.text();
+            console.error(`[MentorConnect Sync] Falha ao excluir usuário ${usuarioId} do MentorConnect. Status: ${response.status}. Body: ${body}`);
+        } else {
+        }
+    } catch (err) {
+        console.error(`[MentorConnect Sync] Erro inesperado ao excluir usuário ${usuarioId} do MentorConnect:`, err);
     }
 }

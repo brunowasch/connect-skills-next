@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { deleteUserInMentorConnect } from "@/src/lib/mentorconnect-sync";
 
 export async function DELETE(req: NextRequest) {
     try {
@@ -74,6 +75,8 @@ export async function DELETE(req: NextRequest) {
 
         // Clear auth cookie
         cookieStore.delete("time_user_id");
+
+        await deleteUserInMentorConnect(userId);
 
         return NextResponse.json({ message: "Conta excluída com sucesso" });
     } catch (error: any) {
