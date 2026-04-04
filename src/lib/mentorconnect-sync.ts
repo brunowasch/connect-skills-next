@@ -15,6 +15,7 @@ export async function syncUserWithMentorConnect(usuarioId: string): Promise<void
             include: {
                 candidato: true,
                 empresa: true,
+                mentor: true,
             },
         });
 
@@ -32,11 +33,11 @@ export async function syncUserWithMentorConnect(usuarioId: string): Promise<void
 
         const candidato = usuario.candidato;
         const empresa = usuario.empresa;
+        const mentor = usuario.mentor;
 
-        // Se for cadastrado via Social Login, o nome completo pode ter caído em empresa.nome_empresa
-        let nomeFinal = candidato?.nome || empresa?.nome_empresa || usuario.nome || "";
-        let sobrenomeFinal = candidato?.sobrenome || usuario.sobrenome || "";
-        let fotoFinal = candidato?.foto_perfil || empresa?.foto_perfil || usuario.avatarUrl || null;
+        let nomeFinal = candidato?.nome || empresa?.nome_empresa || mentor?.nome || usuario.nome || "";
+        let sobrenomeFinal = candidato?.sobrenome || mentor?.sobrenome || usuario.sobrenome || "";
+        let fotoFinal = candidato?.foto_perfil || empresa?.foto_perfil || mentor?.foto_perfil || usuario.avatarUrl || null;
 
         const payload = {
             usuario_id:    usuario.id,

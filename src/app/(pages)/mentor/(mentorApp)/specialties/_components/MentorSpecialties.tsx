@@ -79,7 +79,21 @@ export function MentorSpecialties({ initialSpecialties = [], userId }: { initial
                 throw new Error(errorData.error || t("error_saving_areas"));
             }
 
-            router.push("/mentor/dashboard");
+            const originCookie = Cookies.get("register_origin");
+
+            if (originCookie === "mentorconnect") {
+                Cookies.remove("register_origin", { path: '/' });
+                const meRes = await fetch("/api/auth/me");
+                if (meRes.ok) {
+                    const meData = await meRes.json();
+                    const mentorconnectUrl = process.env.NEXT_PUBLIC_MENTORCONNECT_URL || "http://localhost:3001";
+                    window.location.href = `${mentorconnectUrl}/api/auth/social-callback?userId=${meData.id}`;
+                } else {
+                    router.push("/mentor/dashboard");
+                }
+            } else {
+                router.push("/mentor/dashboard");
+            }
         } catch (error) {
             console.error("Erro ao salvar especialidades:", error);
             alert(t("error_saving_areas"));

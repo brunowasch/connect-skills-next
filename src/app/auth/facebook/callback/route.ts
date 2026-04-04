@@ -165,10 +165,6 @@ export async function GET(req: Request) {
             return response;
         }
 
-        if (origin === "mentorconnect") {
-            const mentorConnectUrl = process.env.MENTORCONNECT_URL || "http://localhost:3001";
-            return NextResponse.redirect(`${mentorConnectUrl}/login?error=account_not_found`);
-        }
 
         const userId = randomUUID();
         const userUuid = randomUUID();
@@ -238,7 +234,6 @@ export async function GET(req: Request) {
             return created;
         });
 
-        // Sincronizar com MentorConnect (candidatos e mentores)
         await syncUserWithMentorConnect(newUser.id);
 
         const mentorConnectUrl = process.env.MENTORCONNECT_URL || "http://localhost:3001";

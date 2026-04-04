@@ -1,5 +1,6 @@
 "use client";
 
+import Cookies from "js-cookie";
 import { useState, useMemo, useEffect } from "react";
 import skillsData from "@/src/data/skills.json";
 import { FiSearch } from "react-icons/fi";
@@ -79,15 +80,10 @@ export function SelectAreas() {
             await Promise.all(promises);
 
             // Verificar se veio do MentorConnect
-            const originCookie = document.cookie
-                .split("; ")
-                .find(row => row.startsWith("register_origin="))
-                ?.split("=")[1];
+            const originCookie = Cookies.get("register_origin");
 
             if (originCookie === "mentorconnect") {
-                // Limpar cookie de origin
-                document.cookie = "register_origin=; max-age=0; path=/";
-                // Buscar o userId para o callback
+                Cookies.remove("register_origin", { path: '/' });
                 const meRes = await fetch("/api/auth/me");
                 if (meRes.ok) {
                     const meData = await meRes.json();

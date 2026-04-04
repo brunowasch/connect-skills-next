@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
+import { syncUserWithMentorConnect } from "@/src/lib/mentorconnect-sync";
 
 export async function POST(req: Request) {
     try {
@@ -25,6 +26,8 @@ export async function POST(req: Request) {
                 sobrenome,
             },
         });
+
+        await syncUserWithMentorConnect(usuario_id);
 
         return NextResponse.json({ message: "Perfil de mentor atualizado com sucesso!" }, { status: 200 });
 

@@ -250,7 +250,7 @@ export function RegisterCard() {
                                 : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
                                 }`}
                         >
-                            {origin === "mentorconnect" ? "Mentor" : t("register_company")}
+                            {t("register_company")}
                         </button>
                         <button
                             type="button"
