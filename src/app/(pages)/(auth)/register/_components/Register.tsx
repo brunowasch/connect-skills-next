@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslation, Trans } from "react-i18next";
 import { VerificationModal } from "@/src/app/_components/VerificationModal";
@@ -50,6 +50,8 @@ function FacebookIcon() {
 export function RegisterCard() {
     const { t } = useTranslation();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const origin = searchParams.get("origin") || "";
 
     const [step, setStep] = useState<"register" | "verify">("register");
     const [isLoading, setIsLoading] = useState(false);
@@ -107,17 +109,20 @@ export function RegisterCard() {
 
     function handleGoogleRegister() {
         setIsGoogleLoading(true);
-        window.location.href = `/api/auth/google?tipo=${tipo}`;
+        const url = origin ? `/api/auth/google?tipo=${tipo}&origin=${origin}` : `/api/auth/google?tipo=${tipo}`;
+        window.location.href = url;
     }
 
     function handleLinkedInRegister() {
         setIsLinkedInLoading(true);
-        window.location.href = `/api/auth/linkedin?tipo=${tipo}`;
+        const url = origin ? `/api/auth/linkedin?tipo=${tipo}&origin=${origin}` : `/api/auth/linkedin?tipo=${tipo}`;
+        window.location.href = url;
     }
 
     function handleFacebookRegister() {
         setIsFacebookLoading(true);
-        window.location.href = `/api/auth/facebook?tipo=${tipo}`;
+        const url = origin ? `/api/auth/facebook?tipo=${tipo}&origin=${origin}` : `/api/auth/facebook?tipo=${tipo}`;
+        window.location.href = url;
     }
 
     async function handleRegisterSubmit(e: React.FormEvent) {
@@ -175,7 +180,7 @@ export function RegisterCard() {
             const res = await fetch("/api/auth/verify-code", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, code }),
+                body: JSON.stringify({ email, code, origin }),
             });
 
             const data = await res.json();
@@ -245,7 +250,7 @@ export function RegisterCard() {
                                 : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
                                 }`}
                         >
-                            {t("register_company")}
+                            {origin === "mentorconnect" ? "Mentor" : t("register_company")}
                         </button>
                         <button
                             type="button"

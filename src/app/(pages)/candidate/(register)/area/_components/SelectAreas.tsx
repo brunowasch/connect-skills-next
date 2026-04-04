@@ -78,7 +78,27 @@ export function SelectAreas() {
 
             await Promise.all(promises);
 
-            router.push("/candidate/dashboard");
+            // Verificar se veio do MentorConnect
+            const originCookie = document.cookie
+                .split("; ")
+                .find(row => row.startsWith("register_origin="))
+                ?.split("=")[1];
+
+            if (originCookie === "mentorconnect") {
+                // Limpar cookie de origin
+                document.cookie = "register_origin=; max-age=0; path=/";
+                // Buscar o userId para o callback
+                const meRes = await fetch("/api/auth/me");
+                if (meRes.ok) {
+                    const meData = await meRes.json();
+                    const mentorconnectUrl = process.env.NEXT_PUBLIC_MENTORCONNECT_URL || "http://localhost:3001";
+                    window.location.href = `${mentorconnectUrl}/api/auth/social-callback?userId=${meData.id}`;
+                } else {
+                    router.push("/candidate/dashboard");
+                }
+            } else {
+                router.push("/candidate/dashboard");
+            }
         } catch (error) {
             console.error("Erro ao salvar áreas:", error);
             alert(t("error_saving_areas"));

@@ -151,9 +151,26 @@ export async function GET(req: Request) {
             await syncUserWithMentorConnect(user.id);
 
             const mentorConnectUrl = process.env.MENTORCONNECT_URL || "http://localhost:3001";
-            const redirectTo = origin === "mentorconnect" ? `${mentorConnectUrl}/api/auth/social-callback?userId=${user.id}` : getRedirectTo(user);
-
-            const response = origin === "mentorconnect" ? NextResponse.redirect(redirectTo) : NextResponse.redirect(`${appUrl}${redirectTo}`);
+            const redirectToStr = getRedirectTo(user);
+            let nextUrl = `${appUrl}${redirectToStr}`;
+            
+            if (origin === "mentorconnect") {
+                if (redirectToStr === "/candidate/dashboard" || redirectToStr === "/company/dashboard") {
+                     nextUrl = `${mentorConnectUrl}/api/auth/social-callback?userId=${user.id}`;
+                }
+            }
+            
+            const response = NextResponse.redirect(nextUrl);
+            
+            if (origin === "mentorconnect" && nextUrl.startsWith(appUrl)) {
+                response.cookies.set("register_origin", "mentorconnect", {
+                    httpOnly: false,
+                    secure: process.env.NODE_ENV === "production",
+                    sameSite: "lax",
+                    path: "/",
+                    maxAge: 60 * 30,
+                });
+            }
             response.cookies.set("time_user_id", user.id, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
@@ -249,10 +266,18 @@ export async function GET(req: Request) {
 
         // Redirect new user to complete registration or to mentorconnect
         const mentorConnectUrl = process.env.MENTORCONNECT_URL || "http://localhost:3001";
-        const defaultRedirectTo = tipo === "CANDIDATO" ? "/candidate/register" : (tipo === "MENTOR" ? "/mentor/register" : "/company/register");
-        const redirectTo = origin === "mentorconnect" ? `${mentorConnectUrl}/api/auth/social-callback?userId=${newUser.id}` : defaultRedirectTo;
-
-        const response = origin === "mentorconnect" ? NextResponse.redirect(redirectTo) : NextResponse.redirect(`${appUrl}${redirectTo}`);
+        const nextStep = tipo === "CANDIDATO" ? "/candidate/register" : (tipo === "MENTOR" ? "/mentor/register" : "/company/register");
+        const response = NextResponse.redirect(`${appUrl}${nextStep}`);
+        
+        if (origin === "mentorconnect") {
+            response.cookies.set("register_origin", "mentorconnect", {
+                httpOnly: false,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "lax",
+                path: "/",
+                maxAge: 60 * 30,
+            });
+        }
         response.cookies.set("time_user_id", newUser.id, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",

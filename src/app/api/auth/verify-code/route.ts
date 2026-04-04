@@ -5,7 +5,7 @@ import { prisma } from "@/src/lib/prisma";
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { email, code } = body;
+        const { email, code, origin } = body;
 
         if (!email || !code) {
             return NextResponse.json({ error: "Email e código são obrigatórios." }, { status: 400 });
@@ -50,11 +50,14 @@ export async function POST(req: Request) {
             where: { id: verificationToken.id }
         });
 
-        // 6. Set Auth Cookie
+        // 6. Determine redirect destination
+        const redirectTo = user.tipo === "CANDIDATO" ? "/candidate/register" : (user.tipo === "MENTOR" ? "/mentor/register" : "/company/register");
+
+        // 7. Set Auth Cookie
         const response = NextResponse.json(
             {
                 message: "Email verificado com sucesso!",
-                redirectTo: user.tipo === "CANDIDATO" ? "/candidate/register" : (user.tipo === "MENTOR" ? "/mentor/register" : "/company/register")
+                redirectTo,
             },
             { status: 200 }
         );
@@ -65,6 +68,17 @@ export async function POST(req: Request) {
             sameSite: "lax",
             path: "/"
         });
+
+        // 8. Se vier do MentorConnect, guarda cookie de origin para uso no passo final
+        if (origin === "mentorconnect") {
+            response.cookies.set("register_origin", "mentorconnect", {
+                httpOnly: false,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "lax",
+                path: "/",
+                maxAge: 60 * 30,
+            });
+        }
 
         return response;
 

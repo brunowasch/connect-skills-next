@@ -23,26 +23,33 @@ export async function syncUserWithMentorConnect(usuarioId: string): Promise<void
             return;
         }
 
-        const tipo = usuario.tipo.toLowerCase();
+        const tipoOriginal = usuario.tipo.toLowerCase();
+        const tipo = tipoOriginal === "empresa" ? "mentor" : tipoOriginal;
 
         if (tipo !== "candidato" && tipo !== "mentor") {
             return;
         }
 
         const candidato = usuario.candidato;
+        const empresa = usuario.empresa;
+
+        // Se for cadastrado via Social Login, o nome completo pode ter caído em empresa.nome_empresa
+        let nomeFinal = candidato?.nome || empresa?.nome_empresa || usuario.nome || "";
+        let sobrenomeFinal = candidato?.sobrenome || usuario.sobrenome || "";
+        let fotoFinal = candidato?.foto_perfil || empresa?.foto_perfil || usuario.avatarUrl || null;
 
         const payload = {
             usuario_id:    usuario.id,
             email:         usuario.email,
             senha:         usuario.senha,
-            nome:          candidato?.nome       ?? usuario.nome       ?? "",
-            sobrenome:     candidato?.sobrenome  ?? usuario.sobrenome  ?? "",
+            nome:          nomeFinal,
+            sobrenome:     sobrenomeFinal,
             tipo:          tipo,                 
-            foto_perfil:   candidato?.foto_perfil ?? usuario.avatarUrl ?? null,
-            cidade:        candidato?.cidade     ?? null,
-            estado:        candidato?.estado     ?? null,
-            pais:          candidato?.pais       ?? "Brasil",
-            bio_descricao: candidato?.descricao  ?? null,
+            foto_perfil:   fotoFinal,
+            cidade:        candidato?.cidade     ?? empresa?.cidade ?? null,
+            estado:        candidato?.estado     ?? empresa?.estado ?? null,
+            pais:          candidato?.pais       ?? empresa?.pais ?? "Brasil",
+            bio_descricao: candidato?.descricao  ?? empresa?.descricao ?? null,
         };
 
         const response = await fetch(syncUrl, {
