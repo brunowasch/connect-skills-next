@@ -1298,7 +1298,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                     <div>
                                         <p className="text-gray-500 text-xs mb-1">{t("vacancy_published_at")}</p>
                                         <p className="text-gray-900 font-medium">
-                                            {new Date(vacancy.created_at).toLocaleDateString(i18n.language === 'pt' ? 'pt-BR' : i18n.language === 'en' ? 'en-US' : 'es-ES', {
+                                            {new Date(vacancy.created_at).toLocaleDateString(i18n.language?.startsWith('pt') ? 'pt-BR' : i18n.language?.startsWith('en') ? 'en-US' : 'es-ES', {
                                                 day: '2-digit',
                                                 month: 'long',
                                                 year: 'numeric'
@@ -1437,7 +1437,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                             onClick={() => setModal(prev => ({ ...prev, isOpen: false }))}
                         />
 
-                        <div className={`relative w-full bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 fade-in duration-300 scale-100 ${modal.size === 'sm' ? 'max-w-sm' :
+                        <div className={`relative w-full max-h-[90vh] overflow-y-auto overflow-x-hidden bg-white rounded-2xl shadow-2xl border border-slate-200 animate-in zoom-in-95 fade-in duration-300 scale-100 ${modal.size === 'sm' ? 'max-w-sm' :
                             modal.size === 'lg' ? 'max-w-lg' :
                                 modal.size === 'xl' ? 'max-w-xl' :
                                     modal.size === '2xl' ? 'max-w-2xl' :
@@ -1468,7 +1468,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                     </button>
                                 </div>
 
-                                <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                                <div className="mt-8 flex flex-col-reverse sm:flex-row gap-3">
                                     {!modal.hideCancel && (
                                         <button
                                             onClick={() => setModal(prev => ({ ...prev, isOpen: false }))}
