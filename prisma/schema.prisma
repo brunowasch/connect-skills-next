@@ -283,6 +283,7 @@ model entrevista_mentor {
   data                  String   @db.VarChar(10) // YYYY-MM-DD
   hora_inicio           String   @db.VarChar(5)  // HH:mm
   hora_fim              String   @db.VarChar(5)  // HH:mm
+  link_reuniao          String?  @db.VarChar(512)
   criado_em             DateTime @default(now())
   atualizado_em         DateTime @updatedAt
   mentor_notificado     Boolean  @default(false)

@@ -65,6 +65,7 @@ export default async function CandidateMentorshipsPage() {
             data: interview.data,
             hora_inicio: interview.hora_inicio,
             hora_fim: interview.hora_fim,
+            link_reuniao: interview.link_reuniao,
             criado_em: interview.criado_em.toISOString()
         };
     }));

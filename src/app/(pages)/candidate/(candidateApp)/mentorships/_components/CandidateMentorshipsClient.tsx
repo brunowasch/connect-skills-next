@@ -217,12 +217,19 @@ export default function CandidateMentorshipsClient({ mentorships }: { mentorship
                     </div>
                 </div>
 
-                {isScheduled && (
+                {isScheduled && m.link_reuniao && (
                     <div className="px-4 py-2.5 sm:py-3 border-t border-gray-100 bg-gray-50/80 flex flex-wrap justify-between items-center gap-2 text-[10px] sm:text-[11px] text-gray-500 font-medium mt-auto">
                         <span>{t("mentorship_or_access_link", { defaultValue: "Ou acesse pelo link:" })}</span>
-                        <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition border border-indigo-200 font-semibold shadow-sm cursor-pointer whitespace-nowrap">
+                        <button
+                            onClick={() => {
+                                let url = m.link_reuniao.replace(/"/g, "");
+                                if (!url.startsWith('http')) url = `http://${url}`;
+                                window.open(url, "_blank", "noopener,noreferrer");
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition border border-indigo-200 font-semibold shadow-sm cursor-pointer whitespace-nowrap"
+                        >
                             <Video size={12} />
-                            {t("mentorship_meeting_link", { defaultValue: "Link da Reunião" })}
+                            {t("mentorship_meeting_link", { defaultValue: "Entrar na Reunião" })}
                         </button>
                     </div>
                 )}

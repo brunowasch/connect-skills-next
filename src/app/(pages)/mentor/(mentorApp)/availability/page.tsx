@@ -51,7 +51,8 @@ export default async function MentorAvailabilityPage() {
                     agendamento = {
                         empresaNome: empresa.nome_empresa,
                         empresaFoto: empresa.foto_perfil,
-                        empresaUuid: empresa.uuid
+                        empresaUuid: empresa.uuid,
+                        link_reuniao: agendado.link_reuniao
                     };
                 }
             }

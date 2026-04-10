@@ -125,14 +125,6 @@ export async function PATCH(req: Request) {
                 return NextResponse.json({ error: "Esta entrevista foi recusada e não pode mais ser confirmada." }, { status: 400 });
             }
 
-            await prisma.entrevista_mentor.update({
-                where: { id: entrevistaId },
-                data: {
-                    status: "CONFIRMADA",
-                    mentor_notificado: true
-                }
-            });
-
             const vaga = await prisma.vaga.findUnique({ where: { id: interview.vaga_id } });
             const candidato = await prisma.candidato.findUnique({
                 where: { id: interview.candidato_id },
@@ -146,6 +138,37 @@ export async function PATCH(req: Request) {
             if (!vaga || !candidato || !mentor || !candidato.usuario || !mentor.usuario) {
                 return NextResponse.json({ error: "Dados relacionados não encontrados." }, { status: 404 });
             }
+            let linkReuniao = null;
+            if (process.env.MENTORCONNECT_URL) {
+                try {
+                    const reqMc = await fetch(`${process.env.MENTORCONNECT_URL}/api/meetings`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            usuario_id: mentor.usuario_id,
+                            titulo: `Entrevista: ${vaga.cargo} - ${candidato.nome} ${candidato.sobrenome || ""}`.trim()
+                        })
+                    });
+
+                    if (reqMc.ok) {
+                        const data = await reqMc.json();
+                        linkReuniao = data.link || null;
+                    } else {
+                        console.error("Falha ao gerar reunião no MC:", await reqMc.text());
+                    }
+                } catch (err) {
+                    console.error("Erro na comunicação com MENTORCONNECT_URL:", err);
+                }
+            }
+
+            await prisma.entrevista_mentor.update({
+                where: { id: entrevistaId },
+                data: {
+                    status: "CONFIRMADA",
+                    mentor_notificado: true,
+                    link_reuniao: linkReuniao
+                }
+            });
 
             const mentorFullName = `${mentor.nome || ""} ${mentor.sobrenome || ""}`.trim() || "Mentor";
             const candidateFullName = `${candidato.nome || ""} ${candidato.sobrenome || ""}`.trim() || "Candidato";

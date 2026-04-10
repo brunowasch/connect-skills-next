@@ -65,7 +65,8 @@ export default async function MentorDashboardPage() {
             empresa: empresaData?.nome_empresa || "Empresa",
             empresaFoto: empresaData?.foto_perfil || null,
             candidato: `${candidato?.nome || ""} ${candidato?.sobrenome || ""}`.trim(),
-            candidatoFoto: candidato?.foto_perfil || null
+            candidatoFoto: candidato?.foto_perfil || null,
+            link_reuniao: int.link_reuniao
         };
     }));
 

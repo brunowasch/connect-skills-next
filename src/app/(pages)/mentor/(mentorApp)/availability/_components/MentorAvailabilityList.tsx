@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { FiClock, FiCheck, FiPlus, FiTrash2, FiEdit2 } from "react-icons/fi";
-import { AlertCircle, X } from "lucide-react";
+import { AlertCircle, X, Video } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -16,6 +16,7 @@ interface DbSlot {
         empresaNome: string;
         empresaFoto: string | null;
         empresaUuid: string | null;
+        link_reuniao?: string | null;
     } | null;
 }
 
@@ -194,6 +195,20 @@ export function MentorAvailabilityList({ slots = [] }: { slots: DbSlot[] }) {
                                                     <span className="text-sm font-semibold text-slate-900">{slot.agendamento.empresaNome}</span>
                                                 </div>
                                             </div>
+                                        )}
+
+                                        {slot.agendamento?.link_reuniao && (
+                                            <button 
+                                                onClick={() => {
+                                                    let url = slot.agendamento?.link_reuniao?.replace(/"/g, "") || "";
+                                                    if (url && !url.startsWith('http')) url = `http://${url}`;
+                                                    window.open(`${url}${url.includes('?') ? '&' : '?'}host=true`, "_blank", "noopener,noreferrer");
+                                                }}
+                                                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 transition shadow-sm text-sm font-bold cursor-pointer"
+                                            >
+                                                <Video className="w-4 h-4" />
+                                                {t("join_meeting", "Entrar na Reunião")}
+                                            </button>
                                         )}
                                     </div>
                                 ) : (
