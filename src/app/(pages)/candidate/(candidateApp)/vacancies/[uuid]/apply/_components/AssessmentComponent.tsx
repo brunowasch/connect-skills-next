@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   Clock,
   AlertTriangle,
@@ -219,11 +219,11 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
   const isLastSection = currentSection === totalSections - 1;
 
   const sectionAnsweredCount = sectionQuestions.filter(
-    (q) => (answers[q.id] || "").trim().length > 0,
+    (q: Question) => (answers[q.id] || "").trim().length > 0,
   ).length;
   const allSectionAnswered = sectionAnsweredCount === sectionQuestions.length;
 
-  const totalAnsweredCount = Object.values(answers).filter((a) => a.trim().length > 0).length;
+  const totalAnsweredCount = Object.values(answers).filter((a: any) => a.trim().length > 0).length;
   const overallProgressPct = questions.length > 0 ? (totalAnsweredCount / questions.length) * 100 : 0;
 
   const isSectionComplete = (sectionIndex: number) => {
@@ -568,23 +568,26 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
               </div>
             ) : (
               <div className="p-8 space-y-12">
-                {sectionQuestions.map((q, index) => (
+                {sectionQuestions.map((q: Question, index: number) => {
+                  const absoluteNumber = currentSection * SECTION_SIZE + index + 1;
+                  return (
                   <div key={q.id} className="group">
                     <div className="flex items-start gap-4 mb-4">
                       <span className="flex-shrink-0 w-8 h-8 rounded-lg bg-slate-100 text-slate-500 font-bold flex items-center justify-center text-sm">
-                        {currentSection * SECTION_SIZE + index + 1}
+                        {absoluteNumber}
                       </span>
                       <h3 className="text-lg font-semibold text-slate-800 leading-snug pt-1">{q.text}</h3>
                     </div>
-                    <textarea
-                      className="w-full p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-slate-50 hover:bg-white resize-none min-h-[120px] text-slate-700 leading-relaxed"
-                      placeholder={t("assessment_answer_placeholder")}
-                      value={answers[q.id] || ""}
-                      onChange={(e) => handleAnswerChange(q.id, e.target.value)}
-                      autoComplete="off"
-                    />
-                  </div>
-                ))}
+                      <textarea
+                        className="w-full p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-slate-50 hover:bg-white resize-none min-h-[120px] text-slate-700 leading-relaxed"
+                        placeholder={t("assessment_answer_placeholder")}
+                        value={answers[q.id] || ""}
+                        onChange={(e) => handleAnswerChange(q.id, e.target.value)}
+                        autoComplete="off"
+                      />
+                    </div>
+                  );
+                })}
               </div>
             )}
 

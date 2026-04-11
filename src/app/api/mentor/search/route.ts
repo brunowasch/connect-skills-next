@@ -59,6 +59,19 @@ export async function GET(req: Request) {
             }
         });
 
+        const activeInterviews = await (prisma as any).entrevista_mentor.findMany({
+            where: {
+                mentor_id: { in: mentorIds },
+                status: {
+                    in: ["PENDENTE_CANDIDATO", "CONFIRMADA", "CONCLUIDA"]
+                }
+            },
+            select: { disponibilidade_id: true }
+        });
+
+        const bookedSlotIds = new Set(activeInterviews.map((i: any) => i.disponibilidade_id));
+
+
         const allSlots = await (prisma as any).mentor_disponibilidade.findMany({
             where: {
                 mentor_id: { in: mentorIds }
@@ -69,7 +82,7 @@ export async function GET(req: Request) {
             ]
         });
 
-        const futureSlots = allSlots.filter((s: any) => s.data >= today);
+        const futureSlots = allSlots.filter((s: any) => s.data >= today && !bookedSlotIds.has(s.id));
 
         const mentorsWithSlots = mentors.map(mentor => ({
             ...mentor,

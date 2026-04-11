@@ -21,6 +21,19 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Disponibilidade não encontrada." }, { status: 404 });
         }
 
+        const existingInterview = await (prisma as any).entrevista_mentor.findFirst({
+            where: {
+                disponibilidade_id: disponibilidadeId,
+                status: {
+                    in: ["PENDENTE_CANDIDATO", "CONFIRMADA", "CONCLUIDA"]
+                }
+            }
+        });
+
+        if (existingInterview) {
+            return NextResponse.json({ error: "Este horário já está reservado e não pode ser agendado novamente." }, { status: 400 });
+        }
+
         const vaga = await prisma.vaga.findUnique({ where: { id: vagaId } });
         if (!vaga) {
             return NextResponse.json({ error: "Vaga não encontrada." }, { status: 404 });

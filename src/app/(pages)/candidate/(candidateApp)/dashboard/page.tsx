@@ -397,12 +397,12 @@ export default async function Dashboard() {
             <DashboardHeader />
             <Hero candidato={candidate} />
             <ProfileCompletion candidato={candidate} usuario={userId} areas={areas} />
-            <VideoRequests requests={videoRequests} />
             <KPI
                 recommendedVacanciesCount={recommendedVacanciesCount}
                 appliedVacanciesCount={appliedVacanciesCount}
                 areas={areas}
             />
+            <VideoRequests requests={videoRequests} />
             <MentorshipRequests requests={mentorshipRequests} />
 
             <DraftApplications draftVacancies={appliedVacancies.filter(v => v.isDraft)} />
