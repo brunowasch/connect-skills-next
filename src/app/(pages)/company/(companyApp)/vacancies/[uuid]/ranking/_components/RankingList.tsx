@@ -7,6 +7,7 @@ import { AnalysisModal } from "./AnalysisModal";
 import { VideoAnalysisModal } from "../../candidates/_components/VideoAnalysisModal";
 import { FeedbackModal } from "./FeedbackModal";
 import { ScheduleInterviewModal } from "./ScheduleInterviewModal";
+import { ViewMentorFeedbackModal } from "./ViewMentorFeedbackModal";
 import { useTranslation } from "react-i18next";
 import { requestVideo, submitFeedback } from "../../../actions";
 import { useRouter } from "next/navigation";
@@ -19,6 +20,15 @@ interface Application {
     breakdown?: string | null;
     resposta?: string | null;
     interviewStatus?: string;
+    mentorFeedback?: {
+        comportamental: string | null;
+        tecnico: string | null;
+        geral: string | null;
+        nota_comportamental: number | null;
+        nota_tecnica: number | null;
+        nota_geral: number | null;
+        enviado_em: Date;
+    } | null;
 }
 
 interface Candidate {
@@ -59,6 +69,7 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, vacancyTitle, 
     const [feedbackCandidate, setFeedbackCandidate] = useState<string | null>(null);
     const [videoRequestCandidate, setVideoRequestCandidate] = useState<string | null>(null);
     const [scheduleCandidate, setScheduleCandidate] = useState<Candidate | null>(null);
+    const [viewMentorFeedbackCandidate, setViewMentorFeedbackCandidate] = useState<string | null>(null);
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
 
@@ -447,6 +458,16 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, vacancyTitle, 
                                         <Brain size={14} />
                                         {t('ranking_ai_analysis')}
                                     </button>
+                                    
+                                    {candidate.application?.mentorFeedback && (
+                                        <button
+                                            onClick={() => setViewMentorFeedbackCandidate(candidate.id)}
+                                            className="flex items-center gap-1 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-medium hover:bg-indigo-100 transition-colors cursor-pointer"
+                                        >
+                                            <MessageSquare size={14} />
+                                            Feedback do Mentor
+                                        </button>
+                                    )}
 
                                     {(() => {
                                         const status = breakdown?.video?.status;
@@ -610,6 +631,19 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, vacancyTitle, 
                     </>
                 )
             }
+            
+            <ViewMentorFeedbackModal
+                isOpen={viewMentorFeedbackCandidate !== null}
+                onClose={() => setViewMentorFeedbackCandidate(null)}
+                candidateName={(() => {
+                    const candidate = sortedCandidates.find(c => c.id === viewMentorFeedbackCandidate);
+                    return `${candidate?.nome || ''} ${candidate?.sobrenome || ''}`.trim();
+                })()}
+                feedback={(() => {
+                    const candidate = sortedCandidates.find(c => c.id === viewMentorFeedbackCandidate);
+                    return candidate?.application?.mentorFeedback || null;
+                })()}
+            />
 
             {/* Video Request Confirmation Modal */}
             {

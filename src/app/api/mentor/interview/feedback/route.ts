@@ -9,11 +9,14 @@ export async function POST(req: NextRequest) {
 
     try {
         const body = await req.json();
-        const { entrevistaId, feedback_comportamental, feedback_tecnico, feedback_geral } = body as {
+        const { entrevistaId, feedback_comportamental, feedback_tecnico, feedback_geral, nota_comportamental, nota_tecnica, nota_geral } = body as {
             entrevistaId?: string;
             feedback_comportamental?: string;
             feedback_tecnico?: string;
             feedback_geral?: string;
+            nota_comportamental?: number;
+            nota_tecnica?: number;
+            nota_geral?: number;
         };
 
         if (!entrevistaId) {
@@ -22,11 +25,20 @@ export async function POST(req: NextRequest) {
         if (!feedback_comportamental?.trim()) {
             return NextResponse.json({ error: "Feedback Comportamental é obrigatório." }, { status: 400 });
         }
+        if (nota_comportamental === undefined || nota_comportamental < 1 || nota_comportamental > 100) {
+            return NextResponse.json({ error: "Nota Comportamental deve ser entre 1 e 100." }, { status: 400 });
+        }
         if (!feedback_tecnico?.trim()) {
             return NextResponse.json({ error: "Feedback Técnico é obrigatório." }, { status: 400 });
         }
+        if (nota_tecnica === undefined || nota_tecnica < 1 || nota_tecnica > 100) {
+            return NextResponse.json({ error: "Nota Técnica deve ser entre 1 e 100." }, { status: 400 });
+        }
         if (!feedback_geral?.trim()) {
             return NextResponse.json({ error: "Feedback Geral é obrigatório." }, { status: 400 });
+        }
+        if (nota_geral === undefined || nota_geral < 1 || nota_geral > 100) {
+            return NextResponse.json({ error: "Nota Geral deve ser entre 1 e 100." }, { status: 400 });
         }
 
         const entrevista = await (prisma as any).entrevista_mentor.findUnique({
@@ -43,6 +55,9 @@ export async function POST(req: NextRequest) {
                 feedback_comportamental: feedback_comportamental.trim(),
                 feedback_tecnico: feedback_tecnico.trim(),
                 feedback_geral: feedback_geral.trim(),
+                nota_comportamental,
+                nota_tecnica,
+                nota_geral,
                 feedback_enviado_em: new Date(),
             },
         });
