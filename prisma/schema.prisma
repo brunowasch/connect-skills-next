@@ -274,19 +274,23 @@ model vaga_status {
 }
 
 model entrevista_mentor {
-  id                    String   @id @default(uuid())
-  vaga_id               String
-  candidato_id          String
-  mentor_id             String
-  disponibilidade_id    String
-  status                String   @default("PENDENTE_CANDIDATO") @db.VarChar(30)
-  data                  String   @db.VarChar(10) // YYYY-MM-DD
-  hora_inicio           String   @db.VarChar(5)  // HH:mm
-  hora_fim              String   @db.VarChar(5)  // HH:mm
-  link_reuniao          String?  @db.VarChar(512)
-  criado_em             DateTime @default(now())
-  atualizado_em         DateTime @updatedAt
-  mentor_notificado     Boolean  @default(false)
+  id                       String    @id @default(uuid())
+  vaga_id                  String
+  candidato_id             String
+  mentor_id                String
+  disponibilidade_id       String
+  status                   String    @default("PENDENTE_CANDIDATO") @db.VarChar(30)
+  data                     String    @db.VarChar(10) // YYYY-MM-DD
+  hora_inicio              String    @db.VarChar(5)  // HH:mm
+  hora_fim                 String    @db.VarChar(5)  // HH:mm
+  link_reuniao             String?   @db.VarChar(512)
+  criado_em                DateTime  @default(now())
+  atualizado_em            DateTime  @updatedAt
+  mentor_notificado        Boolean   @default(false)
+  feedback_comportamental  String?   @db.Text
+  feedback_tecnico         String?   @db.Text
+  feedback_geral           String?   @db.Text
+  feedback_enviado_em      DateTime?
 
   @@index([candidato_id])
   @@index([mentor_id])

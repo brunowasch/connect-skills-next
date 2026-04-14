@@ -57,6 +57,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({
             entrevistaId: entrevista.id,
             authorizedUsuarioIds,
+            mentorUsuarioId: mentor?.usuario_id ?? null,
         });
     } catch (error) {
         console.error("Erro:", error);
