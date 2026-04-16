@@ -56,6 +56,9 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json({
             entrevistaId: entrevista.id,
+            data: entrevista.data,
+            hora_inicio: entrevista.hora_inicio,
+            hora_fim: entrevista.hora_fim,
             authorizedUsuarioIds,
             mentorUsuarioId: mentor?.usuario_id ?? null,
         });

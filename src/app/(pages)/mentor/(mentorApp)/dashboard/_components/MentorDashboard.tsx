@@ -119,17 +119,36 @@ export function MentorDashboardContent({ mentor, upcomingInterviews = [] }: { me
 
                                 {ment.link_reuniao && (
                                     <div className="mt-4 pt-4 border-t border-dashed border-emerald-100 flex items-center justify-between">
-                                        <button 
-                                            onClick={() => {
-                                                let url = ment.link_reuniao?.replace(/"/g, "") || "";
-                                                if (url && !url.startsWith('http')) url = `http://${url}`;
-                                                window.open(`${url}${url.includes('?') ? '&' : '?'}host=true`, "_blank", "noopener,noreferrer");
-                                            }}
-                                            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition shadow-sm cursor-pointer"
-                                        >
-                                            <Video className="w-3.5 h-3.5" />
-                                            {t('join_meeting', 'Entrar na Reunião')}
-                                        </button>
+                                        {(() => {
+                                            let isMeetingExpired = false;
+                                            if (ment.data && ment.hora_fim) {
+                                                const [year, month, day] = ment.data.split("-");
+                                                const [hFim, mFim] = ment.hora_fim.split(":");
+                                                if (year && month && day && hFim && mFim) {
+                                                    const endData = new Date(Number(year), Number(month) - 1, Number(day), Number(hFim), Number(mFim), 0);
+                                                    if (Date.now() > endData.getTime()) {
+                                                        isMeetingExpired = true;
+                                                    }
+                                                }
+                                            }
+                                            return !isMeetingExpired ? (
+                                                <button 
+                                                    onClick={() => {
+                                                        let url = ment.link_reuniao?.replace(/"/g, "") || "";
+                                                        if (url && !url.startsWith('http')) url = `http://${url}`;
+                                                        window.open(`${url}${url.includes('?') ? '&' : '?'}host=true`, "_blank", "noopener,noreferrer");
+                                                    }}
+                                                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition shadow-sm cursor-pointer"
+                                                >
+                                                    <Video className="w-3.5 h-3.5" />
+                                                    {t('join_meeting', 'Entrar na Reunião')}
+                                                </button>
+                                            ) : (
+                                                <div className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg text-xs font-bold shadow-sm">
+                                                    Link expirado
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
                                 )}
                             </div>

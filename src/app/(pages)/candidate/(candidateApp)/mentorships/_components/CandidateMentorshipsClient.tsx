@@ -122,18 +122,38 @@ export default function CandidateMentorshipsClient({ mentorships }: { mentorship
     const localeMap: any = { pt: ptBR, en: enUS, es: es };
     const currentLocale = localeMap[i18n.language] || ptBR;
 
-    const scheduled = mentorships.filter(m => m.status === 'CONFIRMADA');
-    const pending = mentorships.filter(m => m.status === 'PENDENTE_CANDIDATO');
-    const history = mentorships.filter(m => !['CONFIRMADA', 'PENDENTE_CANDIDATO'].includes(m.status));
+    const processedMentorships = mentorships.map(m => {
+        let isMeetingExpired = false;
+        if (m.data && m.hora_fim) {
+            const [year, month, day] = m.data.split("-");
+            const [hFim, mFim] = m.hora_fim.split(":");
+            if (year && month && day && hFim && mFim) {
+                const endData = new Date(Number(year), Number(month) - 1, Number(day), Number(hFim), Number(mFim), 0);
+                if (Date.now() > endData.getTime()) {
+                    isMeetingExpired = true;
+                }
+            }
+        }
+        return { ...m, isMeetingExpired };
+    });
+
+    const scheduled = processedMentorships.filter(m => m.status === 'CONFIRMADA' && !m.isMeetingExpired);
+    const pending = processedMentorships.filter(m => m.status === 'PENDENTE_CANDIDATO' && !m.isMeetingExpired);
+    const history = processedMentorships.filter(m => !['CONFIRMADA', 'PENDENTE_CANDIDATO'].includes(m.status) || m.isMeetingExpired);
 
     const renderCard = (m: any) => {
         const isScheduled = activeTab === 'scheduled';
         const isPending = activeTab === 'pending';
+        const isMeetingExpired = m.isMeetingExpired;
+
 
         let statusColor = "bg-gray-100 text-gray-800 border-gray-200";
         let statusText = m.status;
 
-        if (m.status === 'CONFIRMADA') {
+        if (m.isMeetingExpired && m.status === 'CONFIRMADA') {
+            statusColor = "bg-red-50 text-red-700 border-red-200";
+            statusText = t("mentorship_status_expired", { defaultValue: "Expirada" });
+        } else if (m.status === 'CONFIRMADA') {
             statusColor = "bg-emerald-50 text-emerald-700 border-emerald-200";
             statusText = t("mentorship_status_confirmed");
         } else if (m.status === 'CONCLUIDA') {
@@ -217,20 +237,26 @@ export default function CandidateMentorshipsClient({ mentorships }: { mentorship
                     </div>
                 </div>
 
-                {isScheduled && m.link_reuniao && (
+                {((isScheduled || isMeetingExpired || activeTab === 'history') && m.link_reuniao) && (
                     <div className="px-4 py-2.5 sm:py-3 border-t border-gray-100 bg-gray-50/80 flex flex-wrap justify-between items-center gap-2 text-[10px] sm:text-[11px] text-gray-500 font-medium mt-auto">
                         <span>{t("mentorship_or_access_link", { defaultValue: "Ou acesse pelo link:" })}</span>
-                        <button
-                            onClick={() => {
-                                let url = m.link_reuniao.replace(/"/g, "");
-                                if (!url.startsWith('http')) url = `http://${url}`;
-                                window.open(url, "_blank", "noopener,noreferrer");
-                            }}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition border border-indigo-200 font-semibold shadow-sm cursor-pointer whitespace-nowrap"
-                        >
-                            <Video size={12} />
-                            {t("mentorship_meeting_link", { defaultValue: "Entrar na Reunião" })}
-                        </button>
+                        {!isMeetingExpired ? (
+                            <button
+                                onClick={() => {
+                                    let url = m.link_reuniao.replace(/"/g, "");
+                                    if (!url.startsWith('http')) url = `http://${url}`;
+                                    window.open(url, "_blank", "noopener,noreferrer");
+                                }}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition border border-indigo-200 font-semibold shadow-sm cursor-pointer whitespace-nowrap"
+                            >
+                                <Video size={12} />
+                                {t("mentorship_meeting_link", { defaultValue: "Entrar na Reunião" })}
+                            </button>
+                        ) : (
+                            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-red-50 text-red-600 border border-red-100 font-semibold shadow-sm whitespace-nowrap">
+                                Link expirado
+                            </span>
+                        )}
                     </div>
                 )}
             </div>

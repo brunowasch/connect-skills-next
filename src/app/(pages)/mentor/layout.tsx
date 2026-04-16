@@ -7,7 +7,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
     const userId = cookieStore.get("time_user_id")?.value;
 
     if (!userId) {
-        redirect("/login");
+        redirect("/");
     }
 
     const user = await prisma.usuario.findUnique({
@@ -16,7 +16,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
     });
 
     if (!user || user.tipo !== "MENTOR") {
-        redirect("/login");
+        redirect("/");
     }
 
     return <>{children}</>;
