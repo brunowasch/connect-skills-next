@@ -48,6 +48,7 @@ export default async function RankingPage({ params, searchParams }: Props) {
     const interviews = await prisma.entrevista_mentor.findMany({
         where: { vaga_id: vacancyId },
         select: { 
+            id: true,
             candidato_id: true, 
             status: true,
             feedback_comportamental: true,
@@ -57,6 +58,10 @@ export default async function RankingPage({ params, searchParams }: Props) {
             nota_tecnica: true,
             nota_geral: true,
             feedback_enviado_em: true,
+            candidato_entrou_em: true,
+            candidato_saiu_em: true,
+            candidato_compareceu: true,
+            falta_marcada_pelo_mentor: true,
         },
         orderBy: { criado_em: 'desc' }
     });
@@ -73,7 +78,7 @@ export default async function RankingPage({ params, searchParams }: Props) {
                 breakdown: app.breakdown,
                 resposta: app.resposta,
                 interviewStatus: interview?.status,
-                mentorFeedback: interview?.feedback_enviado_em ? {
+                mentorFeedback: interview ? {
                     comportamental: interview.feedback_comportamental,
                     tecnico: interview.feedback_tecnico,
                     geral: interview.feedback_geral,
@@ -81,6 +86,10 @@ export default async function RankingPage({ params, searchParams }: Props) {
                     nota_tecnica: interview.nota_tecnica,
                     nota_geral: interview.nota_geral,
                     enviado_em: interview.feedback_enviado_em,
+                    candidato_entrou_em: interview.candidato_entrou_em,
+                    candidato_saiu_em: interview.candidato_saiu_em,
+                    candidato_compareceu: interview.candidato_compareceu,
+                    falta_marcada_pelo_mentor: interview.falta_marcada_pelo_mentor,
                 } : null,
             } : undefined
         };

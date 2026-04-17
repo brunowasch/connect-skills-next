@@ -1,4 +1,4 @@
-import { X, CheckCircle, BrainCircuit, Activity } from "lucide-react";
+import { X, CheckCircle, BrainCircuit, Activity, AlertTriangle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 interface MentorFeedback {
@@ -8,7 +8,11 @@ interface MentorFeedback {
     nota_comportamental: number | null;
     nota_tecnica: number | null;
     nota_geral: number | null;
-    enviado_em: Date;
+    enviado_em: Date | null;
+    candidato_entrou_em: Date | null;
+    candidato_saiu_em: Date | null;
+    candidato_compareceu: boolean | null;
+    falta_marcada_pelo_mentor: boolean | null;
 }
 
 interface ViewMentorFeedbackModalProps {
@@ -47,8 +51,37 @@ export function ViewMentorFeedbackModal({ isOpen, onClose, candidateName, feedba
                 {/* Content */}
                 <div className="p-6 overflow-y-auto custom-scrollbar">
                     <div className="space-y-6">
-                        {/* Nota Geral Highlight */}
-                        <div className="bg-gradient-to-br from-indigo-50 flex items-center gap-4 to-blue-50 border border-blue-100 p-5 rounded-xl">
+                        {/* Attendance Highlight */}
+                        {feedback.candidato_compareceu === false && (
+                            <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl flex items-start gap-3">
+                                <AlertTriangle className="text-red-500 mt-0.5 shrink-0" size={20} />
+                                <div>
+                                    <h3 className="font-bold text-red-800">Candidato Não Compareceu</h3>
+                                    <p className="text-sm mt-1 text-red-600">
+                                        {feedback.falta_marcada_pelo_mentor 
+                                            ? "O mentor sinalizou que o candidato não compareceu à entrevista."
+                                            : "O tempo limite da reunião encerrou sem o comparecimento do candidato."}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                        {feedback.candidato_compareceu === true && feedback.candidato_entrou_em && (
+                            <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 p-4 rounded-xl flex items-center gap-3">
+                                <CheckCircle className="text-emerald-500 shrink-0" size={20} />
+                                <div className="text-sm">
+                                    <span className="font-bold">Presença Registrada:</span> Ingressou às {new Date(feedback.candidato_entrou_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                    {feedback.candidato_saiu_em && (
+                                        <> e saiu às {new Date(feedback.candidato_saiu_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}.</>
+                                    )}
+                                    {!feedback.candidato_saiu_em && <> (Ainda em chamada ou aba aberta).</>}
+                                </div>
+                            </div>
+                        )}
+
+                        {feedback.enviado_em && (
+                         <>
+                         {/* Nota Geral Highlight */}
+                         <div className="bg-gradient-to-br from-indigo-50 flex items-center gap-4 to-blue-50 border border-blue-100 p-5 rounded-xl">
                             <div className="flex flex-col items-center justify-center bg-white rounded-full h-16 w-16 shadow-sm border border-indigo-100 flex-shrink-0">
                                 <span className="text-2xl font-black text-indigo-600">{feedback.nota_geral || 0}</span>
                             </div>
@@ -61,8 +94,11 @@ export function ViewMentorFeedbackModal({ isOpen, onClose, candidateName, feedba
                                     {feedback.geral}
                                 </p>
                             </div>
-                        </div>
+                         </div>
+                         </>
+                        )}
 
+                        {feedback.enviado_em && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {/* Comportamental */}
                             <div className="bg-white border flex flex-col gap-3 border-gray-200 rounded-xl p-5 shadow-sm">
@@ -96,6 +132,7 @@ export function ViewMentorFeedbackModal({ isOpen, onClose, candidateName, feedba
                                 </p>
                             </div>
                         </div>
+                        )}
 
                     </div>
                 </div>
@@ -103,7 +140,7 @@ export function ViewMentorFeedbackModal({ isOpen, onClose, candidateName, feedba
                 {/* Footer */}
                 <div className="sticky bottom-0 bg-gray-50 px-6 py-4 border-t border-gray-100 rounded-b-2xl flex justify-between items-center z-10 w-full">
                     <span className="text-xs text-gray-500">
-                        Enviado em: {new Date(feedback.enviado_em).toLocaleDateString('pt-BR')} às {new Date(feedback.enviado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                        {feedback.enviado_em ? `Enviado em: ${new Date(feedback.enviado_em).toLocaleDateString('pt-BR')} às ${new Date(feedback.enviado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : "Não avaliado"}
                     </span>
                     <button
                         onClick={onClose}

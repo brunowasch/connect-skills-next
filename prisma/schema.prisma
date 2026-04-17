@@ -294,6 +294,10 @@ model entrevista_mentor {
   nota_tecnica             Int?
   nota_geral               Int?
   feedback_enviado_em      DateTime?
+  candidato_entrou_em      DateTime?
+  candidato_saiu_em        DateTime?
+  candidato_compareceu     Boolean?  @default(false)
+  falta_marcada_pelo_mentor Boolean? @default(false)
 
   @@index([candidato_id])
   @@index([mentor_id])

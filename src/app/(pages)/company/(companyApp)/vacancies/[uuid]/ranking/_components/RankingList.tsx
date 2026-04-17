@@ -27,7 +27,11 @@ interface Application {
         nota_comportamental: number | null;
         nota_tecnica: number | null;
         nota_geral: number | null;
-        enviado_em: Date;
+        enviado_em: Date | null;
+        candidato_entrou_em: Date | null;
+        candidato_saiu_em: Date | null;
+        candidato_compareceu: boolean | null;
+        falta_marcada_pelo_mentor: boolean | null;
     } | null;
 }
 
@@ -459,13 +463,13 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, vacancyTitle, 
                                         {t('ranking_ai_analysis')}
                                     </button>
                                     
-                                    {candidate.application?.mentorFeedback && (
+                                    {(candidate.application?.mentorFeedback?.enviado_em || candidate.application?.mentorFeedback?.candidato_compareceu === false) && (
                                         <button
                                             onClick={() => setViewMentorFeedbackCandidate(candidate.id)}
-                                            className="flex items-center gap-1 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-medium hover:bg-indigo-100 transition-colors cursor-pointer"
+                                            className="flex items-center gap-1 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-medium hover:bg-indigo-100 transition-colors cursor-pointer border border-indigo-200"
                                         >
                                             <MessageSquare size={14} />
-                                            Feedback do Mentor
+                                            Relatório da Entrevista
                                         </button>
                                     )}
 
