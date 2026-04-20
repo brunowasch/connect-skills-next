@@ -15,6 +15,7 @@ interface Slot {
 
 interface Mentor {
     id: string;
+    uuid: string | null;
     nome: string | null;
     sobrenome: string | null;
     bio: string | null;
@@ -239,13 +240,29 @@ export function ScheduleInterviewModal({
                                                 className="border border-gray-200 rounded-2xl overflow-hidden hover:border-indigo-300 transition-colors"
                                             >
                                                 <div className="flex items-start gap-4 p-4">
-                                                    <div className="w-14 h-14 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0 overflow-hidden border-2 border-indigo-200">
-                                                        {mentor.foto_perfil ? (
-                                                            <img src={mentor.foto_perfil} alt={name} className="w-full h-full object-cover" />
-                                                        ) : (
-                                                            <User className="w-7 h-7 text-indigo-400" />
-                                                        )}
-                                                    </div>
+                                                    {mentor.uuid ? (
+                                                        <a
+                                                            href={`/viewer/mentor/${mentor.uuid}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            title="Ver perfil do mentor"
+                                                            className="w-14 h-14 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0 overflow-hidden border-2 border-indigo-200 hover:border-indigo-400 hover:scale-105 transition-all cursor-pointer"
+                                                        >
+                                                            {mentor.foto_perfil ? (
+                                                                <img src={mentor.foto_perfil} alt={name} className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <User className="w-7 h-7 text-indigo-400" />
+                                                            )}
+                                                        </a>
+                                                    ) : (
+                                                        <div className="w-14 h-14 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0 overflow-hidden border-2 border-indigo-200">
+                                                            {mentor.foto_perfil ? (
+                                                                <img src={mentor.foto_perfil} alt={name} className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <User className="w-7 h-7 text-indigo-400" />
+                                                            )}
+                                                        </div>
+                                                    )}
                                                     <div className="flex-1 min-w-0">
                                                         <h3 className="font-bold text-gray-900">{name}</h3>
                                                         {location && (

@@ -10,8 +10,7 @@ export async function POST() {
 
         await (prisma as any).notificacao.deleteMany({
             where: {
-                usuario_id: userId,
-                tipo: { in: ["ENTREVISTA_CONFIRMADA", "ENTREVISTA_CANCELADA"] }
+                usuario_id: userId
             }
         });
 

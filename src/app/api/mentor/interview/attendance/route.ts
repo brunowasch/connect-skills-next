@@ -4,7 +4,7 @@ import { prisma } from "@/src/lib/prisma";
 export async function POST(req: NextRequest) {
     try {
         const syncSecretHeader = req.headers.get("x-sync-secret");
-        if (syncSecretHeader !== process.env.SYNC_SECRET) {
+        if (!syncSecretHeader || syncSecretHeader !== process.env.MENTORCONNECT_SYNC_SECRET) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 

@@ -83,7 +83,7 @@ export function ViewMentorFeedbackModal({ isOpen, onClose, candidateName, feedba
                          {/* Nota Geral Highlight */}
                          <div className="bg-gradient-to-br from-indigo-50 flex items-center gap-4 to-blue-50 border border-blue-100 p-5 rounded-xl">
                             <div className="flex flex-col items-center justify-center bg-white rounded-full h-16 w-16 shadow-sm border border-indigo-100 flex-shrink-0">
-                                <span className="text-2xl font-black text-indigo-600">{feedback.nota_geral || 0}</span>
+                                <span className="text-2xl font-black text-indigo-600">{feedback.nota_geral ?? '-'}</span>
                             </div>
                             <div>
                                 <h3 className="text-lg font-semibold text-indigo-900 flex items-center gap-2">
@@ -108,7 +108,7 @@ export function ViewMentorFeedbackModal({ isOpen, onClose, candidateName, feedba
                                         Comportamental
                                     </h4>
                                     <div className="bg-green-100 text-green-700 px-2 py-1 rounded-md text-sm font-bold">
-                                        Nota: {feedback.nota_comportamental || 0}
+                                        Nota: {feedback.nota_comportamental ?? '-'}
                                     </div>
                                 </div>
                                 <p className="text-sm text-gray-600 whitespace-pre-wrap flex-1">
@@ -124,7 +124,7 @@ export function ViewMentorFeedbackModal({ isOpen, onClose, candidateName, feedba
                                         Técnico
                                     </h4>
                                     <div className="bg-blue-100 text-blue-700 px-2 py-1 rounded-md text-sm font-bold">
-                                        Nota: {feedback.nota_tecnica || 0}
+                                        Nota: {feedback.nota_tecnica ?? '-'}
                                     </div>
                                 </div>
                                 <p className="text-sm text-gray-600 whitespace-pre-wrap flex-1">

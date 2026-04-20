@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
+import { sendMentorFeedbackToCompanyEmail } from "@/src/lib/mail";
 
 export async function POST(req: NextRequest) {
     const secret = req.headers.get("x-sync-secret");
@@ -25,28 +26,40 @@ export async function POST(req: NextRequest) {
         if (!feedback_comportamental?.trim()) {
             return NextResponse.json({ error: "Feedback Comportamental é obrigatório." }, { status: 400 });
         }
-        if (nota_comportamental === undefined || nota_comportamental < 1 || nota_comportamental > 100) {
-            return NextResponse.json({ error: "Nota Comportamental deve ser entre 1 e 100." }, { status: 400 });
+        if (nota_comportamental === undefined || nota_comportamental < 0 || nota_comportamental > 100) {
+            return NextResponse.json({ error: "Nota Comportamental deve ser entre 0 e 100." }, { status: 400 });
         }
         if (!feedback_tecnico?.trim()) {
             return NextResponse.json({ error: "Feedback Técnico é obrigatório." }, { status: 400 });
         }
-        if (nota_tecnica === undefined || nota_tecnica < 1 || nota_tecnica > 100) {
-            return NextResponse.json({ error: "Nota Técnica deve ser entre 1 e 100." }, { status: 400 });
+        if (nota_tecnica === undefined || nota_tecnica < 0 || nota_tecnica > 100) {
+            return NextResponse.json({ error: "Nota Técnica deve ser entre 0 e 100." }, { status: 400 });
         }
         if (!feedback_geral?.trim()) {
             return NextResponse.json({ error: "Feedback Geral é obrigatório." }, { status: 400 });
         }
-        if (nota_geral === undefined || nota_geral < 1 || nota_geral > 100) {
-            return NextResponse.json({ error: "Nota Geral deve ser entre 1 e 100." }, { status: 400 });
+        if (nota_geral === undefined || nota_geral < 0 || nota_geral > 100) {
+            return NextResponse.json({ error: "Nota Geral deve ser entre 0 e 100." }, { status: 400 });
         }
 
         const entrevista = await (prisma as any).entrevista_mentor.findUnique({
-            where: { id: entrevistaId },
+            where: { id: entrevistaId }
         });
 
         if (!entrevista) {
             return NextResponse.json({ error: "Entrevista não encontrada." }, { status: 404 });
+        }
+
+        const candidato = await prisma.candidato.findUnique({ where: { id: entrevista.candidato_id } });
+        const mentor = await prisma.mentor.findUnique({ where: { id: entrevista.mentor_id } });
+        
+        let empresa = null;
+        const vaga = await prisma.vaga.findUnique({ where: { id: entrevista.vaga_id } });
+        if (vaga) {
+            empresa = await prisma.empresa.findUnique({
+                where: { id: vaga.empresa_id },
+                include: { usuario: true }
+            });
         }
 
         await (prisma as any).entrevista_mentor.update({
@@ -61,6 +74,27 @@ export async function POST(req: NextRequest) {
                 feedback_enviado_em: new Date(),
             },
         });
+
+        // Enviar email para a empresa
+        if (empresa?.usuario?.email) {
+            const companyEmail = empresa.usuario.email;
+            const companyName = empresa.nome_empresa || "Empresa";
+            const candidateName = [candidato?.nome, candidato?.sobrenome].filter(Boolean).join(" ") || "Candidato";
+            const mentorName = [mentor?.nome, mentor?.sobrenome].filter(Boolean).join(" ") || "Mentor";
+            const vacancyTitle = vaga?.cargo || "Vaga";
+            
+            const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+            const vacancyLink = `${appUrl}/company/vacancies/${vaga?.uuid}/ranking`;
+
+            await sendMentorFeedbackToCompanyEmail(
+                companyEmail,
+                companyName,
+                candidateName,
+                mentorName,
+                vacancyTitle,
+                vacancyLink
+            );
+        }
 
         return NextResponse.json({ success: true });
     } catch (error) {

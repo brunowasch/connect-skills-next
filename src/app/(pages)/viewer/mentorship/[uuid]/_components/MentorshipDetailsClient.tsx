@@ -14,6 +14,63 @@ export default function MentorshipDetailsClient({ mentorship }: { mentorship: an
     const { t } = useTranslation();
     const router = useRouter();
     const [linkCopied, setLinkCopied] = useState(false);
+    const [isConfirming, setIsConfirming] = useState(false);
+    const [isCanceling, setIsCanceling] = useState(false);
+
+    const handleConfirmMentorship = async () => {
+        try {
+            setIsConfirming(true);
+            const res = await fetch("/api/mentor/interview", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    entrevistaId: mentorship.id,
+                    action: "CONFIRM"
+                })
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                alert(data.error || "Erro ao confirmar mentoria.");
+                return;
+            }
+
+            window.location.reload();
+        } catch (error) {
+            console.error(error);
+            alert("Erro interno ao confirmar.");
+        } finally {
+            setIsConfirming(false);
+        }
+    };
+
+    const handleCancelMentorship = async () => {
+        if (!confirm(t("mentorship_details_cancel_confirm", { defaultValue: "Tem certeza que deseja recusar esta mentoria?" }))) return;
+        try {
+            setIsCanceling(true);
+            const res = await fetch("/api/mentor/interview", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    entrevistaId: mentorship.id,
+                    action: "CANCEL"
+                })
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                alert(data.error || "Erro ao recusar mentoria.");
+                return;
+            }
+
+            window.location.reload();
+        } catch (error) {
+            console.error(error);
+            alert("Erro interno ao recusar.");
+        } finally {
+            setIsCanceling(false);
+        }
+    };
 
     const handleCopyLink = async () => {
         try {
@@ -279,9 +336,42 @@ export default function MentorshipDetailsClient({ mentorship }: { mentorship: an
 
                             {isScheduled && (
                                 <div className="mt-6 pt-5 border-t border-gray-100">
-                                    <button className="flex w-full items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition font-bold shadow-sm cursor-pointer">
+                                    <a 
+                                        href={mentorship.link_reuniao || "#"} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="flex w-full items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition font-bold shadow-sm cursor-pointer"
+                                    >
                                         <Video size={16} />
                                         {t("mentorship_meeting_link", { defaultValue: "Acessar Reunião" })}
+                                    </a>
+                                </div>
+                            )}
+                            {status === 'PENDENTE_CANDIDATO' && (
+                                <div className="mt-6 pt-5 border-t border-gray-100 flex flex-col gap-3">
+                                    <button 
+                                        onClick={handleConfirmMentorship}
+                                        disabled={isConfirming || isCanceling}
+                                        className="flex w-full items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition font-bold shadow-sm cursor-pointer disabled:opacity-50"
+                                    >
+                                        {isConfirming ? (
+                                            <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                                        ) : (
+                                            <CheckCircle size={16} />
+                                        )}
+                                        {t("mentorship_accept_btn", { defaultValue: "Confirmar Presença" })}
+                                    </button>
+                                    <button 
+                                        onClick={handleCancelMentorship}
+                                        disabled={isConfirming || isCanceling}
+                                        className="flex w-full items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-white border border-red-200 text-red-600 hover:bg-red-50 transition font-bold shadow-sm cursor-pointer disabled:opacity-50"
+                                    >
+                                        {isCanceling ? (
+                                            <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></span>
+                                        ) : (
+                                            <XCircle size={16} />
+                                        )}
+                                        {t("mentorship_decline_btn", { defaultValue: "Recusar" })}
                                     </button>
                                 </div>
                             )}

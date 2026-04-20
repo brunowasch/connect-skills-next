@@ -63,7 +63,29 @@ export default async function MentorAvailabilityPage() {
         };
     });
 
+    const now = new Date();
+    const activeSlots = enrichedAvailability.filter((slot: any) => {
+        try {
+            const [year, month, day] = slot.data.split("-").map(Number);
+            const [h, m] = slot.hora_fim.split(":").map(Number);
+            const slotEnd = new Date(year, month - 1, day, h, m, 0);
+            return slotEnd > now;
+        } catch {
+            return true;
+        }
+    });
+    const expiredSlots = enrichedAvailability.filter((slot: any) => {
+        try {
+            const [year, month, day] = slot.data.split("-").map(Number);
+            const [h, m] = slot.hora_fim.split(":").map(Number);
+            const slotEnd = new Date(year, month - 1, day, h, m, 0);
+            return slotEnd <= now;
+        } catch {
+            return false;
+        }
+    });
+
     return (
-        <MentorAvailabilityList slots={enrichedAvailability} />
+        <MentorAvailabilityList slots={activeSlots} expiredSlots={expiredSlots} />
     );
 }
