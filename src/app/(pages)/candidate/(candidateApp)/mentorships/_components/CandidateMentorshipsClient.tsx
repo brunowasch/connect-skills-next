@@ -124,7 +124,10 @@ export default function CandidateMentorshipsClient({ mentorships }: { mentorship
 
     const processedMentorships = mentorships.map(m => {
         let isMeetingExpired = false;
-        if (m.data && m.hora_fim) {
+
+        if (m.status === 'CONCLUIDA') {
+            isMeetingExpired = true;
+        } else if (m.data && m.hora_fim) {
             const [year, month, day] = m.data.split("-");
             const [hFim, mFim] = m.hora_fim.split(":");
             if (year && month && day && hFim && mFim) {

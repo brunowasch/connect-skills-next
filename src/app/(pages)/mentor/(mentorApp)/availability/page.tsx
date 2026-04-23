@@ -52,7 +52,8 @@ export default async function MentorAvailabilityPage() {
                         empresaNome: empresa.nome_empresa,
                         empresaFoto: empresa.foto_perfil,
                         empresaUuid: empresa.uuid,
-                        link_reuniao: agendado.link_reuniao
+                        link_reuniao: agendado.link_reuniao,
+                        status: agendado.status,
                     };
                 }
             }
@@ -64,18 +65,14 @@ export default async function MentorAvailabilityPage() {
     });
 
     const now = new Date();
-    const activeSlots = enrichedAvailability.filter((slot: any) => {
+
+    // Um slot é considerado expirado (histórico) se:
+    // 1. O horário agendado já passou, OU
+    // 2. O mentor encerrou a chamada após enviar o feedback (status CONCLUIDA)
+    const isSlotExpired = (slot: any): boolean => {
         try {
-            const [year, month, day] = slot.data.split("-").map(Number);
-            const [h, m] = slot.hora_fim.split(":").map(Number);
-            const slotEnd = new Date(year, month - 1, day, h, m, 0);
-            return slotEnd > now;
-        } catch {
-            return true;
-        }
-    });
-    const expiredSlots = enrichedAvailability.filter((slot: any) => {
-        try {
+            if (slot.agendamento?.status === 'CONCLUIDA') return true;
+
             const [year, month, day] = slot.data.split("-").map(Number);
             const [h, m] = slot.hora_fim.split(":").map(Number);
             const slotEnd = new Date(year, month - 1, day, h, m, 0);
@@ -83,7 +80,10 @@ export default async function MentorAvailabilityPage() {
         } catch {
             return false;
         }
-    });
+    };
+
+    const activeSlots = enrichedAvailability.filter((slot: any) => !isSlotExpired(slot));
+    const expiredSlots = enrichedAvailability.filter((slot: any) => isSlotExpired(slot));
 
     return (
         <MentorAvailabilityList slots={activeSlots} expiredSlots={expiredSlots} />
