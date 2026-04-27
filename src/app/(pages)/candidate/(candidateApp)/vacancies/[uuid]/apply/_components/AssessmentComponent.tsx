@@ -134,25 +134,64 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
     const selectedQuestions = shuffleArray(allBankQuestions).slice(0, MAX_BANK_QUESTIONS);
 
     if (vacancy.pergunta) {
-      vacancy.pergunta
-        .split("\n")
-        .filter((q) => q.trim())
-        .forEach((q, idx) => {
-          selectedQuestions.push({
-            id: `custom-${idx}-${Math.random()}`,
-            text: q.trim(),
-            category: "Personalizada",
-            method: "N/A",
-            isCustom: true,
+      const lines = vacancy.pergunta.split("\n");
+      const separatorIdx = lines.findIndex((l) => /^-{3,}/.test(l.trim()));
+
+      if (separatorIdx >= 0) {
+        lines.slice(0, separatorIdx)
+          .filter((q) => q.trim())
+          .forEach((q, idx) => {
+            selectedQuestions.push({
+              id: `role-${idx}-${Math.random()}`,
+              text: q.trim(),
+              category: "RoleSpecific",
+              method: "N/A",
+              isCustom: false,
+            });
           });
-        });
+
+        lines.slice(separatorIdx + 1)
+          .filter((q) => q.trim() && !q.toLowerCase().includes("escreva suas perguntas abaixo"))
+          .forEach((q, idx) => {
+            selectedQuestions.push({
+              id: `custom-${idx}-${Math.random()}`,
+              text: q.trim(),
+              category: "Personalizada",
+              method: "N/A",
+              isCustom: true,
+            });
+          });
+      } else {
+        lines.filter((q) => q.trim())
+          .forEach((q, idx) => {
+            selectedQuestions.push({
+              id: `custom-${idx}-${Math.random()}`,
+              text: q.trim(),
+              category: "Personalizada",
+              method: "N/A",
+              isCustom: true,
+            });
+          });
+      }
     }
 
-    if (!forceReset && questions.length > 0) return;
+    if (!forceReset && questions.length > 0) {
+      const savedBankQuestions = questions.filter(
+        (q) => !q.isCustom && q.category !== "Personalizada" && q.category !== "RoleSpecific"
+      );
+      const freshVacancyQuestions = selectedQuestions.filter(
+        (q) => q.category === "Personalizada" || q.category === "RoleSpecific"
+      );
+      if (freshVacancyQuestions.length > 0) {
+        setQuestions([...savedBankQuestions, ...freshVacancyQuestions]);
+      }
+      return;
+    }
 
     setQuestions(selectedQuestions);
     setCurrentSection(0);
   }, [vacancy, t, questions.length]);
+
 
   useEffect(() => {
     if (questions.length === 0) return;
@@ -211,12 +250,19 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
     };
   }, [isStarted, generateQuestions, handleScreenLeave]);
 
-  const totalSections = Math.max(1, Math.ceil(questions.length / SECTION_SIZE));
-  const sectionQuestions = questions.slice(
-    currentSection * SECTION_SIZE,
-    currentSection * SECTION_SIZE + SECTION_SIZE,
-  );
+  const bankQuestions = questions.filter((q) => !q.isCustom && q.category !== "Personalizada");
+  const customQuestions = questions.filter((q) => q.isCustom || q.category === "Personalizada");
+  const hasCustomSection = customQuestions.length > 0;
+
+  const bankSectionCount = Math.max(1, Math.ceil(bankQuestions.length / SECTION_SIZE));
+  const totalSections = bankSectionCount + (hasCustomSection ? 1 : 0);
+
   const isLastSection = currentSection === totalSections - 1;
+  const isCustomSection = hasCustomSection && currentSection === bankSectionCount;
+
+  const sectionQuestions: Question[] = isCustomSection
+    ? customQuestions
+    : bankQuestions.slice(currentSection * SECTION_SIZE, currentSection * SECTION_SIZE + SECTION_SIZE);
 
   const sectionAnsweredCount = sectionQuestions.filter(
     (q: Question) => (answers[q.id] || "").trim().length > 0,
@@ -227,8 +273,10 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
   const overallProgressPct = questions.length > 0 ? (totalAnsweredCount / questions.length) * 100 : 0;
 
   const isSectionComplete = (sectionIndex: number) => {
-    const start = sectionIndex * SECTION_SIZE;
-    const qs = questions.slice(start, start + SECTION_SIZE);
+    const isCustomSec = hasCustomSection && sectionIndex === bankSectionCount;
+    const qs = isCustomSec
+      ? customQuestions
+      : bankQuestions.slice(sectionIndex * SECTION_SIZE, sectionIndex * SECTION_SIZE + SECTION_SIZE);
     return qs.length > 0 && qs.every((q) => (answers[q.id] || "").trim().length > 0);
   };
 
@@ -548,7 +596,7 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
               </p>
             </div>
 
-            {isLastSection && questions.some(q => q.isCustom) && !hasConfirmedCompanyQuestions ? (
+            {isCustomSection && questions.some(q => q.isCustom) && !hasConfirmedCompanyQuestions ? (
               <div className="p-8 text-center space-y-6">
                 <div className="w-20 h-20 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <AlertTriangle size={40} />
@@ -569,7 +617,9 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
             ) : (
               <div className="p-8 space-y-12">
                 {sectionQuestions.map((q: Question, index: number) => {
-                  const absoluteNumber = currentSection * SECTION_SIZE + index + 1;
+                  const absoluteNumber = isCustomSection
+                    ? bankQuestions.length + index + 1
+                    : currentSection * SECTION_SIZE + index + 1;
                   return (
                   <div key={q.id} className="group">
                     <div className="flex items-start gap-4 mb-4">
@@ -610,7 +660,7 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
               </div>
 
               <div className="w-full sm:w-auto">
-                {!(isLastSection && questions.some(q => q.isCustom) && !hasConfirmedCompanyQuestions) && (
+                {!(isCustomSection && questions.some(q => q.isCustom) && !hasConfirmedCompanyQuestions) && (
                   isLastSection ? (
                     <button
                       onClick={handleConfirmSubmit}

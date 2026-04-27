@@ -302,7 +302,7 @@ export function VacancyForm({ areas, softSkills, initialData, vacancyUuid, compa
                     if (id && !newSoftSkillIds.includes(id)) newSoftSkillIds.push(id);
                 });
 
-                const formattedQuestions = result.questions.join('\n');
+                const formattedQuestions = result.questions.join('\n') + '\n\n---\nEscreva suas perguntas abaixo desta linha:\n';
 
                 return {
                     ...prev,

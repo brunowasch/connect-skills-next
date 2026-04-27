@@ -1853,7 +1853,6 @@
     "feedback_rejected_intro": "Ve tu feedback a continuación:\n\nAgradecemos tu interés en formar parte de nuestro equipo y el tiempo dedicado al proceso de selección. Sin embargo, lamentablemente no fuiste seleccionado para la siguiente etapa del proceso de selección.",
     "feedback_rejected_closing": "Te deseamos éxito en tu trayectoria profesional y esperamos que surjan nuevas oportunidades en el futuro.",
     "feedback_select_status_first": "Selecciona un estado primero",
-<<<<<<< HEAD
     "publish_availability_title": "Publicar Horarios",
     "publish_availability_subtitle": "Añade nuevos días y horarios en los que estarás disponible para orientar nuevos talentos.",
     "publish_availability_btn": "Publicar Horarios",
@@ -2047,8 +2046,7 @@
     "mentorship_details_no_description": "No se proporcionó descripción para este puesto.",
     "mentorship_details_info_title": "Información de la Mentoría",
     "mentorship_details_scheduled_date": "Fecha Programada",
-    "mentorship_details_time": "Horario"
-=======
+    "mentorship_details_time": "Horario",
     "feedback_analyze_button": "Verificar con IA",
     "feedback_analyzing_short": "Verificando...",
     "feedback_analyzing": "Analizando feedback con IA...",
@@ -2070,5 +2068,4 @@
     "feedback_acceptable_title": "Feedback aprobado por la IA",
     "feedback_ready_to_send": "Haz clic en \"Confirmar y Enviar\" para finalizar.",
     "feedback_corrected_optional": "Versión mejorada por la IA (opcional):"
->>>>>>> 18d5373 (feat: Implement AI feedback analysis and quality check with new UI and translations in the feedback modal.)
 }
