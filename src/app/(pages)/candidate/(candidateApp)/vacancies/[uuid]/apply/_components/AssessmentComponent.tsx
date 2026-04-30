@@ -250,8 +250,8 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
     };
   }, [isStarted, generateQuestions, handleScreenLeave]);
 
-  const bankQuestions = questions.filter((q) => !q.isCustom && q.category !== "Personalizada");
-  const customQuestions = questions.filter((q) => q.isCustom || q.category === "Personalizada");
+  const bankQuestions = questions.filter((q) => !q.isCustom && q.category !== "Personalizada" && q.category !== "RoleSpecific");
+  const customQuestions = questions.filter((q) => q.isCustom || q.category === "Personalizada" || q.category === "RoleSpecific");
   const hasCustomSection = customQuestions.length > 0;
 
   const bankSectionCount = Math.max(1, Math.ceil(bankQuestions.length / SECTION_SIZE));
@@ -596,7 +596,7 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
               </p>
             </div>
 
-            {isCustomSection && questions.some(q => q.isCustom) && !hasConfirmedCompanyQuestions ? (
+            {isCustomSection && !hasConfirmedCompanyQuestions ? (
               <div className="p-8 text-center space-y-6">
                 <div className="w-20 h-20 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <AlertTriangle size={40} />
@@ -660,7 +660,7 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
               </div>
 
               <div className="w-full sm:w-auto">
-                {!(isCustomSection && questions.some(q => q.isCustom) && !hasConfirmedCompanyQuestions) && (
+                {!(isCustomSection && !hasConfirmedCompanyQuestions) && (
                   isLastSection ? (
                     <button
                       onClick={handleConfirmSubmit}

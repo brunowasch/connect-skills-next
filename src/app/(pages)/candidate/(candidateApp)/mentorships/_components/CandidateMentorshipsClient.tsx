@@ -65,56 +65,7 @@ function CountdownChip({ criado_em }: { criado_em: string }) {
     );
 }
 
-function TestExpirationButton() {
-    const { t } = useTranslation();
-    const [loading, setLoading] = useState(false);
-    const router = useRouter();
 
-    const handleTest = async () => {
-        setLoading(true);
-        try {
-            const backdateRes = await fetch("/api/test/backdate-interview", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({}),
-            });
-            const backdateData = await backdateRes.json();
-
-            if (!backdateData.success) {
-                toast.error("Falha ao retrodar datas.");
-                setLoading(false);
-                return;
-            }
-
-            toast.info(`${backdateData.updated} convite(s) retrodata(s) para 4 dias atrás.`);
-
-            const cronRes = await fetch("/api/cron/interview-expiration");
-            const cronData = await cronRes.json();
-
-            if (cronData.success) {
-                toast.success(`Cron executado! ${cronData.processed} convite(s) expirado(s). Email e notificação enviados à empresa.`);
-                router.refresh();
-            } else {
-                toast.error("Erro ao executar o cron.");
-            }
-        } catch {
-            toast.error("Falha na requisição.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <button
-            onClick={handleTest}
-            disabled={loading}
-            className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-60 disabled:cursor-not-allowed transition shadow-sm cursor-pointer"
-        >
-            <FlaskConical size={14} />
-            {loading ? t("mentorship_test_processing") : `${t("mentorship_test_simulate_btn")}`}
-        </button>
-    );
-}
 export default function CandidateMentorshipsClient({ mentorships }: { mentorships: any[] }) {
     const { t, i18n } = useTranslation();
     const [activeTab, setActiveTab] = useState<'scheduled' | 'history' | 'pending'>('scheduled');
@@ -334,15 +285,7 @@ export default function CandidateMentorshipsClient({ mentorships }: { mentorship
 
                 {activeTab === 'pending' && (
                     <>
-                        {pending.length > 0 && (
-                            <div className="col-span-full flex items-center gap-3 p-3 bg-purple-50 border border-purple-200 rounded-xl">
-                                <FlaskConical size={16} className="text-purple-600 flex-shrink-0" />
-                                <p className="text-xs text-purple-700 font-medium flex-1">
-                                    {t("mentorship_test_banner_desc")}
-                                </p>
-                                <TestExpirationButton />
-                            </div>
-                        )}
+
 
                         {pending.length > 0 ? pending.map(renderCard) : (
                             <div className="col-span-full text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300">

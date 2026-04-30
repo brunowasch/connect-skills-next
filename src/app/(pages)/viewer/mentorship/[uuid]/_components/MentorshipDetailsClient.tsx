@@ -336,15 +336,19 @@ export default function MentorshipDetailsClient({ mentorship }: { mentorship: an
 
                             {isScheduled && (
                                 <div className="mt-6 pt-5 border-t border-gray-100">
-                                    <a 
-                                        href={mentorship.link_reuniao || "#"} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer"
+                                    <button 
+                                        onClick={() => {
+                                            if (mentorship.link_reuniao) {
+                                                let url = mentorship.link_reuniao.replace(/"/g, "");
+                                                if (!url.startsWith('http')) url = `http://${url}`;
+                                                window.open(url, "_blank", "noopener,noreferrer");
+                                            }
+                                        }}
                                         className="flex w-full items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition font-bold shadow-sm cursor-pointer"
                                     >
                                         <Video size={16} />
                                         {t("mentorship_meeting_link", { defaultValue: "Acessar Reunião" })}
-                                    </a>
+                                    </button>
                                 </div>
                             )}
                             {status === 'PENDENTE_CANDIDATO' && (
