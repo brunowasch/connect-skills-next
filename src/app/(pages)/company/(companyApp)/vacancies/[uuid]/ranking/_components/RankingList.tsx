@@ -27,11 +27,17 @@ interface Application {
         nota_comportamental: number | null;
         nota_tecnica: number | null;
         nota_geral: number | null;
+        nota_mentor: number | null;
         enviado_em: Date | null;
         candidato_entrou_em: Date | null;
         candidato_saiu_em: Date | null;
         candidato_compareceu: boolean | null;
         falta_marcada_pelo_mentor: boolean | null;
+        mentor: {
+            nome: string;
+            foto_perfil: string | null;
+            uuid: string | null;
+        } | null;
     } | null;
 }
 
@@ -463,7 +469,8 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, vacancyTitle, 
                                         {t('ranking_ai_analysis')}
                                     </button>
                                     
-                                    {(candidate.application?.mentorFeedback?.enviado_em || candidate.application?.mentorFeedback?.candidato_compareceu === false) && (
+                                    {(candidate.application?.mentorFeedback?.enviado_em ||
+                                        candidate.application?.mentorFeedback?.falta_marcada_pelo_mentor === true) && (
                                         <button
                                             onClick={() => setViewMentorFeedbackCandidate(candidate.id)}
                                             className="flex items-center gap-1 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-medium hover:bg-indigo-100 transition-colors cursor-pointer border border-indigo-200"

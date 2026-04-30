@@ -39,6 +39,14 @@ export function MentorAvailability({ initialAvailability = [], userId }: { initi
         }
     };
 
+    const calculateEndTime = (startTime: string) => {
+        if (!startTime) return "";
+        const [hours, minutes] = startTime.split(":").map(Number);
+        const date = new Date();
+        date.setHours(hours, minutes + 45, 0, 0);
+        return `${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
+    };
+
     const addSlotWithDate = (date: string) => {
         setSlots([...slots, { data: date, hora_inicio: "", hora_fim: "" }]);
         setIsModalOpen(false);
@@ -154,19 +162,16 @@ export function MentorAvailability({ initialAvailability = [], userId }: { initi
                             <input
                                 type="time"
                                 value={slot.hora_inicio}
-                                onChange={(e) => updateSlot(index, "hora_inicio", e.target.value)}
-                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 font-semibold focus:bg-white focus:border-blue-400 focus:ring-4 focus:ring-blue-50 outline-none transition-all shadow-sm"
-                            />
-                        </div>
-
-                        <div className="w-full md:w-36 space-y-2">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                <FiClock className="w-3 h-3" /> {t("end_time")}
-                            </label>
-                            <input
-                                type="time"
-                                value={slot.hora_fim}
-                                onChange={(e) => updateSlot(index, "hora_fim", e.target.value)}
+                                onChange={(e) => {
+                                    const newStart = e.target.value;
+                                    const newSlots = [...slots];
+                                    newSlots[index] = { 
+                                        ...newSlots[index], 
+                                        hora_inicio: newStart, 
+                                        hora_fim: calculateEndTime(newStart) 
+                                    };
+                                    setSlots(newSlots);
+                                }}
                                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 font-semibold focus:bg-white focus:border-blue-400 focus:ring-4 focus:ring-blue-50 outline-none transition-all shadow-sm"
                             />
                         </div>

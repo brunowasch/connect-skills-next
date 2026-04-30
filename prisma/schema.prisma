@@ -297,6 +297,7 @@ model entrevista_mentor {
   candidato_entrou_em      DateTime?
   candidato_saiu_em        DateTime?
   candidato_compareceu     Boolean?  @default(false)
+  nota_mentor              Int?
   falta_marcada_pelo_mentor Boolean? @default(false)
 
   @@index([candidato_id])

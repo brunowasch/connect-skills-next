@@ -21,6 +21,14 @@ export function MentorAvailabilityEditSingle({ slot }: { slot: DbSlot }) {
     const [data, setData] = useState(slot.data || "");
     const [horaInicio, setHoraInicio] = useState(slot.hora_inicio || "");
     const [horaFim, setHoraFim] = useState(slot.hora_fim || "");
+
+    const calculateEndTime = (startTime: string) => {
+        if (!startTime) return "";
+        const [hours, minutes] = startTime.split(":").map(Number);
+        const date = new Date();
+        date.setHours(hours, minutes + 45, 0, 0);
+        return `${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
+    };
     
     const [error, setError] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -131,19 +139,11 @@ export function MentorAvailabilityEditSingle({ slot }: { slot: DbSlot }) {
                         <input
                             type="time"
                             value={horaInicio}
-                            onChange={(e) => setHoraInicio(e.target.value)}
-                            className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-semibold focus:bg-white focus:border-amber-400 focus:ring-4 focus:ring-amber-50 outline-none transition-all shadow-sm"
-                        />
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                            <FiClock className="w-3.5 h-3.5" /> {t("end_time", "Hora de Fim")}
-                        </label>
-                        <input
-                            type="time"
-                            value={horaFim}
-                            onChange={(e) => setHoraFim(e.target.value)}
+                            onChange={(e) => {
+                                const newStart = e.target.value;
+                                setHoraInicio(newStart);
+                                setHoraFim(calculateEndTime(newStart));
+                            }}
                             className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-semibold focus:bg-white focus:border-amber-400 focus:ring-4 focus:ring-amber-50 outline-none transition-all shadow-sm"
                         />
                     </div>

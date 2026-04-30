@@ -50,6 +50,7 @@ export default async function RankingPage({ params, searchParams }: Props) {
         select: { 
             id: true,
             candidato_id: true, 
+            mentor_id: true,
             status: true,
             feedback_comportamental: true,
             feedback_tecnico: true,
@@ -57,6 +58,7 @@ export default async function RankingPage({ params, searchParams }: Props) {
             nota_comportamental: true,
             nota_tecnica: true,
             nota_geral: true,
+            nota_mentor: true,
             feedback_enviado_em: true,
             candidato_entrou_em: true,
             candidato_saiu_em: true,
@@ -65,6 +67,12 @@ export default async function RankingPage({ params, searchParams }: Props) {
         },
         orderBy: { criado_em: 'desc' }
     });
+
+    const mentorIds = [...new Set(interviews.map(i => i.mentor_id).filter(Boolean))];
+    const mentors = mentorIds.length > 0 ? await prisma.mentor.findMany({
+        where: { id: { in: mentorIds } },
+        select: { id: true, nome: true, sobrenome: true, foto_perfil: true, uuid: true }
+    }) : [];
 
     const candidatesWithApp = candidates.map(c => {
         const app = applications.find(a => a.candidato_id === c.id);
@@ -85,11 +93,21 @@ export default async function RankingPage({ params, searchParams }: Props) {
                     nota_comportamental: interview.nota_comportamental,
                     nota_tecnica: interview.nota_tecnica,
                     nota_geral: interview.nota_geral,
+                    nota_mentor: interview.nota_mentor,
                     enviado_em: interview.feedback_enviado_em,
                     candidato_entrou_em: interview.candidato_entrou_em,
                     candidato_saiu_em: interview.candidato_saiu_em,
                     candidato_compareceu: interview.candidato_compareceu,
                     falta_marcada_pelo_mentor: interview.falta_marcada_pelo_mentor,
+                    mentor: (() => {
+                        const m = mentors.find(m => m.id === interview.mentor_id);
+                        if (!m) return null;
+                        return {
+                            nome: [m.nome, m.sobrenome].filter(Boolean).join(' ') || 'Mentor',
+                            foto_perfil: m.foto_perfil,
+                            uuid: m.uuid,
+                        };
+                    })(),
                 } : null,
             } : undefined
         };

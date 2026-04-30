@@ -1,4 +1,4 @@
-import { X, CheckCircle, BrainCircuit, Activity, AlertTriangle } from "lucide-react";
+import { X, CheckCircle, BrainCircuit, Activity, AlertTriangle, Star, User } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 interface MentorFeedback {
@@ -8,11 +8,17 @@ interface MentorFeedback {
     nota_comportamental: number | null;
     nota_tecnica: number | null;
     nota_geral: number | null;
+    nota_mentor: number | null;
     enviado_em: Date | null;
     candidato_entrou_em: Date | null;
     candidato_saiu_em: Date | null;
     candidato_compareceu: boolean | null;
     falta_marcada_pelo_mentor: boolean | null;
+    mentor: {
+        nome: string;
+        foto_perfil: string | null;
+        uuid: string | null;
+    } | null;
 }
 
 interface ViewMentorFeedbackModalProps {
@@ -33,12 +39,44 @@ export function ViewMentorFeedbackModal({ isOpen, onClose, candidateName, feedba
                 {/* Header */}
                 <div className="sticky top-0 bg-white px-6 py-4 border-b border-gray-100 rounded-t-2xl z-10 flex items-center justify-between">
                     <div>
-                        <h2 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                            Feedback do Mentor
+                        <h2 className="text-xl font-bold text-gray-900">
+                            Relatório da Entrevista
                         </h2>
                         <p className="text-sm text-gray-500 mt-0.5">
                             Avaliação de {candidateName}
                         </p>
+                        {/* Mentor identity row */}
+                        {feedback?.mentor && (
+                            <div className="flex items-center gap-2 mt-2">
+                                {feedback.mentor.foto_perfil ? (
+                                    <img
+                                        src={feedback.mentor.foto_perfil}
+                                        alt={feedback.mentor.nome}
+                                        className="w-7 h-7 rounded-full object-cover border border-gray-200 flex-shrink-0"
+                                        referrerPolicy="no-referrer"
+                                    />
+                                ) : (
+                                    <div className="w-7 h-7 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center flex-shrink-0">
+                                        <User size={14} className="text-blue-400" />
+                                    </div>
+                                )}
+                                <span className="text-sm text-gray-500">
+                                    Avaliado por:{" "}
+                                    {feedback.mentor.uuid ? (
+                                        <a
+                                            href={`/viewer/mentor/${feedback.mentor.uuid}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-600 font-semibold hover:underline"
+                                        >
+                                            {feedback.mentor.nome}
+                                        </a>
+                                    ) : (
+                                        <span className="font-semibold text-blue-600">{feedback.mentor.nome}</span>
+                                    )}
+                                </span>
+                            </div>
+                        )}
                     </div>
                     <button
                         onClick={onClose}
@@ -133,6 +171,30 @@ export function ViewMentorFeedbackModal({ isOpen, onClose, candidateName, feedba
                             </div>
                         </div>
                         )}
+                        {/* Avaliação do Candidato (estrelas) */}
+                         <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl">
+                             <h3 className="text-sm font-semibold text-amber-800 mb-3 flex items-center gap-2">
+                                 <Star size={15} className="text-amber-500" />
+                                 Avaliação do Candidato
+                             </h3>
+                             {feedback.nota_mentor ? (
+                                 <div className="flex items-center gap-3">
+                                     <div className="flex items-center gap-1">
+                                         {[1, 2, 3, 4, 5].map((star) => (
+                                             <Star
+                                                 key={star}
+                                                 size={22}
+                                                 fill={star <= feedback.nota_mentor! ? "#f59e0b" : "transparent"}
+                                                 color={star <= feedback.nota_mentor! ? "#f59e0b" : "#d1d5db"}
+                                             />
+                                         ))}
+                                     </div>
+                                     <span className="text-sm font-bold text-amber-700">{feedback.nota_mentor}/5</span>
+                                 </div>
+                             ) : (
+                                 <p className="text-sm text-amber-600/70 italic">O candidato optou por não avaliar o mentor.</p>
+                             )}
+                         </div>
 
                     </div>
                 </div>
