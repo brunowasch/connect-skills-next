@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
-import { Hero, KPI, RecommendedVacancies, ApplicationHistory, ProfileCompletion, DashboardHeader, VideoRequests, DraftApplications, MentorshipRequests } from "@/src/app/(pages)/candidate/(candidateApp)/dashboard/_components/index";
+import { Hero, KPI, RecommendedVacancies, ApplicationHistory, ProfileCompletion, DashboardHeader, VideoRequests, DraftApplications, InterviewRequests } from "@/src/app/(pages)/candidate/(candidateApp)/dashboard/_components/index";
 
 export default async function Dashboard() {
     const cookieStore = await cookies();
@@ -388,9 +388,52 @@ export default async function Dashboard() {
             },
             data: interview.data,
             hora_inicio: interview.hora_inicio,
-            criado_em: interview.criado_em.toISOString()
+            criado_em: interview.criado_em.toISOString(),
+            type: 'online' as const
         };
     }));
+
+    const pendingOnsiteInterviews = await (prisma as any).entrevista_presencial.findMany({
+        where: {
+            candidato_id: candidateComplete.id,
+            status: { in: ["PENDENTE_CANDIDATO", "CONFIRMADA"] }
+        },
+        include: {
+            slot: true,
+        }
+    });
+
+    const onsiteRequests = await Promise.all(pendingOnsiteInterviews.map(async (interview: any) => {
+        const vaga = await prisma.vaga.findUnique({
+            where: { id: interview.vaga_id },
+            select: { cargo: true, empresa_id: true }
+        });
+        let empresaData = null;
+        if (vaga?.empresa_id) {
+            empresaData = await prisma.empresa.findUnique({
+                where: { id: vaga.empresa_id },
+                select: { nome_empresa: true, foto_perfil: true }
+            });
+        }
+        return {
+            id: interview.id,
+            status: interview.status,
+            cargo: vaga?.cargo || "Entrevista Presencial",
+            empresa: {
+                nome_empresa: empresaData?.nome_empresa || "Empresa",
+                foto_perfil: empresaData?.foto_perfil || null
+            },
+            data: interview.slot?.data || "",
+            hora_inicio: interview.slot?.hora_inicio || "",
+            type: 'presencial' as const
+        };
+    }));
+
+    const allInterviewRequests = [...mentorshipRequests, ...onsiteRequests].sort((a, b) => {
+        const dateA = a.criado_em ? new Date(a.criado_em).getTime() : 0;
+        const dateB = b.criado_em ? new Date(b.criado_em).getTime() : 0;
+        return dateB - dateA;
+    });
 
     return (
         <>
@@ -403,7 +446,7 @@ export default async function Dashboard() {
                 areas={areas}
             />
             <VideoRequests requests={videoRequests} />
-            <MentorshipRequests requests={mentorshipRequests} />
+            <InterviewRequests requests={allInterviewRequests} />
 
             <DraftApplications draftVacancies={appliedVacancies.filter(v => v.isDraft)} />
 

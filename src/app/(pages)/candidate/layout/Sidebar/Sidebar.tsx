@@ -25,7 +25,7 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen, isCollapsed
     const navItems = [
         { label: t("sidebar_home"), href: "/candidate/dashboard", icon: FaHome },
         { label: t("sidebar_vacancies"), href: "/candidate/vacancies", icon: FaBriefcase },
-        { label: t("sidebar_mentorings", "Mentorias"), href: "/candidate/mentorships", icon: FaCalendarAlt },
+        { label: t("sidebar_interviews", "Entrevistas"), href: "/candidate/interviews", icon: FaCalendarAlt },
         { label: t("sidebar_profile"), href: "/candidate/profile", icon: FaUser },
     ];
 

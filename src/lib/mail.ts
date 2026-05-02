@@ -514,6 +514,55 @@ export async function sendInterviewScheduledEmail(
   }
 }
 
+export async function sendOnsiteInterviewScheduledEmail(
+  candidateEmail: string,
+  candidateName: string,
+  companyName: string,
+  vacancyTitle: string,
+  date: string,
+  startTime: string,
+  confirmLink: string,
+) {
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to: candidateEmail,
+    subject: `Convite para Entrevista Presencial - Vaga: ${vacancyTitle}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+        <h2 style="color: #4f46e5; text-align: center;">Entrevista Presencial Agendada!</h2>
+        <p style="text-align: center; color: #555;">Olá <strong>${candidateName}</strong>,</p>
+        <p style="text-align: center; color: #555;">
+          A empresa <strong>${companyName}</strong> convocou você para uma entrevista presencial para a vaga de <strong>${vacancyTitle}</strong>.
+        </p>
+        <div style="background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
+          <p style="margin: 0; font-size: 18px; font-weight: bold; color: #1f2937;">${date}</p>
+          <p style="margin: 8px 0 0; font-size: 16px; color: #4b5563;">${startTime}</p>
+        </div>
+        <p style="text-align: center; color: #555;">Por favor, confirme ou recuse sua presença clicando no botão abaixo:</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${confirmLink}" style="background-color: #4f46e5; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
+            Acessar Convite
+          </a>
+        </div>
+        <p style="text-align: center; color: #555;">ou copie o link abaixo:</p>
+        <p style="text-align: center; word-break: break-all; color: #4f46e5;">${confirmLink}</p>
+        <p style="text-align: center; font-size: 14px; color: #666; margin-top: 30px;">
+          A empresa aguarda a sua confirmação.
+        </p>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error("Erro ao enviar email de entrevista presencial:", error);
+    return false;
+  }
+}
+
+
 export async function sendInterviewConfirmedToMentorEmail(
   mentorEmail: string,
   mentorName: string,

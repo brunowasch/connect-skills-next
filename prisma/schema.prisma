@@ -397,3 +397,31 @@ model contact {
   message    String   @db.Text
   createdAt  DateTime @default(now())
 }
+
+model entrevista_presencial_slot {
+  id         String   @id @default(uuid())
+  empresa_id String
+  data       String   @db.VarChar(10) // YYYY-MM-DD
+  hora_inicio String  @db.VarChar(5)  // HH:mm
+  criado_em  DateTime @default(now())
+  entrevista_presencial entrevista_presencial?
+
+  @@index([empresa_id])
+}
+
+model entrevista_presencial {
+  id           String   @id @default(uuid())
+  slot_id      String   @unique
+  vaga_id      String
+  empresa_id   String
+  candidato_id String
+  status       String   @default("PENDENTE_CANDIDATO") @db.VarChar(30)
+  criado_em    DateTime @default(now())
+  atualizado_em DateTime @updatedAt
+
+  slot entrevista_presencial_slot @relation(fields: [slot_id], references: [id], onDelete: Cascade)
+
+  @@index([candidato_id])
+  @@index([empresa_id])
+  @@index([vaga_id])
+}

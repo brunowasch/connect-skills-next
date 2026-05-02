@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Calendar, Clock, ArrowRight, CheckCircle, ExternalLink, Building2, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
+import { Calendar, Clock, ArrowRight, CheckCircle, ExternalLink, Building2, ChevronDown, ChevronUp, AlertTriangle, MapPin, Video } from "lucide-react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 
-interface MentorshipRequest {
+export interface InterviewRequest {
     id: string; 
     status: string;
     cargo: string;
@@ -16,13 +16,14 @@ interface MentorshipRequest {
     data: string;
     hora_inicio: string;
     criado_em?: string;
+    type: 'online' | 'presencial';
 }
 
-interface MentorshipRequestsProps {
-    requests: MentorshipRequest[];
+interface InterviewRequestsProps {
+    requests: InterviewRequest[];
 }
 
-export function MentorshipRequests({ requests }: MentorshipRequestsProps) {
+export function InterviewRequests({ requests }: InterviewRequestsProps) {
     const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(true);
 
@@ -33,7 +34,7 @@ export function MentorshipRequests({ requests }: MentorshipRequestsProps) {
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                     <Calendar className="text-blue-600" />
-                    {t('dashboard_mentorship_requests_title', 'Mentorias')}
+                    {t('dashboard_interviews_title', 'Entrevistas')}
                 </h2>
                 <button 
                     onClick={() => setIsOpen(!isOpen)}
@@ -48,12 +49,13 @@ export function MentorshipRequests({ requests }: MentorshipRequestsProps) {
                 {requests.map((req) => {
                     const isConfirmed = req.status === "CONFIRMADA";
                     const isPendente = req.status === "PENDENTE_CANDIDATO";
+                    const isOnline = req.type === 'online';
 
                     let daysLeft = 0;
                     let hoursLeft = 0;
                     let isExpired = false;
 
-                    if (isPendente && req.criado_em) {
+                    if (isOnline && isPendente && req.criado_em) {
                         const createdDate = new Date(req.criado_em);
                         const deadline = new Date(createdDate.getTime() + 3 * 24 * 60 * 60 * 1000); 
                         const now = new Date();
@@ -67,10 +69,16 @@ export function MentorshipRequests({ requests }: MentorshipRequestsProps) {
                         }
                     }
 
+                    const themeColor = isOnline ? 'blue' : 'indigo';
+                    const themeBorder = isConfirmed ? 'border-emerald-200' : `border-${themeColor}-200`;
+                    const themeBg = isConfirmed ? 'bg-emerald-500' : `bg-${themeColor}-500`;
+                    const themeText = isConfirmed ? 'text-emerald-600' : `text-${themeColor}-600`;
+                    const themeLightBg = isConfirmed ? 'bg-emerald-50' : `bg-${themeColor}-50`;
+                    const themeBtnBg = isConfirmed ? 'bg-emerald-600 hover:bg-emerald-700' : `bg-${themeColor}-600 hover:bg-${themeColor}-700`;
+
                     return (
-                        <div key={req.id} className={`bg-white border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group 
-                            ${isConfirmed ? 'border-emerald-200' : 'border-blue-200'}`}>
-                            <div className={`absolute top-0 left-0 w-1 h-full ${isConfirmed ? 'bg-emerald-500' : 'bg-blue-500'}`} />
+                        <div key={req.id} className={`bg-white border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group ${themeBorder}`}>
+                            <div className={`absolute top-0 left-0 w-1 h-full ${themeBg}`} />
                             
                             <div className="flex justify-between items-start mb-3">
                                 <div className="flex items-center gap-3">
@@ -98,19 +106,25 @@ export function MentorshipRequests({ requests }: MentorshipRequestsProps) {
                             </div>
 
                             <div className="mb-4">
-                                <p className="text-sm text-gray-600 mb-2">
-                                    {isConfirmed 
-                                        ? t('dashboard_mentorship_confirmed_desc', 'Sua entrevista está confirmada. Compareça na data e horário marcados.')
-                                        : t('dashboard_mentorship_request_desc', 'A empresa solicitou uma mentoria para você com um de nossos profissionais.')}
-                                </p>
-                                <div className={`flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded w-fit 
-                                    ${isConfirmed ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'}`}>
-                                    <Clock size={12} />
-                                    <span>
-                                        {req.data.split('-').reverse().join('/')} - {req.hora_inicio}
+                                <div className="flex gap-2 mb-2">
+                                    <span className={`inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded ${themeLightBg} ${themeText}`}>
+                                        {isOnline ? <Video size={10} /> : <MapPin size={10} />}
+                                        {isOnline ? 'Online' : 'Presencial'}
                                     </span>
                                 </div>
-                                {isPendente && !isExpired && (
+                                
+                                <p className="text-sm text-gray-600 mb-2">
+                                    {isConfirmed 
+                                        ? (isOnline ? t('dashboard_mentorship_confirmed_desc', 'Sua entrevista está confirmada. Compareça na data e horário marcados.') : t('dashboard_onsite_confirmed_desc', 'Sua entrevista está confirmada. Compareça no local e horário marcados.'))
+                                        : (isOnline ? t('dashboard_mentorship_request_desc', 'A empresa solicitou uma mentoria para você com um de nossos profissionais.') : t('dashboard_onsite_request_desc', 'A empresa convocou você para uma entrevista presencial.'))}
+                                </p>
+                                <div className={`flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded w-fit ${themeLightBg} ${themeText}`}>
+                                    <Clock size={12} />
+                                    <span>
+                                        {req.data.split('-').reverse().join('/')} às {req.hora_inicio}
+                                    </span>
+                                </div>
+                                {isOnline && isPendente && !isExpired && (
                                     <div className="mt-3 bg-amber-50 p-2 rounded-lg flex items-center gap-2 text-amber-700 text-xs font-medium border border-amber-100">
                                         <Clock size={14} className="animate-pulse flex-shrink-0" />
                                         <span>
@@ -118,15 +132,15 @@ export function MentorshipRequests({ requests }: MentorshipRequestsProps) {
                                         </span>
                                     </div>
                                 )}
-                                {isPendente && isExpired && (
+                                {isOnline && isPendente && isExpired && (
                                     <div className="mt-3 bg-red-50 p-2 rounded-lg flex items-center gap-2 text-red-700 text-xs font-medium border border-red-100">
                                         <AlertTriangle size={14} className="flex-shrink-0" />
-                                        <span>Convite de mentoria expirado.</span>
+                                        <span>Convite expirado.</span>
                                     </div>
                                 )}
                             </div>
 
-                            {isPendente && isExpired ? (
+                            {isOnline && isPendente && isExpired ? (
                                 <button
                                     disabled
                                     className="w-full flex items-center justify-center gap-2 text-white py-2.5 rounded-lg text-sm font-medium bg-gray-400 cursor-not-allowed"
@@ -135,12 +149,11 @@ export function MentorshipRequests({ requests }: MentorshipRequestsProps) {
                                 </button>
                             ) : (
                                 <Link 
-                                    href={`/candidate/interviews/${req.id}/confirm`}
-                                    className={`w-full flex items-center justify-center gap-2 text-white py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer 
-                                        ${isConfirmed ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-blue-600 hover:bg-blue-700'}`}
+                                    href={isOnline ? `/candidate/interviews/${req.id}/confirm` : `/candidate/interviews/onsite/${req.id}/confirm`}
+                                    className={`w-full flex items-center justify-center gap-2 text-white py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${themeBtnBg}`}
                                 >
                                     {isConfirmed ? <ExternalLink size={16} /> : <Calendar size={16} />}
-                                    {isConfirmed ? t('dashboard_view_mentorship_confirmed', 'Acessar Detalhes') : t('dashboard_view_mentorship_btn', 'Ver Detalhes')}
+                                    {isConfirmed ? t('dashboard_view_interview_confirmed', 'Acessar Detalhes') : t('dashboard_view_interview_btn', 'Ver Detalhes')}
                                     <ArrowRight size={16} className="opacity-70" />
                                 </Link>
                             )}

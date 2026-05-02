@@ -4,11 +4,9 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { format } from "date-fns";
 import { ptBR, enUS, es } from "date-fns/locale";
-import { Calendar, Clock, Building2, User, CheckCircle, XCircle, AlertTriangle, ChevronRight, Timer, FlaskConical, History, Video } from "lucide-react";
+import { Calendar, Clock, Building2, User, CheckCircle, XCircle, AlertTriangle, ChevronRight, Timer, History, Video, MapPin } from "lucide-react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 
 function useCountdown(criado_em: string) {
     const EXPIRATION_MS = 3 * 24 * 60 * 60 * 1000;
@@ -41,7 +39,7 @@ function CountdownChip({ criado_em }: { criado_em: string }) {
         return (
             <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-red-50 border border-red-200 text-red-700 text-[10px] sm:text-[11px] font-semibold w-fit">
                 <AlertTriangle size={12} className="flex-shrink-0" />
-                {t("mentorship_countdown_expired")}
+                {t("interview_countdown_expired", "Convite Expirado")}
             </div>
         );
     }
@@ -54,8 +52,8 @@ function CountdownChip({ criado_em }: { criado_em: string }) {
         : "bg-blue-50 border-blue-200 text-blue-700";
 
     const label = days > 0
-        ? t("mentorship_countdown_expires_days", { days, hours, minutes })
-        : t("mentorship_countdown_expires_hours", { hours, minutes });
+        ? t("interview_countdown_expires_days", { defaultValue: "Expira em {{days}}d {{hours}}h", days, hours })
+        : t("interview_countdown_expires_hours", { defaultValue: "Expira em {{hours}}h {{minutes}}m", hours, minutes });
 
     return (
         <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full border text-[10px] sm:text-[11px] font-semibold w-fit ${colorClass}`}>
@@ -65,70 +63,79 @@ function CountdownChip({ criado_em }: { criado_em: string }) {
     );
 }
 
-
-export default function CandidateMentorshipsClient({ mentorships }: { mentorships: any[] }) {
+export default function CandidateInterviewsClient({ interviews }: { interviews: any[] }) {
     const { t, i18n } = useTranslation();
     const [activeTab, setActiveTab] = useState<'scheduled' | 'history' | 'pending'>('scheduled');
+    const [filterType, setFilterType] = useState<'all' | 'empresas'>('all');
 
-    const localeMap: any = { pt: ptBR, en: enUS, es: es };
-    const currentLocale = localeMap[i18n.language] || ptBR;
-
-    const processedMentorships = mentorships.map(m => {
+    const processedInterviews = interviews.map(m => {
         let isMeetingExpired = false;
 
         if (m.status === 'CONCLUIDA') {
             isMeetingExpired = true;
-        } else if (m.data && m.hora_fim) {
+        } else if (m.data) {
             const [year, month, day] = m.data.split("-");
-            const [hFim, mFim] = m.hora_fim.split(":");
-            if (year && month && day && hFim && mFim) {
-                const endData = new Date(Number(year), Number(month) - 1, Number(day), Number(hFim), Number(mFim), 0);
-                if (Date.now() > endData.getTime()) {
-                    isMeetingExpired = true;
+            
+            if (m.type === 'presencial') {
+                if (year && month && day) {
+                    const endData = new Date(Number(year), Number(month) - 1, Number(day), 23, 59, 59);
+                    if (Date.now() > endData.getTime()) {
+                        isMeetingExpired = true;
+                    }
+                }
+            } else if (m.hora_fim) {
+                const [hFim, mFim] = m.hora_fim.split(":");
+                if (year && month && day && hFim && mFim) {
+                    const endData = new Date(Number(year), Number(month) - 1, Number(day), Number(hFim), Number(mFim), 0);
+                    if (Date.now() > endData.getTime()) {
+                        isMeetingExpired = true;
+                    }
                 }
             }
         }
         return { ...m, isMeetingExpired };
     });
 
-    const scheduled = processedMentorships.filter(m => m.status === 'CONFIRMADA' && !m.isMeetingExpired);
-    const pending = processedMentorships.filter(m => m.status === 'PENDENTE_CANDIDATO' && !m.isMeetingExpired);
-    const history = processedMentorships.filter(m => !['CONFIRMADA', 'PENDENTE_CANDIDATO'].includes(m.status) || m.isMeetingExpired);
+    const scheduled = processedInterviews.filter(m => m.status === 'CONFIRMADA' && !m.isMeetingExpired && (filterType === 'all' || (filterType === 'empresas' && m.type === 'presencial')));
+    const pending = processedInterviews.filter(m => m.status === 'PENDENTE_CANDIDATO' && !m.isMeetingExpired && (filterType === 'all' || (filterType === 'empresas' && m.type === 'presencial')));
+    const history = processedInterviews.filter(m => (!['CONFIRMADA', 'PENDENTE_CANDIDATO'].includes(m.status) || m.isMeetingExpired) && (filterType === 'all' || (filterType === 'empresas' && m.type === 'presencial')));
 
     const renderCard = (m: any) => {
         const isScheduled = activeTab === 'scheduled';
         const isPending = activeTab === 'pending';
         const isMeetingExpired = m.isMeetingExpired;
-
+        const isOnline = m.type === 'online';
 
         let statusColor = "bg-gray-100 text-gray-800 border-gray-200";
         let statusText = m.status;
 
         if (m.isMeetingExpired && m.status === 'CONFIRMADA') {
             statusColor = "bg-red-50 text-red-700 border-red-200";
-            statusText = t("mentorship_status_expired", { defaultValue: "Expirada" });
+            statusText = t("candidate_interview_status_expired", { defaultValue: "Expirada" });
         } else if (m.status === 'CONFIRMADA') {
             statusColor = "bg-emerald-50 text-emerald-700 border-emerald-200";
-            statusText = t("mentorship_status_confirmed");
+            statusText = t("candidate_interview_status_confirmed", { defaultValue: "Confirmada" });
         } else if (m.status === 'CONCLUIDA') {
             statusColor = "bg-blue-50 text-blue-700 border-blue-200";
-            statusText = t("mentorship_status_completed");
+            statusText = t("candidate_interview_status_completed", { defaultValue: "Concluída" });
         } else if (m.status === 'PENDENTE_CANDIDATO') {
             statusColor = "bg-yellow-50 text-yellow-700 border-yellow-200";
-            statusText = t("mentorship_status_pending");
+            statusText = t("candidate_interview_status_pending", { defaultValue: "Aguardando" });
         } else if (m.status === 'RECUSADA') {
             statusColor = "bg-red-50 text-red-700 border-red-200";
-            statusText = t("mentorship_status_declined");
+            statusText = t("candidate_interview_status_declined", { defaultValue: "Recusada" });
         } else if (m.status === 'CANCELADA') {
             statusColor = "bg-red-50 text-red-700 border-red-200";
-            statusText = t("mentorship_status_cancelled");
+            statusText = t("candidate_interview_status_cancelled", { defaultValue: "Cancelada" });
         } else if (m.status === 'EXPIRADA') {
             statusColor = "bg-orange-50 text-orange-700 border-orange-200";
-            statusText = t("mentorship_status_expired");
+            statusText = t("candidate_interview_status_expired", { defaultValue: "Expirada" });
         }
 
+        const themeColor = isOnline ? 'blue' : 'indigo';
+
         return (
-            <div key={m.id} className="group bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md hover:border-blue-400 transition-all flex flex-col h-full relative min-w-0 overflow-hidden">
+            <div key={m.id} className={`group bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md hover:border-${themeColor}-400 transition-all flex flex-col h-full relative min-w-0 overflow-hidden`}>
                 <div className="p-4 sm:p-5 flex-grow flex flex-col">
                     <div className="flex items-center mb-3 sm:mb-4">
                         <div className="flex items-center gap-2 sm:gap-3">
@@ -138,7 +145,7 @@ export default function CandidateMentorshipsClient({ mentorships }: { mentorship
                                     width={40}
                                     height={40}
                                     className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg object-cover border border-gray-100"
-                                    alt={t("mentorship_card_company_label")}
+                                    alt={t("interview_card_company_label", { defaultValue: "Empresa" })}
                                 />
                             ) : (
                                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg border border-gray-100 flex items-center justify-center bg-gray-50">
@@ -146,12 +153,12 @@ export default function CandidateMentorshipsClient({ mentorships }: { mentorship
                                 </div>
                             )}
                             <span className="text-xs sm:text-sm font-medium text-gray-600 truncate max-w-[150px] sm:max-w-[200px]">
-                                {m.empresa ? m.empresa.nome_empresa : t("mentorship_card_company_unavailable")}
+                                {m.empresa ? m.empresa.nome_empresa : t("company_default", { defaultValue: "Empresa" })}
                             </span>
                         </div>
                     </div>
 
-                    <h3 className="font-bold text-sm sm:text-base transition-colors line-clamp-2 mb-2 text-slate-900 group-hover:text-blue-600">
+                    <h3 className={`font-bold text-sm sm:text-base transition-colors line-clamp-2 mb-2 text-slate-900 group-hover:text-${themeColor}-600`}>
                         {m.cargo}
                     </h3>
 
@@ -164,18 +171,21 @@ export default function CandidateMentorshipsClient({ mentorships }: { mentorship
                             {statusText}
                         </span>
                         
-                        <div className="flex items-center text-[11px] sm:text-xs text-gray-500 gap-1 min-w-0">
-                            <Calendar className="text-slate-400 flex-shrink-0 w-3.5 h-3.5" />
-                            <span className="truncate">{format(new Date(`${m.data}T00:00:00`), 'dd/MM/yyyy')}</span>
-                        </div>
+                        <span className={`inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded-full bg-${themeColor}-50 text-${themeColor}-600`}>
+                            {isOnline ? <Video size={12} /> : <MapPin size={12} />}
+                            {isOnline ? 'Online' : 'Presencial'}
+                        </span>
 
                         <div className="flex items-center text-[11px] sm:text-xs text-gray-500 gap-1 min-w-0">
-                            <Clock className="text-slate-400 flex-shrink-0 w-3.5 h-3.5" />
-                            <span className="truncate">{m.hora_inicio} - {m.hora_fim}</span>
+                            <Calendar className="text-slate-400 flex-shrink-0 w-3.5 h-3.5" />
+                            <span className="truncate whitespace-nowrap">
+                                {format(new Date(`${m.data}T00:00:00`), 'dd/MM/yyyy')} às {m.hora_inicio}
+                                {m.hora_fim ? ` - ${m.hora_fim}` : ''}
+                            </span>
                         </div>
                     </div>
 
-                    {isPending && m.criado_em && (
+                    {isOnline && isPending && m.criado_em && (
                         <div className="mb-4">
                             <CountdownChip criado_em={m.criado_em} />
                         </div>
@@ -183,8 +193,8 @@ export default function CandidateMentorshipsClient({ mentorships }: { mentorship
 
                     <div className="mt-auto pt-2 flex flex-col gap-2">
                         {(isScheduled || isPending) && (
-                            <Link href={`/viewer/mentorship/${m.id}`} className="inline-flex w-full items-center justify-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition shadow-sm hover:shadow active:scale-95">
-                                {t("mentorship_card_details_btn")}
+                            <Link href={isOnline ? `/candidate/interviews/${m.id}/confirm` : `/candidate/interviews/onsite/${m.id}/confirm`} className={`inline-flex w-full items-center justify-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-${themeColor}-600 text-white hover:bg-${themeColor}-700 transition shadow-sm hover:shadow active:scale-95`}>
+                                {t("interview_card_details_btn", { defaultValue: "Ver Detalhes" })}
                                 <ChevronRight size={14} />
                             </Link>
                         )}
@@ -193,7 +203,7 @@ export default function CandidateMentorshipsClient({ mentorships }: { mentorship
 
                 {((isScheduled || isMeetingExpired || activeTab === 'history') && m.link_reuniao) && (
                     <div className="px-4 py-2.5 sm:py-3 border-t border-gray-100 bg-gray-50/80 flex flex-wrap justify-between items-center gap-2 text-[10px] sm:text-[11px] text-gray-500 font-medium mt-auto">
-                        <span>{t("mentorship_or_access_link", { defaultValue: "Ou acesse pelo link:" })}</span>
+                        <span>{t("interview_or_access_link", { defaultValue: "Ou acesse pelo link:" })}</span>
                         {!isMeetingExpired ? (
                             <button
                                 onClick={() => {
@@ -204,7 +214,7 @@ export default function CandidateMentorshipsClient({ mentorships }: { mentorship
                                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition border border-indigo-200 font-semibold shadow-sm cursor-pointer whitespace-nowrap"
                             >
                                 <Video size={12} />
-                                {t("mentorship_meeting_link", { defaultValue: "Entrar na Reunião" })}
+                                {t("interview_meeting_link", { defaultValue: "Entrar na Reunião" })}
                             </button>
                         ) : (
                             <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-red-50 text-red-600 border border-red-100 font-semibold shadow-sm whitespace-nowrap">
@@ -220,8 +230,8 @@ export default function CandidateMentorshipsClient({ mentorships }: { mentorship
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{t("mentorships_page_title")}</h1>
-                <p className="text-slate-500 mt-2 text-sm leading-relaxed">{t("mentorships_page_subtitle")}</p>
+                <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{t("interviews_page_title", { defaultValue: "Minhas Entrevistas" })}</h1>
+                <p className="text-slate-500 mt-2 text-sm leading-relaxed">{t("interviews_page_subtitle", { defaultValue: "Acompanhe suas entrevistas agendadas e acesse o histórico das sessões concluídas." })}</p>
             </div>
 
             <div className="flex border-b border-slate-200 gap-6 overflow-x-auto no-scrollbar pb-1">
@@ -231,7 +241,7 @@ export default function CandidateMentorshipsClient({ mentorships }: { mentorship
                 >
                     <div className="flex items-center gap-2 cursor-pointer">
                         <Calendar size={16} />
-                        {t("mentorships_tab_scheduled")}
+                        {t("interviews_tab_scheduled", { defaultValue: "Agendadas" })}
                         <span className={`inline-flex items-center justify-center h-5 px-2 rounded-full text-xs ${activeTab === 'scheduled' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
                             {scheduled.length}
                         </span>
@@ -246,7 +256,7 @@ export default function CandidateMentorshipsClient({ mentorships }: { mentorship
                 >
                     <div className="flex items-center gap-2 cursor-pointer">
                         <Timer size={16} />
-                        {t("mentorships_tab_pending")}
+                        {t("interviews_tab_pending", { defaultValue: "Pendentes" })}
                         <span className={`inline-flex items-center justify-center h-5 px-2 rounded-full text-xs ${activeTab === 'pending' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
                             {pending.length}
                         </span>
@@ -261,7 +271,7 @@ export default function CandidateMentorshipsClient({ mentorships }: { mentorship
                 >
                     <div className="flex items-center gap-2 cursor-pointer">
                         <History size={16} />
-                        {t("mentorships_tab_history")}
+                        {t("interviews_tab_history", { defaultValue: "Histórico" })}
                         <span className={`inline-flex items-center justify-center h-5 px-2 rounded-full text-xs ${activeTab === 'history' ? 'bg-slate-200 text-slate-800' : 'bg-slate-100 text-slate-600'}`}>
                             {history.length}
                         </span>
@@ -272,26 +282,35 @@ export default function CandidateMentorshipsClient({ mentorships }: { mentorship
                 </button>
             </div>
 
+            <div className="flex items-center">
+                <select
+                    value={filterType}
+                    onChange={(e) => setFilterType(e.target.value as any)}
+                    className="bg-white border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full sm:max-w-[250px] p-2 outline-none font-medium cursor-pointer"
+                >
+                    <option value="all">{t("filter_all", "Todos")}</option>
+                    <option value="empresas">{t("filter_empresas", "Empresas")}</option>
+                </select>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 w-full overflow-hidden">
                 {activeTab === 'scheduled' && (
                     scheduled.length > 0 ? scheduled.map(renderCard) : (
                         <div className="col-span-full text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300">
                             <Calendar className="mx-auto h-12 w-12 text-slate-300 mb-3" />
-                            <h3 className="text-lg font-semibold text-slate-900">{t("mentorship_empty_scheduled_title")}</h3>
-                            <p className="text-slate-500 mt-1 max-w-sm mx-auto text-sm">{t("mentorship_empty_scheduled_desc")}</p>
+                            <h3 className="text-lg font-semibold text-slate-900">{t("interview_empty_scheduled_title", { defaultValue: "Nenhuma entrevista agendada" })}</h3>
+                            <p className="text-slate-500 mt-1 max-w-sm mx-auto text-sm">{t("interview_empty_scheduled_desc", { defaultValue: "Você não possui entrevistas confirmadas para os próximos dias." })}</p>
                         </div>
                     )
                 )}
 
                 {activeTab === 'pending' && (
                     <>
-
-
                         {pending.length > 0 ? pending.map(renderCard) : (
                             <div className="col-span-full text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300">
                                 <AlertTriangle className="mx-auto h-12 w-12 text-slate-300 mb-3" />
-                                <h3 className="text-lg font-semibold text-slate-900">{t("mentorship_empty_pending_title")}</h3>
-                                <p className="text-slate-500 mt-1 max-w-sm mx-auto text-sm">{t("mentorship_empty_pending_desc")}</p>
+                                <h3 className="text-lg font-semibold text-slate-900">{t("interview_empty_pending_title", { defaultValue: "Nenhum convite pendente" })}</h3>
+                                <p className="text-slate-500 mt-1 max-w-sm mx-auto text-sm">{t("interview_empty_pending_desc", { defaultValue: "Você não possui convites de entrevista aguardando sua resposta." })}</p>
                             </div>
                         )}
                     </>
@@ -301,8 +320,8 @@ export default function CandidateMentorshipsClient({ mentorships }: { mentorship
                     history.length > 0 ? history.map(renderCard) : (
                         <div className="col-span-full text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300">
                             <Clock className="mx-auto h-12 w-12 text-slate-300 mb-3" />
-                            <h3 className="text-lg font-semibold text-slate-900">{t("mentorship_empty_history_title")}</h3>
-                            <p className="text-slate-500 mt-1 max-w-sm mx-auto text-sm">{t("mentorship_empty_history_desc")}</p>
+                            <h3 className="text-lg font-semibold text-slate-900">{t("interview_empty_history_title", { defaultValue: "Seu histórico está vazio" })}</h3>
+                            <p className="text-slate-500 mt-1 max-w-sm mx-auto text-sm">{t("interview_empty_history_desc", { defaultValue: "Você ainda não possui entrevistas concluídas ou canceladas em seu histórico." })}</p>
                         </div>
                     )
                 )}
