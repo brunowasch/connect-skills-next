@@ -19,7 +19,7 @@ export default async function OnsiteSchedulePage() {
         redirect("/company/dashboard");
     }
 
-    const slots = await prisma.entrevista_presencial_slot.findMany({
+    const slots = await (prisma as any).entrevista_presencial_slot.findMany({
         where: { empresa_id: empresa.id },
         include: {
             entrevista_presencial: {
@@ -28,6 +28,7 @@ export default async function OnsiteSchedulePage() {
                     status: true,
                     candidato_id: true,
                     vaga_id: true,
+                    candidato_compareceu: true,
                 }
             }
         },
@@ -35,7 +36,7 @@ export default async function OnsiteSchedulePage() {
     });
 
     const candidatoIds = slots
-        .map(s => s.entrevista_presencial?.candidato_id)
+        .map((s: any) => s.entrevista_presencial?.candidato_id)
         .filter(Boolean) as string[];
 
     const candidatos = candidatoIds.length > 0
@@ -46,7 +47,7 @@ export default async function OnsiteSchedulePage() {
         : [];
 
     const vagaIds = slots
-        .map(s => s.entrevista_presencial?.vaga_id)
+        .map((s: any) => s.entrevista_presencial?.vaga_id)
         .filter(Boolean) as string[];
 
     const vagas = vagaIds.length > 0
@@ -61,7 +62,7 @@ export default async function OnsiteSchedulePage() {
 
     const now = new Date();
 
-    const enrichedSlots = slots.map(slot => {
+    const enrichedSlots = slots.map((slot: any) => {
         const candidato = slot.entrevista_presencial?.candidato_id
             ? candidatosMap.get(slot.entrevista_presencial.candidato_id) ?? null
             : null;
@@ -88,8 +89,8 @@ export default async function OnsiteSchedulePage() {
         }
     };
 
-    const activeSlots = enrichedSlots.filter(s => !isExpired(s));
-    const historySlots = enrichedSlots.filter(s => isExpired(s));
+    const activeSlots = enrichedSlots.filter((s: any) => !isExpired(s));
+    const historySlots = enrichedSlots.filter((s: any) => isExpired(s));
 
     return <OnsiteScheduleList activeSlots={activeSlots} historySlots={historySlots} />;
 }

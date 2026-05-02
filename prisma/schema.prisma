@@ -418,6 +418,8 @@ model entrevista_presencial {
   status       String   @default("PENDENTE_CANDIDATO") @db.VarChar(30)
   criado_em    DateTime @default(now())
   atualizado_em DateTime @updatedAt
+  codigo_participacao String? @db.VarChar(10)
+  candidato_compareceu Boolean @default(false)
 
   slot entrevista_presencial_slot @relation(fields: [slot_id], references: [id], onDelete: Cascade)
 

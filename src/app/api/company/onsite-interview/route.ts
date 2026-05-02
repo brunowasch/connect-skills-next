@@ -106,9 +106,14 @@ export async function PATCH(req: Request) {
                 return NextResponse.json({ error: "Esta entrevista foi recusada e não pode ser confirmada." }, { status: 400 });
             }
 
+            const codigo = Math.random().toString(36).substring(2, 8).toUpperCase();
+
             await (prisma as any).entrevista_presencial.update({
                 where: { id: entrevistaId },
-                data: { status: "CONFIRMADA" }
+                data: { 
+                    status: "CONFIRMADA",
+                    codigo_participacao: codigo 
+                }
             });
 
             const empresa = await prisma.empresa.findUnique({

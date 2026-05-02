@@ -122,7 +122,7 @@ export function OnsiteInterviewSchedule({
                     </div>
                     <div>
                         <p className="text-sm font-bold text-slate-800 leading-tight">
-                            {t("onsite_schedule_title", "Entrevistas Presenciais")}
+                            {t("onsite_schedule_title", "Entrevistas")}
                         </p>
                         <p className="text-[10px] text-slate-400">
                             {slots.length} {slots.length === 1 ? t("onsite_slot_singular", "horário") : t("onsite_slot_plural", "horários")}

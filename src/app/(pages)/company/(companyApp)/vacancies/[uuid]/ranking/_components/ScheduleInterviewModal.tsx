@@ -489,7 +489,7 @@ export function ScheduleInterviewModal({
                                         {t("onsite_add_slots_hint_modal", "Publique horários na página de Entrevistas Presenciais para poder convocar candidatos.")}
                                     </p>
                                     <a
-                                        href="/company/onsite-schedule"
+                                        href="/company/interviews"
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold rounded-xl transition-colors"

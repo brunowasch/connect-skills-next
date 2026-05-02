@@ -108,6 +108,7 @@ export default async function CandidateInterviewsPage() {
             hora_fim: null,
             link_reuniao: null,
             criado_em: interview.criado_em.toISOString(),
+            candidato_compareceu: !!interview.candidato_compareceu,
             type: 'presencial' as const
         };
     }));

@@ -68,6 +68,15 @@ export default async function RankingPage({ params, searchParams }: Props) {
         orderBy: { criado_em: 'desc' }
     });
 
+    const onsiteInterviews = await (prisma as any).entrevista_presencial.findMany({
+        where: { vaga_id: vacancyId },
+        select: {
+            id: true,
+            candidato_id: true,
+            status: true,
+        }
+    });
+
     const mentorIds = [...new Set(interviews.map(i => i.mentor_id).filter(Boolean))];
     const mentors = mentorIds.length > 0 ? await prisma.mentor.findMany({
         where: { id: { in: mentorIds } },
@@ -77,6 +86,13 @@ export default async function RankingPage({ params, searchParams }: Props) {
     const candidatesWithApp = candidates.map(c => {
         const app = applications.find(a => a.candidato_id === c.id);
         const interview = interviews.find(i => i.candidato_id === c.id);
+        const onsiteInterview = onsiteInterviews.find((i: any) => i.candidato_id === c.id);
+        
+        let finalStatus = interview?.status;
+        if (!finalStatus && onsiteInterview) {
+            finalStatus = onsiteInterview.status;
+        }
+
         return {
             ...c,
             application: app ? {
@@ -85,7 +101,7 @@ export default async function RankingPage({ params, searchParams }: Props) {
                 created_at: app.created_at,
                 breakdown: app.breakdown,
                 resposta: app.resposta,
-                interviewStatus: interview?.status,
+                interviewStatus: finalStatus,
                 mentorFeedback: interview ? {
                     comportamental: interview.feedback_comportamental,
                     tecnico: interview.feedback_tecnico,

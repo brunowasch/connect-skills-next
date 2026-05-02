@@ -213,15 +213,6 @@ export default function ConfirmOnsiteInterviewClient({
                     </div>
                 </div>
 
-                <div className="p-3 bg-amber-50 rounded-xl border border-amber-100 mb-5 text-left">
-                    <div className="flex items-start gap-2">
-                        <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-                        <p className="text-xs text-amber-800">
-                            {t("onsite_confirm_hint", "Após confirmar, aguarde o contato da empresa com o endereço completo e demais instruções para a entrevista.")}
-                        </p>
-                    </div>
-                </div>
-
                 {error && (
                     <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm">
                         {error}

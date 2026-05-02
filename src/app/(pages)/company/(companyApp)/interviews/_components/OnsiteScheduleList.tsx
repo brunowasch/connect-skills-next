@@ -10,7 +10,7 @@ import {
 import { DatePicker } from "@/src/app/_components/DatePicker";
 import { toast } from "sonner";
 
-type SlotStatus = "PENDENTE_CANDIDATO" | "CONFIRMADA" | "CANCELADA" | null;
+type SlotStatus = "PENDENTE_CANDIDATO" | "CONFIRMADA" | "CONCLUIDA" | "CANCELADA" | null;
 
 interface EnrichedSlot {
     id: string;
@@ -30,6 +30,7 @@ interface EnrichedSlot {
         status: string;
         candidato_id: string;
         vaga_id: string;
+        candidato_compareceu?: boolean;
     } | null;
 }
 
@@ -52,6 +53,10 @@ export function OnsiteScheduleList({ activeSlots, historySlots }: Props) {
     const [isSaving, setIsSaving] = useState(false);
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+    const [confirmPresenceId, setConfirmPresenceId] = useState<string | null>(null);
+    const [presenceCode, setPresenceCode] = useState("");
+    const [isConfirmingPresence, setIsConfirmingPresence] = useState(false);
+    const [presenceError, setPresenceError] = useState("");
 
     const displaySlots = activeTab === "active" ? activeSlots : historySlots;
 
@@ -118,6 +123,37 @@ export function OnsiteScheduleList({ activeSlots, historySlots }: Props) {
         }
     };
 
+    const handleConfirmPresence = async () => {
+        setPresenceError("");
+        if (!presenceCode.trim()) {
+            setPresenceError("Digite o código fornecido pelo candidato.");
+            return;
+        }
+
+        setIsConfirmingPresence(true);
+        try {
+            const res = await fetch("/api/company/onsite-interview/verify-code", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ entrevistaId: confirmPresenceId, codigo: presenceCode }),
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                toast.success("Presença confirmada com sucesso!");
+                setConfirmPresenceId(null);
+                setPresenceCode("");
+                router.refresh();
+            } else {
+                setPresenceError(data.error || "Erro ao confirmar presença. Verifique o código.");
+            }
+        } catch {
+            setPresenceError("Erro de conexão.");
+        } finally {
+            setIsConfirmingPresence(false);
+        }
+    };
+
     const getStatusBadge = (slot: EnrichedSlot) => {
         const status = slot.entrevista_presencial?.status as SlotStatus;
         if (!status) return (
@@ -134,6 +170,12 @@ export function OnsiteScheduleList({ activeSlots, historySlots }: Props) {
             <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 flex items-center gap-1">
                 <CheckCircle className="w-3 h-3" />
                 {t("onsite_status_confirmed", "Confirmada")}
+            </span>
+        );
+        if (status === "CONCLUIDA") return (
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 flex items-center gap-1">
+                <CheckCircle className="w-3 h-3" />
+                {t("onsite_status_completed", "Concluída")}
             </span>
         );
         return (
@@ -153,7 +195,7 @@ export function OnsiteScheduleList({ activeSlots, historySlots }: Props) {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                 <div>
                     <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
-                        {t("onsite_schedule_title", "Entrevistas Presenciais")}
+                        {t("onsite_schedule_title", "Entrevistas")}
                     </h1>
                     <p className="text-slate-500 text-sm sm:text-base">
                         {t("onsite_schedule_subtitle", "Publique horários disponíveis para candidatos confirmarem a presença.")}
@@ -309,6 +351,8 @@ export function OnsiteScheduleList({ activeSlots, historySlots }: Props) {
                                         ? "border-gray-200 opacity-80"
                                         : slot.entrevista_presencial?.status === "CONFIRMADA"
                                             ? "border-emerald-300 shadow-md"
+                                        : slot.entrevista_presencial?.status === "CONCLUIDA"
+                                            ? "border-blue-300 shadow-md"
                                             : slot.entrevista_presencial
                                                 ? "border-amber-200 hover:shadow-md"
                                                 : "border-gray-200 hover:shadow-md hover:border-indigo-300"
@@ -367,6 +411,28 @@ export function OnsiteScheduleList({ activeSlots, historySlots }: Props) {
                                             {t("delete_slot", "Remover horário")}
                                         </button>
                                     )}
+
+                                    {(slot.entrevista_presencial?.status === "CONFIRMADA" || slot.entrevista_presencial?.status === "CONCLUIDA") && (
+                                        <div className="mt-4 border-t border-gray-100 pt-4">
+                                            {slot.entrevista_presencial.candidato_compareceu ? (
+                                                <div className="flex items-center justify-center gap-2 text-sm text-emerald-600 font-semibold bg-emerald-50 py-2.5 rounded-xl border border-emerald-100">
+                                                    <CheckCircle className="w-4 h-4" />
+                                                    Presença confirmada
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    onClick={() => {
+                                                        setConfirmPresenceId(slot.entrevista_presencial!.id);
+                                                        setPresenceCode("");
+                                                        setPresenceError("");
+                                                    }}
+                                                    className="w-full py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl transition-colors text-sm border border-indigo-100 cursor-pointer"
+                                                >
+                                                    Confirmar participação
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         );
@@ -402,6 +468,68 @@ export function OnsiteScheduleList({ activeSlots, historySlots }: Props) {
                                 className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-colors cursor-pointer text-sm"
                             >
                                 {t("confirm_delete_btn", "Sim, Remover")}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {confirmPresenceId && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div
+                        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200"
+                        onClick={() => !isConfirmingPresence && setConfirmPresenceId(null)}
+                    />
+                    <div className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 animate-in zoom-in-95 duration-200">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-bold text-slate-900 text-lg">Confirmar Participação</h3>
+                            <button
+                                onClick={() => !isConfirmingPresence && setConfirmPresenceId(null)}
+                                className="text-gray-400 hover:text-gray-600 cursor-pointer"
+                                disabled={isConfirmingPresence}
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <p className="text-sm text-slate-500 mb-4">
+                            Peça ao candidato o seu <strong className="text-slate-700">código de participação</strong> de 6 dígitos e digite abaixo para confirmar sua presença.
+                        </p>
+                        
+                        <div className="mb-4">
+                            <input
+                                type="text"
+                                value={presenceCode}
+                                onChange={(e) => setPresenceCode(e.target.value.toUpperCase())}
+                                placeholder="Ex: A8B2X9"
+                                className="w-full text-center text-2xl tracking-[0.2em] uppercase font-mono px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition-all"
+                                maxLength={6}
+                            />
+                        </div>
+
+                        {presenceError && (
+                            <div className="flex items-center gap-1.5 text-red-600 text-xs mb-4 bg-red-50 p-2.5 rounded-lg border border-red-100">
+                                <AlertCircle className="w-4 h-4 shrink-0" />
+                                {presenceError}
+                            </div>
+                        )}
+
+                        <div className="flex gap-3 mt-2">
+                            <button
+                                onClick={handleConfirmPresence}
+                                disabled={isConfirmingPresence || presenceCode.length < 3}
+                                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white font-bold rounded-xl transition-colors cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            >
+                                {isConfirmingPresence ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        Confirmando...
+                                    </>
+                                ) : (
+                                    <>
+                                        <CheckCircle className="w-5 h-5" />
+                                        Confirmar Presença
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>

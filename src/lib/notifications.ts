@@ -308,16 +308,24 @@ export async function getCandidateNotifications(candidateId: string): Promise<No
             const interviewNotifications = await (prisma as any).notificacao.findMany({
                 where: {
                     usuario_id: usuarioData.usuario.id,
-                    tipo: { in: ['ENTREVISTA_AGENDADA', 'ENTREVISTA_CONFIRMADA', 'ENTREVISTA_CANCELADA'] }
+                    tipo: { in: ['ENTREVISTA_AGENDADA', 'ENTREVISTA_CONFIRMADA', 'ENTREVISTA_CANCELADA', 'ENTREVISTA_PRESENCIAL_AGENDADA', 'ENTREVISTA_PRESENCIAL_CONCLUIDA'] }
                 },
                 orderBy: { criado_em: 'desc' }
             });
 
             for (const notif of interviewNotifications) {
                 const extraData = notif.dados ? JSON.parse(notif.dados) : {};
+                
+                let mappedType = 'interview_confirmed';
+                if (notif.tipo === 'ENTREVISTA_AGENDADA' || notif.tipo === 'ENTREVISTA_PRESENCIAL_AGENDADA') {
+                    mappedType = 'interview_scheduled';
+                } else if (notif.tipo === 'ENTREVISTA_PRESENCIAL_CONCLUIDA') {
+                    mappedType = 'interview_confirmed'; // Reutilizando a badge de sucesso/confirmado
+                }
+                
                 notifications.push({
                     id: `notificacao_${notif.id}`,
-                    type: notif.tipo === 'ENTREVISTA_AGENDADA' ? 'interview_scheduled' : 'interview_confirmed',
+                    type: mappedType as any,
                     title: notif.titulo,
                     message: notif.mensagem,
                     vacancyTitle: '',

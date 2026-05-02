@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { FaHome, FaBriefcase, FaUser, FaSignOutAlt, FaQuestionCircle, FaTimes } from "react-icons/fa";
+import { FaHome, FaBriefcase, FaUser, FaSignOutAlt, FaQuestionCircle, FaTimes, FaCalendarAlt } from "react-icons/fa";
 import { Building2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ContactForm } from "@/src/app/_components/ContactForm/ContactForm";
@@ -26,7 +26,7 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen, isCollapsed
     const navItems = [
         { label: t("sidebar_home"), href: "/company/dashboard", icon: FaHome, isLucide: false },
         { label: t("sidebar_vacancies"), href: "/company/vacancies", icon: FaBriefcase, isLucide: false },
-        { label: t("sidebar_onsite_schedule", "Entrevistas Presenciais"), href: "/company/onsite-schedule", icon: Building2, isLucide: true },
+        { label: t("sidebar_onsite_schedule", "Entrevistas"), href: "/company/interviews", icon: FaCalendarAlt, isLucide: false },
         { label: t("sidebar_profile"), href: "/company/profile", icon: FaUser, isLucide: false },
     ];
 

@@ -398,7 +398,7 @@ export function NotificationDropdown({
                               <button
                                 onClick={(e) => {
                                   e.preventDefault();
-                                  router.push(`/candidate/interviews/${notification.extraData!.entrevistaId}/confirm`);
+                                  router.push(`/candidate/interviews/onsite/${notification.extraData!.entrevistaId}/confirm`);
                                   setIsOpen(false);
                                 }}
                                 className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors cursor-pointer"

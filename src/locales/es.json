@@ -1970,7 +1970,7 @@
     "onsite_confirm_dispatch_desc": "El candidato recibirá una invitación para confirmar su asistencia en esta fecha y horario.",
     "onsite_selected_slot": "Horario Seleccionado",
     
-    "onsite_schedule_title": "Entrevistas Presenciales",
+    "onsite_schedule_title": "Entrevistas",
     "onsite_slot_singular": "horario",
     "onsite_slot_plural": "horarios",
     "onsite_confirmed_label": "confirmado(s)",
@@ -1997,7 +1997,7 @@
     "onsite_go_to_schedule": "Publicar Horarios",
     "onsite_add_slots_hint_modal": "Publica horarios en la página de Entrevistas Presenciales para poder convocar candidatos.",
     "schedule_presencial_desc_new": "Elige uno de los horarios publicados en la agenda de entrevistas presenciales y convoca al candidato.",
-    "sidebar_onsite_schedule": "Entrevistas Presenciales",
+    "sidebar_onsite_schedule": "Entrevistas",
     
     "onsite_status_confirmed": "Confirmada",
     "onsite_status_pending": "Esperando candidato",

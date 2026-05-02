@@ -77,11 +77,8 @@ export default function CandidateInterviewsClient({ interviews }: { interviews: 
             const [year, month, day] = m.data.split("-");
             
             if (m.type === 'presencial') {
-                if (year && month && day) {
-                    const endData = new Date(Number(year), Number(month) - 1, Number(day), 23, 59, 59);
-                    if (Date.now() > endData.getTime()) {
-                        isMeetingExpired = true;
-                    }
+                if (m.candidato_compareceu) {
+                    isMeetingExpired = true;
                 }
             } else if (m.hora_fim) {
                 const [hFim, mFim] = m.hora_fim.split(":");
@@ -109,7 +106,10 @@ export default function CandidateInterviewsClient({ interviews }: { interviews: 
         let statusColor = "bg-gray-100 text-gray-800 border-gray-200";
         let statusText = m.status;
 
-        if (m.isMeetingExpired && m.status === 'CONFIRMADA') {
+        if (m.candidato_compareceu) {
+            statusColor = "bg-blue-50 text-blue-700 border-blue-200";
+            statusText = t("candidate_interview_status_completed", { defaultValue: "Concluída" });
+        } else if (m.isMeetingExpired && m.status === 'CONFIRMADA') {
             statusColor = "bg-red-50 text-red-700 border-red-200";
             statusText = t("candidate_interview_status_expired", { defaultValue: "Expirada" });
         } else if (m.status === 'CONFIRMADA') {
@@ -164,10 +164,10 @@ export default function CandidateInterviewsClient({ interviews }: { interviews: 
 
                     <div className="flex flex-wrap items-center gap-2 mb-4">
                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] sm:text-[11px] font-semibold whitespace-nowrap ${statusColor}`}>
-                            {m.status === 'CONFIRMADA' && <CheckCircle size={10} />}
-                            {m.status === 'CONCLUIDA' && <CheckCircle size={10} />}
+                            {m.status === 'CONFIRMADA' && !m.candidato_compareceu && <CheckCircle size={10} />}
+                            {(m.status === 'CONCLUIDA' || m.candidato_compareceu) && <CheckCircle size={10} />}
                             {m.status === 'PENDENTE_CANDIDATO' && <AlertTriangle size={10} />}
-                            {(m.status === 'CANCELADA' || m.status === 'RECUSADA' || m.status === 'EXPIRADA') && <XCircle size={10} />}
+                            {(m.status === 'CANCELADA' || m.status === 'RECUSADA' || (m.status === 'EXPIRADA' && !m.candidato_compareceu)) && <XCircle size={10} />}
                             {statusText}
                         </span>
                         
@@ -193,7 +193,7 @@ export default function CandidateInterviewsClient({ interviews }: { interviews: 
 
                     <div className="mt-auto pt-2 flex flex-col gap-2">
                         {(isScheduled || isPending) && (
-                            <Link href={isOnline ? `/candidate/interviews/${m.id}/confirm` : `/candidate/interviews/onsite/${m.id}/confirm`} className={`inline-flex w-full items-center justify-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-${themeColor}-600 text-white hover:bg-${themeColor}-700 transition shadow-sm hover:shadow active:scale-95`}>
+                            <Link href={isOnline ? `/candidate/interviews/${m.id}/confirm` : (m.status === 'CONFIRMADA' ? `/candidate/interviews/onsite/${m.id}/details` : `/candidate/interviews/onsite/${m.id}/confirm`)} className={`inline-flex w-full items-center justify-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-${themeColor}-600 text-white hover:bg-${themeColor}-700 transition shadow-sm hover:shadow active:scale-95`}>
                                 {t("interview_card_details_btn", { defaultValue: "Ver Detalhes" })}
                                 <ChevronRight size={14} />
                             </Link>
@@ -231,8 +231,24 @@ export default function CandidateInterviewsClient({ interviews }: { interviews: 
         <div className="space-y-6">
             <div>
                 <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{t("interviews_page_title", { defaultValue: "Minhas Entrevistas" })}</h1>
-                <p className="text-slate-500 mt-2 text-sm leading-relaxed">{t("interviews_page_subtitle", { defaultValue: "Acompanhe suas entrevistas agendadas e acesse o histórico das sessões concluídas." })}</p>
+                <p className="text-slate-500 mt-2 text-sm leading-relaxed mb-6">{t("interviews_page_subtitle", { defaultValue: "Acompanhe suas entrevistas agendadas e acesse o histórico das sessões concluídas." })}</p>
             </div>
+
+            {pending.length > 0 && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3 shadow-sm">
+                    <div className="bg-amber-100 p-2 rounded-full flex-shrink-0 animate-pulse">
+                        <AlertTriangle className="w-5 h-5 text-amber-600" />
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-amber-900 text-sm">
+                            {t("interviews_pending_alert_title", { defaultValue: "Atenção: Você tem convites pendentes!" })}
+                        </h3>
+                        <p className="text-amber-700 text-xs mt-1">
+                            Você possui {pending.length} convite(s) de entrevista aguardando sua resposta na aba "Pendentes". Responda o quanto antes para não perder a oportunidade.
+                        </p>
+                    </div>
+                </div>
+            )}
 
             <div className="flex border-b border-slate-200 gap-6 overflow-x-auto no-scrollbar pb-1">
                 <button
@@ -255,9 +271,9 @@ export default function CandidateInterviewsClient({ interviews }: { interviews: 
                     className={`pb-3 whitespace-nowrap text-sm font-semibold transition-colors relative ${activeTab === 'pending' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
                 >
                     <div className="flex items-center gap-2 cursor-pointer">
-                        <Timer size={16} />
-                        {t("interviews_tab_pending", { defaultValue: "Pendentes" })}
-                        <span className={`inline-flex items-center justify-center h-5 px-2 rounded-full text-xs ${activeTab === 'pending' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
+                        <Timer size={16} className={pending.length > 0 ? "text-red-500 animate-pulse" : ""} />
+                        <span className={pending.length > 0 ? "text-red-600" : ""}>{t("interviews_tab_pending", { defaultValue: "Pendentes" })}</span>
+                        <span className={`inline-flex items-center justify-center h-5 px-2 rounded-full text-xs font-bold transition-all ${pending.length > 0 ? 'bg-red-500 text-white shadow-sm ring-2 ring-red-200 animate-pulse' : (activeTab === 'pending' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600')}`}>
                             {pending.length}
                         </span>
                     </div>
