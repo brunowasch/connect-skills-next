@@ -78,7 +78,7 @@ export function ScheduleInterviewModal({
             }
             setMentors(data.mentors || []);
         } catch {
-            toast.error("Erro ao carregar mentores.");
+            toast.error(t("schedule_error_load_mentors", "Error loading mentors."));
         } finally {
             setLoadingMentors(false);
         }
@@ -119,10 +119,10 @@ export function ScheduleInterviewModal({
                 setStep("success");
                 router.refresh();
             } else {
-                toast.error(data.error || "Erro ao agendar entrevista.");
+                toast.error(data.error || t("schedule_error_schedule", "Error scheduling interview."));
             }
         } catch {
-            toast.error("Erro de conexão. Tente novamente.");
+            toast.error(t("schedule_error_connection", "Connection error. Please try again."));
         } finally {
             setIsScheduling(false);
         }
@@ -296,7 +296,7 @@ export function ScheduleInterviewModal({
                                                             </span>
                                                         ) : (
                                                             <span className="text-xs text-amber-600 font-semibold bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                                                                Sem horários futuros
+                                                                {t("schedule_no_future_slots", "No future time slots")}
                                                             </span>
                                                         )}
                                                         <button
@@ -312,7 +312,7 @@ export function ScheduleInterviewModal({
                                                     <div className="border-t border-gray-100 px-4 pb-4">
                                                         {mentor.mentor_disponibilidade.length > 0 ? (
                                                             <>
-                                                                <p className="text-xs text-gray-400 mb-2 mt-3 font-medium uppercase tracking-wide">Próximos horários disponíveis</p>
+                                                                <p className="text-xs text-gray-400 mb-2 mt-3 font-medium uppercase tracking-wide">{t("schedule_upcoming_slots", "Upcoming available time slots")}</p>
                                                                 <div className="grid grid-cols-2 gap-2 mb-3">
                                                                     {mentor.mentor_disponibilidade.slice(0, 4).map((slot) => (
                                                                         <div key={slot.id} className="text-xs bg-gray-50 rounded-lg p-2 border border-gray-100">
@@ -329,7 +329,7 @@ export function ScheduleInterviewModal({
                                                                 </button>
                                                             </>
                                                         ) : (
-                                                            <p className="text-xs text-amber-600 mt-3 mb-1">Este mentor não possui horários futuros cadastrados.</p>
+                                                            <p className="text-xs text-amber-600 mt-3 mb-1">{t("schedule_mentor_no_future_slots", "This mentor has no future time slots registered.")}</p>
                                                         )}
                                                     </div>
                                                 )}
