@@ -32,7 +32,7 @@ export default async function Home() {
         <Carousel />
         <Hero />
         <About />
-        <ClientsSection />
+        {/* <ClientsSection /> */}
         <CTA />
         <Contact />
         <Footer />

@@ -29,7 +29,7 @@ export function About() {
           </div>
 
           {/* Cards */}
-          <div className="lg:col-span-8 cursor-pointer">
+          <div className="lg:col-span-8">
             <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
               <FeatureCard
                 icon={<HiIdentification />}

@@ -20,6 +20,7 @@ export default function CandidateLayout({
     notifications?: Notification[];
 }) {
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(false);
     const pathname = usePathname();
 
     const hideFooterPaths = ["/candidate/edit/area"];
@@ -34,17 +35,24 @@ export default function CandidateLayout({
                 <Sidebar
                     mobileOpen={mobileSidebarOpen}
                     setMobileOpen={setMobileSidebarOpen}
+                    isCollapsed={isCollapsed}
                 />
 
                 {/* Área principal */}
-                <div className="flex flex-1 flex-col transition-all duration-300 lg:ml-64 w-full min-w-0 overflow-x-hidden">
+                <div className={`flex flex-1 flex-col transition-all duration-300 ${isCollapsed ? 'lg:ml-20' : 'lg:ml-64'} w-full min-w-0 overflow-x-hidden`}>
 
                     {/* Header */}
                     <header className="flex h-20 items-center justify-between bg-white px-4 sm:px-6 shadow-sm sticky top-0 z-40 w-full max-w-full">
-                        <div className="flex items-center gap-4 lg:hidden">
+                        <div className="flex items-center gap-4">
                             <button
                                 onClick={() => setMobileSidebarOpen(true)}
-                                className="rounded-lg p-2.5 text-gray-600 hover:bg-gray-100 active:bg-gray-200 transition-colors cursor-pointer"
+                                className="lg:hidden rounded-lg p-2.5 text-gray-600 hover:bg-gray-100 active:bg-gray-200 transition-colors cursor-pointer"
+                            >
+                                <FaBars className="text-2xl" />
+                            </button>
+                            <button
+                                onClick={() => setIsCollapsed(!isCollapsed)}
+                                className="hidden lg:block rounded-lg p-2.5 text-gray-600 hover:bg-gray-100 active:bg-gray-200 transition-colors cursor-pointer"
                             >
                                 <FaBars className="text-2xl" />
                             </button>
@@ -54,7 +62,7 @@ export default function CandidateLayout({
                                 width={160}
                                 height={40}
                                 priority
-                                className="w-36 sm:w-40 h-auto"
+                                className="w-36 sm:w-40 h-auto lg:hidden"
                             />
                         </div>
 
@@ -77,7 +85,7 @@ export default function CandidateLayout({
 
             {/* Footer */}
             {!shouldHideFooter && (
-                <div className="flex flex-col transition-all duration-300 lg:ml-64">
+                <div className={`flex flex-col transition-all duration-300 ${isCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
                     <Footer />
                 </div>
             )}

@@ -2,41 +2,29 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FaWhatsapp } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
+import { useState } from "react";
+import { FaTimes } from "react-icons/fa";
+import { ContactForm } from "@/src/app/_components/ContactForm/ContactForm";
 
 export function Footer() {
   const { t } = useTranslation();
+  const [contactOpen, setContactOpen] = useState(false);
 
   return (
     <footer className="bg-blue-500 px-4 py-10 text-white">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-8 grid gap-8 md:grid-cols-3">
-          {/* Quem somos */}
-          <div>
+        <div className="mb-8 grid gap-8 sm:grid-cols-3">
+          <div className="sm:col-start-1">
             <h5 className="mb-2 text-lg font-semibold">{t("footer_who_we_are")}</h5>
             <p className="text-sm text-gray-200 text-justify">
               {t("footer_desc")}
             </p>
           </div>
 
-          {/* Contato */}
-          <div className="text-center">
-            <h5 className="mb-2 text-lg font-semibold">{t("contato")}</h5>
-            <p className="flex items-center justify-center gap-2 text-sm">
-              <FaWhatsapp className="text-green-400" />
-              <a
-                href="https://wa.me/5551992179330"
-                target="_blank"
-                className="hover:underline"
-              >
-                51 99217-9330
-              </a>
-            </p>
-          </div>
 
           {/* Links */}
-          <div className="text-center">
+          <div className="text-left sm:col-start-3">
             <h5 className="mb-2 text-lg font-semibold">{t("footer_links")}</h5>
             <ul className="space-y-1 text-sm">
               <li>
@@ -58,9 +46,9 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/help" className="hover:underline">
-                  {t("footer_help")}
-                </Link>
+                <button onClick={() => setContactOpen(true)} className="hover:underline text-left">
+                  {t("footer_contact", "Contato")}
+                </button>
               </li>
             </ul>
           </div>
@@ -85,6 +73,31 @@ export function Footer() {
           Connect Skills © 2025 - 2026. {t("footer_rights_reserved")}
         </div>
       </div>
-    </footer>
+
+      {
+        contactOpen && (
+          <div
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4 text-left text-gray-900"
+            onClick={() => setContactOpen(false)}
+          >
+            <div
+              className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl animate-fadeIn relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setContactOpen(false)}
+                className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+              >
+                <FaTimes />
+              </button>
+              <h2 className="mb-4 text-lg font-semibold text-slate-900">
+                {t("footer_contact", "Contato")}
+              </h2>
+              <ContactForm variant="compact" />
+            </div>
+          </div>
+        )
+      }
+    </footer >
   );
 }

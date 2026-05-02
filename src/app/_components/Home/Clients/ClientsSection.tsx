@@ -1,7 +1,6 @@
 "use client";
 
 import { ClientLogoCard } from "./ClientLogoCard";
-import { FaWhatsapp } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 
 export function ClientsSection() {
@@ -27,15 +26,6 @@ export function ClientsSection() {
                 <p className="mb-1 font-semibold text-gray-800">
                   {t("clients_want_to_be")}
                 </p>
-
-                <a
-                  href="https://wa.me/5551992179330"
-                  target="_blank"
-                  className="flex items-center gap-2 font-semibold text-green-600 hover:underline"
-                >
-                  <FaWhatsapp className="text-xl" />
-                  +55 51 99217-9330
-                </a>
               </div>
             </div>
 

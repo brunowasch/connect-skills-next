@@ -690,3 +690,40 @@ export async function sendMentorFeedbackToCompanyEmail(
     return false;
   }
 }
+
+export async function sendContactEmail(
+  fullName: string,
+  userType: string,
+  subject: string,
+  message: string
+) {
+  const adminEmail = "connect0skills@gmail.com";
+  
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to: adminEmail,
+    subject: `[Contato - ${userType}] ${subject}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+        <h2 style="color: #4F46E5; text-align: center;">Nova Mensagem de Contato</h2>
+        
+        <p><strong>Nome:</strong> ${fullName}</p>
+        <p><strong>Tipo de Usuário:</strong> ${userType}</p>
+        <p><strong>Assunto:</strong> ${subject}</p>
+        
+        <div style="background-color: #f9fafb; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; margin-top: 20px;">
+            <p style="font-weight: bold; color: #374151; margin-bottom: 5px;">Mensagem:</p>
+            <p style="color: #4b5563; font-style: italic; white-space: pre-wrap;">${message}</p>
+        </div>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error("Erro ao enviar email de contato:", error);
+    return false;
+  }
+}

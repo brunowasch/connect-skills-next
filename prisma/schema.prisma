@@ -388,3 +388,12 @@ enum vaga_vinculo_empregaticio {
   Freelancer_Autonomo
   Temporario
 }
+
+model contact {
+  id         Int      @id @default(autoincrement())
+  fullName   String   @db.VarChar(200)
+  userType   String   @db.VarChar(50)
+  subject    String   @db.VarChar(300)
+  message    String   @db.Text
+  createdAt  DateTime @default(now())
+}
