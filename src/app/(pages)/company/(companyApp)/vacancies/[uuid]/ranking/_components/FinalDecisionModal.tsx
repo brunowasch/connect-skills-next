@@ -65,6 +65,7 @@ export function FinalDecisionModal({ isOpen, onClose, candidateName, candidateId
     const [status, setStatus] = useState<'APPROVED' | 'REJECTED' | null>(null);
     const [mensagem, setMensagem] = useState("");
     const [salario, setSalario] = useState("");
+    const [salarioDisplay, setSalarioDisplay] = useState("");
     const [moeda, setMoeda] = useState("BRL");
     const [dataInicio, setDataInicio] = useState("");
     const [modeloTrabalho, setModeloTrabalho] = useState("Presencial");
@@ -79,13 +80,23 @@ export function FinalDecisionModal({ isOpen, onClose, candidateName, candidateId
     const [step, setStep] = useState<SubmitStep>('idle');
     const [analysis, setAnalysis] = useState<FeedbackAnalysis | null>(null);
     const [analysisError, setAnalysisError] = useState<string | null>(null);
+    const [dateError, setDateError] = useState<string | null>(null);
+
+    const formatSalarioDisplay = (raw: string, currency: string) => {
+        const num = parseFloat(raw.replace(/[^0-9,]/g, '').replace(',', '.'));
+        if (isNaN(num)) return raw;
+        const locale = currency === 'BRL' ? 'pt-BR' : currency === 'EUR' ? 'de-DE' : 'en-US';
+        return num.toLocaleString(locale, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    };
 
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
             setStatus(null);
             setMensagem("");
-            setSalario(vacancyDetails?.salario ? String(vacancyDetails.salario) : "");
+            const initialSalario = vacancyDetails?.salario ? String(vacancyDetails.salario) : "";
+            setSalario(initialSalario);
+            setSalarioDisplay(initialSalario ? formatSalarioDisplay(initialSalario, vacancyDetails?.moeda || 'BRL') : "");
             setMoeda(vacancyDetails?.moeda || "BRL");
             setDataInicio("");
             setModeloTrabalho(vacancyDetails?.tipo_local_trabalho || "Presencial");
@@ -107,6 +118,43 @@ export function FinalDecisionModal({ isOpen, onClose, candidateName, candidateId
         }
     };
 
+    const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setDataInicio(value);
+        if (!value) {
+            setDateError(null);
+            return;
+        }
+        const selected = new Date(`${value}T00:00:00`);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (selected < today) {
+            setDateError('Data de início inválida!');
+        } else {
+            setDateError(null);
+        }
+    };
+
+    const handleSalarioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        // Remove tudo que não for dígito ou vírgula/ponto
+        const raw = e.target.value.replace(/[^0-9]/g, '');
+        if (raw === '') {
+            setSalario('');
+            setSalarioDisplay('');
+            return;
+        }
+        // Guarda o valor numérico puro (sem formatação) para submissão
+        const numericValue = (parseInt(raw, 10) / 100).toFixed(2);
+        setSalario(String(parseFloat(numericValue)));
+        // Formata para exibição
+        const locale = moeda === 'BRL' ? 'pt-BR' : moeda === 'EUR' ? 'de-DE' : 'en-US';
+        const formatted = parseFloat(numericValue).toLocaleString(locale, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        });
+        setSalarioDisplay(formatted);
+    };
+
     const handleAnalyze = async () => {
         if (!status) {
             toast.error("Selecione um status");
@@ -120,6 +168,10 @@ export function FinalDecisionModal({ isOpen, onClose, candidateName, candidateId
         if (status === 'APPROVED') {
             if (!salario || !dataInicio || !localizacao) {
                 toast.error("Preencha todos os campos da proposta.");
+                return;
+            }
+            if (dateError) {
+                toast.error(dateError);
                 return;
             }
         }
@@ -273,11 +325,12 @@ export function FinalDecisionModal({ isOpen, onClose, candidateName, candidateId
                                             <option value="EUR">€</option>
                                         </select>
                                         <input
-                                            type="number"
-                                            value={salario}
-                                            onChange={e => setSalario(e.target.value)}
+                                            type="text"
+                                            inputMode="numeric"
+                                            value={salarioDisplay}
+                                            onChange={handleSalarioChange}
                                             disabled={!canEdit || isSalarioFixed}
-                                            placeholder="Ex: 5000"
+                                            placeholder="Ex: 5.000,00"
                                             className="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-r-lg text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-50 disabled:text-slate-500"
                                         />
                                     </div>
@@ -291,10 +344,19 @@ export function FinalDecisionModal({ isOpen, onClose, candidateName, candidateId
                                         type="date"
                                         value={dataInicio}
                                         min={new Date().toISOString().split('T')[0]}
-                                        onChange={e => setDataInicio(e.target.value)}
+                                        onChange={handleDateChange}
                                         disabled={!canEdit}
-                                        className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                                        className={`w-full px-3 py-2 bg-white border rounded-lg text-sm outline-none focus:ring-1 transition-colors
+                                            ${dateError
+                                                ? 'border-red-400 focus:border-red-500 focus:ring-red-200'
+                                                : 'border-slate-300 focus:border-indigo-500 focus:ring-indigo-500'}`}
                                     />
+                                    {dateError && (
+                                        <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                                            <AlertTriangle size={11} />
+                                            {dateError}
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div>
@@ -457,8 +519,8 @@ export function FinalDecisionModal({ isOpen, onClose, candidateName, candidateId
                         onClick={primaryButton.action}
                         disabled={isSubmitDisabled}
                         className={`px-6 py-2 rounded-lg font-bold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 ${step === 'ready'
-                                ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                                : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                            : 'bg-indigo-600 hover:bg-indigo-700 text-white'
                             }`}
                     >
                         {(isAnalyzing || step === 'submitting') && (

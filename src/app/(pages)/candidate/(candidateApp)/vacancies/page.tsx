@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { prisma } from "@/src/lib/prisma";
 import { VacanciesClientContent } from "./_components/VacanciesClientContent";
 import { Vacancy } from "@/src/app/(pages)/candidate/(candidateApp)/types/Vacancy";
+import { ProposalAlert } from "@/src/app/(pages)/candidate/(candidateApp)/dashboard/_components/ProposalAlert";
 
 async function getVacancies(searchParams?: { q?: string; loc?: string; type?: string; all?: string; tab?: string }) {
     const cookieStore = await cookies();
@@ -385,6 +386,38 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
     return { vagas: vacancies, areas, count: vacancies.length, isSearch, isAll, isFavorites, isHistory, allFavoritesCount: favoriteIds.length, appliedCount: appliedVacanciesIds.length };
 }
 
+async function getPropostas(candidateId: string) {
+    const propostasRaw = await (prisma as any).proposta.findMany({
+        where: { candidato_id: candidateId },
+        orderBy: { criado_em: 'desc' }
+    });
+    return Promise.all(propostasRaw.map(async (proposta: any) => {
+        const vaga = await prisma.vaga.findUnique({
+            where: { id: proposta.vaga_id },
+            select: { cargo: true, uuid: true, empresa_id: true }
+        });
+        let empresa = null;
+        if (vaga?.empresa_id) {
+            empresa = await prisma.empresa.findUnique({
+                where: { id: vaga.empresa_id },
+                select: { nome_empresa: true, foto_perfil: true }
+            });
+        }
+        return {
+            id: proposta.id,
+            vaga_uuid: vaga?.uuid || proposta.vaga_id,
+            cargo: vaga?.cargo || 'Vaga',
+            empresa_nome: empresa?.nome_empresa || 'Empresa',
+            empresa_foto: empresa?.foto_perfil || null,
+            status: proposta.status,
+            salario: proposta.salario ? Number(proposta.salario) : null,
+            moeda: proposta.moeda || null,
+            data_inicio: proposta.data_inicio || null,
+            criado_em: proposta.criado_em?.toISOString() || new Date().toISOString(),
+        };
+    }));
+}
+
 export default async function VacanciesPage({
     searchParams
 }: {
@@ -393,17 +426,30 @@ export default async function VacanciesPage({
     const params = await searchParams;
     const { vagas, areas, count, isSearch, isAll, isFavorites, isHistory, allFavoritesCount, appliedCount } = await getVacancies(params);
 
+    const cookieStore = await cookies();
+    const userId = cookieStore.get("time_user_id")?.value;
+    let propostas: any[] = [];
+    if (userId) {
+        const candidate = await prisma.candidato.findUnique({ where: { usuario_id: userId }, select: { id: true } });
+        if (candidate) {
+            propostas = await getPropostas(candidate.id);
+        }
+    }
+
     return (
-        <VacanciesClientContent
-            vagas={vagas as any}
-            areas={areas}
-            count={count}
-            isSearch={isSearch}
-            isAll={isAll}
-            isFavorites={isFavorites}
-            isHistory={isHistory}
-            allFavoritesCount={allFavoritesCount}
-            appliedCount={appliedCount}
-        />
+        <>
+            <ProposalAlert propostas={propostas} />
+            <VacanciesClientContent
+                vagas={vagas as any}
+                areas={areas}
+                count={count}
+                isSearch={isSearch}
+                isAll={isAll}
+                isFavorites={isFavorites}
+                isHistory={isHistory}
+                allFavoritesCount={allFavoritesCount}
+                appliedCount={appliedCount}
+            />
+        </>
     );
 }

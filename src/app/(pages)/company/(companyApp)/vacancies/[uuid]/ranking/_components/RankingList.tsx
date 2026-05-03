@@ -70,11 +70,13 @@ interface RankingListProps {
         estado?: string | null;
     } | null;
     pendingCandidateId?: string;
+    vagasDisponiveis?: number | null;
+    propostasEnviadas?: number;
 }
 
 type SortOption = 'score' | 'score_D' | 'score_I' | 'score_S' | 'score_C';
 
-export function RankingList({ candidates, vacancyUuid, vacancy, pendingCandidateId }: RankingListProps) {
+export function RankingList({ candidates, vacancyUuid, vacancy, pendingCandidateId, vagasDisponiveis, propostasEnviadas = 0 }: RankingListProps) {
     const { t } = useTranslation();
     const [sortBy, setSortBy] = useState<SortOption>('score');
     const [filter, setFilter] = useState<'all' | 'approved' | 'rejected' | 'final_decision'>('all');
@@ -90,8 +92,15 @@ export function RankingList({ candidates, vacancyUuid, vacancy, pendingCandidate
     const [viewMentorFeedbackCandidate, setViewMentorFeedbackCandidate] = useState<string | null>(null);
     const [showFinalDecision, setShowFinalDecision] = useState(false);
     const [finalDecisionCandidate, setFinalDecisionCandidate] = useState<Candidate | null>(null);
+    const [showLastSlotWarning, setShowLastSlotWarning] = useState(false);
+    const [pendingFinalDecisionCandidate, setPendingFinalDecisionCandidate] = useState<Candidate | null>(null);
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
+
+    // Calcular slots restantes
+    const slotsRestantes = vagasDisponiveis != null ? vagasDisponiveis - propostasEnviadas : null;
+    const limiteAtingido = slotsRestantes != null && slotsRestantes <= 0;
+    const ultimaVaga = slotsRestantes === 1;
 
     // Parse breakdown to extract DISC scores
     const parseBreakdown = (breakdown: string | null | undefined) => {
@@ -198,6 +207,17 @@ export function RankingList({ candidates, vacancyUuid, vacancy, pendingCandidate
         }
     };
 
+    const handleFinalDecisionClick = (candidate: Candidate) => {
+        if (limiteAtingido) return;
+        if (ultimaVaga) {
+            setPendingFinalDecisionCandidate(candidate);
+            setShowLastSlotWarning(true);
+        } else {
+            setFinalDecisionCandidate(candidate);
+            setShowFinalDecision(true);
+        }
+    };
+
     const handleFinalDecisionSubmit = async (data: ProposalData) => {
         if (!finalDecisionCandidate) return;
 
@@ -288,6 +308,32 @@ export function RankingList({ candidates, vacancyUuid, vacancy, pendingCandidate
             )}
 
             <div className="flex flex-col gap-4 mb-6">
+                {/* Indicador de vagas disponíveis — só exibe se há candidatos aprovados aguardando decisão */}
+                {vagasDisponiveis != null && (() => {
+                    const candidatosAprovadosSemDecisao = candidates.some(c => {
+                        const bd = parseBreakdown(c.application?.breakdown);
+                        return bd.feedback?.status === 'APPROVED' && !bd.finalDecision?.status;
+                    });
+                    if (!candidatosAprovadosSemDecisao && !limiteAtingido) return null;
+                    return (
+                        <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-medium
+                            ${limiteAtingido
+                                ? 'bg-red-50 border-red-200 text-red-700'
+                                : ultimaVaga
+                                    ? 'bg-amber-50 border-amber-200 text-amber-700'
+                                    : 'bg-blue-50 border-blue-100 text-blue-700'}`}>
+                            <Trophy size={16} className="shrink-0" />
+                            <span>
+                                {limiteAtingido
+                                    ? `Limite de propostas atingido. Você enviou ${propostasEnviadas} de ${vagasDisponiveis} proposta(s) permitida(s).`
+                                    : ultimaVaga
+                                        ? `Última vaga disponível! ${propostasEnviadas} de ${vagasDisponiveis} proposta(s) enviada(s).`
+                                        : `${propostasEnviadas} de ${vagasDisponiveis} proposta(s) enviada(s). Ainda há ${slotsRestantes} vaga(s) disponível(eis).`}
+                            </span>
+                        </div>
+                    );
+                })()}
+
                 {/* Header Controls */}
                 <div className="flex justify-between items-center bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-xl border border-blue-100">
                     <div className="flex items-center gap-3">
@@ -606,14 +652,18 @@ export function RankingList({ candidates, vacancyUuid, vacancy, pendingCandidate
                                             </button>
 
                                             <button
-                                                onClick={() => {
-                                                    setFinalDecisionCandidate(candidate);
-                                                    setShowFinalDecision(true);
-                                                }}
-                                                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm transition-colors cursor-pointer"
+                                                onClick={() => handleFinalDecisionClick(candidate)}
+                                                disabled={limiteAtingido}
+                                                title={limiteAtingido ? `Limite de ${vagasDisponiveis} proposta(s) atingido` : 'Decisão Final'}
+                                                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-colors cursor-pointer
+                                                    ${limiteAtingido
+                                                        ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
+                                                        : ultimaVaga
+                                                            ? 'bg-amber-500 text-white hover:bg-amber-600'
+                                                            : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
                                             >
                                                 <Trophy size={14} />
-                                                Decisão Final
+                                                {limiteAtingido ? 'Limite Atingido' : 'Decisão Final'}
                                             </button>
                                         </>
                                     )}
@@ -806,6 +856,46 @@ export function RankingList({ candidates, vacancyUuid, vacancy, pendingCandidate
                     vacancyDetails={vacancy}
                     onSubmit={handleFinalDecisionSubmit}
                 />
+            )}
+
+            {showLastSlotWarning && pendingFinalDecisionCandidate && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in-95 duration-200">
+                        <div className="w-14 h-14 bg-amber-50 border border-amber-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <AlertTriangle size={28} className="text-amber-500" />
+                        </div>
+                        <h3 className="text-xl font-bold text-slate-900 text-center mb-2">Atenção: Última vaga disponível!</h3>
+                        <p className="text-slate-600 text-center text-sm mb-2 leading-relaxed">
+                            Esta é a <strong>última proposta</strong> que você pode enviar para esta vaga.
+                        </p>
+                        <p className="text-slate-500 text-center text-sm mb-6 leading-relaxed">
+                            Após enviar esta proposta para <strong>{`${pendingFinalDecisionCandidate.nome || ''} ${pendingFinalDecisionCandidate.sobrenome || ''}`.trim()}</strong>, o botão de Decisão Final será bloqueado para os demais candidatos.
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => {
+                                    setShowLastSlotWarning(false);
+                                    setPendingFinalDecisionCandidate(null);
+                                }}
+                                className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-colors cursor-pointer"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setShowLastSlotWarning(false);
+                                    setFinalDecisionCandidate(pendingFinalDecisionCandidate);
+                                    setPendingFinalDecisionCandidate(null);
+                                    setShowFinalDecision(true);
+                                }}
+                                className="flex-1 px-4 py-2.5 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors cursor-pointer flex items-center justify-center gap-2"
+                            >
+                                <Trophy size={16} />
+                                Entendi, Continuar
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </>
     );

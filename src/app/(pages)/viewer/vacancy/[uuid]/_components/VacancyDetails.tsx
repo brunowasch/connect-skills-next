@@ -852,9 +852,6 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                 {applicationProposta && applicationProposta.status === 'PENDENTE_CANDIDATO' && (
                     <div className="mb-8 bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 rounded-xl p-6 sm:p-8 shadow-sm">
                         <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
-                            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm shrink-0 border border-indigo-100">
-                                <Sparkles size={32} className="text-indigo-500" />
-                            </div>
                             <div className="flex-1 min-w-0">
                                 <h2 className="text-2xl font-bold text-indigo-900 mb-2">Você recebeu uma proposta!</h2>
                                 <p className="text-indigo-800/80 mb-4 text-sm sm:text-base">

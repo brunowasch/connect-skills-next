@@ -40,7 +40,7 @@ export async function POST(req: Request) {
         // Buscar avaliação existente
         const dataInicioObj = data_inicio ? new Date(`${data_inicio}T00:00:00`) : null;
         if (dataInicioObj && dataInicioObj < new Date(new Date().setHours(0, 0, 0, 0))) {
-            return NextResponse.json({ error: 'A data de início não pode ser no passado' }, { status: 400 });
+            return NextResponse.json({ error: 'Data de início inválida!' }, { status: 400 });
         }
 
         const avaliacao = await prisma.vaga_avaliacao.findUnique({
@@ -54,6 +54,34 @@ export async function POST(req: Request) {
 
         if (!avaliacao) {
             return NextResponse.json({ error: 'Avaliação não encontrada' }, { status: 404 });
+        }
+
+        const vagaParaLimite = await prisma.vaga.findUnique({
+            where: { id: vaga_id },
+            select: { opcao: true }
+        });
+
+        if (vagaParaLimite?.opcao) {
+            try {
+                const opcao = typeof vagaParaLimite.opcao === 'string'
+                    ? JSON.parse(vagaParaLimite.opcao)
+                    : vagaParaLimite.opcao;
+                const limite = opcao?.vagas_disponiveis ? Number(opcao.vagas_disponiveis) : null;
+
+                if (limite != null) {
+                    const propostasAtivas = await (prisma as any).proposta.count({
+                        where: {
+                            vaga_id,
+                            status: { in: ['PENDENTE_CANDIDATO', 'ACEITA'] }
+                        }
+                    });
+                    if (propostasAtivas >= limite) {
+                        return NextResponse.json({
+                            error: `Limite de ${limite} proposta(s) para esta vaga já foi atingido.`
+                        }, { status: 400 });
+                    }
+                }
+            } catch { }
         }
 
         let breakdown = {};

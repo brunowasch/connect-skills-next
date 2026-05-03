@@ -20,9 +20,11 @@ interface RankingPageContentProps {
     candidates?: any[];
     vacancyUuid?: string;
     pendingCandidateId?: string;
+    vagasDisponiveis?: number | null;
+    propostasEnviadas?: number;
 }
 
-export function RankingPageContent({ state, vacancy, candidates, vacancyUuid, pendingCandidateId }: RankingPageContentProps) {
+export function RankingPageContent({ state, vacancy, candidates, vacancyUuid, pendingCandidateId, vagasDisponiveis, propostasEnviadas }: RankingPageContentProps) {
     const { t } = useTranslation();
 
     const renderContent = () => {
@@ -52,7 +54,7 @@ export function RankingPageContent({ state, vacancy, candidates, vacancyUuid, pe
                         <p className="text-gray-500">{t('ranking_subtitle')}</p>
                     </div>
                 </div>
-                {candidates && vacancyUuid && <RankingList candidates={candidates} vacancyUuid={vacancyUuid} vacancy={vacancy} pendingCandidateId={pendingCandidateId} />}
+                {candidates && vacancyUuid && <RankingList candidates={candidates} vacancyUuid={vacancyUuid} vacancy={vacancy} pendingCandidateId={pendingCandidateId} vagasDisponiveis={vagasDisponiveis ?? null} propostasEnviadas={propostasEnviadas ?? 0} />}
             </>
         );
     };

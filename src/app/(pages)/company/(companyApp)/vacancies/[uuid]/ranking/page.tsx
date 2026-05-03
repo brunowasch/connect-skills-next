@@ -34,6 +34,21 @@ export default async function RankingPage({ params, searchParams }: Props) {
         return <RankingPageContent state="not_found" />;
     }
 
+    const propostasAtivas = await (prisma as any).proposta.count({
+        where: {
+            vaga_id: vacancy.id,
+            status: { in: ['PENDENTE_CANDIDATO', 'ACEITA'] }
+        }
+    });
+
+    let vagasDisponiveis: number | null = null;
+    if (vacancy.opcao) {
+        try {
+            const opcao = typeof vacancy.opcao === 'string' ? JSON.parse(vacancy.opcao) : vacancy.opcao;
+            vagasDisponiveis = opcao?.vagas_disponiveis ? Number(opcao.vagas_disponiveis) : null;
+        } catch { }
+    }
+
     const vacancyId = vacancy.id;
 
     const applications = await prisma.vaga_avaliacao.findMany({
@@ -54,9 +69,9 @@ export default async function RankingPage({ params, searchParams }: Props) {
 
     const interviews = await prisma.entrevista_mentor.findMany({
         where: { vaga_id: vacancyId },
-        select: { 
+        select: {
             id: true,
-            candidato_id: true, 
+            candidato_id: true,
             mentor_id: true,
             status: true,
             feedback_comportamental: true,
@@ -94,7 +109,7 @@ export default async function RankingPage({ params, searchParams }: Props) {
         const app = applications.find(a => a.candidato_id === c.id);
         const interview = interviews.find(i => i.candidato_id === c.id);
         const onsiteInterview = onsiteInterviews.find((i: any) => i.candidato_id === c.id);
-        
+
         let finalStatus = interview?.status;
         if (!finalStatus && onsiteInterview) {
             finalStatus = onsiteInterview.status;
@@ -139,8 +154,8 @@ export default async function RankingPage({ params, searchParams }: Props) {
     return (
         <RankingPageContent
             state="success"
-            vacancy={{ 
-                cargo: vacancy.cargo, 
+            vacancy={{
+                cargo: vacancy.cargo,
                 id: vacancy.id,
                 salario: vacancy.salario ? Number(vacancy.salario) : null,
                 moeda: vacancy.moeda,
@@ -151,6 +166,8 @@ export default async function RankingPage({ params, searchParams }: Props) {
             candidates={candidatesWithApp}
             vacancyUuid={vacancyUuid}
             pendingCandidateId={pendingCandidate}
+            vagasDisponiveis={vagasDisponiveis}
+            propostasEnviadas={propostasAtivas}
         />
     );
 }
