@@ -20,8 +20,15 @@ export default async function RankingPage({ params, searchParams }: Props) {
                 { uuid: vacancyUuid },
                 { id: vacancyUuid }
             ]
-        },
+        }
     });
+
+    let company = null;
+    if (vacancy?.empresa_id) {
+        company = await prisma.empresa.findUnique({
+            where: { id: vacancy.empresa_id }
+        });
+    }
 
     if (!vacancy) {
         return <RankingPageContent state="not_found" />;
@@ -132,7 +139,15 @@ export default async function RankingPage({ params, searchParams }: Props) {
     return (
         <RankingPageContent
             state="success"
-            vacancy={{ cargo: vacancy.cargo, id: vacancy.id }}
+            vacancy={{ 
+                cargo: vacancy.cargo, 
+                id: vacancy.id,
+                salario: vacancy.salario ? Number(vacancy.salario) : null,
+                moeda: vacancy.moeda,
+                tipo_local_trabalho: vacancy.tipo_local_trabalho,
+                cidade: company?.cidade,
+                estado: company?.estado
+            }}
             candidates={candidatesWithApp}
             vacancyUuid={vacancyUuid}
             pendingCandidateId={pendingCandidate}

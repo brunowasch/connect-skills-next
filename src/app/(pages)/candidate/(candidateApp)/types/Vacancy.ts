@@ -31,6 +31,7 @@ export interface Vacancy {
     isDraft?: boolean;
     currentSection?: number;
     totalSections?: number;
+    propostaStatus?: 'PENDENTE_CANDIDATO' | 'ACEITA' | 'RECUSADA' | null;
 }
 
 export interface RecommendedVacancyProps {

@@ -747,7 +747,7 @@ export async function sendContactEmail(
   message: string
 ) {
   const adminEmail = "connect0skills@gmail.com";
-  
+
   const mailOptions = {
     from: process.env.EMAIL_FROM,
     to: adminEmail,
@@ -773,6 +773,50 @@ export async function sendContactEmail(
     return true;
   } catch (error) {
     console.error("Erro ao enviar email de contato:", error);
+    return false;
+  }
+}
+
+export async function sendProposalEmail(
+  candidateEmail: string,
+  candidateName: string,
+  companyName: string,
+  vacancyTitle: string,
+  vacancyLink: string,
+) {
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to: candidateEmail,
+    subject: `Você recebeu uma proposta de emprego! - ${vacancyTitle}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+        <h2 style="color: #4F46E5; text-align: center;">Parabéns! Você recebeu uma proposta!</h2>
+        <p style="text-align: center; color: #555;">Olá <strong>${candidateName}</strong>,</p>
+        <p style="text-align: center; color: #555;">
+          A empresa <strong>${companyName}</strong> enviou uma proposta formal para a vaga de <strong>${vacancyTitle}</strong>.
+        </p>
+        <p style="text-align: center; color: #555;">
+          Acesse a plataforma Connect Skills para ver os detalhes (salário, modelo de trabalho, data de início) e dar a sua resposta.
+        </p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${vacancyLink}" style="background-color: #4F46E5; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
+            Ver Proposta e Responder
+          </a>
+        </div>
+        <p style="text-align: center; color: #555;">ou copie o link abaixo:</p>
+        <p style="text-align: center; word-break: break-all; color: #4F46E5;">${vacancyLink}</p>
+        <p style="text-align: center; font-size: 14px; color: #666; margin-top: 30px;">
+          Você pode aceitar ou recusar diretamente pela plataforma. Boa sorte!
+        </p>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error("Erro ao enviar email de proposta:", error);
     return false;
   }
 }

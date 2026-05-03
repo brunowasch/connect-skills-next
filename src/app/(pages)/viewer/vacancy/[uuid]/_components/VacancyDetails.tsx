@@ -25,6 +25,7 @@ import {
     Lock,
     BarChart3,
     X,
+    XCircle,
     AlertCircle,
     RotateCcw,
     Trash2,
@@ -120,12 +121,13 @@ interface VacancyDetailsProps {
 
     applicationResponses?: any;
     applicationBreakdown?: any;
+    applicationProposta?: any;
     isDraft?: boolean;
 }
 
 import { useTranslation } from "react-i18next";
 
-export function VacancyDetails({ vacancy, company, isActive, applicationCount, userType, isOwner, userId, hasApplied, applicationResponses, applicationBreakdown, isDraft }: VacancyDetailsProps) {
+export function VacancyDetails({ vacancy, company, isActive, applicationCount, userType, isOwner, userId, hasApplied, applicationResponses, applicationBreakdown, applicationProposta, isDraft }: VacancyDetailsProps) {
     const { t, i18n } = useTranslation();
     const router = useRouter();
     const stickyCardRef = useRef<HTMLDivElement>(null);
@@ -151,6 +153,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
     const [hasScroll, setHasScroll] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [isRecordingMode, setIsRecordingMode] = useState(false);
+    const [isProcessingProposal, setIsProcessingProposal] = useState(false);
     const isApplyingRef = useRef(false);
 
     useEffect(() => {
@@ -669,6 +672,41 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
         video.src = URL.createObjectURL(file);
     };
 
+    const handleProposalDecision = async (action: 'ACEITAR' | 'RECUSAR') => {
+        setModal({
+            isOpen: true,
+            title: action === 'ACEITAR' ? 'Aceitar Proposta' : 'Recusar Proposta',
+            description: action === 'ACEITAR'
+                ? 'Deseja realmente aceitar esta proposta de emprego? A empresa será notificada da sua decisão e entrará em contato para os próximos passos.'
+                : 'Deseja realmente recusar esta proposta? Esta ação não pode ser desfeita.',
+            confirmText: action === 'ACEITAR' ? 'Sim, Aceitar Proposta' : 'Sim, Recusar',
+            variant: action === 'ACEITAR' ? 'success' : 'danger',
+            onConfirm: async () => {
+                if (isProcessingProposal) return;
+                setIsProcessingProposal(true);
+                try {
+                    const res = await fetch('/api/candidate/proposal', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ propostaId: applicationProposta.id, action })
+                    });
+
+                    if (!res.ok) {
+                        throw new Error('Erro ao processar decisão');
+                    }
+
+                    toast.success(action === 'ACEITAR' ? 'Proposta aceita com sucesso!' : 'Proposta recusada com sucesso.');
+                    setModal(prev => ({ ...prev, isOpen: false }));
+                    router.refresh();
+                } catch (error) {
+                    toast.error('Erro ao processar sua decisão. Tente novamente.');
+                } finally {
+                    setIsProcessingProposal(false);
+                }
+            }
+        });
+    };
+
     const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -811,6 +849,94 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
 
             {/* Conteúdo principal */}
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {applicationProposta && applicationProposta.status === 'PENDENTE_CANDIDATO' && (
+                    <div className="mb-8 bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 rounded-xl p-6 sm:p-8 shadow-sm">
+                        <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
+                            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm shrink-0 border border-indigo-100">
+                                <Sparkles size={32} className="text-indigo-500" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <h2 className="text-2xl font-bold text-indigo-900 mb-2">Você recebeu uma proposta!</h2>
+                                <p className="text-indigo-800/80 mb-4 text-sm sm:text-base">
+                                    A empresa {company?.nome_empresa} enviou uma proposta final para você. Revise os termos e tome sua decisão.
+                                </p>
+
+                                <div className="bg-white rounded-lg p-5 border border-indigo-100 shadow-sm">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Salário</p>
+                                            <p className="font-medium text-gray-900">{formatSalary(applicationProposta.salario, applicationProposta.moeda)}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Data de Início</p>
+                                            <p className="font-medium text-gray-900">{applicationProposta.data_inicio ? new Date(applicationProposta.data_inicio).toLocaleDateString() : 'A combinar'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Modelo de Trabalho</p>
+                                            <p className="font-medium text-gray-900">{applicationProposta.modelo_trabalho ? (tipoLocalTrabalhoMap[applicationProposta.modelo_trabalho]?.label || applicationProposta.modelo_trabalho) : 'Não especificado'}</p>
+                                        </div>
+                                        {applicationProposta.localizacao && (
+                                            <div>
+                                                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Localização</p>
+                                                <p className="font-medium text-gray-900">{applicationProposta.localizacao}</p>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {applicationProposta.mensagem && (
+                                        <div className="mt-4 pt-4 border-t border-gray-100">
+                                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Mensagem da Empresa</p>
+                                            <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-700 whitespace-pre-wrap">
+                                                {applicationProposta.mensagem}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                                    <button
+                                        onClick={() => handleProposalDecision('ACEITAR')}
+                                        disabled={isProcessingProposal}
+                                        className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-xl transition-all shadow-md shadow-indigo-200 active:scale-95 disabled:opacity-50 disabled:active:scale-100 cursor-pointer"
+                                    >
+                                        Aceitar Proposta
+                                    </button>
+                                    <button
+                                        onClick={() => handleProposalDecision('RECUSAR')}
+                                        disabled={isProcessingProposal}
+                                        className="flex-1 bg-white hover:bg-red-50 text-red-600 font-semibold py-3 px-6 rounded-xl border border-red-200 transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100 cursor-pointer"
+                                    >
+                                        Recusar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {applicationProposta && applicationProposta.status === 'ACEITA' && (
+                    <div className="mb-8 bg-emerald-50 border border-emerald-200 rounded-xl p-6 shadow-sm flex items-center gap-4">
+                        <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center border border-emerald-100 shrink-0">
+                            <CheckCircle2 size={24} className="text-emerald-500" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-emerald-900 text-lg">Proposta Aceita!</h3>
+                            <p className="text-emerald-800 text-sm mt-1">Você aceitou a proposta para esta vaga. A empresa entrará em contato em breve para dar andamento no processo de contratação.</p>
+                        </div>
+                    </div>
+                )}
+
+                {applicationProposta && applicationProposta.status === 'RECUSADA' && (
+                    <div className="mb-8 bg-red-50 border border-red-200 rounded-xl p-6 shadow-sm flex items-center gap-4">
+                        <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center border border-red-100 shrink-0">
+                            <XCircle size={24} className="text-red-500" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-red-900 text-lg">Proposta Recusada</h3>
+                            <p className="text-red-800 text-sm mt-1">Você recusou a proposta da empresa para esta vaga.</p>
+                        </div>
+                    </div>
+                )}
                 {hasApplied && applicationBreakdown?.video?.status === 'requested' && (() => {
                     // Check if deadline has expired
                     const deadline = applicationBreakdown?.video?.deadline ? new Date(applicationBreakdown.video.deadline) : null;

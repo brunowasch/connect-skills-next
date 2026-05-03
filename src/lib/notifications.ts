@@ -2,7 +2,7 @@ import { prisma } from "@/src/lib/prisma";
 
 export interface Notification {
     id: string;
-    type: 'video_request' | 'feedback_approved' | 'feedback_rejected' | 'general' | 'video_received' | 'new_candidate' | 'video_expired_unsubmitted' | 'interview_scheduled' | 'interview_confirmed' | 'interview_confirmed_mentor' | 'interview_cancelled_mentor' | 'interview_expired';
+    type: 'video_request' | 'feedback_approved' | 'feedback_rejected' | 'general' | 'video_received' | 'new_candidate' | 'video_expired_unsubmitted' | 'interview_scheduled' | 'interview_confirmed' | 'interview_confirmed_mentor' | 'interview_cancelled_mentor' | 'interview_expired' | 'proposal_received' | 'final_rejection';
     title: string;
     message: string;
     vacancyTitle: string;
@@ -126,17 +126,17 @@ export async function getCompanyNotifications(companyId: string): Promise<Notifi
             const interviewNotifs = await (prisma as any).notificacao.findMany({
                 where: {
                     usuario_id: companyUser.usuario.id,
-                    tipo: { in: ['ENTREVISTA_CONFIRMADA', 'ENTREVISTA_RECUSADA', 'MENTORIA_EXPIRADA'] }
+                    tipo: { in: ['ENTREVISTA_CONFIRMADA', 'ENTREVISTA_RECUSADA', 'MENTORIA_EXPIRADA', 'PROPOSTA_ACEITA', 'PROPOSTA_RECUSADA'] }
                 },
                 orderBy: { criado_em: 'desc' }
             });
 
             for (const notif of interviewNotifs) {
                 const extraData = notif.dados ? JSON.parse(notif.dados) : {};
-                const typeMapped: Notification['type'] =
-                    notif.tipo === 'MENTORIA_EXPIRADA'
-                        ? 'interview_expired'
-                        : 'interview_confirmed';
+                let typeMapped: Notification['type'] = 'interview_confirmed';
+                if (notif.tipo === 'MENTORIA_EXPIRADA') typeMapped = 'interview_expired';
+                if (notif.tipo === 'PROPOSTA_ACEITA') typeMapped = 'general';
+                if (notif.tipo === 'PROPOSTA_RECUSADA') typeMapped = 'general';
                 
                 let candidateName = extraData.candidateName;
                 if (!candidateName && extraData.candidatoId) {
@@ -308,7 +308,7 @@ export async function getCandidateNotifications(candidateId: string): Promise<No
             const interviewNotifications = await (prisma as any).notificacao.findMany({
                 where: {
                     usuario_id: usuarioData.usuario.id,
-                    tipo: { in: ['ENTREVISTA_AGENDADA', 'ENTREVISTA_CONFIRMADA', 'ENTREVISTA_CANCELADA', 'ENTREVISTA_PRESENCIAL_AGENDADA', 'ENTREVISTA_PRESENCIAL_CONCLUIDA'] }
+                    tipo: { in: ['ENTREVISTA_AGENDADA', 'ENTREVISTA_CONFIRMADA', 'ENTREVISTA_CANCELADA', 'ENTREVISTA_PRESENCIAL_AGENDADA', 'ENTREVISTA_PRESENCIAL_CONCLUIDA', 'PROPOSTA_RECEBIDA', 'DECISAO_FINAL_REPROVADO'] }
                 },
                 orderBy: { criado_em: 'desc' }
             });
@@ -321,6 +321,10 @@ export async function getCandidateNotifications(candidateId: string): Promise<No
                     mappedType = 'interview_scheduled';
                 } else if (notif.tipo === 'ENTREVISTA_PRESENCIAL_CONCLUIDA') {
                     mappedType = 'interview_confirmed'; // Reutilizando a badge de sucesso/confirmado
+                } else if (notif.tipo === 'PROPOSTA_RECEBIDA') {
+                    mappedType = 'proposal_received';
+                } else if (notif.tipo === 'DECISAO_FINAL_REPROVADO') {
+                    mappedType = 'final_rejection';
                 }
                 
                 notifications.push({

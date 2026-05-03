@@ -50,13 +50,17 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
     // Buscar vagas já aplicadas pelo candidato
     const appliedVacancies = await prisma.vaga_avaliacao.findMany({
         where: { candidato_id: candidateComplete.id },
-        select: { 
+        select: {
             vaga_id: true,
             breakdown: true,
             created_at: true
         }
     });
     const appliedVacanciesIds = appliedVacancies.map((av: any) => av.vaga_id);
+
+    const propostas = await (prisma as any).proposta.findMany({
+        where: { candidato_id: candidateComplete.id }
+    });
 
     let vacancies: Vacancy[] = [];
     const isSearch = !!(searchParams?.q || searchParams?.loc || searchParams?.type);
@@ -223,7 +227,7 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
     // Filtrar vagas inativas para as visualizações de Explorar e Recomendadas
     if (!isHistory && !isFavorites) {
         const vagaIdsToCheck = vagasLocalizadas.map(v => v.id);
-        
+
         if (vagaIdsToCheck.length > 0) {
             const statuses = await prisma.vaga_status.findMany({
                 where: { vaga_id: { in: vagaIdsToCheck } },
@@ -307,8 +311,8 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
                 const applicationData = appliedVacancies.find(av => av.vaga_id === vaga.id);
                 if (applicationData?.breakdown) {
                     try {
-                        const breakdown = typeof applicationData.breakdown === 'string' 
-                            ? JSON.parse(applicationData.breakdown) 
+                        const breakdown = typeof applicationData.breakdown === 'string'
+                            ? JSON.parse(applicationData.breakdown)
                             : applicationData.breakdown;
                         feedbackStatus = breakdown?.feedback?.status || null;
                         videoStatus = breakdown?.video?.status || null;
@@ -317,6 +321,14 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
                     } catch (e) {
                         console.error("Error parsing breakdown", e);
                     }
+                }
+            }
+
+            let propostaStatus = null;
+            if (isHistory) {
+                const proposta = propostas.find((p: any) => p.vaga_id === vaga.id);
+                if (proposta) {
+                    propostaStatus = proposta.status;
                 }
             }
 
@@ -329,7 +341,7 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
                         opcaoAjustado = JSON.stringify(rest);
                     }
                 }
-            } catch (e) {}
+            } catch (e) { }
 
             return {
                 id: vaga.id,
@@ -358,7 +370,8 @@ async function getVacancies(searchParams?: { q?: string; loc?: string; type?: st
                 feedbackStatus,
                 videoStatus,
                 videoDeadline,
-                isDraft
+                isDraft,
+                propostaStatus
             } as any;
         });
 

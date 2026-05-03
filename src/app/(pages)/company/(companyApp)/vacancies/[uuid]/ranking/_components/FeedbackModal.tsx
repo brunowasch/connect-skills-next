@@ -1,6 +1,6 @@
 "use client";
 
-import { X, CheckCircle2, XCircle, Send, Sparkles, AlertTriangle, Wand2 } from "lucide-react";
+import { X, CheckCircle2, XCircle, Send, Sparkles, AlertTriangle, Wand2, Info } from "lucide-react";
 import { useEffect, useState, useTransition } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -219,13 +219,20 @@ export function FeedbackModal({ isOpen, onClose, candidateName, onSubmit, aiSugg
                             <button
                                 onClick={() => { setStatus('APPROVED'); resetAnalysis(); }}
                                 disabled={isBusy}
-                                className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all cursor-pointer ${status === 'APPROVED'
+                                className={`relative flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all cursor-pointer ${status === 'APPROVED'
                                     ? 'border-green-500 bg-green-50 text-green-700'
                                     : 'border-gray-200 hover:border-green-200 hover:bg-green-50/50 text-gray-600'
                                     } disabled:opacity-50 disabled:cursor-not-allowed`}
+                                title="Aprova o candidato para ser agendado para entrevistas na próxima fase"
                             >
+                                <div className="absolute top-2 right-2 text-blue-500 hover:text-blue-700 group cursor-help">
+                                    <Info size={18} />
+                                    <div className="absolute hidden group-hover:block bg-slate-800 text-white text-xs rounded-lg p-2 right-0 top-6 w-48 shadow-lg z-10 text-center">
+                                        Isso apenas aprova o candidato para a fase de entrevistas, não finaliza a contratação.
+                                    </div>
+                                </div>
                                 <CheckCircle2 size={32} className={status === 'APPROVED' ? 'text-green-600' : 'text-gray-400'} />
-                                <span className="mt-2 font-bold">{t('feedback_approve', 'Aprovar')}</span>
+                                <span className="mt-2 font-bold text-center">Aprovar para<br/>Próxima Fase</span>
                             </button>
 
                             <button

@@ -11,6 +11,11 @@ interface RankingPageContentProps {
     vacancy?: {
         cargo: string;
         id?: string;
+        salario?: number | null;
+        moeda?: string | null;
+        tipo_local_trabalho?: string | null;
+        cidade?: string | null;
+        estado?: string | null;
     } | null;
     candidates?: any[];
     vacancyUuid?: string;
@@ -47,7 +52,7 @@ export function RankingPageContent({ state, vacancy, candidates, vacancyUuid, pe
                         <p className="text-gray-500">{t('ranking_subtitle')}</p>
                     </div>
                 </div>
-                {candidates && vacancyUuid && <RankingList candidates={candidates} vacancyUuid={vacancyUuid} vacancyId={vacancy?.id} vacancyTitle={vacancy?.cargo} pendingCandidateId={pendingCandidateId} />}
+                {candidates && vacancyUuid && <RankingList candidates={candidates} vacancyUuid={vacancyUuid} vacancy={vacancy} pendingCandidateId={pendingCandidateId} />}
             </>
         );
     };
