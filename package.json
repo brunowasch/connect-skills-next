@@ -17,6 +17,8 @@
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.8.0",
     "date-fns": "^4.1.0",
+    "html-to-image": "^1.11.13",
+    "html2canvas": "^1.4.1",
     "i18next": "^25.8.0",
     "i18next-browser-languagedetector": "^8.2.0",
     "i18next-resources-to-backend": "^1.2.1",

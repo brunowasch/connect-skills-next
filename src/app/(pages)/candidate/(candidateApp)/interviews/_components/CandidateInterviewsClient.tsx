@@ -4,9 +4,25 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { format } from "date-fns";
 import { ptBR, enUS, es } from "date-fns/locale";
-import { Calendar, Clock, Building2, User, CheckCircle, XCircle, AlertTriangle, ChevronRight, Timer, History, Video, MapPin } from "lucide-react";
+import { Calendar, Clock, Building2, CheckCircle, XCircle, AlertTriangle, ChevronRight, Timer, History, Video, MapPin, Star, TrendingDown, Activity, TrendingUp, Globe, Brain } from "lucide-react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
+import MentorReviewModal from "./MentorReviewModal";
+
+const getScoreStyle = (score: number) => {
+    if (score < 50) return {
+        bg: "bg-red-50 border-red-200 text-red-700",
+        icon: <TrendingDown size={12} />
+    };
+    if (score < 70) return {
+        bg: "bg-orange-50 border-orange-200 text-orange-700",
+        icon: <Activity size={12} />
+    };
+    return {
+        bg: "bg-emerald-50 border-emerald-200 text-emerald-700",
+        icon: <TrendingUp size={12} />
+    };
+};
 
 function useCountdown(criado_em: string) {
     const EXPIRATION_MS = 3 * 24 * 60 * 60 * 1000;
@@ -63,10 +79,19 @@ function CountdownChip({ criado_em }: { criado_em: string }) {
     );
 }
 
-export default function CandidateInterviewsClient({ interviews }: { interviews: any[] }) {
+export default function CandidateInterviewsClient({
+    interviews,
+    mentorshipReviews = [],
+    candidateName = "Candidato",
+}: {
+    interviews: any[];
+    mentorshipReviews?: any[];
+    candidateName?: string;
+}) {
     const { t, i18n } = useTranslation();
-    const [activeTab, setActiveTab] = useState<'scheduled' | 'history' | 'pending'>('scheduled');
+    const [activeTab, setActiveTab] = useState<'scheduled' | 'history' | 'pending' | 'reviews'>('scheduled');
     const [filterType, setFilterType] = useState<'all' | 'empresas'>('all');
+    const [selectedReview, setSelectedReview] = useState<any | null>(null);
 
     const processedInterviews = interviews.map(m => {
         let isMeetingExpired = false;
@@ -211,7 +236,7 @@ export default function CandidateInterviewsClient({ interviews }: { interviews: 
                                     if (!url.startsWith('http')) url = `http://${url}`;
                                     window.open(url, "_blank", "noopener,noreferrer");
                                 }}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition border border-indigo-200 font-semibold shadow-sm cursor-pointer whitespace-nowrap"
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 transition border border-blue-200 font-semibold shadow-sm cursor-pointer whitespace-nowrap"
                             >
                                 <Video size={12} />
                                 {t("interview_meeting_link", { defaultValue: "Entrar na Reunião" })}
@@ -296,6 +321,23 @@ export default function CandidateInterviewsClient({ interviews }: { interviews: 
                         <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-t-full" />
                     )}
                 </button>
+                {mentorshipReviews.length > 0 && (
+                    <button
+                        onClick={() => setActiveTab('reviews')}
+                        className={`pb-3 whitespace-nowrap text-sm font-semibold transition-colors relative ${activeTab === 'reviews' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
+                    >
+                        <div className="flex items-center gap-2 cursor-pointer">
+                            <Star size={16} className={activeTab === 'reviews' ? 'fill-blue-500 text-blue-600' : ''} />
+                            {t("interviews_tab_reviews", { defaultValue: "Avaliações" })}
+                            <span className={`inline-flex items-center justify-center h-5 px-2 rounded-full text-xs ${activeTab === 'reviews' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
+                                {mentorshipReviews.length}
+                            </span>
+                        </div>
+                        {activeTab === 'reviews' && (
+                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full" />
+                        )}
+                    </button>
+                )}
             </div>
 
             <div className="flex items-center">
@@ -341,7 +383,98 @@ export default function CandidateInterviewsClient({ interviews }: { interviews: 
                         </div>
                     )
                 )}
+
+                {activeTab === 'reviews' && (
+                    mentorshipReviews.length > 0 ? mentorshipReviews.map((r: any) => (
+                        <div key={r.id} className="group bg-white rounded-2xl border border-slate-200 hover:shadow-lg hover:border-blue-200 transition-all flex flex-col h-full relative overflow-hidden">
+                            <div className="p-5 flex-grow flex flex-col">
+
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center gap-3">
+                                        {r.empresa?.foto_perfil ? (
+                                            <img src={r.empresa.foto_perfil} className="w-10 h-10 rounded-xl object-cover border border-slate-100" alt={r.empresa.nome_empresa} />
+                                        ) : (
+                                            <div className="w-10 h-10 rounded-xl border border-slate-100 flex items-center justify-center bg-blue-50">
+                                                <Building2 className="w-5 h-5 text-blue-400" />
+                                            </div>
+                                        )}
+                                        <span className="text-sm font-medium text-slate-500 truncate max-w-[150px]">
+                                            {r.empresa?.nome_empresa || "Empresa"}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <h3 className="font-extrabold text-lg text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2 mb-3">
+                                    {r.cargo}
+                                </h3>
+
+
+
+                                <div className="flex flex-col gap-2 mt-auto">
+                                    {r.nota_comportamental !== null && (
+                                        <div className="flex items-center gap-2 text-[13px] text-slate-500">
+                                            <Globe size={14} className="text-slate-400" />
+                                            <span>{t("review_card_behavioral", { defaultValue: "Comportamental" })}</span>
+                                            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[11px] font-bold ml-auto ${getScoreStyle(r.nota_comportamental).bg}`}>
+                                                {getScoreStyle(r.nota_comportamental).icon}
+                                                {r.nota_comportamental}<span className="opacity-60 text-[9px] font-normal">/100</span>
+                                            </span>
+                                        </div>
+                                    )}
+                                    {r.nota_tecnica !== null && (
+                                        <div className="flex items-center gap-2 text-[13px] text-slate-500 mt-1">
+                                            <Brain size={14} className="text-slate-400" />
+                                            <span>{t("review_card_technical", { defaultValue: "Técnico" })}</span>
+                                            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[11px] font-bold ml-auto ${getScoreStyle(r.nota_tecnica).bg}`}>
+                                                {getScoreStyle(r.nota_tecnica).icon}
+                                                {r.nota_tecnica}<span className="opacity-60 text-[9px] font-normal">/100</span>
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+
+                            <div className="px-5 py-4 border-t border-slate-50 flex items-end justify-between bg-white mt-4 rounded-b-2xl">
+                                <span className="text-[11px] font-medium text-slate-400 pb-1">
+                                    {r.data ? `${t("review_card_completed_at", { defaultValue: "Concluída em:" })} ${format(new Date(`${r.data}T00:00:00`), 'dd/MM/yyyy')}` : ''}
+                                </span>
+                                
+                                <div className="flex flex-col items-end gap-2.5">
+                                    {r.nota_geral !== null && (
+                                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[13px] font-bold ${getScoreStyle(r.nota_geral).bg}`}>
+                                            {getScoreStyle(r.nota_geral).icon}
+                                            {t("review_card_general", { defaultValue: "Geral" })}: {r.nota_geral}<span className="opacity-60 text-[9px] font-normal">/100</span>
+                                        </span>
+                                    )}
+                                    <button
+                                        onClick={() => setSelectedReview(r)}
+                                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold transition shadow-sm active:scale-95 cursor-pointer mt-4"
+                                    >
+                                        <Star size={14} className="fill-white" />
+                                        {t("review_card_view_btn", { defaultValue: "Ver Avaliação" })}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )) : (
+                        <div className="col-span-full text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300">
+                            <Star className="mx-auto h-12 w-12 text-slate-300 mb-3" />
+                            <h3 className="text-lg font-semibold text-slate-900">{t("interview_empty_reviews_title", { defaultValue: "Nenhuma avaliação disponível" })}</h3>
+                            <p className="text-slate-500 mt-1 max-w-sm mx-auto text-sm">{t("interview_empty_reviews_desc", { defaultValue: "Suas avaliações de mentoria aparecerão aqui após as sessões concluídas." })}</p>
+                        </div>
+                    )
+                )}
             </div>
+
+            {/* Review Modal */}
+            {selectedReview && (
+                <MentorReviewModal
+                    review={selectedReview}
+                    candidateName={candidateName}
+                    onClose={() => setSelectedReview(null)}
+                />
+            )}
         </div>
     );
 }

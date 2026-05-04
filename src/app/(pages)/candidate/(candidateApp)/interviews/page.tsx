@@ -67,7 +67,16 @@ export default async function CandidateInterviewsPage() {
             hora_fim: interview.hora_fim,
             link_reuniao: interview.link_reuniao,
             criado_em: interview.criado_em.toISOString(),
-            type: 'online' as const
+            type: 'online' as const,
+            nota_comportamental: interview.nota_comportamental ?? null,
+            nota_tecnica: interview.nota_tecnica ?? null,
+            nota_geral: interview.nota_geral ?? null,
+            feedback_comportamental: interview.feedback_comportamental ?? null,
+            feedback_tecnico: interview.feedback_tecnico ?? null,
+            feedback_geral: interview.feedback_geral ?? null,
+            feedback_enviado_em: interview.feedback_enviado_em
+                ? interview.feedback_enviado_em.toISOString()
+                : null,
         };
     }));
 
@@ -109,7 +118,14 @@ export default async function CandidateInterviewsPage() {
             link_reuniao: null,
             criado_em: interview.criado_em.toISOString(),
             candidato_compareceu: !!interview.candidato_compareceu,
-            type: 'presencial' as const
+            type: 'presencial' as const,
+            nota_comportamental: null,
+            nota_tecnica: null,
+            nota_geral: null,
+            feedback_comportamental: null,
+            feedback_tecnico: null,
+            feedback_geral: null,
+            feedback_enviado_em: null,
         };
     }));
 
@@ -119,10 +135,30 @@ export default async function CandidateInterviewsPage() {
         return dateB - dateA;
     });
 
+    const mentorshipReviews = mentorshipData.filter(
+        (m) =>
+            m.nota_geral !== null ||
+            m.nota_comportamental !== null ||
+            m.nota_tecnica !== null
+    );
+
+    const candidateInfo = await prisma.candidato.findUnique({
+        where: { id: candidate.id },
+        select: { nome: true, sobrenome: true, foto_perfil: true }
+    });
+
     return (
         <main className="flex-1 overflow-y-auto bg-slate-50 p-4 lg:p-8">
             <div className="mx-auto max-w-6xl space-y-8">
-                <CandidateInterviewsClient interviews={allInterviews} />
+                <CandidateInterviewsClient
+                    interviews={allInterviews}
+                    mentorshipReviews={mentorshipReviews}
+                    candidateName={
+                        [candidateInfo?.nome, candidateInfo?.sobrenome]
+                            .filter(Boolean)
+                            .join(" ") || "Candidato"
+                    }
+                />
             </div>
         </main>
     );
