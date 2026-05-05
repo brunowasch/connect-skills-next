@@ -2079,7 +2079,7 @@
     "mentor_review_copied": "Copied!",
     "mentor_review_share_on": "Share on",
     "mentor_review_post_text_preview": "Ready-to-post text",
-    "mentorship_review_share_text": "I just completed a technical mentorship session for the {{cargo}} position at {{empresa}} on Connect Skills!\n\nMy evaluation:\n• Behavioral: {{comp}}/100\n• Technical: {{tech}}/100\n• General: {{geral}}/100\n\nConnect Skills connects candidates with specialized mentors to accelerate their career journey.\n\n#ConnectSkills #Mentorship #Career #Technology",
+    "mentorship_review_share_text": "I just completed a technical mentorship for {{cargo}} at Connect Skills!\n\nEvaluation:\n- Behavioral: {{comp}}/100\n- Technical: {{tech}}/100\n- General: {{geral}}/100\n\nKeep learning!\n\n#ConnectSkills #Mentorship #Career",
     "mentorship_status_confirmed": "Confirmed",
     "mentorship_status_completed": "Completed",
     "mentorship_status_pending": "Awaiting your confirmation",
@@ -2088,6 +2088,7 @@
     "mentorship_status_expired": "Expired",
     "mentorship_card_company_label": "Company",
     "mentorship_card_company_unavailable": "Company not available",
+    "interview_card_vacancy_deleted": "Deleted Vacancy",
     "mentorship_card_mentor_unavailable": "Mentor not assigned",
     "mentorship_card_date_label": "Interview Date",
     "mentorship_card_time_label": "Time",
@@ -2334,5 +2335,9 @@
     "cookies_s9_p1": "This Cookie Policy may be updated periodically to reflect changes in our practices or legal requirements. We recommend that you consult it regularly.",
     "cookies_s10_title": "10. Contact",
     "cookies_s10_p1": "Questions about the use of cookies? Contact us through the channels available on our",
-    "cookies_s10_link": "Contact page"
+    "cookies_s10_link": "Contact page",
+
+    "filter_all": "All",
+    "filter_empresas": "Companies",
+    "filter_mentores": "Mentors"
 }

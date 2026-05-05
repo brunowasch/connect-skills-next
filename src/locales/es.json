@@ -2090,7 +2090,7 @@
     "mentor_review_copied": "¡Copiado!",
     "mentor_review_share_on": "Compartir en",
     "mentor_review_post_text_preview": "Texto listo para publicar",
-    "mentorship_review_share_text": "¡Acabo de completar una sesión de mentoría técnica para el puesto de {{cargo}} en {{empresa}} a través de Connect Skills!\n\nMi evaluación:\n• Conductual: {{comp}}/100\n• Técnico: {{tech}}/100\n• General: {{geral}}/100\n\nConnect Skills conecta candidatos con mentores especializados para acelerar su camino profesional.\n\n#ConnectSkills #Mentoría #Carrera #Tecnología",
+    "mentorship_review_share_text": "¡Acabo de completar una mentoría técnica para {{cargo}} en Connect Skills!\n\nEvaluación:\n- Conductual: {{comp}}/100\n- Técnico: {{tech}}/100\n- General: {{geral}}/100\n\n¡Seguimos aprendiendo!\n\n#ConnectSkills #Mentoría #Carrera",
     "mentorship_status_confirmed": "Confirmada",
     "mentorship_status_completed": "Completada",
     "mentorship_status_pending": "Esperando su confirmación",
@@ -2099,6 +2099,7 @@
     "mentorship_status_expired": "Expirada",
     "mentorship_card_company_label": "Empresa",
     "mentorship_card_company_unavailable": "Empresa no disponible",
+    "interview_card_vacancy_deleted": "Vacante Eliminada",
     "mentorship_card_mentor_unavailable": "Mentor no asignado",
     "mentorship_card_date_label": "Fecha de la Entrevista",
     "mentorship_card_time_label": "Horario",
@@ -2345,5 +2346,9 @@
     "cookies_s9_p1": "Esta Política puede actualizarse periódicamente. Recomendamos consultarla regularmente.",
     "cookies_s10_title": "10. Contacto",
     "cookies_s10_p1": "¿Preguntas sobre el uso de cookies? Contáctenos a través de los canales disponibles en nuestra página de",
-    "cookies_s10_link": "Contacto"
+    "cookies_s10_link": "Contacto",
+
+    "filter_all": "Todos",
+    "filter_empresas": "Empresas",
+    "filter_mentores": "Mentores"
 }

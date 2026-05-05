@@ -88,7 +88,7 @@ export default function MentorReviewModal({ review, candidateName, onClose }: Me
         "mentorship_review_share_text",
         {
             defaultValue:
-                `Acabei de concluir uma sessão de mentoria técnica na vaga de {{cargo}} pela {{empresa}} no Connect Skills!\n\nMinha avaliação:\n• Comportamental: {{comp}}/100\n• Técnico: {{tech}}/100\n• Geral: {{geral}}/100\n\nO Connect Skills conecta candidatos a mentores especializados para acelerar sua jornada profissional.\n\n#ConnectSkills #Mentoria #Carreira #Tecnologia`,
+                `Acabei de concluir uma sessão de mentoria técnica na vaga de {{cargo}} pela {{empresa}} no Connect Skills!\n\nMinha avaliação:\n- Comportamental: {{comp}}/100\n- Técnico: {{tech}}/100\n- Geral: {{geral}}/100\n\nO Connect Skills conecta candidatos a mentores especializados para acelerar sua jornada profissional.\n\n#ConnectSkills #Mentoria #Carreira #Tecnologia`,
             cargo: review.cargo,
             empresa: review.empresa.nome_empresa,
             comp: review.nota_comportamental ?? "-",

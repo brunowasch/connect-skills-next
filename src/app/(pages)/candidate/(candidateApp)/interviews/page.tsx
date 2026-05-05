@@ -52,6 +52,7 @@ export default async function CandidateInterviewsPage() {
         return {
             id: interview.id,
             status: interview.status,
+            vagaExcluida: !vaga,
             cargo: vaga?.cargo || "Mentoria",
             empresa: {
                 nome_empresa: empresaData?.nome_empresa || "Empresa",
@@ -106,6 +107,7 @@ export default async function CandidateInterviewsPage() {
         return {
             id: interview.id,
             status: interview.status,
+            vagaExcluida: !vaga,
             cargo: vaga?.cargo || "Entrevista Presencial",
             empresa: {
                 nome_empresa: empresaData?.nome_empresa || "Empresa",

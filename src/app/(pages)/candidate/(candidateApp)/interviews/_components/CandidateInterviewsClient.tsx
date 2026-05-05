@@ -90,7 +90,7 @@ export default function CandidateInterviewsClient({
 }) {
     const { t, i18n } = useTranslation();
     const [activeTab, setActiveTab] = useState<'scheduled' | 'history' | 'pending' | 'reviews'>('scheduled');
-    const [filterType, setFilterType] = useState<'all' | 'empresas'>('all');
+    const [filterType, setFilterType] = useState<'all' | 'empresas' | 'mentores'>('all');
     const [selectedReview, setSelectedReview] = useState<any | null>(null);
 
     const processedInterviews = interviews.map(m => {
@@ -122,9 +122,14 @@ export default function CandidateInterviewsClient({
         return { ...m, isMeetingExpired };
     });
 
-    const scheduled = processedInterviews.filter(m => m.status === 'CONFIRMADA' && !m.isMeetingExpired && (filterType === 'all' || (filterType === 'empresas' && m.type === 'presencial')));
-    const pending = processedInterviews.filter(m => m.status === 'PENDENTE_CANDIDATO' && !m.isMeetingExpired && (filterType === 'all' || (filterType === 'empresas' && m.type === 'presencial')));
-    const history = processedInterviews.filter(m => (!['CONFIRMADA', 'PENDENTE_CANDIDATO'].includes(m.status) || m.isMeetingExpired) && (filterType === 'all' || (filterType === 'empresas' && m.type === 'presencial')));
+    const typeFilter = (m: any) =>
+        filterType === 'all' ||
+        (filterType === 'empresas' && m.type === 'presencial') ||
+        (filterType === 'mentores' && m.type === 'online');
+
+    const scheduled = processedInterviews.filter(m => m.status === 'CONFIRMADA' && !m.isMeetingExpired && typeFilter(m));
+    const pending = processedInterviews.filter(m => m.status === 'PENDENTE_CANDIDATO' && !m.isMeetingExpired && typeFilter(m));
+    const history = processedInterviews.filter(m => (!['CONFIRMADA', 'PENDENTE_CANDIDATO'].includes(m.status) || m.isMeetingExpired) && typeFilter(m));
 
     const renderCard = (m: any) => {
         const isScheduled = activeTab === 'scheduled';
@@ -162,10 +167,12 @@ export default function CandidateInterviewsClient({
         }
 
         const themeColor = isOnline ? 'blue' : 'indigo';
+        const isFaded = m.vagaExcluida;
 
         return (
-            <div key={m.id} className={`group bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md hover:border-${themeColor}-400 transition-all flex flex-col h-full relative min-w-0 overflow-hidden`}>
-                <div className="p-4 sm:p-5 flex-grow flex flex-col">
+            <div key={m.id} className={`group bg-white rounded-xl shadow-sm border border-gray-100 transition-all flex flex-col h-full relative min-w-0 overflow-hidden ${isFaded ? 'opacity-60 grayscale-[0.3]' : `hover:shadow-md hover:border-${themeColor}-400`}`}>
+
+                <div className="p-4 sm:p-5 flex-grow flex flex-col relative z-0">
                     <div className="flex items-center mb-3 sm:mb-4">
                         <div className="flex items-center gap-2 sm:gap-3">
                             {m.empresa?.foto_perfil ? (
@@ -184,6 +191,11 @@ export default function CandidateInterviewsClient({
                             <span className="text-xs sm:text-sm font-medium text-gray-600 truncate max-w-[150px] sm:max-w-[200px]">
                                 {m.empresa ? m.empresa.nome_empresa : t("company_default", { defaultValue: "Empresa" })}
                             </span>
+                            {m.vagaExcluida && (
+                                <span className="bg-red-100 text-red-700 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wide whitespace-nowrap">
+                                    {t("interview_card_vacancy_deleted", { defaultValue: "Vaga Excluída" })}
+                                </span>
+                            )}
                         </div>
                     </div>
 
@@ -352,6 +364,7 @@ export default function CandidateInterviewsClient({
                 >
                     <option value="all">{t("filter_all", "Todos")}</option>
                     <option value="empresas">{t("filter_empresas", "Empresas")}</option>
+                    <option value="mentores">{t("filter_mentores", "Mentores")}</option>
                 </select>
             </div>
 
@@ -389,9 +402,12 @@ export default function CandidateInterviewsClient({
                 )}
 
                 {activeTab === 'reviews' && (
-                    mentorshipReviews.length > 0 ? mentorshipReviews.map((r: any) => (
-                        <div key={r.id} className="group bg-white rounded-2xl border border-slate-200 hover:shadow-lg hover:border-blue-200 transition-all flex flex-col h-full relative overflow-hidden">
-                            <div className="p-5 flex-grow flex flex-col">
+                    mentorshipReviews.length > 0 ? mentorshipReviews.map((r: any) => {
+                        const isFaded = r.vagaExcluida;
+                        return (
+                            <div key={r.id} className={`group bg-white rounded-2xl border border-slate-200 transition-all flex flex-col h-full relative overflow-hidden ${isFaded ? 'opacity-60 grayscale-[0.3]' : 'hover:shadow-lg hover:border-blue-200'}`}>
+
+                                <div className="p-5 flex-grow flex flex-col relative z-0">
 
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="flex items-center gap-3">
@@ -403,9 +419,16 @@ export default function CandidateInterviewsClient({
                                             </div>
                                         )}
                                         <div className="flex flex-col">
-                                            <span className="text-sm font-bold text-slate-700 truncate max-w-[150px]">
-                                                {r.empresa?.nome_empresa || "Empresa"}
-                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-sm font-bold text-slate-700 truncate max-w-[150px]">
+                                                    {r.empresa?.nome_empresa || "Empresa"}
+                                                </span>
+                                                {r.vagaExcluida && (
+                                                    <span className="bg-red-100 text-red-700 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wide whitespace-nowrap mt-0.5">
+                                                        {t("interview_card_vacancy_deleted", { defaultValue: "Vaga Excluída" })}
+                                                    </span>
+                                                )}
+                                            </div>
                                             {r.mentor && (
                                                 <span className="text-[11px] text-slate-500 font-medium truncate max-w-[150px] mt-0.5">
                                                     {t("review_card_evaluator", { defaultValue: "Avaliador(a):" })} {r.mentor.nome} {r.mentor.sobrenome}
@@ -482,7 +505,8 @@ export default function CandidateInterviewsClient({
                                 </button>
                             </div>
                         </div>
-                    )) : (
+                    );
+                }) : (
                         <div className="col-span-full text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300">
                             <Star className="mx-auto h-12 w-12 text-slate-300 mb-3" />
                             <h3 className="text-lg font-semibold text-slate-900">{t("interview_empty_reviews_title", { defaultValue: "Nenhuma avaliação disponível" })}</h3>
@@ -492,7 +516,7 @@ export default function CandidateInterviewsClient({
                 )}
             </div>
 
-            {/* Review Modal */}
+
             {selectedReview && (
                 <MentorReviewModal
                     review={selectedReview}
