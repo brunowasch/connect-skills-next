@@ -27,10 +27,12 @@ export default async function ConfirmInterviewPage({ params }: Props) {
             }
         });
 
-        // Fetch company info from varga.empresa_id using the empresa model
-        const company = await prisma.empresa.findUnique({
-            where: { id: vaga!.empresa_id }
-        });
+        let company = null;
+        if (vaga?.empresa_id) {
+            company = await prisma.empresa.findUnique({
+                where: { id: vaga.empresa_id }
+            });
+        }
 
         vagaTitle = vaga?.cargo || "a vaga";
         companyName = company?.nome_empresa || "Empresa";

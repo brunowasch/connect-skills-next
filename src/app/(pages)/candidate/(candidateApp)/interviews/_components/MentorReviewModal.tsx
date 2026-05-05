@@ -170,7 +170,7 @@ export default function MentorReviewModal({ review, candidateName, onClose }: Me
                     <div>
                         <p className="font-bold text-sm mb-1">Tudo pronto!</p>
                         <p className="text-emerald-50 text-[13px] leading-snug">
-                            O texto foi copiado e a imagem foi baixada.<br/>No LinkedIn: clique em <strong>Mídia</strong> para anexar a foto e cole o texto (<kbd className="bg-emerald-600 px-1 rounded font-mono text-[11px]">Ctrl+V</kbd>).
+                            O texto foi copiado e a imagem foi baixada.<br />No LinkedIn: clique em <strong>Mídia</strong> para anexar a foto e cole o texto (<kbd className="bg-emerald-600 px-1 rounded font-mono text-[11px]">Ctrl+V</kbd>).
                         </p>
                     </div>
                 </div>
@@ -368,7 +368,7 @@ export default function MentorReviewModal({ review, candidateName, onClose }: Me
                             <div
                                 ref={shareCardRef}
                                 className="rounded-2xl overflow-hidden select-none bg-white"
-                                style={{    
+                                style={{
                                     padding: "28px",
                                     fontFamily: "'Inter', sans-serif",
                                 }}
@@ -528,7 +528,7 @@ export default function MentorReviewModal({ review, candidateName, onClose }: Me
                                         className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-700 transition active:scale-95 cursor-pointer"
                                     >
                                         <FaXTwitter size={15} />
-                                        Twitter
+                                        X (Twitter)
                                     </button>
                                 </div>
                             </div>

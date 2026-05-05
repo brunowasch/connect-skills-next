@@ -64,8 +64,8 @@ function CountdownChip({ criado_em }: { criado_em: string }) {
     const colorClass = isUrgent
         ? "bg-red-50 border-red-200 text-red-700"
         : days === 0
-        ? "bg-amber-50 border-amber-200 text-amber-700"
-        : "bg-blue-50 border-blue-200 text-blue-700";
+            ? "bg-amber-50 border-amber-200 text-amber-700"
+            : "bg-blue-50 border-blue-200 text-blue-700";
 
     const label = days > 0
         ? t("interview_countdown_expires_days", { defaultValue: "Expira em {{days}}d {{hours}}h", days, hours })
@@ -101,18 +101,22 @@ export default function CandidateInterviewsClient({
         } else if (m.data) {
             const [year, month, day] = m.data.split("-");
             
-            if (m.type === 'presencial') {
-                if (m.candidato_compareceu) {
-                    isMeetingExpired = true;
-                }
-            } else if (m.hora_fim) {
-                const [hFim, mFim] = m.hora_fim.split(":");
-                if (year && month && day && hFim && mFim) {
-                    const endData = new Date(Number(year), Number(month) - 1, Number(day), Number(hFim), Number(mFim), 0);
-                    if (Date.now() > endData.getTime()) {
+            const timeToUse = m.hora_fim || m.hora_inicio;
+
+            if (timeToUse && year && month && day) {
+                const [h, min] = timeToUse.split(":");
+                if (h && min) {
+                    const endData = new Date(Number(year), Number(month) - 1, Number(day), Number(h), Number(min), 0);
+                    const expirationTime = m.hora_fim ? endData.getTime() : endData.getTime() + (60 * 60 * 1000);
+                    
+                    if (Date.now() > expirationTime) {
                         isMeetingExpired = true;
                     }
                 }
+            }
+
+            if (m.candidato_compareceu) {
+                isMeetingExpired = true;
             }
         }
         return { ...m, isMeetingExpired };
@@ -195,7 +199,7 @@ export default function CandidateInterviewsClient({
                             {(m.status === 'CANCELADA' || m.status === 'RECUSADA' || (m.status === 'EXPIRADA' && !m.candidato_compareceu)) && <XCircle size={10} />}
                             {statusText}
                         </span>
-                        
+
                         <span className={`inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded-full bg-${themeColor}-50 text-${themeColor}-600`}>
                             {isOnline ? <Video size={12} /> : <MapPin size={12} />}
                             {isOnline ? 'Online' : 'Presencial'}
@@ -308,17 +312,17 @@ export default function CandidateInterviewsClient({
                 </button>
                 <button
                     onClick={() => setActiveTab('history')}
-                    className={`pb-3 whitespace-nowrap text-sm font-semibold transition-colors relative ${activeTab === 'history' ? 'text-slate-900' : 'text-slate-500 hover:text-slate-800'}`}
+                    className={`pb-3 whitespace-nowrap text-sm font-semibold transition-colors relative ${activeTab === 'history' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
                 >
                     <div className="flex items-center gap-2 cursor-pointer">
                         <History size={16} />
                         {t("interviews_tab_history", { defaultValue: "Histórico" })}
-                        <span className={`inline-flex items-center justify-center h-5 px-2 rounded-full text-xs ${activeTab === 'history' ? 'bg-slate-200 text-slate-800' : 'bg-slate-100 text-slate-600'}`}>
+                        <span className={`inline-flex items-center justify-center h-5 px-2 rounded-full text-xs ${activeTab === 'history' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
                             {history.length}
                         </span>
                     </div>
                     {activeTab === 'history' && (
-                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-t-full" />
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full" />
                     )}
                 </button>
                 {mentorshipReviews.length > 0 && (
@@ -389,30 +393,58 @@ export default function CandidateInterviewsClient({
                         <div key={r.id} className="group bg-white rounded-2xl border border-slate-200 hover:shadow-lg hover:border-blue-200 transition-all flex flex-col h-full relative overflow-hidden">
                             <div className="p-5 flex-grow flex flex-col">
 
-                                <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-start justify-between mb-4">
                                     <div className="flex items-center gap-3">
                                         {r.empresa?.foto_perfil ? (
-                                            <img src={r.empresa.foto_perfil} className="w-10 h-10 rounded-xl object-cover border border-slate-100" alt={r.empresa.nome_empresa} />
+                                            <img src={r.empresa.foto_perfil} className="w-10 h-10 rounded-xl object-cover border border-slate-100 shadow-sm" alt={r.empresa.nome_empresa} />
                                         ) : (
-                                            <div className="w-10 h-10 rounded-xl border border-slate-100 flex items-center justify-center bg-blue-50">
+                                            <div className="w-10 h-10 rounded-xl border border-slate-100 flex items-center justify-center bg-blue-50 shadow-sm">
                                                 <Building2 className="w-5 h-5 text-blue-400" />
                                             </div>
                                         )}
-                                        <span className="text-sm font-medium text-slate-500 truncate max-w-[150px]">
-                                            {r.empresa?.nome_empresa || "Empresa"}
-                                        </span>
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-bold text-slate-700 truncate max-w-[150px]">
+                                                {r.empresa?.nome_empresa || "Empresa"}
+                                            </span>
+                                            {r.mentor && (
+                                                <span className="text-[11px] text-slate-500 font-medium truncate max-w-[150px] mt-0.5">
+                                                    {t("review_card_evaluator", { defaultValue: "Avaliador(a):" })} {r.mentor.nome} {r.mentor.sobrenome}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
+                                    
+                                    {r.nota_geral !== null && (
+                                        <div className="flex flex-col items-end">
+                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[13px] font-extrabold shadow-sm ${getScoreStyle(r.nota_geral).bg}`}>
+                                                {getScoreStyle(r.nota_geral).icon}
+                                                {r.nota_geral}<span className="opacity-60 text-[10px] font-normal">/100</span>
+                                            </span>
+                                            <span className="text-[9px] uppercase font-bold tracking-wider text-slate-400 mt-1.5">
+                                                {t("review_card_general_score", { defaultValue: "Nota Geral" })}
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
 
-                                <h3 className="font-extrabold text-lg text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2 mb-3">
+                                <h3 className="font-extrabold text-lg text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2 mb-4">
                                     {r.cargo}
                                 </h3>
 
-
+                                {r.feedback_geral && (
+                                    <div className="mb-5 bg-slate-50 border border-slate-100 rounded-xl p-3 relative shadow-sm">
+                                        <div className="absolute -top-2.5 left-3 bg-white px-1.5 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                                            Feedback
+                                        </div>
+                                        <p className="text-[13px] text-slate-600 line-clamp-2 italic pt-1 leading-relaxed">
+                                            "{r.feedback_geral}"
+                                        </p>
+                                    </div>
+                                )}
 
                                 <div className="flex flex-col gap-2 mt-auto">
                                     {r.nota_comportamental !== null && (
-                                        <div className="flex items-center gap-2 text-[13px] text-slate-500">
+                                        <div className="flex items-center gap-2 text-[13px] text-slate-600 font-medium">
                                             <Globe size={14} className="text-slate-400" />
                                             <span>{t("review_card_behavioral", { defaultValue: "Comportamental" })}</span>
                                             <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[11px] font-bold ml-auto ${getScoreStyle(r.nota_comportamental).bg}`}>
@@ -422,7 +454,7 @@ export default function CandidateInterviewsClient({
                                         </div>
                                     )}
                                     {r.nota_tecnica !== null && (
-                                        <div className="flex items-center gap-2 text-[13px] text-slate-500 mt-1">
+                                        <div className="flex items-center gap-2 text-[13px] text-slate-600 font-medium mt-1">
                                             <Brain size={14} className="text-slate-400" />
                                             <span>{t("review_card_technical", { defaultValue: "Técnico" })}</span>
                                             <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[11px] font-bold ml-auto ${getScoreStyle(r.nota_tecnica).bg}`}>
@@ -434,27 +466,20 @@ export default function CandidateInterviewsClient({
                                 </div>
                             </div>
 
-
-                            <div className="px-5 py-4 border-t border-slate-50 flex items-end justify-between bg-white mt-4 rounded-b-2xl">
-                                <span className="text-[11px] font-medium text-slate-400 pb-1">
-                                    {r.data ? `${t("review_card_completed_at", { defaultValue: "Concluída em:" })} ${format(new Date(`${r.data}T00:00:00`), 'dd/MM/yyyy')}` : ''}
+                            <div className="px-5 py-4 border-t border-slate-100 flex items-center justify-between bg-white mt-1 rounded-b-2xl">
+                                <span className="text-[11px] font-medium text-slate-400">
+                                    {r.feedback_enviado_em 
+                                        ? `${t("review_card_evaluated_at", { defaultValue: "Avaliado em:" })} ${format(new Date(r.feedback_enviado_em), 'dd/MM/yyyy')}`
+                                        : (r.data ? `${t("review_card_completed_at", { defaultValue: "Concluída em:" })} ${format(new Date(`${r.data}T00:00:00`), 'dd/MM/yyyy')}` : '')}
                                 </span>
-                                
-                                <div className="flex flex-col items-end gap-2.5">
-                                    {r.nota_geral !== null && (
-                                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[13px] font-bold ${getScoreStyle(r.nota_geral).bg}`}>
-                                            {getScoreStyle(r.nota_geral).icon}
-                                            {t("review_card_general", { defaultValue: "Geral" })}: {r.nota_geral}<span className="opacity-60 text-[9px] font-normal">/100</span>
-                                        </span>
-                                    )}
-                                    <button
-                                        onClick={() => setSelectedReview(r)}
-                                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold transition shadow-sm active:scale-95 cursor-pointer mt-4"
-                                    >
-                                        <Star size={14} className="fill-white" />
-                                        {t("review_card_view_btn", { defaultValue: "Ver Avaliação" })}
-                                    </button>
-                                </div>
+
+                                <button
+                                    onClick={() => setSelectedReview(r)}
+                                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white text-sm font-bold transition-all shadow-sm active:scale-95 cursor-pointer group-hover:shadow"
+                                >
+                                    <Star size={14} className="group-hover:fill-current" />
+                                    {t("review_card_view_btn", { defaultValue: "Ver Avaliação" })}
+                                </button>
                             </div>
                         </div>
                     )) : (

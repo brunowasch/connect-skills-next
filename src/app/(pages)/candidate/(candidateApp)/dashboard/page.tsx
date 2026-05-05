@@ -429,11 +429,25 @@ export default async function Dashboard() {
         };
     }));
 
-    const allInterviewRequests = [...mentorshipRequests, ...onsiteRequests].sort((a, b) => {
-        const dateA = a.criado_em ? new Date(a.criado_em).getTime() : 0;
-        const dateB = b.criado_em ? new Date(b.criado_em).getTime() : 0;
-        return dateB - dateA;
-    });
+    const allInterviewRequests = [...mentorshipRequests, ...onsiteRequests]
+        .filter(req => {
+            if (!req.data || !req.hora_inicio) return true;
+            const [year, month, day] = req.data.split("-");
+            if (!year || !month || !day) return true;
+            
+            const [h, min] = req.hora_inicio.split(":");
+            if (!h || !min) return true;
+            
+            const endData = new Date(Number(year), Number(month) - 1, Number(day), Number(h), Number(min), 0);
+            const expirationTime = endData.getTime() + (60 * 60 * 1000); // 1 hora de tolerância
+            
+            return Date.now() <= expirationTime;
+        })
+        .sort((a, b) => {
+            const dateA = a.criado_em ? new Date(a.criado_em).getTime() : 0;
+            const dateB = b.criado_em ? new Date(b.criado_em).getTime() : 0;
+            return dateB - dateA;
+        });
 
     return (
         <>
