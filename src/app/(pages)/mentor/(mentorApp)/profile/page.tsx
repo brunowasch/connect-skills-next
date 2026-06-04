@@ -20,6 +20,9 @@ export default async function MentorProfilePage() {
                     area_interesse: true
                 }
             },
+            mentor_disponibilidade: {
+                orderBy: [{ data: 'asc' }, { hora_inicio: 'asc' }]
+            },
         }
     }) as any;
 
@@ -74,6 +77,24 @@ export default async function MentorProfilePage() {
 
     const contato = { ddi, ddd, numero };
 
+    const now = new Date();
+    const slots = (mentor.mentor_disponibilidade || []).filter((slot: any) => {
+        if (slot.status === 'CONCLUIDA') return false;
+        try {
+            const [year, month, day] = slot.data.split('-').map(Number);
+            const [h, m] = slot.hora_fim.split(':').map(Number);
+            const slotEnd = new Date(year, month - 1, day, h, m, 0);
+            return slotEnd > now;
+        } catch { return true; }
+    }).map((slot: any) => ({
+        id: slot.id,
+        data: slot.data,
+        hora_inicio: slot.hora_inicio,
+        hora_fim: slot.hora_fim,
+        tipo: slot.tipo || null,
+        status: slot.status || null,
+    }));
+
     return (
         <div className="mb-4 sm:mb-6">
             <MentorProfile
@@ -82,6 +103,7 @@ export default async function MentorProfilePage() {
                 localidade={localidade}
                 contato={contato}
                 perfilShareUrl={`/viewer/mentor/${mentorUUID}`}
+                slots={slots}
             />
         </div>
     );

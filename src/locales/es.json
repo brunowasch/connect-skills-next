@@ -1938,6 +1938,15 @@
     "mentor_kpi_completed": "Mentorías Realizadas",
     "mentor_kpi_availability": "Horarios Disponibles",
     "mentor_kpi_specialties": "Especialidades",
+    "mentor_kpi_upcoming": "Próximas Mentorías",
+    "mentor_kpi_pending": "Solicitudes Pendientes",
+    "mentor_dashboard_completed_history": "Historial de Mentorías Realizadas",
+    "mentor_dashboard_no_completed": "Ninguna mentoría completada hasta el momento.",
+    "mentor_dashboard_no_upcoming": "Ninguna mentoría confirmada en este momento.",
+    "mentor_dashboard_performance_rating": "Evaluación General de Satisfacción",
+    "mentor_dashboard_ratings_count": "Basado en {{count}} evaluaciones",
+    "mentor_dashboard_ratings_count_one": "Basado en 1 evaluación",
+    "mentor_dashboard_no_ratings": "Sin evaluaciones aún",
     "edit_specialties": "Editar Especialidades",
     "mentor_kpi_no_specialties": "Ninguna especialidad definida",
     "mentor_kpi_setup": "Configurar Ahora",
@@ -1958,10 +1967,8 @@
     "interview_status_confirmed": "Aceptada",
     "schedule_interview_btn": "Programar Entrevista",
     "interview_status_cancelled": "Rechazada",
-    
     "schedule_success_presencial": "¡Candidato Invitado con Éxito!",
     "schedule_success_presencial_desc": "El candidato ha sido marcado como invitado a una entrevista presencial.",
-    
     "onsite_choose_slot": "Elegir Horario",
     "onsite_available_slots_title": "Horarios Disponibles de la Empresa",
     "onsite_available_slots_desc": "Elige uno de los horarios que registraste para esta vacante.",
@@ -1969,7 +1976,6 @@
     "onsite_add_slots_hint": "Añade horarios en la barra lateral de Entrevistas Presenciales antes de agendar.",
     "onsite_confirm_dispatch_desc": "El candidato recibirá una invitación para confirmar su asistencia en esta fecha y horario.",
     "onsite_selected_slot": "Horario Seleccionado",
-    
     "onsite_schedule_title": "Entrevistas",
     "onsite_slot_singular": "horario",
     "onsite_slot_plural": "horarios",
@@ -1998,13 +2004,11 @@
     "onsite_add_slots_hint_modal": "Publica horarios en la página de Entrevistas Presenciales para poder convocar candidatos.",
     "schedule_presencial_desc_new": "Elige uno de los horarios publicados en la agenda de entrevistas presenciales y convoca al candidato.",
     "sidebar_onsite_schedule": "Entrevistas",
-    
     "onsite_status_confirmed": "Confirmada",
     "onsite_status_pending": "Esperando candidato",
     "onsite_status_cancelled": "Rechazada",
     "onsite_candidate_label": "Candidato",
     "onsite_slot_available": "Disponible",
-    
     "onsite_confirm_not_found_title": "Entrevista no encontrada",
     "onsite_confirm_not_found_desc": "Este enlace puede ser inválido o haber expirado.",
     "onsite_confirm_success_title": "¡Asistencia Confirmada!",
@@ -2159,11 +2163,9 @@
     "feedback_acceptable_title": "Feedback aprobado por la IA",
     "feedback_ready_to_send": "Haz clic en \"Confirmar y Enviar\" para finalizar.",
     "feedback_corrected_optional": "Versión mejorada por la IA (opcional):",
-
     "legal_document_badge": "Documento Legal",
     "legal_updated_at": "Última actualización: 2 de mayo de 2026",
     "legal_see_also": "Ver también:",
-
     "terms_hero_subtitle": "Lea con atención antes de utilizar la plataforma.",
     "terms_title": "Términos de Uso",
     "terms_s1_title": "1. Aceptación de los Términos",
@@ -2225,7 +2227,6 @@
     "terms_s12_title": "12. Contacto",
     "terms_s12_p1": "Para dudas relacionadas con estos Términos, contáctenos a través de los canales disponibles en la página de",
     "terms_s12_link": "Contacto",
-
     "privacy_badge": "Protección de Datos",
     "privacy_title": "Política de Privacidad",
     "privacy_hero_subtitle": "En conformidad con la LGPD (Ley N° 13.709/2018).",
@@ -2296,7 +2297,6 @@
     "privacy_s13_title": "13. Delegado de Protección de Datos (DPO)",
     "privacy_s13_p1": "Connect Skills ha designado un DPO. Para contactarnos, use los canales oficiales en nuestra página de",
     "privacy_s13_link": "Contacto",
-
     "cookies_badge": "Cookies y Rastreo",
     "cookies_title": "Política de Cookies",
     "cookies_hero_subtitle": "Entienda cómo usamos cookies para mejorar su experiencia.",
@@ -2347,8 +2347,17 @@
     "cookies_s10_title": "10. Contacto",
     "cookies_s10_p1": "¿Preguntas sobre el uso de cookies? Contáctenos a través de los canales disponibles en nuestra página de",
     "cookies_s10_link": "Contacto",
-
     "filter_all": "Todos",
     "filter_empresas": "Empresas",
-    "filter_mentores": "Mentores"
+    "filter_mentores": "Mentores",
+    "slot_type_online": "En línea",
+    "slot_type_presencial": "Presencial",
+    "slot_type_any": "Cualquier formato",
+    "slot_singular": "horario disponible",
+    "slot_plural": "horarios disponibles",
+    "no_upcoming_slots": "No hay horarios disponibles registrados.",
+    "add_availability_link": "Agregar horarios",
+    "manage_full_schedule": "Gestionar agenda completa",
+    "no_upcoming_slots_public": "Este mentor no tiene horarios disponibles en este momento.",
+    "public_mentor_profile_title": "Perfil del Mentor"
 }
