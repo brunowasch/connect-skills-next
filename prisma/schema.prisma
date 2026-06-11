@@ -275,7 +275,7 @@ model vaga_status {
 
 model entrevista_mentor {
   id                       String    @id @default(uuid())
-  vaga_id                  String
+  vaga_id                  String?
   candidato_id             String
   mentor_id                String
   disponibilidade_id       String

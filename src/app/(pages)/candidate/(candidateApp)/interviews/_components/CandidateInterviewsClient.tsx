@@ -270,13 +270,13 @@ export default function CandidateInterviewsClient({
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{t("interviews_page_title", { defaultValue: "Minhas Entrevistas" })}</h1>
-                <p className="text-slate-500 mt-2 text-sm leading-relaxed mb-6">{t("interviews_page_subtitle", { defaultValue: "Acompanhe suas entrevistas agendadas e acesse o histórico das sessões concluídas." })}</p>
+            <div className="mb-4 sm:mb-6">
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">{t("interviews_page_title", { defaultValue: "Minhas Entrevistas" })}</h1>
+                <p className="text-gray-500">{t("interviews_page_subtitle", { defaultValue: "Acompanhe suas entrevistas agendadas e acesse o histórico das sessões concluídas." })}</p>
             </div>
 
             {pending.length > 0 && (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3 shadow-sm">
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3 shadow-sm mb-6">
                     <div className="bg-amber-100 p-2 rounded-full flex-shrink-0 animate-pulse">
                         <AlertTriangle className="w-5 h-5 text-amber-600" />
                     </div>
@@ -291,69 +291,75 @@ export default function CandidateInterviewsClient({
                 </div>
             )}
 
-            <div className="flex border-b border-slate-200 gap-6 overflow-x-auto no-scrollbar pb-1">
-                <button
-                    onClick={() => setActiveTab('scheduled')}
-                    className={`pb-3 whitespace-nowrap text-sm font-semibold transition-colors relative ${activeTab === 'scheduled' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
-                >
-                    <div className="flex items-center gap-2 cursor-pointer">
-                        <Calendar size={16} />
+            <div className="relative mb-4 sm:mb-8 overflow-hidden">
+                <div className="flex border-b border-gray-200 overflow-x-auto scrollbar-hide w-full">
+                    <button
+                        onClick={() => setActiveTab('scheduled')}
+                        className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 border-b-2 font-medium text-xs sm:text-sm transition-all whitespace-nowrap flex-shrink-0 active:bg-gray-50 cursor-pointer ${
+                            activeTab === 'scheduled'
+                                ? "border-blue-600 text-blue-600"
+                                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                        }`}
+                    >
+                        <Calendar className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
                         {t("interviews_tab_scheduled", { defaultValue: "Agendadas" })}
-                        <span className={`inline-flex items-center justify-center h-5 px-2 rounded-full text-xs ${activeTab === 'scheduled' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
+                        <span className={`ml-1 sm:ml-1.5 text-[10px] sm:text-xs font-semibold px-1.5 sm:px-2 py-0.5 rounded-full ${
+                            activeTab === 'scheduled' ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-600"
+                        }`}>
                             {scheduled.length}
                         </span>
-                    </div>
-                    {activeTab === 'scheduled' && (
-                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full" />
-                    )}
-                </button>
-                <button
-                    onClick={() => setActiveTab('pending')}
-                    className={`pb-3 whitespace-nowrap text-sm font-semibold transition-colors relative ${activeTab === 'pending' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
-                >
-                    <div className="flex items-center gap-2 cursor-pointer">
-                        <Timer size={16} className={pending.length > 0 ? "text-red-500 animate-pulse" : ""} />
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('pending')}
+                        className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 border-b-2 font-medium text-xs sm:text-sm transition-all whitespace-nowrap flex-shrink-0 active:bg-gray-50 cursor-pointer ${
+                            activeTab === 'pending'
+                                ? "border-blue-600 text-blue-600"
+                                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                        }`}
+                    >
+                        <Timer className={`w-4 h-4 sm:w-[18px] sm:h-[18px] ${pending.length > 0 ? "text-red-500 animate-pulse" : ""}`} />
                         <span className={pending.length > 0 ? "text-red-600" : ""}>{t("interviews_tab_pending", { defaultValue: "Pendentes" })}</span>
-                        <span className={`inline-flex items-center justify-center h-5 px-2 rounded-full text-xs font-bold transition-all ${pending.length > 0 ? 'bg-red-500 text-white shadow-sm ring-2 ring-red-200 animate-pulse' : (activeTab === 'pending' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600')}`}>
+                        <span className={`ml-1 sm:ml-1.5 text-[10px] sm:text-xs font-semibold px-1.5 sm:px-2 py-0.5 rounded-full transition-all ${
+                            pending.length > 0 ? 'bg-red-500 text-white shadow-sm ring-2 ring-red-200 animate-pulse' : (activeTab === 'pending' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600')
+                        }`}>
                             {pending.length}
                         </span>
-                    </div>
-                    {activeTab === 'pending' && (
-                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full" />
-                    )}
-                </button>
-                <button
-                    onClick={() => setActiveTab('history')}
-                    className={`pb-3 whitespace-nowrap text-sm font-semibold transition-colors relative ${activeTab === 'history' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
-                >
-                    <div className="flex items-center gap-2 cursor-pointer">
-                        <History size={16} />
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('history')}
+                        className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 border-b-2 font-medium text-xs sm:text-sm transition-all whitespace-nowrap flex-shrink-0 active:bg-gray-50 cursor-pointer ${
+                            activeTab === 'history'
+                                ? "border-blue-600 text-blue-600"
+                                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                        }`}
+                    >
+                        <History className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
                         {t("interviews_tab_history", { defaultValue: "Histórico" })}
-                        <span className={`inline-flex items-center justify-center h-5 px-2 rounded-full text-xs ${activeTab === 'history' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
+                        <span className={`ml-1 sm:ml-1.5 text-[10px] sm:text-xs font-semibold px-1.5 sm:px-2 py-0.5 rounded-full ${
+                            activeTab === 'history' ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-600"
+                        }`}>
                             {history.length}
                         </span>
-                    </div>
-                    {activeTab === 'history' && (
-                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full" />
-                    )}
-                </button>
-                {mentorshipReviews.length > 0 && (
-                    <button
-                        onClick={() => setActiveTab('reviews')}
-                        className={`pb-3 whitespace-nowrap text-sm font-semibold transition-colors relative ${activeTab === 'reviews' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
-                    >
-                        <div className="flex items-center gap-2 cursor-pointer">
-                            <Star size={16} className={activeTab === 'reviews' ? 'fill-blue-500 text-blue-600' : ''} />
+                    </button>
+                    {mentorshipReviews.length > 0 && (
+                        <button
+                            onClick={() => setActiveTab('reviews')}
+                            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 border-b-2 font-medium text-xs sm:text-sm transition-all whitespace-nowrap flex-shrink-0 active:bg-gray-50 cursor-pointer ${
+                                activeTab === 'reviews'
+                                    ? "border-blue-600 text-blue-600"
+                                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                            }`}
+                        >
+                            <Star className={`w-4 h-4 sm:w-[18px] sm:h-[18px] ${activeTab === 'reviews' ? 'fill-blue-600 text-blue-600' : ''}`} />
                             {t("interviews_tab_reviews", { defaultValue: "Avaliações" })}
-                            <span className={`inline-flex items-center justify-center h-5 px-2 rounded-full text-xs ${activeTab === 'reviews' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
+                            <span className={`ml-1 sm:ml-1.5 text-[10px] sm:text-xs font-semibold px-1.5 sm:px-2 py-0.5 rounded-full ${
+                                activeTab === 'reviews' ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-600"
+                            }`}>
                                 {mentorshipReviews.length}
                             </span>
-                        </div>
-                        {activeTab === 'reviews' && (
-                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full" />
-                        )}
-                    </button>
-                )}
+                        </button>
+                    )}
+                </div>
             </div>
 
             <div className="flex items-center">

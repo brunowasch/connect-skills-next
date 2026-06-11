@@ -367,23 +367,36 @@ export default async function Dashboard() {
     });
 
     const mentorshipRequests = await Promise.all(pendingInterviews.map(async (interview: any) => {
-        const vaga = await prisma.vaga.findUnique({
-            where: { id: interview.vaga_id },
-            select: { cargo: true, empresa_id: true }
-        });
+        const vaga = interview.vaga_id
+            ? await prisma.vaga.findUnique({
+                where: { id: interview.vaga_id },
+                select: { cargo: true, empresa_id: true }
+              })
+            : null;
         let empresaData = null;
         if (vaga?.empresa_id) {
             empresaData = await prisma.empresa.findUnique({
                 where: { id: vaga.empresa_id },
                 select: { nome_empresa: true, foto_perfil: true }
             });
+        } else if (!interview.vaga_id) {
+            const mentor = await prisma.mentor.findUnique({
+                where: { id: interview.mentor_id },
+                select: { nome: true, sobrenome: true, foto_perfil: true }
+            });
+            if (mentor) {
+                empresaData = {
+                    nome_empresa: `${mentor.nome || ""} ${mentor.sobrenome || ""}`.trim() || "Mentor",
+                    foto_perfil: mentor.foto_perfil
+                };
+            }
         }
         return {
             id: interview.id,
             status: interview.status,
             cargo: vaga?.cargo || "Mentoria",
             empresa: {
-                nome_empresa: empresaData?.nome_empresa || "Empresa",
+                nome_empresa: empresaData?.nome_empresa || "Empresa/Mentor",
                 foto_perfil: empresaData?.foto_perfil || null
             },
             data: interview.data,

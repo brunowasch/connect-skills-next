@@ -23,15 +23,18 @@ export default async function CandidateInterviewsPage() {
     const interviews = await prisma.entrevista_mentor.findMany({
         where: {
             candidato_id: candidate.id,
+            vaga_id: { not: null }, // Apenas entrevistas vinculadas a vagas
         },
         orderBy: [{ data: 'desc' }, { hora_inicio: 'desc' }]
     });
 
     const mentorshipData = await Promise.all(interviews.map(async (interview: any) => {
-        const vaga = await prisma.vaga.findUnique({
-            where: { id: interview.vaga_id },
-            select: { cargo: true, empresa_id: true }
-        });
+        const vaga = interview.vaga_id 
+            ? await prisma.vaga.findUnique({
+                where: { id: interview.vaga_id },
+                select: { cargo: true, empresa_id: true }
+              })
+            : null;
 
         let empresaData = null;
         if (vaga?.empresa_id) {
@@ -52,10 +55,10 @@ export default async function CandidateInterviewsPage() {
         return {
             id: interview.id,
             status: interview.status,
-            vagaExcluida: !vaga,
-            cargo: vaga?.cargo || "Mentoria",
+            vagaExcluida: interview.vaga_id ? !vaga : false,
+            cargo: vaga?.cargo || "Mentoria Individual",
             empresa: {
-                nome_empresa: empresaData?.nome_empresa || "Empresa",
+                nome_empresa: empresaData?.nome_empresa || "Connect Skills",
                 foto_perfil: empresaData?.foto_perfil || null
             },
             mentor: mentorData ? {

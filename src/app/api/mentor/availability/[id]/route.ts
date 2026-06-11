@@ -42,6 +42,20 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     }
 }
 
+function getSlotRange(dateStr: string, startStr: string, endStr: string): { start: Date, end: Date } {
+    const [year, month, day] = dateStr.split("-").map(Number);
+    const [startH, startM] = startStr.split(":").map(Number);
+    const [endH, endM] = endStr.split(":").map(Number);
+    
+    const start = new Date(year, month - 1, day, startH, startM, 0, 0);
+    const end = new Date(year, month - 1, day, endH, endM, 0, 0);
+    
+    if (end <= start) {
+        end.setDate(end.getDate() + 1);
+    }
+    return { start, end };
+}
+
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const cookieStore = await cookies();
@@ -72,12 +86,35 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
             return NextResponse.json({ error: "Horário não encontrado ou não pertence a você." }, { status: 404 });
         }
 
-        if (!slotData) {
-            return NextResponse.json({ error: "Data inválida." }, { status: 400 });
+        if (!slotData || !hora_inicio || !hora_fim) {
+            return NextResponse.json({ error: "Data, hora de início e término são obrigatórias." }, { status: 400 });
         }
 
-        if (hora_inicio >= hora_fim) {
-            return NextResponse.json({ error: "Horário de início não pode ser maior ou igual ao de término." }, { status: 400 });
+        const { start, end } = getSlotRange(slotData, hora_inicio, hora_fim);
+        const diffMs = end.getTime() - start.getTime();
+        const diffMins = Math.round(diffMs / 60000);
+
+        if (diffMins !== 45) {
+            return NextResponse.json({ error: "O horário deve ter exatamente 45 minutos de duração." }, { status: 400 });
+        }
+
+        // Check overlaps with other slots in DB
+        const dbSlots = await prisma.mentor_disponibilidade.findMany({
+            where: {
+                mentor_id: user.mentor.id,
+                id: { not: id }
+            }
+        });
+
+        for (const dbSlot of dbSlots) {
+            const dbRange = getSlotRange(dbSlot.data, dbSlot.hora_inicio, dbSlot.hora_fim);
+            if (start < dbRange.end && dbRange.start < end) {
+                const [year, month, day] = slotData.split("-");
+                const formattedDate = `${day}/${month}/${year}`;
+                return NextResponse.json({ 
+                    error: `O horário ${hora_inicio}–${hora_fim} no dia ${formattedDate} conflita com uma disponibilidade existente (${dbSlot.hora_inicio}–${dbSlot.hora_fim}).` 
+                }, { status: 400 });
+            }
         }
 
         await prisma.mentor_disponibilidade.update({

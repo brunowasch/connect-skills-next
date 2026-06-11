@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from 'react';
-import { X, Trash2, Bell, Video, CheckCircle, XCircle, MessageSquare, Clock, Eye, Check, CalendarCheck } from 'lucide-react';
+import { X, Trash2, Bell, Video, CheckCircle, XCircle, MessageSquare, Clock, Eye, Check, CalendarCheck, Star } from 'lucide-react';
 import { useTranslation } from "react-i18next";
 import { Notification } from "@/src/lib/notifications";
 import { useRouter } from 'next/navigation';
@@ -53,6 +53,8 @@ export function AllNotificationsModal({
                 return <CalendarCheck size={20} className="text-indigo-600" />;
             case 'interview_confirmed':
                 return <CalendarCheck size={20} className="text-emerald-600" />;
+            case 'FEEDBACK_DISPONIVEL':
+                return <Star size={20} className="text-amber-500 fill-amber-500 animate-pulse" />;
             default:
                 return <MessageSquare size={20} className="text-blue-600" />;
         }
@@ -70,6 +72,8 @@ export function AllNotificationsModal({
                 return 'bg-indigo-50 border-indigo-100';
             case 'interview_confirmed':
                 return 'bg-emerald-50 border-emerald-100';
+            case 'FEEDBACK_DISPONIVEL':
+                return 'bg-amber-50 border-amber-100';
             default:
                 return 'bg-blue-50 border-blue-100';
         }
@@ -233,6 +237,18 @@ export function AllNotificationsModal({
                                                 >
                                                     <CalendarCheck size={16} />
                                                     {t('schedule_confirm_btn', 'Confirmar Presença')}
+                                                </button>
+                                            )}
+                                            {notification.type === 'FEEDBACK_DISPONIVEL' && (
+                                                <button
+                                                    onClick={() => {
+                                                        router.push('/candidate/interviews');
+                                                        onClose();
+                                                    }}
+                                                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-amber-600 bg-amber-50 hover:bg-amber-100 rounded-lg transition-colors cursor-pointer"
+                                                >
+                                                    <Star size={16} className="fill-current" />
+                                                    {t('notifications.view_feedback_rating', 'Ver Avaliação')}
                                                 </button>
                                             )}
                                             {!notification.read && (

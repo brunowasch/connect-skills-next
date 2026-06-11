@@ -38,10 +38,12 @@ export default async function MentorDashboardPage() {
     });
 
     const upcomingInterviews = await Promise.all(upcomingInterviewsRaw.map(async (int: any) => {
-        const vaga = await prisma.vaga.findUnique({
-            where: { id: int.vaga_id },
-            select: { cargo: true, empresa_id: true }
-        });
+        const vaga = int.vaga_id
+            ? await prisma.vaga.findUnique({
+                where: { id: int.vaga_id },
+                select: { cargo: true, empresa_id: true }
+              })
+            : null;
         
         let empresaData = null;
         if (vaga?.empresa_id) {
@@ -83,10 +85,12 @@ export default async function MentorDashboardPage() {
     });
 
     const completedInterviews = await Promise.all(completedInterviewsRaw.map(async (int: any) => {
-        const vaga = await prisma.vaga.findUnique({
-            where: { id: int.vaga_id },
-            select: { cargo: true, empresa_id: true }
-        });
+        const vaga = int.vaga_id
+            ? await prisma.vaga.findUnique({
+                where: { id: int.vaga_id },
+                select: { cargo: true, empresa_id: true }
+              })
+            : null;
         
         let empresaData = null;
         if (vaga?.empresa_id) {

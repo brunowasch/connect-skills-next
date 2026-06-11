@@ -54,7 +54,9 @@ export async function POST(req: NextRequest) {
         const mentor = await prisma.mentor.findUnique({ where: { id: entrevista.mentor_id } });
         
         let empresa = null;
-        const vaga = await prisma.vaga.findUnique({ where: { id: entrevista.vaga_id } });
+        const vaga = entrevista.vaga_id
+            ? await prisma.vaga.findUnique({ where: { id: entrevista.vaga_id } })
+            : null;
         if (vaga) {
             empresa = await prisma.empresa.findUnique({
                 where: { id: vaga.empresa_id },
@@ -72,15 +74,51 @@ export async function POST(req: NextRequest) {
                 nota_tecnica,
                 nota_geral,
                 feedback_enviado_em: new Date(),
+                status: "CONCLUIDA" // Ensure the status is updated to CONCLUIDA when feedback is saved!
             },
         });
+
+        const mentorName = [mentor?.nome, mentor?.sobrenome].filter(Boolean).join(" ") || "Mentor";
+        const candidateName = [candidato?.nome, candidato?.sobrenome].filter(Boolean).join(" ") || "Candidato";
+
+        // Create notification for Candidate
+        if (candidato?.usuario_id) {
+            await prisma.notificacao.create({
+                data: {
+                    id: crypto.randomUUID(),
+                    usuario_id: candidato.usuario_id,
+                    tipo: "FEEDBACK_DISPONIVEL",
+                    titulo: vaga ? "Avaliação da Entrevista Técnica Disponível" : "Avaliação da Mentoria Disponível",
+                    mensagem: vaga 
+                        ? `A avaliação da sua entrevista com o mentor ${mentorName} para a vaga "${vaga.cargo}" já está disponível. Confira seu feedback!`
+                        : `Sua avaliação da sessão de mentoria com o mentor ${mentorName} já está disponível. Confira seu feedback!`,
+                    dados: JSON.stringify({ entrevistaId })
+                }
+            });
+        }
+
+        // Create notification for Company (if vacancy interview)
+        if (vaga && empresa?.usuario?.id) {
+            await prisma.notificacao.create({
+                data: {
+                    id: crypto.randomUUID(),
+                    usuario_id: empresa.usuario.id,
+                    tipo: "FEEDBACK_DISPONIVEL",
+                    titulo: "Resultado de Entrevista Disponível",
+                    mensagem: `O mentor ${mentorName} enviou a avaliação do candidato ${candidateName} para a vaga "${vaga.cargo}".`,
+                    dados: JSON.stringify({ 
+                        entrevistaId, 
+                        vagaId: entrevista.vaga_id, 
+                        candidatoId: entrevista.candidato_id 
+                    })
+                }
+            });
+        }
 
         // Enviar email para a empresa
         if (empresa?.usuario?.email) {
             const companyEmail = empresa.usuario.email;
             const companyName = empresa.nome_empresa || "Empresa";
-            const candidateName = [candidato?.nome, candidato?.sobrenome].filter(Boolean).join(" ") || "Candidato";
-            const mentorName = [mentor?.nome, mentor?.sobrenome].filter(Boolean).join(" ") || "Mentor";
             const vacancyTitle = vaga?.cargo || "Vaga";
             
             const appUrl = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
