@@ -523,6 +523,7 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, vacancyTitle, 
                                                     const status = candidate.application?.interviewStatus;
                                                     if (status === 'PENDENTE_CANDIDATO') return 'bg-amber-50 text-amber-600 border border-amber-200 cursor-not-allowed';
                                                     if (status === 'CONFIRMADA') return 'bg-green-50 text-green-600 border border-green-200 cursor-not-allowed';
+                                                    if (status === 'CONCLUIDA') return 'bg-blue-50 text-blue-600 border border-blue-200 cursor-not-allowed';
                                                     return 'bg-emerald-500 text-white hover:bg-emerald-600';
                                                 })()}`}
                                         >
@@ -531,6 +532,7 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, vacancyTitle, 
                                                 const status = candidate.application?.interviewStatus;
                                                 if (status === 'PENDENTE_CANDIDATO') return t('interview_status_requested', 'Solicitada');
                                                 if (status === 'CONFIRMADA') return t('interview_status_confirmed', 'Aceita');
+                                                if (status === 'CONCLUIDA') return t('interview_status_completed', 'Concluída');
                                                 return t('schedule_interview_btn', 'Agendar Entrevista');
                                             })()}
                                         </button>

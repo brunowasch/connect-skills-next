@@ -2,7 +2,7 @@ import { prisma } from "@/src/lib/prisma";
 
 export interface Notification {
     id: string;
-    type: 'video_request' | 'feedback_approved' | 'feedback_rejected' | 'general' | 'video_received' | 'new_candidate' | 'video_expired_unsubmitted' | 'interview_scheduled' | 'interview_confirmed' | 'interview_confirmed_mentor' | 'interview_cancelled_mentor' | 'interview_expired';
+    type: 'video_request' | 'feedback_approved' | 'feedback_rejected' | 'general' | 'video_received' | 'new_candidate' | 'video_expired_unsubmitted' | 'interview_scheduled' | 'interview_confirmed' | 'interview_confirmed_mentor' | 'interview_cancelled_mentor' | 'interview_expired' | 'FEEDBACK_DISPONIVEL';
     title: string;
     message: string;
     vacancyTitle: string;
@@ -126,7 +126,7 @@ export async function getCompanyNotifications(companyId: string): Promise<Notifi
             const interviewNotifs = await (prisma as any).notificacao.findMany({
                 where: {
                     usuario_id: companyUser.usuario.id,
-                    tipo: { in: ['ENTREVISTA_CONFIRMADA', 'ENTREVISTA_RECUSADA', 'MENTORIA_EXPIRADA'] }
+                    tipo: { in: ['ENTREVISTA_CONFIRMADA', 'ENTREVISTA_RECUSADA', 'MENTORIA_EXPIRADA', 'FEEDBACK_DISPONIVEL'] }
                 },
                 orderBy: { criado_em: 'desc' }
             });
@@ -136,6 +136,8 @@ export async function getCompanyNotifications(companyId: string): Promise<Notifi
                 const typeMapped: Notification['type'] =
                     notif.tipo === 'MENTORIA_EXPIRADA'
                         ? 'interview_expired'
+                        : notif.tipo === 'FEEDBACK_DISPONIVEL'
+                        ? 'FEEDBACK_DISPONIVEL'
                         : 'interview_confirmed';
                 
                 let candidateName = extraData.candidateName;
@@ -308,16 +310,26 @@ export async function getCandidateNotifications(candidateId: string): Promise<No
             const interviewNotifications = await (prisma as any).notificacao.findMany({
                 where: {
                     usuario_id: usuarioData.usuario.id,
-                    tipo: { in: ['ENTREVISTA_AGENDADA', 'ENTREVISTA_CONFIRMADA', 'ENTREVISTA_CANCELADA'] }
+                    tipo: { in: ['ENTREVISTA_AGENDADA', 'ENTREVISTA_CONFIRMADA', 'ENTREVISTA_CANCELADA', 'ENTREVISTA_PRESENCIAL_AGENDADA', 'ENTREVISTA_PRESENCIAL_CONCLUIDA', 'FEEDBACK_DISPONIVEL'] }
                 },
                 orderBy: { criado_em: 'desc' }
             });
 
             for (const notif of interviewNotifications) {
                 const extraData = notif.dados ? JSON.parse(notif.dados) : {};
+                
+                let mappedType = 'interview_confirmed';
+                if (notif.tipo === 'ENTREVISTA_AGENDADA' || notif.tipo === 'ENTREVISTA_PRESENCIAL_AGENDADA') {
+                    mappedType = 'interview_scheduled';
+                } else if (notif.tipo === 'ENTREVISTA_PRESENCIAL_CONCLUIDA') {
+                    mappedType = 'interview_confirmed'; // Reutilizando a badge de sucesso/confirmado
+                } else if (notif.tipo === 'FEEDBACK_DISPONIVEL') {
+                    mappedType = 'FEEDBACK_DISPONIVEL';
+                }
+                
                 notifications.push({
                     id: `notificacao_${notif.id}`,
-                    type: notif.tipo === 'ENTREVISTA_AGENDADA' ? 'interview_scheduled' : 'interview_confirmed',
+                    type: mappedType as any,
                     title: notif.titulo,
                     message: notif.mensagem,
                     vacancyTitle: '',

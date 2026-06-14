@@ -20,21 +20,32 @@ export default async function ConfirmInterviewPage({ params }: Props) {
     let formattedDate = "";
 
     if (interview) {
-        const vaga = await prisma.vaga.findUnique({
-            where: { id: interview.vaga_id },
-            include: {
-                vaga_area: { include: { area_interesse: true } }
+        if (interview.vaga_id) {
+            const vaga = await prisma.vaga.findUnique({
+                where: { id: interview.vaga_id },
+                include: {
+                    vaga_area: { include: { area_interesse: true } }
+                }
+            });
+
+            let company = null;
+            if (vaga?.empresa_id) {
+                company = await prisma.empresa.findUnique({
+                    where: { id: vaga.empresa_id }
+                });
             }
-        });
 
-        // Fetch company info from varga.empresa_id using the empresa model
-        const company = await prisma.empresa.findUnique({
-            where: { id: vaga!.empresa_id }
-        });
-
-        vagaTitle = vaga?.cargo || "a vaga";
-        companyName = company?.nome_empresa || "Empresa";
-        companyPhoto = company?.foto_perfil || null;
+            vagaTitle = vaga?.cargo || "a vaga";
+            companyName = company?.nome_empresa || "Empresa";
+            companyPhoto = company?.foto_perfil || null;
+        } else {
+            const mentor = await prisma.mentor.findUnique({
+                where: { id: interview.mentor_id }
+            });
+            vagaTitle = "Mentoria";
+            companyName = mentor ? `${mentor.nome || ""} ${mentor.sobrenome || ""}`.trim() : "Mentor";
+            companyPhoto = mentor?.foto_perfil || null;
+        }
 
         const parts = interview.data.split("-");
         formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;

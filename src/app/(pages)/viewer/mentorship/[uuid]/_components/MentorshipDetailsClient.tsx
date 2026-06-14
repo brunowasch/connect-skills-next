@@ -155,9 +155,17 @@ export default function MentorshipDetailsClient({ mentorship }: { mentorship: an
                                 height={64}
                                 className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl object-cover border border-gray-200 shadow-sm flex-shrink-0"
                             />
+                        ) : mentor?.foto_perfil ? (
+                            <Image
+                                src={mentor.foto_perfil}
+                                alt={`${mentor.nome || ""} ${mentor.sobrenome || ""}`}
+                                width={64}
+                                height={64}
+                                className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl object-cover border border-gray-200 shadow-sm flex-shrink-0"
+                            />
                         ) : (
                             <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center flex-shrink-0">
-                                <Building2 size={24} className="text-gray-400" />
+                                {mentor ? <User size={24} className="text-gray-400" /> : <Building2 size={24} className="text-gray-400" />}
                             </div>
                         )}
 
@@ -169,7 +177,7 @@ export default function MentorshipDetailsClient({ mentorship }: { mentorship: an
                                             {cargoTitle}
                                         </h1>
                                         <p className="text-base text-gray-600 mt-1">
-                                            {empresa?.nome_empresa || "Empresa"}
+                                            {empresa?.nome_empresa || (mentor ? `${mentor.nome || ""} ${mentor.sobrenome || ""}`.trim() : "Empresa")}
                                         </p>
                                     </div>
                                     {/* Desktop: copy + language + status */}
@@ -259,9 +267,17 @@ export default function MentorshipDetailsClient({ mentorship }: { mentorship: an
                             </h2>
                             <div className="prose prose-sm sm:prose-base max-w-none text-gray-700">
                                 <p className="mb-4">
-                                    {t("mentorship_details_intro_1", { defaultValue: 'Nesta etapa, você conversará com um especialista (mentor) que conduzirá sua avaliação técnica para a ' })}
-                                    <strong>{empresa?.nome_empresa || t("mentorship_details_company", { defaultValue: 'Empresa' })}</strong>
-                                    {t("mentorship_details_intro_2", { defaultValue: '. O objetivo é conhecer a fundo suas habilidades e entender o seu alinhamento aos requisitos técnicos e culturais da vaga.' })}
+                                    {vaga ? (
+                                        <>
+                                            {t("mentorship_details_intro_1", { defaultValue: 'Nesta etapa, você conversará com um especialista (mentor) que conduzirá sua avaliação técnica para a ' })}
+                                            <strong>{empresa?.nome_empresa || t("mentorship_details_company", { defaultValue: 'Empresa' })}</strong>
+                                            {t("mentorship_details_intro_2", { defaultValue: '. O objetivo é conhecer a fundo suas habilidades e entender o seu alinhamento aos requisitos técnicos e culturais da vaga.' })}
+                                        </>
+                                    ) : (
+                                        <>
+                                            Nesta etapa, você conversará com o mentor <strong>{mentor ? `${mentor.nome || ""} ${mentor.sobrenome || ""}`.trim() : "Mentor"}</strong>. O objetivo é desenvolver suas habilidades profissionais, compartilhar experiências e receber orientações para a sua carreira.
+                                        </>
+                                    )}
                                 </p>
                                 <h3 className="text-md font-semibold text-gray-900 mt-6 mb-3">{t("mentorship_details_tips_title", { defaultValue: 'Dicas rápidas para ir bem:' })}</h3>
                                 <ul className="space-y-3 mb-6 bg-blue-50/50 rounded-xl p-5 border border-blue-100/50">

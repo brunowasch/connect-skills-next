@@ -1,8 +1,9 @@
-import React from 'react';
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
-import CandidateMentorshipsClient from './_components/CandidateMentorshipsClient';
+import { MentorshipsClient } from "./_components/MentorshipsClient";
+
+export const dynamic = "force-dynamic";
 
 export default async function CandidateMentorshipsPage() {
     const cookieStore = await cookies();
@@ -13,67 +14,125 @@ export default async function CandidateMentorshipsPage() {
     }
 
     const candidate = await prisma.candidato.findUnique({
-        where: { usuario_id: userId }
+        where: { usuario_id: userId },
+        include: {
+            candidato_area: {
+                include: { area_interesse: true }
+            }
+        }
     });
 
     if (!candidate) {
         redirect("/login");
     }
 
-    const interviews = await prisma.entrevista_mentor.findMany({
-        where: {
-            candidato_id: candidate.id,
-        },
-        orderBy: [{ data: 'desc' }, { hora_inicio: 'desc' }]
+    // Candidate areas of interest names and ids
+    const candidateAreaIds = candidate.candidato_area.map((ca) => ca.area_interesse_id);
+    const candidateAreas = candidate.candidato_area.map((ca) => ca.area_interesse.nome).filter(Boolean) as string[];
+
+    // Fetch all areas of interest for the filter dropdown
+    const allAreas = await prisma.area_interesse.findMany({
+        orderBy: { nome: "asc" }
     });
 
-    const mentorshipData = await Promise.all(interviews.map(async (interview: any) => {
-        const vaga = await prisma.vaga.findUnique({
-            where: { id: interview.vaga_id },
-            select: { cargo: true, empresa_id: true }
-        });
+    // Find all future slots that are already booked
+    const now = new Date();
+    const brazilDate = new Date(now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+    const today = brazilDate.getFullYear() + "-"
+        + String(brazilDate.getMonth() + 1).padStart(2, "0") + "-"
+        + String(brazilDate.getDate()).padStart(2, "0");
 
-        let empresaData = null;
-        if (vaga?.empresa_id) {
-            empresaData = await prisma.empresa.findUnique({
-                where: { id: vaga.empresa_id },
-                select: { nome_empresa: true, foto_perfil: true }
-            });
-        }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const activeInterviews = await (prisma as any).entrevista_mentor.findMany({
+        where: {
+            status: {
+                in: ["PENDENTE_CANDIDATO", "CONFIRMADA", "CONCLUIDA"]
+            }
+        },
+        select: { disponibilidade_id: true }
+    });
 
-        let mentorData = null;
-        if (interview.mentor_id) {
-            mentorData = await prisma.mentor.findUnique({
-                where: { id: interview.mentor_id },
-                select: { nome: true, sobrenome: true, foto_perfil: true }
-            });
+    const bookedSlotIds = new Set(activeInterviews.map((i: { disponibilidade_id: string }) => i.disponibilidade_id));
+
+    // Fetch all mentors
+    const mentorsRaw = await prisma.mentor.findMany({
+        include: {
+            mentor_area: {
+                include: { area_interesse: true }
+            },
+            mentor_disponibilidade: {
+                where: {
+                    data: { gte: today }
+                },
+                orderBy: [
+                    { data: "asc" },
+                    { hora_inicio: "asc" }
+                ]
+            }
         }
+    });
+
+    // Filter slots that are not booked
+    const mentors = mentorsRaw.map(mentor => {
+        const availableSlots = mentor.mentor_disponibilidade.filter(
+            (slot) => !bookedSlotIds.has(slot.id)
+        );
 
         return {
-            id: interview.id,
-            status: interview.status,
-            cargo: vaga?.cargo || "Mentoria",
-            empresa: {
-                nome_empresa: empresaData?.nome_empresa || "Empresa",
-                foto_perfil: empresaData?.foto_perfil || null
-            },
-            mentor: mentorData ? {
-                nome: mentorData.nome,
-                sobrenome: mentorData.sobrenome,
-                foto_perfil: mentorData.foto_perfil
-            } : null,
-            data: interview.data,
-            hora_inicio: interview.hora_inicio,
-            hora_fim: interview.hora_fim,
-            link_reuniao: interview.link_reuniao,
-            criado_em: interview.criado_em.toISOString(),
+            id: mentor.id,
+            nome: mentor.nome,
+            sobrenome: mentor.sobrenome,
+            bio: mentor.bio,
+            foto_perfil: mentor.foto_perfil,
+            cidade: mentor.cidade,
+            estado: mentor.estado,
+            pais: mentor.pais,
+            areas: mentor.mentor_area.map((ma) => ma.area_interesse.nome).filter(Boolean) as string[],
+            mentor_area: mentor.mentor_area,
+            mentor_disponibilidade: availableSlots
         };
-    }));
+    });
+
+    const bookedMentorshipsRaw = await prisma.entrevista_mentor.findMany({
+        where: {
+            candidato_id: candidate.id,
+            vaga_id: null, // Apenas mentorias diretas (sem vaga vinculada)
+        },
+        orderBy: [
+            { data: 'asc' },
+            { hora_inicio: 'asc' }
+        ]
+    });
+
+    const bookedMentorships = await Promise.all(
+        bookedMentorshipsRaw.map(async (session) => {
+            const mentor = await prisma.mentor.findUnique({
+                where: { id: session.mentor_id },
+                select: {
+                    id: true,
+                    nome: true,
+                    sobrenome: true,
+                    foto_perfil: true,
+                    bio: true
+                }
+            });
+            return {
+                ...session,
+                mentor
+            };
+        })
+    );
 
     return (
         <main className="flex-1 overflow-y-auto bg-slate-50 p-4 lg:p-8">
-            <div className="mx-auto max-w-6xl space-y-8">
-                <CandidateMentorshipsClient mentorships={mentorshipData} />
+            <div className="mx-auto max-w-6xl">
+                <MentorshipsClient
+                    mentors={mentors}
+                    candidateAreas={candidateAreas}
+                    candidateAreaIds={candidateAreaIds}
+                    allAreas={allAreas}
+                    myMentorships={bookedMentorships}
+                />
             </div>
         </main>
     );

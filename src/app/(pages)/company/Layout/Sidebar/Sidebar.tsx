@@ -4,7 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { FaHome, FaBriefcase, FaUser, FaSignOutAlt, FaQuestionCircle, FaTimes } from "react-icons/fa";
+import { FaHome, FaBriefcase, FaUser, FaSignOutAlt, FaQuestionCircle, FaTimes, FaCalendarAlt } from "react-icons/fa";
+import { Building2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ContactForm } from "@/src/app/_components/ContactForm/ContactForm";
 
@@ -23,9 +24,10 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen, isCollapsed
     const [helpOpen, setHelpOpen] = useState(false);
 
     const navItems = [
-        { label: t("sidebar_home"), href: "/company/dashboard", icon: FaHome },
-        { label: t("sidebar_vacancies"), href: "/company/vacancies", icon: FaBriefcase },
-        { label: t("sidebar_profile"), href: "/company/profile", icon: FaUser },
+        { label: t("sidebar_home"), href: "/company/dashboard", icon: FaHome, isLucide: false },
+        { label: t("sidebar_vacancies"), href: "/company/vacancies", icon: FaBriefcase, isLucide: false },
+        { label: t("sidebar_onsite_schedule", "Entrevistas"), href: "/company/interviews", icon: FaCalendarAlt, isLucide: false },
+        { label: t("sidebar_profile"), href: "/company/profile", icon: FaUser, isLucide: false },
     ];
 
     const handleLogout = async () => {
@@ -110,7 +112,7 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen, isCollapsed
 
                     <nav style={{ marginTop: "2rem", display: "flex", flexDirection: "column", gap: "0.5rem", padding: isCollapsed ? "0 0.5rem" : "0 1rem" }}>
                         {navItems.map((item) => {
-                            const isActive = pathname === item.href;
+                            const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
                             const Icon = item.icon;
 
                             return (
@@ -148,7 +150,10 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen, isCollapsed
                                         }
                                     }}
                                 >
-                                    <Icon style={{ fontSize: "1.25rem", color: isActive ? "#ffffff" : "#64748b" }} />
+                                    {item.isLucide
+                                        ? <Icon width={20} height={20} style={{ color: isActive ? "#ffffff" : "#64748b", flexShrink: 0 }} />
+                                        : <Icon style={{ fontSize: "1.25rem", color: isActive ? "#ffffff" : "#64748b" }} />
+                                    }
                                     {!isCollapsed && <span>{item.label}</span>}
                                 </Link>
                             );

@@ -6,6 +6,8 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
+import { OnsiteSlot } from "@/src/app/_components/onsite-interview/InterviewSlotCard";
+
 interface Slot {
     id: string;
     data: string;
@@ -36,7 +38,7 @@ interface ScheduleInterviewModalProps {
     vacancyTitle: string;
 }
 
-type ModalStep = "options" | "mentor_list" | "mentor_slots" | "presencial_confirm" | "success";
+type ModalStep = "options" | "mentor_list" | "mentor_slots" | "presencial_slots" | "presencial_confirm" | "success";
 
 export function ScheduleInterviewModal({
     isOpen,
@@ -57,6 +59,9 @@ export function ScheduleInterviewModal({
     const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
     const [isScheduling, setIsScheduling] = useState(false);
     const [successType, setSuccessType] = useState<"mentor" | "presencial">("mentor");
+    const [onsiteSlots, setOnsiteSlots] = useState<OnsiteSlot[]>([]);
+    const [loadingOnsite, setLoadingOnsite] = useState(false);
+    const [selectedOnsiteSlot, setSelectedOnsiteSlot] = useState<OnsiteSlot | null>(null);
 
     useEffect(() => {
         if (!isOpen) {
@@ -65,6 +70,8 @@ export function ScheduleInterviewModal({
             setSelectedMentor(null);
             setExpandedMentor(null);
             setSelectedSlot(null);
+            setOnsiteSlots([]);
+            setSelectedOnsiteSlot(null);
         }
     }, [isOpen]);
 
@@ -89,8 +96,25 @@ export function ScheduleInterviewModal({
         fetchMentors();
     };
 
+    const fetchOnsiteSlots = async () => {
+        setLoadingOnsite(true);
+        try {
+            const res = await fetch(`/api/company/onsite-interview/slots`);
+            const data = await res.json();
+            if (data.slots) {
+                const available = data.slots.filter((s: OnsiteSlot) => !s.entrevista_presencial);
+                setOnsiteSlots(available);
+            }
+        } catch {
+            toast.error(t("error_connection", "Erro ao carregar horários."));
+        } finally {
+            setLoadingOnsite(false);
+        }
+    };
+
     const handleChoosePresencial = () => {
-        setStep("presencial_confirm");
+        setStep("presencial_slots");
+        fetchOnsiteSlots();
     };
 
     const handleSelectMentor = (mentor: Mentor) => {
@@ -128,6 +152,34 @@ export function ScheduleInterviewModal({
         }
     };
 
+    const handleSchedulePresencial = async () => {
+        if (!selectedOnsiteSlot) return;
+        setIsScheduling(true);
+        try {
+            const res = await fetch("/api/company/onsite-interview", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    vagaId: vacancyId,
+                    candidatoId: candidateId,
+                    slotId: selectedOnsiteSlot.id,
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setSuccessType("presencial");
+                setStep("success");
+                router.refresh();
+            } else {
+                toast.error(data.error || "Erro ao agendar entrevista presencial.");
+            }
+        } catch {
+            toast.error(t("error_connection", "Erro de conexão. Tente novamente."));
+        } finally {
+            setIsScheduling(false);
+        }
+    };
+
     const formatDate = (dateStr: string) => {
         const [y, m, d] = dateStr.split("-");
         const date = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
@@ -149,6 +201,7 @@ export function ScheduleInterviewModal({
                                 {step === "options" && t("schedule_interview_title", "Agendar Entrevista")}
                                 {step === "mentor_list" && t("schedule_choose_mentor", "Escolher Mentor")}
                                 {step === "mentor_slots" && (selectedMentor?.nome ? `${selectedMentor.nome} ${selectedMentor.sobrenome || ""}`.trim() : "Mentor")}
+                                {step === "presencial_slots" && t("onsite_choose_slot", "Escolher Horário")}
                                 {step === "presencial_confirm" && t("schedule_presencial_title", "Entrevista Presencial")}
                                 {step === "success" && t("schedule_success_title", "Agendamento Realizado!")}
                             </h2>
@@ -189,17 +242,17 @@ export function ScheduleInterviewModal({
 
                             <button
                                 onClick={handleChoosePresencial}
-                                className="w-full flex items-start gap-4 p-5 bg-gray-50 hover:bg-gray-100 border-2 border-gray-200 hover:border-gray-400 rounded-2xl transition-all cursor-pointer group text-left"
+                                className="w-full flex items-start gap-4 p-5 bg-orange-50 hover:bg-orange-100 border-2 border-orange-200 hover:border-orange-400 rounded-2xl transition-all cursor-pointer group text-left"
                             >
-                                <div className="w-12 h-12 bg-gray-600 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                                <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
                                     <Building2 className="w-6 h-6 text-white" />
                                 </div>
                                 <div>
-                                    <p className="font-bold text-gray-900 text-base">
+                                    <p className="font-bold text-orange-900 text-base">
                                         {t("schedule_presencial", "Agendar Entrevista Presencial")}
                                     </p>
-                                    <p className="text-sm text-gray-500 mt-1">
-                                        {t("schedule_presencial_desc", "Registre que o candidato foi chamado para uma entrevista presencial na empresa.")}
+                                    <p className="text-sm text-orange-600 mt-1">
+                                        {t("schedule_presencial_desc_new", "Escolha um dos horários publicados na agenda de entrevistas presenciais e convoque o candidato.")}
                                     </p>
                                 </div>
                             </button>
@@ -412,6 +465,81 @@ export function ScheduleInterviewModal({
                             </div>
                         </div>
                     )}
+                    {step === "presencial_slots" && (
+                        <div className="p-6">
+                            <div className="flex items-center gap-3 mb-4 p-3 bg-gray-50 rounded-xl border border-gray-200">
+                                <div className="w-10 h-10 rounded-xl bg-gray-200 flex items-center justify-center flex-shrink-0">
+                                    <Building2 className="w-5 h-5 text-gray-600" />
+                                </div>
+                                <div>
+                                    <p className="font-bold text-gray-900 text-sm">{t("onsite_available_slots_title", "Horários Disponíveis da Empresa")}</p>
+                                    <p className="text-xs text-gray-500">{t("onsite_available_slots_desc", "Escolha um dos horários que você cadastrou para esta vaga.")}</p>
+                                </div>
+                            </div>
+
+                            {loadingOnsite ? (
+                                <div className="flex flex-col items-center justify-center py-12 gap-3">
+                                    <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-600 rounded-full animate-spin" />
+                                </div>
+                            ) : onsiteSlots.length === 0 ? (
+                                <div className="text-center py-12 bg-orange-50 rounded-xl border border-dashed border-orange-200">
+                                    <Calendar className="w-10 h-10 text-orange-300 mx-auto mb-3" />
+                                    <p className="text-gray-600 text-sm font-medium">{t("onsite_no_available_slots", "Nenhum horário disponível.")}</p>
+                                    <p className="text-gray-400 text-xs mt-1 max-w-[260px] mx-auto">
+                                        {t("onsite_add_slots_hint_modal", "Publique horários na página de Entrevistas Presenciais para poder convocar candidatos.")}
+                                    </p>
+                                    <a
+                                        href="/company/interviews"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold rounded-xl transition-colors"
+                                    >
+                                        <Building2 className="w-3.5 h-3.5" />
+                                        {t("onsite_go_to_schedule", "Publicar Horários")}
+                                    </a>
+                                </div>
+                            ) : (
+                                <>
+                                    <p className="text-sm font-semibold text-gray-700 mb-3">
+                                        {t("schedule_choose_slot", "Selecione um horário disponível:")}
+                                    </p>
+                                    <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                                        {onsiteSlots.map((slot) => {
+                                            const isSelected = selectedOnsiteSlot?.id === slot.id;
+                                            return (
+                                                <button
+                                                    key={slot.id}
+                                                    onClick={() => setSelectedOnsiteSlot(slot)}
+                                                    className={`w-full flex items-center gap-4 p-3.5 rounded-xl border-2 transition-all cursor-pointer text-left
+                                                        ${isSelected
+                                                            ? "border-gray-800 bg-gray-50 shadow-sm"
+                                                            : "border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50/50"
+                                                        }`}
+                                                >
+                                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0
+                                                        ${isSelected ? "border-gray-800 bg-gray-800" : "border-gray-300"}`}>
+                                                        {isSelected && <div className="w-2 h-2 bg-white rounded-full" />}
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                                                            <span className="font-semibold text-gray-800 text-sm">{formatDate(slot.data)}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 mt-0.5">
+                                                            <Clock className="w-3.5 h-3.5 text-gray-400" />
+                                                            <span className="text-sm text-gray-600">{slot.hora_inicio}</span>
+                                                        </div>
+                                                    </div>
+                                                    {isSelected && <CheckCircle className="w-5 h-5 text-gray-800 flex-shrink-0" />}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    )}
+
                     {step === "presencial_confirm" && (
                         <div className="p-6">
                             <div className="flex flex-col items-center text-center py-4">
@@ -420,15 +548,36 @@ export function ScheduleInterviewModal({
                                 </div>
                                 <h3 className="font-bold text-gray-900 text-lg mb-2">{t("schedule_presencial_title", "Entrevista Presencial")}</h3>
                                 <p className="text-gray-500 text-sm max-w-xs">
-                                    {t("schedule_presencial_confirm_desc", "O candidato será notificado que foi selecionado para uma entrevista presencial. Entre em contato por e-mail ou telefone para combinar os detalhes.")}
+                                    {t("onsite_confirm_dispatch_desc", "O candidato receberá um convite para confirmar a presença nesta data e horário.")}
                                 </p>
                             </div>
 
                             <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 mt-2">
-                                <p className="text-sm font-semibold text-gray-700 mb-1">{t("candidate", "Candidato")}</p>
-                                <p className="text-gray-900 font-bold">{candidateName}</p>
-                                <p className="text-sm font-semibold text-gray-700 mt-3 mb-1">{t("vacancy", "Vaga")}</p>
-                                <p className="text-gray-900 font-bold">{vacancyTitle}</p>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">{t("candidate", "Candidato")}</p>
+                                        <p className="text-gray-900 font-bold text-sm truncate">{candidateName}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">{t("vacancy", "Vaga")}</p>
+                                        <p className="text-gray-900 font-bold text-sm truncate">{vacancyTitle}</p>
+                                    </div>
+                                </div>
+                                {selectedOnsiteSlot && (
+                                    <div className="mt-4 pt-4 border-t border-gray-200">
+                                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{t("onsite_selected_slot", "Horário Selecionado")}</p>
+                                        <div className="flex items-center gap-4">
+                                            <div className="flex items-center gap-1.5">
+                                                <Calendar className="w-4 h-4 text-gray-400" />
+                                                <span className="font-semibold text-gray-800 text-sm">{formatDate(selectedOnsiteSlot.data)}</span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5">
+                                                <Clock className="w-4 h-4 text-gray-400" />
+                                                <span className="font-semibold text-gray-800 text-sm">{selectedOnsiteSlot.hora_inicio}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
@@ -459,6 +608,18 @@ export function ScheduleInterviewModal({
                                     </div>
                                 </div>
                             )}
+                            {successType === "presencial" && selectedOnsiteSlot && (
+                                <div className="mt-4 bg-gray-50 rounded-xl p-4 w-full text-left border border-gray-200">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Building2 className="w-4 h-4 text-gray-400" />
+                                        <span className="text-sm font-semibold text-gray-700">{t("schedule_presencial_title", "Entrevista Presencial")}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Calendar className="w-4 h-4 text-gray-400" />
+                                        <span className="text-sm text-gray-600">{formatDate(selectedOnsiteSlot.data)} · {selectedOnsiteSlot.hora_inicio}</span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
@@ -468,7 +629,8 @@ export function ScheduleInterviewModal({
                             onClick={() => {
                                 if (step === "mentor_list") setStep("options");
                                 else if (step === "mentor_slots") setStep("mentor_list");
-                                else if (step === "presencial_confirm") setStep("options");
+                                else if (step === "presencial_slots") setStep("options");
+                                else if (step === "presencial_confirm") setStep("presencial_slots");
                             }}
                             className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl font-medium hover:bg-gray-50 transition-colors cursor-pointer"
                         >
@@ -499,12 +661,30 @@ export function ScheduleInterviewModal({
                         </button>
                     )}
 
+                    {step === "presencial_slots" && (
+                        <button
+                            onClick={() => setStep("presencial_confirm")}
+                            disabled={!selectedOnsiteSlot}
+                            className="flex-1 py-2.5 bg-gray-800 hover:bg-gray-900 disabled:bg-gray-300 text-white rounded-xl font-semibold transition-colors cursor-pointer disabled:cursor-not-allowed"
+                        >
+                            {t("continue_btn", "Continuar")}
+                        </button>
+                    )}
+
                     {step === "presencial_confirm" && (
                         <button
-                            onClick={() => { setSuccessType("presencial"); setStep("success"); }}
-                            className="flex-1 py-2.5 bg-gray-800 hover:bg-gray-900 text-white rounded-xl font-semibold transition-colors cursor-pointer"
+                            onClick={handleSchedulePresencial}
+                            disabled={isScheduling}
+                            className="flex-1 py-2.5 bg-gray-800 hover:bg-gray-900 disabled:bg-gray-300 text-white rounded-xl font-semibold transition-colors cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
-                            {t("schedule_confirm_presencial", "Registrar Convocação")}
+                            {isScheduling ? (
+                                <>
+                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    {t("schedule_scheduling", "Agendando...")}
+                                </>
+                            ) : (
+                                t("schedule_confirm_btn", "Confirmar Agendamento")
+                            )}
                         </button>
                     )}
 

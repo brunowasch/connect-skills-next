@@ -1,4 +1,5 @@
 import { prisma } from "@/src/lib/prisma";
+import { getAreasFromJson, getSoftSkillsFromJson } from "@/src/lib/skillsFromJson";
 import { VacancyForm } from "../../_components/VacancyForm";
 import { VacancyFormHeader } from "../../_components/VacancyFormHeader";
 import { notFound } from "next/navigation";
@@ -57,15 +58,10 @@ export default async function EditVacancyPage({ params }: Props) {
         salario: vacancy.salario ? Number(vacancy.salario) : ""
     };
 
-    const areas = await prisma.area_interesse.findMany({
-        orderBy: { nome: 'asc' },
-        select: { id: true, nome: true }
-    });
-
-    const softSkills = await prisma.soft_skill.findMany({
-        orderBy: { nome: 'asc' },
-        select: { id: true, nome: true }
-    });
+    const [areas, softSkills] = await Promise.all([
+        getAreasFromJson(),
+        getSoftSkillsFromJson(),
+    ]);
 
     return (
         <div className="max-w-4xl mx-auto px-4 py-8">
