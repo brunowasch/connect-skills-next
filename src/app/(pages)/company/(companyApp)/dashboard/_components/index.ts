@@ -5,3 +5,4 @@ export { RecentVacancies } from '@/src/app/(pages)/company/(companyApp)/dashboar
 export { RecentCandidates } from '@/src/app/(pages)/company/(companyApp)/dashboard/_components/RecentCandidates/RecentCandidates';
 export { DashboardHeader } from '@/src/app/(pages)/company/(companyApp)/dashboard/_components/DashboardHeader/DashboardHeader';
 export { VideoEvaluations } from '@/src/app/(pages)/company/(companyApp)/dashboard/_components/VideoEvaluations/VideoEvaluations';
+export { CompanyMentorships } from '@/src/app/(pages)/company/(companyApp)/dashboard/_components/CompanyMentorships/CompanyMentorships';

@@ -120,7 +120,7 @@ export function LoginCard() {
                 sessionStorage.removeItem("cs_session_active");
             }
 
-            const isRegistrationFlow = data.redirectTo.includes("/register") || data.redirectTo.includes("/area");
+            const isRegistrationFlow = data.redirectTo.includes("/register") || data.redirectTo.includes("/area") || data.redirectTo.includes("/specialties");
 
             if (redirectParam && !isRegistrationFlow) {
                 router.push(redirectParam);
@@ -151,7 +151,7 @@ export function LoginCard() {
     }
 
     return (
-        <div className="flex justify-center items-center min-h-[calc(100vh-12rem)]">
+        <div className="flex justify-center items-center min-h-[calc(100vh-12rem)] py-16">
             <form
                 onSubmit={handleSubmit}
                 className="bg-white p-8 rounded-xl shadow-md w-full max-w-md"
@@ -275,6 +275,16 @@ export function LoginCard() {
                     {t("login_with_facebook", "Entrar com Facebook")}
                 </button>
 
+                <p className="text-xs text-gray-500 text-center mt-1 mb-4">
+                    Ao continuar, você concorda com os nossos{" "}
+                    <Link href="/terms" target="_blank" className="text-blue-600 hover:underline">
+                        {t("footer_terms")}
+                    </Link>{" "}
+                    e{" "}
+                    <Link href="/privacy" target="_blank" className="text-blue-600 hover:underline">
+                        {t("footer_privacy")}
+                    </Link>.
+                </p>
                 <div className="mt-6 text-center text-sm">
                     <span className="text-gray-600">{t("dont_have_account")}</span>{" "}
                     <Link href="/register" className="text-blue-600 hover:underline font-medium">

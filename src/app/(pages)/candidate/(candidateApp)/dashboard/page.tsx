@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
-import { Hero, KPI, RecommendedVacancies, ApplicationHistory, ProfileCompletion, DashboardHeader, VideoRequests, DraftApplications } from "@/src/app/(pages)/candidate/(candidateApp)/dashboard/_components/index";
+import { Hero, KPI, RecommendedVacancies, ApplicationHistory, ProfileCompletion, DashboardHeader, VideoRequests, DraftApplications, InterviewRequests } from "@/src/app/(pages)/candidate/(candidateApp)/dashboard/_components/index";
 
 export default async function Dashboard() {
     const cookieStore = await cookies();
@@ -359,17 +359,121 @@ export default async function Dashboard() {
             action: 'upload_video'
         }));
 
+    const pendingInterviews = await prisma.entrevista_mentor.findMany({
+        where: {
+            candidato_id: candidateComplete.id,
+            status: { in: ["PENDENTE_CANDIDATO", "CONFIRMADA"] }
+        }
+    });
+
+    const mentorshipRequests = await Promise.all(pendingInterviews.map(async (interview: any) => {
+        const vaga = interview.vaga_id
+            ? await prisma.vaga.findUnique({
+                where: { id: interview.vaga_id },
+                select: { cargo: true, empresa_id: true }
+              })
+            : null;
+        let empresaData = null;
+        if (vaga?.empresa_id) {
+            empresaData = await prisma.empresa.findUnique({
+                where: { id: vaga.empresa_id },
+                select: { nome_empresa: true, foto_perfil: true }
+            });
+        } else if (!interview.vaga_id) {
+            const mentor = await prisma.mentor.findUnique({
+                where: { id: interview.mentor_id },
+                select: { nome: true, sobrenome: true, foto_perfil: true }
+            });
+            if (mentor) {
+                empresaData = {
+                    nome_empresa: `${mentor.nome || ""} ${mentor.sobrenome || ""}`.trim() || "Mentor",
+                    foto_perfil: mentor.foto_perfil
+                };
+            }
+        }
+        return {
+            id: interview.id,
+            status: interview.status,
+            cargo: vaga?.cargo || "Mentoria",
+            empresa: {
+                nome_empresa: empresaData?.nome_empresa || "Empresa/Mentor",
+                foto_perfil: empresaData?.foto_perfil || null
+            },
+            data: interview.data,
+            hora_inicio: interview.hora_inicio,
+            criado_em: interview.criado_em.toISOString(),
+            type: 'online' as const
+        };
+    }));
+
+    const pendingOnsiteInterviews = await (prisma as any).entrevista_presencial.findMany({
+        where: {
+            candidato_id: candidateComplete.id,
+            status: { in: ["PENDENTE_CANDIDATO", "CONFIRMADA"] }
+        },
+        include: {
+            slot: true,
+        }
+    });
+
+    const onsiteRequests = await Promise.all(pendingOnsiteInterviews.map(async (interview: any) => {
+        const vaga = await prisma.vaga.findUnique({
+            where: { id: interview.vaga_id },
+            select: { cargo: true, empresa_id: true }
+        });
+        let empresaData = null;
+        if (vaga?.empresa_id) {
+            empresaData = await prisma.empresa.findUnique({
+                where: { id: vaga.empresa_id },
+                select: { nome_empresa: true, foto_perfil: true }
+            });
+        }
+        return {
+            id: interview.id,
+            status: interview.status,
+            cargo: vaga?.cargo || "Entrevista Presencial",
+            empresa: {
+                nome_empresa: empresaData?.nome_empresa || "Empresa",
+                foto_perfil: empresaData?.foto_perfil || null
+            },
+            data: interview.slot?.data || "",
+            hora_inicio: interview.slot?.hora_inicio || "",
+            type: 'presencial' as const
+        };
+    }));
+
+    const allInterviewRequests = [...mentorshipRequests, ...onsiteRequests]
+        .filter(req => {
+            if (!req.data || !req.hora_inicio) return true;
+            const [year, month, day] = req.data.split("-");
+            if (!year || !month || !day) return true;
+            
+            const [h, min] = req.hora_inicio.split(":");
+            if (!h || !min) return true;
+            
+            const endData = new Date(Number(year), Number(month) - 1, Number(day), Number(h), Number(min), 0);
+            const expirationTime = endData.getTime() + (60 * 60 * 1000); // 1 hora de tolerância
+            
+            return Date.now() <= expirationTime;
+        })
+        .sort((a, b) => {
+            const dateA = a.criado_em ? new Date(a.criado_em).getTime() : 0;
+            const dateB = b.criado_em ? new Date(b.criado_em).getTime() : 0;
+            return dateB - dateA;
+        });
+
     return (
         <>
             <DashboardHeader />
             <Hero candidato={candidate} />
             <ProfileCompletion candidato={candidate} usuario={userId} areas={areas} />
-            <VideoRequests requests={videoRequests} />
             <KPI
                 recommendedVacanciesCount={recommendedVacanciesCount}
                 appliedVacanciesCount={appliedVacanciesCount}
                 areas={areas}
             />
+            <VideoRequests requests={videoRequests} />
+            <InterviewRequests requests={allInterviewRequests} />
 
             <DraftApplications draftVacancies={appliedVacancies.filter(v => v.isDraft)} />
 

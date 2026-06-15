@@ -1,0 +1,364 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/src/lib/prisma";
+import { sendInterviewScheduledEmail, sendInterviewConfirmedToMentorEmail, sendInterviewConfirmedToCompanyEmail } from "@/src/lib/mail";
+import { syncUserWithMentorConnect } from "@/src/lib/mentorconnect-sync";
+
+import { randomUUID } from "crypto";
+
+export async function POST(req: Request) {
+    try {
+        const body = await req.json();
+        const { vagaId, candidatoId, mentorId, disponibilidadeId } = body;
+
+        if (!vagaId || !candidatoId || !mentorId || !disponibilidadeId) {
+            return NextResponse.json({ error: "Dados inválidos." }, { status: 400 });
+        }
+
+        const slot = await prisma.mentor_disponibilidade.findUnique({
+            where: { id: disponibilidadeId }
+        });
+
+        if (!slot) {
+            return NextResponse.json({ error: "Disponibilidade não encontrada." }, { status: 404 });
+        }
+
+        const existingInterview = await (prisma as any).entrevista_mentor.findFirst({
+            where: {
+                disponibilidade_id: disponibilidadeId,
+                status: {
+                    in: ["PENDENTE_CANDIDATO", "CONFIRMADA", "CONCLUIDA"]
+                }
+            }
+        });
+
+        if (existingInterview) {
+            return NextResponse.json({ error: "Este horário já está reservado e não pode ser agendado novamente." }, { status: 400 });
+        }
+
+        const vaga = await prisma.vaga.findUnique({ where: { id: vagaId } });
+        if (!vaga) {
+            return NextResponse.json({ error: "Vaga não encontrada." }, { status: 404 });
+        }
+
+        const candidato = await prisma.candidato.findUnique({
+            where: { id: candidatoId },
+            include: { usuario: { select: { id: true, email: true } } }
+        });
+        if (!candidato || !candidato.usuario) {
+            return NextResponse.json({ error: "Candidato não encontrado." }, { status: 404 });
+        }
+
+        const mentor = await prisma.mentor.findUnique({
+            where: { id: mentorId },
+            include: { usuario: { select: { id: true, email: true } } }
+        });
+        if (!mentor || !mentor.usuario) {
+            return NextResponse.json({ error: "Mentor não encontrado." }, { status: 404 });
+        }
+
+        const interview = await prisma.entrevista_mentor.create({
+            data: {
+                id: randomUUID(),
+                vaga_id: vagaId,
+                candidato_id: candidatoId,
+                mentor_id: mentorId,
+                disponibilidade_id: disponibilidadeId,
+                status: "PENDENTE_CANDIDATO",
+                data: slot.data,
+                hora_inicio: slot.hora_inicio,
+                hora_fim: slot.hora_fim,
+            }
+        });
+
+        const mentorFullName = `${mentor.nome || ""} ${mentor.sobrenome || ""}`.trim() || "Mentor";
+        const candidateFullName = `${candidato.nome || ""} ${candidato.sobrenome || ""}`.trim() || "Candidato";
+        const [dayStr, monthStr, yearStr] = slot.data.split("-").reverse();
+        const formattedDate = `${dayStr}/${monthStr}/${yearStr}`;
+
+        // Fetch company name for notification
+        const company = await prisma.empresa.findUnique({
+            where: { id: vaga.empresa_id },
+            select: { nome_empresa: true }
+        });
+
+        await prisma.notificacao.create({
+            data: {
+                id: randomUUID(),
+                usuario_id: candidato.usuario.id,
+                tipo: "ENTREVISTA_AGENDADA",
+                titulo: "Entrevista Agendada",
+                mensagem: `A empresa "${company?.nome_empresa || "uma empresa"}" agendou uma entrevista para você para a vaga de "${vaga.cargo}". Data: ${formattedDate}, ${slot.hora_inicio}–${slot.hora_fim}. Confirme sua presença!`,
+                dados: JSON.stringify({ entrevistaId: interview.id, vagaId, mentorId })
+            }
+        });
+
+        try {
+            const confirmLink = `${process.env.APP_URL}/candidate/interviews/${interview.id}/confirm`;
+            await sendInterviewScheduledEmail(
+                candidato.usuario.email,
+                candidateFullName,
+                vaga.cargo,
+                formattedDate,
+                slot.hora_inicio,
+                slot.hora_fim,
+                confirmLink
+            );
+        } catch (emailErr) {
+            console.error("Warning: failed to send email, but interview was created:", emailErr);
+        }
+
+        return NextResponse.json({ success: true, entrevistaId: interview.id });
+    } catch (error) {
+        console.error("Erro na API POST /api/mentor/interview:", error);
+        return NextResponse.json({ error: "Erro interno do servidor." }, { status: 500 });
+    }
+}
+
+export async function PATCH(req: Request) {
+    try {
+        const body = await req.json();
+        const { entrevistaId, action } = body;
+
+        if (!entrevistaId || !action) {
+            return NextResponse.json({ error: "Dados inválidos." }, { status: 400 });
+        }
+
+        const interview = await prisma.entrevista_mentor.findUnique({
+            where: { id: entrevistaId }
+        });
+
+        if (!interview) {
+            return NextResponse.json({ error: "Entrevista não encontrada." }, { status: 404 });
+        }
+
+        if (action === "CONFIRM") {
+            if (interview.status === "CONFIRMADA") {
+                return NextResponse.json({ error: "Você já confirmou esta entrevista." }, { status: 400 });
+            }
+            if (interview.status === "CANCELADA") {
+                return NextResponse.json({ error: "Esta entrevista foi recusada e não pode mais ser confirmada." }, { status: 400 });
+            }
+
+            const vaga = interview.vaga_id
+                ? await prisma.vaga.findUnique({ where: { id: interview.vaga_id } })
+                : null;
+            const candidato = await prisma.candidato.findUnique({
+                where: { id: interview.candidato_id },
+                include: { usuario: { select: { id: true, email: true } } }
+            });
+            const mentor = await prisma.mentor.findUnique({
+                where: { id: interview.mentor_id },
+                include: { usuario: { select: { id: true, email: true } } }
+            });
+
+            if ((interview.vaga_id && !vaga) || !candidato || !mentor || !candidato.usuario || !mentor.usuario) {
+                return NextResponse.json({ error: "Dados relacionados não encontrados." }, { status: 404 });
+            }
+
+            if (process.env.MENTORCONNECT_URL) {
+                try {
+                    await syncUserWithMentorConnect(mentor.usuario_id);
+                    await syncUserWithMentorConnect(candidato.usuario_id);
+                } catch (syncErr) {
+                    console.error("Erro ao sincronizar usuários com o MentorConnect:", syncErr);
+                }
+            }
+
+            let linkReuniao = null;
+            if (process.env.MENTORCONNECT_URL) {
+                try {
+                    const reqMc = await fetch(`${process.env.MENTORCONNECT_URL}/api/meetings`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            usuario_id: mentor.usuario_id,
+                            titulo: vaga 
+                                ? `Entrevista: ${vaga.cargo} - ${candidato.nome} ${candidato.sobrenome || ""}`.trim()
+                                : `Mentoria: ${candidato.nome} ${candidato.sobrenome || ""}`.trim()
+                        })
+                    });
+
+                    if (reqMc.ok) {
+                        const data = await reqMc.json();
+                        linkReuniao = data.link || null;
+                    } else {
+                        console.error("Falha ao gerar reunião no MC:", await reqMc.text());
+                    }
+                } catch (err) {
+                    console.error("Erro na comunicação com MENTORCONNECT_URL:", err);
+                }
+            }
+
+            await prisma.entrevista_mentor.update({
+                where: { id: entrevistaId },
+                data: {
+                    status: "CONFIRMADA",
+                    mentor_notificado: true,
+                    link_reuniao: linkReuniao
+                }
+            });
+
+            const mentorFullName = `${mentor.nome || ""} ${mentor.sobrenome || ""}`.trim() || "Mentor";
+            const candidateFullName = `${candidato.nome || ""} ${candidato.sobrenome || ""}`.trim() || "Candidato";
+            const [dayStr, monthStr, yearStr] = interview.data.split("-").reverse();
+            const formattedDate = `${dayStr}/${monthStr}/${yearStr}`;
+
+            const cargo = vaga ? vaga.cargo : "Mentoria";
+
+            await prisma.notificacao.create({
+                data: {
+                    id: randomUUID(),
+                    usuario_id: mentor.usuario.id,
+                    tipo: "ENTREVISTA_CONFIRMADA",
+                    titulo: vaga ? "Entrevista Confirmada pelo Candidato" : "Mentoria Confirmada pelo Candidato",
+                    mensagem: vaga 
+                        ? `Um candidato confirmou presença na entrevista para a vaga de "${cargo}". Data: ${formattedDate}, ${interview.hora_inicio}–${interview.hora_fim}.`
+                        : `Um candidato confirmou presença na mentoria. Data: ${formattedDate}, ${interview.hora_inicio}–${interview.hora_fim}.`,
+                    dados: JSON.stringify({ entrevistaId, vagaId: interview.vaga_id, candidatoId: interview.candidato_id })
+                }
+            });
+
+            await prisma.notificacao.create({
+                data: {
+                    id: randomUUID(),
+                    usuario_id: candidato.usuario.id,
+                    tipo: "ENTREVISTA_CONFIRMADA",
+                    titulo: vaga ? "Presença Confirmada com Sucesso" : "Mentoria Confirmada com Sucesso",
+                    mensagem: vaga
+                        ? `Sua presença na entrevista para a vaga "${cargo}" foi confirmada. Data: ${formattedDate}, ${interview.hora_inicio}–${interview.hora_fim}.`
+                        : `Sua presença na mentoria foi confirmada. Data: ${formattedDate}, ${interview.hora_inicio}–${interview.hora_fim}.`,
+                    dados: JSON.stringify({ entrevistaId, vagaId: interview.vaga_id })
+                }
+            });
+
+            try {
+                await sendInterviewConfirmedToMentorEmail(
+                    mentor.usuario.email,
+                    mentorFullName,
+                    candidateFullName,
+                    cargo,
+                    formattedDate,
+                    interview.hora_inicio,
+                    interview.hora_fim
+                );
+            } catch (emailErr) {
+                console.error("Warning: failed to send email to mentor:", emailErr);
+            }
+
+            if (vaga) {
+                const company = await prisma.empresa.findUnique({
+                    where: { id: vaga.empresa_id },
+                    include: { usuario: { select: { id: true, email: true } } }
+                });
+
+                if (company?.usuario) {
+                    await prisma.notificacao.create({
+                        data: {
+                            id: randomUUID(),
+                            usuario_id: company.usuario.id,
+                            tipo: "ENTREVISTA_CONFIRMADA",
+                            titulo: "Mentoria Confirmada",
+                            mensagem: `A mentoria do candidato ${candidateFullName} com o mentor ${mentorFullName} para a vaga "${cargo}" foi confirmada. Data: ${formattedDate}, ${interview.hora_inicio}–${interview.hora_fim}.`,
+                            dados: JSON.stringify({
+                                entrevistaId,
+                                vagaId: interview.vaga_id,
+                                candidatoId: interview.candidato_id,
+                                candidateName: candidateFullName,
+                                vacancyTitle: cargo
+                            })
+                        }
+                    });
+
+                    try {
+                        const vacancyLink = `${process.env.APP_URL}/company/vacancies/${vaga.uuid || vaga.id}/ranking`;
+                        await sendInterviewConfirmedToCompanyEmail(
+                            company.usuario.email,
+                            company.nome_empresa,
+                            candidateFullName,
+                            mentorFullName,
+                            cargo,
+                            formattedDate,
+                            interview.hora_inicio,
+                            interview.hora_fim,
+                            vacancyLink
+                        );
+                    } catch (emailErr) {
+                        console.error("Warning: failed to send email to company:", emailErr);
+                    }
+                }
+            }
+
+            // Invalidate/Mark as read original invitation notification
+            await (prisma as any).notificacao.updateMany({
+                where: {
+                    usuario_id: candidato.usuario.id,
+                    tipo: "ENTREVISTA_AGENDADA",
+                    dados: { contains: entrevistaId }
+                },
+                data: { lida: true }
+            });
+
+            return NextResponse.json({ success: true, status: "CONFIRMADA" });
+
+
+        } else if (action === "CANCEL") {
+            if (interview.status === "CANCELADA") {
+                return NextResponse.json({ error: "Você já recusou esta entrevista." }, { status: 400 });
+            }
+            if (interview.status === "CONFIRMADA") {
+                return NextResponse.json({ error: "Esta entrevista já foi confirmada e não pode ser recusada." }, { status: 400 });
+            }
+
+            const updated = await prisma.entrevista_mentor.update({
+                where: { id: entrevistaId },
+                data: { status: "CANCELADA" }
+            });
+
+            // Notify company about the cancellation
+            const vaga = updated.vaga_id
+                ? await prisma.vaga.findUnique({ where: { id: updated.vaga_id } })
+                : null;
+            const candidate = await prisma.candidato.findUnique({ where: { id: updated.candidato_id } });
+
+            if (candidate) {
+                if (vaga) {
+                    // Find company user
+                    const company = await prisma.empresa.findUnique({
+                        where: { id: vaga.empresa_id },
+                        select: { usuario_id: true }
+                    });
+
+                    if (company) {
+                        await prisma.notificacao.create({
+                            data: {
+                                id: randomUUID(),
+                                usuario_id: company.usuario_id,
+                                tipo: "ENTREVISTA_RECUSADA",
+                                titulo: "Entrevista Recusada pelo Candidato",
+                                mensagem: `O candidato ${candidate.nome || "Candidato"} recusou o convite de entrevista para a vaga "${vaga.cargo}".`,
+                                dados: JSON.stringify({ entrevistaId, candidatoId: updated.candidato_id })
+                            }
+                        });
+                    }
+                }
+
+                // Invalidate/Mark as read original invitation notification
+                await (prisma as any).notificacao.updateMany({
+                    where: {
+                        usuario_id: candidate.usuario_id,
+                        tipo: "ENTREVISTA_AGENDADA",
+                        dados: { contains: entrevistaId }
+                    },
+                    data: { lida: true }
+                });
+            }
+
+            return NextResponse.json({ success: true, status: "CANCELADA" });
+        }
+
+        return NextResponse.json({ error: "Ação inválida." }, { status: 400 });
+    } catch (error) {
+        console.error("Erro na API PATCH /api/mentor/interview:", error);
+        return NextResponse.json({ error: "Erro interno do servidor." }, { status: 500 });
+    }
+}

@@ -47,7 +47,7 @@ export function RankingPageContent({ state, vacancy, candidates, vacancyUuid, pe
                         <p className="text-gray-500">{t('ranking_subtitle')}</p>
                     </div>
                 </div>
-                {candidates && vacancyUuid && <RankingList candidates={candidates} vacancyUuid={vacancyUuid} vacancyId={vacancy?.id} pendingCandidateId={pendingCandidateId} />}
+                {candidates && vacancyUuid && <RankingList candidates={candidates} vacancyUuid={vacancyUuid} vacancyId={vacancy?.id} vacancyTitle={vacancy?.cargo} pendingCandidateId={pendingCandidateId} />}
             </>
         );
     };

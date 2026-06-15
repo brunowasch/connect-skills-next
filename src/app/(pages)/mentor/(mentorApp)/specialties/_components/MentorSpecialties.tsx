@@ -1,0 +1,236 @@
+"use client";
+
+import { useState, useMemo, useEffect } from "react";
+import skillsData from "@/src/data/skills.json";
+import { FiSearch, FiBriefcase, FiCheck } from "react-icons/fi";
+import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
+import Cookies from "js-cookie";
+
+export function MentorSpecialties({ initialSpecialties = [], userId }: { initialSpecialties?: string[], userId: string }) {
+    const { t } = useTranslation();
+    const router = useRouter();
+    const [selectedSkills, setSelectedSkills] = useState<string[]>(initialSpecialties);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [customSkills, setCustomSkills] = useState<string[]>([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [newSkill, setNewSkill] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        if (initialSpecialties.length > 0) {
+            setSelectedSkills(initialSpecialties);
+        }
+    }, [initialSpecialties]);
+
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (!isSubmitting) {
+                e.preventDefault();
+                e.returnValue = t("confirm_leave_page");
+                return t("confirm_leave_page");
+            }
+        };
+
+        window.addEventListener("beforeunload", handleBeforeUnload);
+
+        return () => {
+            window.removeEventListener("beforeunload", handleBeforeUnload);
+        };
+    }, [t, isSubmitting]);
+
+    const toggleSkill = (skill: string) => {
+        setSelectedSkills((prev) =>
+            prev.includes(skill)
+                ? prev.filter((s) => s !== skill)
+                : [...prev, skill]
+        );
+    };
+
+    const handleAddCustomSkill = () => {
+        if (newSkill.trim()) {
+            const skillName = newSkill.trim();
+            if (!customSkills.includes(skillName) && !skillsData.Skills.includes(skillName)) {
+                setCustomSkills((prev) => [...prev, skillName]);
+                setSelectedSkills((prev) => [...prev, skillName]);
+            }
+            setNewSkill("");
+            setIsModalOpen(false);
+        }
+    };
+
+    const handleContinue = async () => {
+        if (selectedSkills.length === 0) return;
+
+        setIsSubmitting(true);
+
+        try {
+            const response = await fetch("/api/mentor/specialties", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    specialties: selectedSkills,
+                    usuario_id: userId,
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || t("error_saving_areas"));
+            }
+
+            const originCookie = Cookies.get("register_origin");
+
+            if (originCookie === "mentorconnect") {
+                Cookies.remove("register_origin", { path: '/' });
+                const meRes = await fetch("/api/auth/me");
+                if (meRes.ok) {
+                    const meData = await meRes.json();
+                    const mentorconnectUrl = process.env.NEXT_PUBLIC_MENTORCONNECT_URL || "http://localhost:3001";
+                    window.location.href = `${mentorconnectUrl}/api/auth/social-callback?userId=${meData.id}`;
+                } else {
+                    router.push("/mentor/dashboard");
+                }
+            } else {
+                router.push("/mentor/dashboard");
+            }
+        } catch (error) {
+            console.error("Erro ao salvar especialidades:", error);
+            alert(t("error_saving_areas"));
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const allSkills = useMemo(() => [...skillsData.Skills, ...customSkills].sort(), [customSkills]);
+
+    const filteredSkills = allSkills.filter((skill) =>
+        t(skill).toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    return (
+        <div className="flex flex-col items-center justify-start py-4 sm:py-8 gap-6 w-full max-w-7xl mx-auto">
+            <div className="text-center align-center space-y-2">
+                <h1 className="text-2xl sm:text-3xl text-slate-900 font-bold">
+                    {t("mentor_specialties_title")}
+                </h1>
+                <p className="text-xs sm:text-sm text-slate-500">
+                    {t("areas_subtitle")}
+                </p>
+            </div>
+
+            <div className="w-full max-w-md flex gap-2 items-center">
+                <div className="relative flex-1">
+                    <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                        type="text"
+                        placeholder={t("search_skills_placeholder")}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-10 p-3 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
+                    />
+                </div>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 w-full p-4">
+                {filteredSkills.map((skill) => (
+                    <button
+                        key={skill}
+                        onClick={() => toggleSkill(skill)}
+                        className={`p-3 rounded-xl text-sm text-left transition-all duration-200 border cursor-pointer ${selectedSkills.includes(skill)
+                                ? "bg-blue-600 text-white border-blue-600 shadow-md transform scale-[1.02]"
+                                : "bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:bg-blue-50"
+                            }`}
+                    >
+                        {t(skill)}
+                    </button>
+                ))}
+
+                <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="p-3 rounded-xl text-sm text-left transition-all duration-200 border bg-white text-blue-600 border-blue-200 hover:border-blue-400 hover:bg-blue-50 font-bold cursor-pointer"
+                >
+                    {t("add_other_btn")}
+                </button>
+            </div>
+
+            {filteredSkills.length === 0 && searchTerm && (
+                <p className="col-span-full text-center text-slate-400 py-8 text-sm">
+                    {t("no_skills_found_prefix")} "{searchTerm}"
+                </p>
+            )}
+
+            {isModalOpen && (
+                <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-[100] p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        <div className="p-8">
+                            <h3 className="text-lg font-bold text-slate-900 mb-2">{t("modal_add_skill_title")}</h3>
+                            <p className="text-sm text-slate-500 mb-6 leading-relaxed">
+                                {t("modal_add_skill_custom_desc")}
+                            </p>
+                            <input
+                                type="text"
+                                value={newSkill}
+                                onChange={(e) => setNewSkill(e.target.value)}
+                                placeholder={t("modal_skill_placeholder")}
+                                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-6"
+                                autoFocus
+                                onKeyDown={(e) => e.key === 'Enter' && handleAddCustomSkill()}
+                            />
+                            <div className="flex justify-end gap-3">
+                                <button
+                                    onClick={() => setIsModalOpen(false)}
+                                    className="px-5 py-2.5 text-slate-500 hover:bg-slate-50 rounded-lg font-bold transition-colors cursor-pointer"
+                                >
+                                    {t("cancel_btn")}
+                                </button>
+                                <button
+                                    onClick={handleAddCustomSkill}
+                                    disabled={!newSkill.trim()}
+                                    className="px-5 py-2.5 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer shadow-lg shadow-blue-100"
+                                >
+                                    {t("add_btn")}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <div className="fixed bottom-0 left-0 lg:left-64 right-0 bg-white p-4 border-t border-slate-100 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] z-[90]">
+                <div className="max-w-7xl mx-auto w-full flex justify-between items-center px-4 sm:px-6">
+                    <div className="flex flex-col">
+                        <span className="text-gray-600 font-medium">
+                            {selectedSkills.length} {t("selected_skills_count")}
+                        </span>
+                    </div>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={handleContinue}
+                            disabled={selectedSkills.length === 0 || isSubmitting}
+                            className="px-6 py-2 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                        >
+                            {isSubmitting ? (
+                                <div className="flex items-center gap-2">
+                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    {t("saving_btn")}
+                                </div>
+                            ) : t("complete_registration_btn", "Finalizar Cadastro")}
+                        </button>
+                        {selectedSkills.length > 0 && (
+                            <button
+                                onClick={() => setSelectedSkills([])}
+                                className="px-6 py-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-md font-medium transition-colors border border-red-200 cursor-pointer shrink-0"
+                                title="Limpar seleção"
+                            >
+                                {t("clean_selection_btn")}
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            <div className="h-24"></div>
+        </div>
+    );
+}

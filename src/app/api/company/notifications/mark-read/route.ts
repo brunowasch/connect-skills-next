@@ -36,8 +36,15 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Parse notification ID
-        // Format: type_id (e.g., new_candidate_123)
+        if (notificationId.startsWith('notificacao_')) {
+            const rawId = notificationId.replace('notificacao_', '');
+            await (prisma as any).notificacao.update({
+                where: { id: rawId },
+                data: { lida: true }
+            });
+            return NextResponse.json({ success: true });
+        }
+
         const parts = notificationId.split('_');
         const applicationId = parts.pop();
         const type = parts.join('_');
@@ -48,6 +55,7 @@ export async function POST(request: NextRequest) {
                 { status: 400 }
             );
         }
+
 
         // Buscar a avaliação
         const application = await prisma.vaga_avaliacao.findUnique({

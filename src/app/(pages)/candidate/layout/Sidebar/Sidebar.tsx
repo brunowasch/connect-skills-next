@@ -4,24 +4,29 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { FaHome, FaBriefcase, FaUser, FaSignOutAlt, FaWhatsapp } from "react-icons/fa";
+import { FaHome, FaBriefcase, FaUser, FaSignOutAlt, FaQuestionCircle, FaCalendarAlt, FaTimes, FaChalkboardTeacher } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
+import { ContactForm } from "@/src/app/_components/ContactForm/ContactForm";
 
 interface SidebarProps {
     mobileOpen?: boolean;
     setMobileOpen?: (open: boolean) => void;
+    isCollapsed?: boolean;
 }
 
-export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarProps) {
+export default function Sidebar({ mobileOpen = false, setMobileOpen, isCollapsed = false }: SidebarProps) {
     const { t } = useTranslation();
     const pathname = usePathname();
     const router = useRouter();
 
     const [logoutOpen, setLogoutOpen] = useState(false);
+    const [helpOpen, setHelpOpen] = useState(false);
 
     const navItems = [
         { label: t("sidebar_home"), href: "/candidate/dashboard", icon: FaHome },
         { label: t("sidebar_vacancies"), href: "/candidate/vacancies", icon: FaBriefcase },
+        { label: t("sidebar_mentorings", "Mentorias"), href: "/candidate/mentorships", icon: FaChalkboardTeacher },
+        { label: t("sidebar_interviews", "Entrevistas"), href: "/candidate/interviews", icon: FaCalendarAlt },
         { label: t("sidebar_profile"), href: "/candidate/profile", icon: FaUser },
     ];
 
@@ -56,14 +61,15 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarPr
                 style={{
                     backgroundColor: "#ffffff",
                     color: "#cbd5e1",
-                    width: "16rem",
-                    minWidth: "16rem",
+                    width: isCollapsed ? "5rem" : "16rem",
+                    minWidth: isCollapsed ? "5rem" : "16rem",
                     minHeight: "100vh",
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "space-between",
                     boxShadow: "0 1.5rem 3rem -0.75rem rgba(0, 0, 0, 0.25)",
                     overflowY: "auto",
+                    transition: "width 0.3s, min-width 0.3s",
                 }}
                 className={`sidebar ${mobileOpen ? "open" : ""}`}
             >
@@ -76,24 +82,35 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarPr
                             height: "5rem",
                             alignItems: "center",
                             justifyContent: "center",
-                            padding: "0 1.5rem",
+                            padding: isCollapsed ? "0 0.5rem" : "0 1.5rem",
                         }}
                     >
                         <Link href="/candidate/dashboard">
                             <div style={{ backgroundColor: "rgba(255,255,255,0.9)", borderRadius: "0.5rem", padding: "0.5rem" }}>
-                                <Image
-                                    src="/img/logos/logo-connect-skills.png"
-                                    alt="Connect Skills"
-                                    width={160}
-                                    height={40}
-                                    priority
-                                    style={{ height: "auto", width: "16rem" }}
-                                />
+                                {!isCollapsed ? (
+                                    <Image
+                                        src="/img/logos/logo-connect-skills.png"
+                                        alt="Connect Skills"
+                                        width={160}
+                                        height={40}
+                                        priority
+                                        style={{ height: "auto", width: "16rem" }}
+                                    />
+                                ) : (
+                                    <Image
+                                        src="/img/logos/icon.png"
+                                        alt="Connect Skills Icon"
+                                        width={40}
+                                        height={40}
+                                        priority
+                                        style={{ height: "auto", width: "2.5rem" }}
+                                    />
+                                )}
                             </div>
                         </Link>
                     </div>
 
-                    <nav style={{ marginTop: "2rem", display: "flex", flexDirection: "column", gap: "0.5rem", padding: "0 1rem" }}>
+                    <nav style={{ marginTop: "2rem", display: "flex", flexDirection: "column", gap: "0.5rem", padding: isCollapsed ? "0 0.5rem" : "0 1rem" }}>
                         {navItems.map((item) => {
                             const isActive = pathname === item.href;
                             const Icon = item.icon;
@@ -102,12 +119,14 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarPr
                                 <Link
                                     key={item.href}
                                     href={item.href}
+                                    title={isCollapsed ? item.label : undefined}
                                     style={{
                                         display: "flex",
                                         alignItems: "center",
-                                        gap: "0.75rem",
+                                        justifyContent: isCollapsed ? "center" : "flex-start",
+                                        gap: isCollapsed ? "0" : "0.75rem",
                                         borderRadius: "0.75rem",
-                                        padding: "0.75rem 1rem",
+                                        padding: "0.75rem",
                                         fontWeight: 500,
                                         fontSize: "1rem",
                                         transition: "all 0.2s",
@@ -129,70 +148,67 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarPr
                                         }
                                     }}
                                 >
-                                    <Icon style={{ fontSize: "1.125rem", color: isActive ? "#ffffff" : "#64748b" }} />
-                                    <span>{item.label}</span>
+                                    <Icon style={{ fontSize: "1.25rem", color: isActive ? "#ffffff" : "#64748b" }} />
+                                    {!isCollapsed && <span>{item.label}</span>}
                                 </Link>
                             );
                         })}
                     </nav>
                 </div>
 
-                <div style={{ padding: "1rem" }}>
+                <div style={{ padding: isCollapsed ? "1rem 0.5rem" : "1rem", display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     <button
+                        title={isCollapsed ? t('sidebar_help', 'Ajuda') : undefined}
+                        className="group"
                         style={{
                             display: "flex",
                             width: "100%",
                             alignItems: "center",
-                            gap: "0.75rem",
+                            justifyContent: isCollapsed ? "center" : "flex-start",
+                            gap: isCollapsed ? "0" : "0.75rem",
                             borderRadius: "0.75rem",
-                            padding: "0.75rem 1rem",
+                            padding: "0.75rem",
                             textAlign: "left",
                             fontWeight: 500,
                             fontSize: "1rem",
-                            color: "#25d366",
                             transition: "all 0.2s",
                             border: "none",
                             backgroundColor: "transparent",
                             cursor: "pointer",
                         }}
                         onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = "#c7f0d6ff";
-                            e.currentTarget.style.color = "#25d366";
+                            e.currentTarget.style.backgroundColor = "rgba(59, 130, 246, 0.08)";
                         }}
                         onMouseLeave={(e) => {
                             e.currentTarget.style.backgroundColor = "transparent";
-                            e.currentTarget.style.color = "#25d366";
                         }}
+                        onClick={() => setHelpOpen(true)}
                     >
-                        <a
-                            href="https://wa.me/5551992179330"
-                            target="_blank"
-                            className="mt-2 flex items-center gap-2 font-medium text-black hover:text-green-600 lg:mt-0"
+                        <div
+                            className="flex items-center gap-3 lg:mt-0 w-full"
+                            style={{ justifyContent: isCollapsed ? 'center' : 'flex-start' }}
                         >
-                            <div style={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                borderRadius: "0.5rem",
-                                backgroundColor: "#25d366",
-                                padding: "0.5rem",
-                            }}>
-                                <FaWhatsapp className="text-white" style={{ fontSize: "1rem" }} />
+                            <div className="flex items-center justify-center rounded-lg bg-blue-100 p-2 group-hover:bg-blue-600 transition-colors duration-300">
+                                <FaQuestionCircle className="text-blue-600 group-hover:text-white transition-colors duration-300" style={{ fontSize: "1.25rem" }} />
                             </div>
-                            <span className="text-green-500 hover:text-green-600 transition">
-                                WhatsApp
-                            </span>
-                        </a>
+                            {!isCollapsed && (
+                                <span className="text-slate-500 font-medium group-hover:text-blue-600 transition-colors duration-300">
+                                    {t('sidebar_help', 'Ajuda')}
+                                </span>
+                            )}
+                        </div>
                     </button>
                     <button
+                        title={isCollapsed ? t("sidebar_logout") : undefined}
                         onClick={() => setLogoutOpen(true)}
                         style={{
                             display: "flex",
                             width: "100%",
                             alignItems: "center",
-                            gap: "0.75rem",
+                            justifyContent: isCollapsed ? "center" : "flex-start",
+                            gap: isCollapsed ? "0" : "0.75rem",
                             borderRadius: "0.75rem",
-                            padding: "0.75rem 1rem",
+                            padding: "0.75rem",
                             textAlign: "left",
                             fontWeight: 500,
                             fontSize: "1rem",
@@ -217,11 +233,13 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarPr
                                 padding: "0.5rem",
                             }}
                         >
-                            <FaSignOutAlt className="text-white" style={{ fontSize: "1rem" }} />
+                            <FaSignOutAlt className="text-white" style={{ fontSize: "1.25rem" }} />
                         </div>
-                        <span className="text-red-500 hover:text-red-600 transition">
-                            {t("sidebar_logout")}
-                        </span>
+                        {!isCollapsed && (
+                            <span className="text-red-500 hover:text-red-600 transition">
+                                {t("sidebar_logout")}
+                            </span>
+                        )}
                     </button>
 
                 </div>
@@ -258,6 +276,29 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarPr
                                 {t("logout_modal_confirm")}
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+            
+            {helpOpen && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4"
+                    onClick={() => setHelpOpen(false)}
+                >
+                    <div
+                        className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl animate-fadeIn relative"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            onClick={() => setHelpOpen(false)}
+                            className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+                        >
+                            <FaTimes />
+                        </button>
+                        <h2 className="mb-4 text-lg font-semibold text-slate-900">
+                            {t("sidebar_help", "Ajuda")}
+                        </h2>
+                        <ContactForm variant="compact" defaultUserType="candidate" />
                     </div>
                 </div>
             )}

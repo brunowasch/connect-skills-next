@@ -465,3 +465,314 @@ export async function sendVideoExpiredCompanyEmail(
     return false;
   }
 }
+
+export async function sendInterviewScheduledEmail(
+  candidateEmail: string,
+  candidateName: string,
+  vacancyTitle: string,
+  date: string,
+  startTime: string,
+  endTime: string,
+  confirmLink: string,
+) {
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to: candidateEmail,
+    subject: `Entrevista Agendada com Mentor - Vaga: ${vacancyTitle}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+        <h2 style="color: #4F46E5; text-align: center;">Entrevista com Mentor Agendada!</h2>
+        <p style="text-align: center; color: #555;">Olá <strong>${candidateName}</strong>,</p>
+        <p style="text-align: center; color: #555;">
+          A empresa agendou uma entrevista com um de nossos mentores para a vaga de <strong>${vacancyTitle}</strong>.
+        </p>
+        <div style="background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
+          <p style="margin: 0; font-size: 18px; font-weight: bold; color: #1f2937;">${date}</p>
+          <p style="margin: 8px 0 0; font-size: 16px; color: #4b5563;">${startTime} – ${endTime}</p>
+        </div>
+        <p style="text-align: center; color: #555;">Por favor, confirme sua presença clicando no botão abaixo:</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${confirmLink}" style="background-color: #10B981; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
+            Confirmar Presença
+          </a>
+        </div>
+        <p style="text-align: center; color: #555;">ou copie o link abaixo:</p>
+        <p style="text-align: center; word-break: break-all; color: #4F46E5;">${confirmLink}</p>
+        <p style="text-align: center; font-size: 14px; color: #666; margin-top: 30px;">
+          O mentor só será notificado após você confirmar sua presença.
+        </p>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error("Erro ao enviar email de entrevista agendada:", error);
+    return false;
+  }
+}
+
+export async function sendOnsiteInterviewScheduledEmail(
+  candidateEmail: string,
+  candidateName: string,
+  companyName: string,
+  vacancyTitle: string,
+  date: string,
+  startTime: string,
+  confirmLink: string,
+) {
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to: candidateEmail,
+    subject: `Convite para Entrevista Presencial - Vaga: ${vacancyTitle}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+        <h2 style="color: #4f46e5; text-align: center;">Entrevista Presencial Agendada!</h2>
+        <p style="text-align: center; color: #555;">Olá <strong>${candidateName}</strong>,</p>
+        <p style="text-align: center; color: #555;">
+          A empresa <strong>${companyName}</strong> convocou você para uma entrevista presencial para a vaga de <strong>${vacancyTitle}</strong>.
+        </p>
+        <div style="background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
+          <p style="margin: 0; font-size: 18px; font-weight: bold; color: #1f2937;">${date}</p>
+          <p style="margin: 8px 0 0; font-size: 16px; color: #4b5563;">${startTime}</p>
+        </div>
+        <p style="text-align: center; color: #555;">Por favor, confirme ou recuse sua presença clicando no botão abaixo:</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${confirmLink}" style="background-color: #4f46e5; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
+            Acessar Convite
+          </a>
+        </div>
+        <p style="text-align: center; color: #555;">ou copie o link abaixo:</p>
+        <p style="text-align: center; word-break: break-all; color: #4f46e5;">${confirmLink}</p>
+        <p style="text-align: center; font-size: 14px; color: #666; margin-top: 30px;">
+          A empresa aguarda a sua confirmação.
+        </p>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error("Erro ao enviar email de entrevista presencial:", error);
+    return false;
+  }
+}
+
+
+export async function sendInterviewConfirmedToMentorEmail(
+  mentorEmail: string,
+  mentorName: string,
+  candidateName: string,
+  vacancyTitle: string,
+  date: string,
+  startTime: string,
+  endTime: string,
+) {
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to: mentorEmail,
+    subject: `Entrevista Confirmada - ${candidateName} | ${vacancyTitle}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+        <h2 style="color: #4F46E5; text-align: center;">Entrevista Confirmada!</h2>
+        <p style="text-align: center; color: #555;">Olá <strong>${mentorName}</strong>,</p>
+        <p style="text-align: center; color: #555;">
+          Um candidato confirmou presença na entrevista para a vaga de <strong>${vacancyTitle}</strong>.
+        </p>
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
+          <p style="margin: 0; font-size: 18px; font-weight: bold; color: #1f2937;">${date}</p>
+          <p style="margin: 8px 0 0; font-size: 16px; color: #4b5563;">${startTime} – ${endTime}</p>
+          <p style="margin: 8px 0 0; font-size: 14px; color: #6b7280;">Candidato: ${candidateName}</p>
+        </div>
+        <p style="text-align: center; font-size: 14px; color: #666; margin-top: 30px;">
+          Acesse a plataforma Connect Skills para mais detalhes.
+        </p>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error("Erro ao enviar email para mentor:", error);
+    return false;
+  }
+}
+
+export async function sendInterviewConfirmedToCompanyEmail(
+  companyEmail: string,
+  companyName: string,
+  candidateName: string,
+  mentorName: string,
+  vacancyTitle: string,
+  date: string,
+  startTime: string,
+  endTime: string,
+  vacancyLink: string,
+) {
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to: companyEmail,
+    subject: `Mentoria Confirmada: ${candidateName} – Vaga: ${vacancyTitle}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+        <h2 style="color: #10B981; text-align: center;">Mentoria Confirmada!</h2>
+        <p style="text-align: center; color: #555;">Olá <strong>${companyName}</strong>,</p>
+        <p style="text-align: center; color: #555;">
+          A mentoria do candidato <strong>${candidateName}</strong> com o mentor <strong>${mentorName}</strong>
+          para a vaga de <strong>${vacancyTitle}</strong> foi confirmada.
+        </p>
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
+          <p style="margin: 0; font-size: 18px; font-weight: bold; color: #1f2937;">${date}</p>
+          <p style="margin: 8px 0 0; font-size: 16px; color: #4b5563;">${startTime} – ${endTime}</p>
+          <p style="margin: 8px 0 0; font-size: 14px; color: #6b7280;">Mentor: ${mentorName}</p>
+        </div>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${vacancyLink}" style="background-color: #4F46E5; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+            Ver Vaga no Painel
+          </a>
+        </div>
+        <p style="text-align: center; font-size: 14px; color: #666; margin-top: 30px;">
+          Acesse o Connect Skills para acompanhar o processo seletivo.
+        </p>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error("Erro ao enviar email de mentoria confirmada (empresa):", error);
+    return false;
+  }
+}
+
+export async function sendInterviewExpiredToCompanyEmail(
+  companyEmail: string,
+  companyName: string,
+  candidateName: string,
+  vacancyTitle: string,
+  vacancyLink: string,
+) {
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to: companyEmail,
+    subject: `Convite de Mentoria Expirado: ${candidateName} – Vaga: ${vacancyTitle}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+        <h2 style="color: #F59E0B; text-align: center;">Convite de Mentoria Expirado</h2>
+        <p style="text-align: center; color: #555;">Olá <strong>${companyName}</strong>,</p>
+        <p style="text-align: center; color: #555;">
+          O candidato <strong>${candidateName}</strong> não respondeu ao convite de mentoria para a vaga de <strong>${vacancyTitle}</strong> dentro do prazo de 3 dias.
+        </p>
+        <p style="text-align: center; color: #555;">
+          O convite foi automaticamente marcado como <strong style="color: #EF4444;">Expirado</strong>.
+        </p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${vacancyLink}" style="background-color: #4F46E5; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+            Ver Vaga no Painel
+          </a>
+        </div>
+        <p style="text-align: center; font-size: 14px; color: #666; margin-top: 30px;">
+          Você pode agendar uma nova sessão de mentoria para este candidato, se desejar.
+        </p>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error("Erro ao enviar email de mentoria expirada (empresa):", error);
+    return false;
+  }
+}
+
+export async function sendMentorFeedbackToCompanyEmail(
+  companyEmail: string,
+  companyName: string,
+  candidateName: string,
+  mentorName: string,
+  vacancyTitle: string,
+  vacancyLink: string,
+) {
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to: companyEmail,
+    subject: `Relatório de Mentoria Disponível: ${candidateName} – Vaga: ${vacancyTitle}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+        <h2 style="color: #4F46E5; text-align: center;">Relatório da Entrevista Disponível</h2>
+        <p style="text-align: center; color: #555;">Olá <strong>${companyName}</strong>,</p>
+        <p style="text-align: center; color: #555;">
+          O mentor <strong>${mentorName}</strong> acabou de enviar o relatório da entrevista com o candidato <strong>${candidateName}</strong> para a vaga de <strong>${vacancyTitle}</strong>.
+        </p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${vacancyLink}" style="background-color: #4F46E5; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+            Ver Relatório no Ranking
+          </a>
+        </div>
+
+        <p style="text-align: center; color: #555;">ou copie o link abaixo:</p>
+        <p style="text-align: center; word-break: break-all; color: #4F46E5;">${vacancyLink}</p>
+
+        <p style="text-align: center; font-size: 14px; color: #666; margin-top: 30px;">
+          Acesse a plataforma para tomar sua decisão quanto a este candidato.
+        </p>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error("Erro ao enviar email de feedback do mentor para a empresa:", error);
+    return false;
+  }
+}
+
+export async function sendContactEmail(
+  fullName: string,
+  userType: string,
+  subject: string,
+  message: string
+) {
+  const adminEmail = "connect0skills@gmail.com";
+  
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to: adminEmail,
+    subject: `[Contato - ${userType}] ${subject}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+        <h2 style="color: #4F46E5; text-align: center;">Nova Mensagem de Contato</h2>
+        
+        <p><strong>Nome:</strong> ${fullName}</p>
+        <p><strong>Tipo de Usuário:</strong> ${userType}</p>
+        <p><strong>Assunto:</strong> ${subject}</p>
+        
+        <div style="background-color: #f9fafb; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; margin-top: 20px;">
+            <p style="font-weight: bold; color: #374151; margin-bottom: 5px;">Mensagem:</p>
+            <p style="color: #4b5563; font-style: italic; white-space: pre-wrap;">${message}</p>
+        </div>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error("Erro ao enviar email de contato:", error);
+    return false;
+  }
+}

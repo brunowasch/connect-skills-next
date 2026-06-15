@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useTranslation, Trans } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { VerificationModal } from "@/src/app/_components/VerificationModal";
 import { Eye, EyeOff, Check, Loader2 } from "lucide-react";
 import { validatePassword, PASSWORD_REQUIREMENTS } from "@/src/lib/password-validation";
@@ -50,6 +50,8 @@ function FacebookIcon() {
 export function RegisterCard() {
     const { t } = useTranslation();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const origin = searchParams.get("origin") || "";
 
     const [step, setStep] = useState<"register" | "verify">("register");
     const [isLoading, setIsLoading] = useState(false);
@@ -59,9 +61,9 @@ export function RegisterCard() {
     const [confirmSenha, setConfirmSenha] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [tipo, setTipo] = useState<"CANDIDATO" | "EMPRESA">("CANDIDATO");
+    const [tipo, setTipo] = useState<"CANDIDATO" | "EMPRESA" | "MENTOR">("CANDIDATO");
     const [code, setCode] = useState("");
-    const [acceptedTerms, setAcceptedTerms] = useState(false);
+
 
     const [error, setError] = useState("");
     const [resendCooldown, setResendCooldown] = useState(0);
@@ -106,30 +108,21 @@ export function RegisterCard() {
     }
 
     function handleGoogleRegister() {
-        if (!acceptedTerms) {
-            setError(t("register_error_terms_required"));
-            return;
-        }
         setIsGoogleLoading(true);
-        window.location.href = `/api/auth/google?tipo=${tipo}`;
+        const url = origin ? `/api/auth/google?tipo=${tipo}&origin=${origin}` : `/api/auth/google?tipo=${tipo}`;
+        window.location.href = url;
     }
 
     function handleLinkedInRegister() {
-        if (!acceptedTerms) {
-            setError(t("register_error_terms_required"));
-            return;
-        }
         setIsLinkedInLoading(true);
-        window.location.href = `/api/auth/linkedin?tipo=${tipo}`;
+        const url = origin ? `/api/auth/linkedin?tipo=${tipo}&origin=${origin}` : `/api/auth/linkedin?tipo=${tipo}`;
+        window.location.href = url;
     }
 
     function handleFacebookRegister() {
-        if (!acceptedTerms) {
-            setError(t("register_error_terms_required"));
-            return;
-        }
         setIsFacebookLoading(true);
-        window.location.href = `/api/auth/facebook?tipo=${tipo}`;
+        const url = origin ? `/api/auth/facebook?tipo=${tipo}&origin=${origin}` : `/api/auth/facebook?tipo=${tipo}`;
+        window.location.href = url;
     }
 
     async function handleRegisterSubmit(e: React.FormEvent) {
@@ -147,10 +140,7 @@ export function RegisterCard() {
             return;
         }
 
-        if (!acceptedTerms) {
-            setError(t("register_error_terms_required"));
-            return;
-        }
+
 
         setIsLoading(true);
 
@@ -158,7 +148,7 @@ export function RegisterCard() {
             const res = await fetch("/api/auth/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, senha, tipo, acceptedTerms }),
+                body: JSON.stringify({ email, senha, tipo, acceptedTerms: true }),
             });
 
             const data = await res.json();
@@ -190,7 +180,7 @@ export function RegisterCard() {
             const res = await fetch("/api/auth/verify-code", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, code }),
+                body: JSON.stringify({ email, code, origin }),
             });
 
             const data = await res.json();
@@ -230,7 +220,7 @@ export function RegisterCard() {
     }
 
     return (
-        <div className="flex justify-center items-center min-h-[calc(120vh-12rem)]">
+        <div className="flex justify-center items-center min-h-[calc(100vh-12rem)] py-16">
             <form
                 onSubmit={handleRegisterSubmit}
                 className="bg-white p-8 rounded-xl shadow-md w-full max-w-md"
@@ -246,7 +236,7 @@ export function RegisterCard() {
                             type="button"
                             onClick={() => setTipo("CANDIDATO")}
                             className={`flex-1 py-2 rounded-lg border transition-colors cursor-pointer ${tipo === "CANDIDATO"
-                                ? "bg-blue-600 text-white"
+                                ? "bg-blue-600 text-white border-blue-600"
                                 : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
                                 }`}
                         >
@@ -256,11 +246,21 @@ export function RegisterCard() {
                             type="button"
                             onClick={() => setTipo("EMPRESA")}
                             className={`flex-1 py-2 rounded-lg border transition-colors cursor-pointer ${tipo === "EMPRESA"
-                                ? "bg-blue-600 text-white"
+                                ? "bg-blue-600 text-white border-blue-600"
                                 : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
                                 }`}
                         >
                             {t("register_company")}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setTipo("MENTOR")}
+                            className={`flex-1 py-2 rounded-lg border transition-colors cursor-pointer ${tipo === "MENTOR"
+                                ? "bg-blue-600 text-white border-blue-600"
+                                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                                }`}
+                        >
+                            {t("register_mentor")}
                         </button>
                     </div>
                 </div>
@@ -349,30 +349,12 @@ export function RegisterCard() {
                     )}
                 </div>
 
-                <div className="mb-6 flex items-start gap-3">
-                    <input
-                        id="terms-consent"
-                        type="checkbox"
-                        required
-                        checked={acceptedTerms}
-                        onChange={(e) => setAcceptedTerms(e.target.checked)}
-                        className="appearance-none w-4 h-4 border border-gray-300 rounded checked:bg-blue-600 checked:border-blue-600 focus:ring-2 focus:ring-blue-100 cursor-pointer relative shrink-0 transition-all mt-0.5 after:content-[''] after:absolute after:hidden checked:after:block after:left-[5px] after:top-[1px] after:w-[5px] after:h-[9px] after:border-white after:border-r-2 after:border-b-2 after:rotate-45"
-                    />
-                    <label htmlFor="terms-consent" className="text-sm text-gray-700 select-none cursor-pointer">
-                        <Trans
-                            i18nKey="register_terms_label"
-                            components={[
-                                <Link href="/terms" target="_blank" className="text-blue-600 hover:underline font-medium" key="terms" />,
-                                <Link href="/privacy" target="_blank" className="text-blue-600 hover:underline font-medium" key="privacy" />
-                            ]}
-                        />
-                    </label>
-                </div>
+
 
                 <button
                     type="submit"
-                    disabled={isLoading || !acceptedTerms}
-                    className={`w-full text-white py-2 rounded-lg transition-colors cursor-pointer flex justify-center items-center ${isLoading || !acceptedTerms ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+                    disabled={isLoading}
+                    className={`w-full text-white py-2 rounded-lg transition-colors cursor-pointer flex justify-center items-center ${isLoading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
                         }`}
                 >
                     {isLoading ? (
@@ -430,6 +412,15 @@ export function RegisterCard() {
                     {t("register_with_facebook", "Cadastrar com Facebook")}
                 </button>
 
+                <p className="text-xs text-gray-500 text-center mt-1 mb-4">
+                    <Trans
+                        i18nKey="social_terms_consent"
+                        components={[
+                            <Link href="/terms" target="_blank" className="text-blue-600 hover:underline font-medium" key="terms" />,
+                            <Link href="/privacy" target="_blank" className="text-blue-600 hover:underline font-medium" key="privacy" />
+                        ]}
+                    />
+                </p>
                 <div className="mt-6 text-center text-sm">
                     <span className="text-gray-600">{t("already_have_account")}</span>{" "}
                     <Link href="/login" className="text-blue-600 hover:underline font-medium">

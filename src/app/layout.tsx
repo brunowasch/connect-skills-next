@@ -23,8 +23,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR" className={montserrat.variable}>
-      <body className={montserrat.className}>
+    <html lang="pt-BR" className={montserrat.variable} suppressHydrationWarning>
+      <body className={montserrat.className} suppressHydrationWarning>
         <SessionWatcher />
         <I18nProvider>
           {children}

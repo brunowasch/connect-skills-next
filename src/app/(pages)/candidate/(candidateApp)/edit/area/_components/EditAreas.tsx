@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import skillsData from "@/src/data/skills.json";
 import { FiSearch, FiArrowLeft, FiSave, FiX } from "react-icons/fi";
 import { useRouter } from "next/navigation";
@@ -15,17 +15,7 @@ export function EditAreas({ initialAreas }: EditAreasProps) {
     const router = useRouter();
     const [selectedSkills, setSelectedSkills] = useState<string[]>(initialAreas);
     const [searchTerm, setSearchTerm] = useState("");
-    const [customSkills, setCustomSkills] = useState<string[]>([]);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [newSkill, setNewSkill] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    // Identify which selected skills are NOT in the default skills data
-    useEffect(() => {
-        const defaultSkills = new Set(skillsData.Skills);
-        const extra = initialAreas.filter(skill => !defaultSkills.has(skill));
-        setCustomSkills(extra);
-    }, [initialAreas]);
 
     const toggleSkill = (skill: string) => {
         setSelectedSkills((prev) =>
@@ -33,20 +23,6 @@ export function EditAreas({ initialAreas }: EditAreasProps) {
                 ? prev.filter((s) => s !== skill)
                 : [...prev, skill]
         );
-    };
-
-    const handleAddCustomSkill = () => {
-        if (newSkill.trim()) {
-            const skillName = newSkill.trim();
-            if (!customSkills.includes(skillName) && !skillsData.Skills.includes(skillName)) {
-                setCustomSkills((prev) => [...prev, skillName]);
-                setSelectedSkills((prev) => [...prev, skillName]);
-            } else if (!selectedSkills.includes(skillName)) {
-                setSelectedSkills((prev) => [...prev, skillName]);
-            }
-            setNewSkill("");
-            setIsModalOpen(false);
-        }
     };
 
     const handleSave = async () => {
@@ -76,12 +52,10 @@ export function EditAreas({ initialAreas }: EditAreasProps) {
             router.refresh();
         } catch (error: any) {
             console.error("Erro ao salvar áreas:", error);
-            // For errors, we can show an alert or a toast immediately if we're not redirecting
             localStorage.setItem('global_toast', JSON.stringify({
                 type: 'error',
                 text: error.message || t("error_saving_areas")
             }));
-            // We might need a small hack to trigger the storage event if it's the same page
             window.dispatchEvent(new Event('storage'));
         } finally {
             setIsSubmitting(false);
@@ -89,9 +63,8 @@ export function EditAreas({ initialAreas }: EditAreasProps) {
     };
 
     const allSkills = useMemo(() => {
-        const uniqueSkills = Array.from(new Set([...skillsData.Skills, ...customSkills])).sort();
-        return uniqueSkills;
-    }, [customSkills]);
+        return [...skillsData.Skills].sort();
+    }, []);
 
     const filteredSkills = allSkills.filter((skill) =>
         t(skill).toLowerCase().includes(searchTerm.toLowerCase())
@@ -172,27 +145,11 @@ export function EditAreas({ initialAreas }: EditAreasProps) {
                             {t(skill)}
                         </button>
                     ))}
-
-                    <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="p-3 rounded-xl text-sm text-center transition-all duration-200 border bg-white text-blue-600 border-dashed border-blue-300 cursor-pointer hover:border-blue-500 hover:bg-blue-50 font-bold"
-                    >
-                        {t("add_other_btn")}
-                    </button>
                 </div>
 
                 {filteredSkills.length === 0 && searchTerm && (
                     <div className="text-center py-12">
-                        <p className="text-gray-500 mb-4">{t("no_skills_found_prefix")} "{searchTerm}"</p>
-                        <button
-                            onClick={() => {
-                                setNewSkill(searchTerm);
-                                setIsModalOpen(true);
-                            }}
-                            className="text-blue-600 font-bold hover:underline cursor-pointer"
-                        >
-                            {t("want_to_add", { term: searchTerm })}
-                        </button>
+                        <p className="text-gray-500">{t("no_skills_found_prefix")} &quot;{searchTerm}&quot;</p>
                     </div>
                 )}
             </div>
@@ -237,44 +194,6 @@ export function EditAreas({ initialAreas }: EditAreasProps) {
                     </div>
                 </div>
             </div>
-
-            {/* Modal */}
-            {isModalOpen && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                        <div className="p-8">
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">{t("modal_add_skill_title")}</h3>
-                            <p className="text-sm text-gray-500 mb-6">
-                                {t("modal_add_skill_custom_desc")}
-                            </p>
-                            <input
-                                type="text"
-                                value={newSkill}
-                                onChange={(e) => setNewSkill(e.target.value)}
-                                placeholder={t("modal_skill_placeholder")}
-                                className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 mb-6 text-gray-700"
-                                autoFocus
-                                onKeyDown={(e) => e.key === 'Enter' && handleAddCustomSkill()}
-                            />
-                            <div className="flex justify-end gap-3">
-                                <button
-                                    onClick={() => setIsModalOpen(false)}
-                                    className="px-6 py-2 text-gray-500 hover:bg-gray-100 rounded-xl font-medium transition-colors cursor-pointer"
-                                >
-                                    {t("cancel_btn")}
-                                </button>
-                                <button
-                                    onClick={handleAddCustomSkill}
-                                    disabled={!newSkill.trim()}
-                                    className="px-6 py-2 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-md"
-                                >
-                                    {t("add_btn")}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   Clock,
   AlertTriangle,
@@ -96,9 +96,6 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
   
   const [hasConfirmedCompanyQuestions, setHasConfirmedCompanyQuestions] = useState(false);
   
-  // Se houver initialState e já houver perguntas, começamos automaticamente ou mostramos a tela de início?
-  // O ideal é mostrar a tela de instruções com texto "Continuar Rascunho", mas para simplificar
-  // isStarted vai ser false de cara, e quando clicar em iniciar ele puxa o log já salvo.
   const [isStarted, setIsStarted] = useState(false);
   const [showPenaltyModal, setShowPenaltyModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -137,18 +134,58 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
     const selectedQuestions = shuffleArray(allBankQuestions).slice(0, MAX_BANK_QUESTIONS);
 
     if (vacancy.pergunta) {
-      vacancy.pergunta
-        .split("\n")
-        .filter((q) => q.trim())
-        .forEach((q, idx) => {
-          selectedQuestions.push({
-            id: `custom-${idx}-${Math.random()}`,
-            text: q.trim(),
-            category: "Personalizada",
-            method: "N/A",
-            isCustom: true,
+      const lines = vacancy.pergunta.split("\n");
+      const separatorIdx = lines.findIndex((l) => /^-{3,}/.test(l.trim()));
+
+      if (separatorIdx >= 0) {
+        lines.slice(0, separatorIdx)
+          .filter((q) => q.trim())
+          .forEach((q, idx) => {
+            selectedQuestions.push({
+              id: `role-${idx}-${Math.random()}`,
+              text: q.trim(),
+              category: "RoleSpecific",
+              method: "N/A",
+              isCustom: false,
+            });
           });
-        });
+
+        lines.slice(separatorIdx + 1)
+          .filter((q) => q.trim() && !q.toLowerCase().includes("escreva suas perguntas abaixo"))
+          .forEach((q, idx) => {
+            selectedQuestions.push({
+              id: `custom-${idx}-${Math.random()}`,
+              text: q.trim(),
+              category: "Personalizada",
+              method: "N/A",
+              isCustom: true,
+            });
+          });
+      } else {
+        lines.filter((q) => q.trim())
+          .forEach((q, idx) => {
+            selectedQuestions.push({
+              id: `custom-${idx}-${Math.random()}`,
+              text: q.trim(),
+              category: "Personalizada",
+              method: "N/A",
+              isCustom: true,
+            });
+          });
+      }
+    }
+
+    if (!forceReset && questions.length > 0) {
+      const savedBankQuestions = questions.filter(
+        (q) => !q.isCustom && q.category !== "Personalizada" && q.category !== "RoleSpecific"
+      );
+      const freshVacancyQuestions = selectedQuestions.filter(
+        (q) => q.category === "Personalizada" || q.category === "RoleSpecific"
+      );
+      if (freshVacancyQuestions.length > 0) {
+        setQuestions([...savedBankQuestions, ...freshVacancyQuestions]);
+      }
+      return;
     }
 
     if (!forceReset && questions.length > 0) return;
@@ -156,6 +193,7 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
     setQuestions(selectedQuestions);
     setCurrentSection(0);
   }, [vacancy, t, questions.length]);
+
 
   useEffect(() => {
     if (questions.length === 0) return;
@@ -214,24 +252,33 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
     };
   }, [isStarted, generateQuestions, handleScreenLeave]);
 
-  const totalSections = Math.max(1, Math.ceil(questions.length / SECTION_SIZE));
-  const sectionQuestions = questions.slice(
-    currentSection * SECTION_SIZE,
-    currentSection * SECTION_SIZE + SECTION_SIZE,
-  );
+  const bankQuestions = questions.filter((q) => !q.isCustom && q.category !== "Personalizada" && q.category !== "RoleSpecific");
+  const customQuestions = questions.filter((q) => q.isCustom || q.category === "Personalizada" || q.category === "RoleSpecific");
+  const hasCustomSection = customQuestions.length > 0;
+
+  const bankSectionCount = Math.max(1, Math.ceil(bankQuestions.length / SECTION_SIZE));
+  const totalSections = bankSectionCount + (hasCustomSection ? 1 : 0);
+
   const isLastSection = currentSection === totalSections - 1;
+  const isCustomSection = hasCustomSection && currentSection === bankSectionCount;
+
+  const sectionQuestions: Question[] = isCustomSection
+    ? customQuestions
+    : bankQuestions.slice(currentSection * SECTION_SIZE, currentSection * SECTION_SIZE + SECTION_SIZE);
 
   const sectionAnsweredCount = sectionQuestions.filter(
-    (q) => (answers[q.id] || "").trim().length > 0,
+    (q: Question) => (answers[q.id] || "").trim().length > 0,
   ).length;
   const allSectionAnswered = sectionAnsweredCount === sectionQuestions.length;
 
-  const totalAnsweredCount = Object.values(answers).filter((a) => a.trim().length > 0).length;
+  const totalAnsweredCount = Object.values(answers).filter((a: any) => a.trim().length > 0).length;
   const overallProgressPct = questions.length > 0 ? (totalAnsweredCount / questions.length) * 100 : 0;
 
   const isSectionComplete = (sectionIndex: number) => {
-    const start = sectionIndex * SECTION_SIZE;
-    const qs = questions.slice(start, start + SECTION_SIZE);
+    const isCustomSec = hasCustomSection && sectionIndex === bankSectionCount;
+    const qs = isCustomSec
+      ? customQuestions
+      : bankQuestions.slice(sectionIndex * SECTION_SIZE, sectionIndex * SECTION_SIZE + SECTION_SIZE);
     return qs.length > 0 && qs.every((q) => (answers[q.id] || "").trim().length > 0);
   };
 
@@ -353,6 +400,14 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
       alert(t("assessment_error_saving"));
       setIsSaving(false);
     }
+  };
+
+  const handleAcknowledgePenalty = () => {
+    setShowPenaltyModal(false);
+    generateQuestions(true);
+    setAnswers({});
+    setCurrentSection(0);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   if (isFinished) {
@@ -543,7 +598,7 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
               </p>
             </div>
 
-            {isLastSection && questions.some(q => q.isCustom) && !hasConfirmedCompanyQuestions ? (
+            {isCustomSection && !hasConfirmedCompanyQuestions ? (
               <div className="p-8 text-center space-y-6">
                 <div className="w-20 h-20 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <AlertTriangle size={40} />
@@ -563,23 +618,28 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
               </div>
             ) : (
               <div className="p-8 space-y-12">
-                {sectionQuestions.map((q, index) => (
+                {sectionQuestions.map((q: Question, index: number) => {
+                  const absoluteNumber = isCustomSection
+                    ? bankQuestions.length + index + 1
+                    : currentSection * SECTION_SIZE + index + 1;
+                  return (
                   <div key={q.id} className="group">
                     <div className="flex items-start gap-4 mb-4">
                       <span className="flex-shrink-0 w-8 h-8 rounded-lg bg-slate-100 text-slate-500 font-bold flex items-center justify-center text-sm">
-                        {currentSection * SECTION_SIZE + index + 1}
+                        {absoluteNumber}
                       </span>
                       <h3 className="text-lg font-semibold text-slate-800 leading-snug pt-1">{q.text}</h3>
                     </div>
-                    <textarea
-                      className="w-full p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-slate-50 hover:bg-white resize-none min-h-[120px] text-slate-700 leading-relaxed"
-                      placeholder={t("assessment_answer_placeholder")}
-                      value={answers[q.id] || ""}
-                      onChange={(e) => handleAnswerChange(q.id, e.target.value)}
-                      autoComplete="off"
-                    />
-                  </div>
-                ))}
+                      <textarea
+                        className="w-full p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-slate-50 hover:bg-white resize-none min-h-[120px] text-slate-700 leading-relaxed"
+                        placeholder={t("assessment_answer_placeholder")}
+                        value={answers[q.id] || ""}
+                        onChange={(e) => handleAnswerChange(q.id, e.target.value)}
+                        autoComplete="off"
+                      />
+                    </div>
+                  );
+                })}
               </div>
             )}
 
@@ -602,7 +662,7 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
               </div>
 
               <div className="w-full sm:w-auto">
-                {!(isLastSection && questions.some(q => q.isCustom) && !hasConfirmedCompanyQuestions) && (
+                {!(isCustomSection && !hasConfirmedCompanyQuestions) && (
                   isLastSection ? (
                     <button
                       onClick={handleConfirmSubmit}
@@ -662,7 +722,7 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
               <h2 className="text-2xl font-bold text-slate-900 mb-4">{t("assessment_penalty_title")}</h2>
               <p className="text-slate-600 mb-8 leading-relaxed">{t("assessment_penalty_desc")}</p>
               <button
-                onClick={() => setShowPenaltyModal(false)}
+                onClick={handleAcknowledgePenalty}
                 className="w-full py-4 bg-amber-600 text-white font-bold rounded-2xl hover:bg-amber-700 transition-all active:scale-95 shadow-xl shadow-amber-200 cursor-pointer"
               >
                 {t("assessment_penalty_btn")}

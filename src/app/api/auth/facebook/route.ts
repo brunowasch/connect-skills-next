@@ -3,12 +3,13 @@ import { NextResponse } from "next/server";
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const tipo = searchParams.get("tipo") || "CANDIDATO";
+    const origin = searchParams.get("origin") || "";
 
     const clientId = process.env.FACEBOOK_CLIENT_ID!;
     const callbackUrl = process.env.FACEBOOK_CALLBACK_URL!;
 
     const scope = encodeURIComponent("email,public_profile");
-    const state = encodeURIComponent(JSON.stringify({ tipo }));
+    const state = encodeURIComponent(JSON.stringify({ tipo, origin }));
 
     const facebookAuthUrl =
         `https://www.facebook.com/v19.0/dialog/oauth` +

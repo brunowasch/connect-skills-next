@@ -284,12 +284,14 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
 
         if (JSON.stringify(formData.anexos) !== JSON.stringify(initialData.anexos)) return true;
 
-        const initialLinks = initialData.links.length > 0 ? initialData.links : [{ label: '', url: '' }];
+        const initialFilteredLinks = initialData.links.length > 0 
+            ? initialData.links.filter((l: any) => l.label !== '__CONFIG_RECEIVE_EMAILS__')
+            : [];
+        const initialLinks = initialFilteredLinks.length > 0 ? initialFilteredLinks : [{ label: '', url: '' }];
         if (JSON.stringify(formData.links) !== JSON.stringify(initialLinks)) return true;
 
         const initialPrefLink = initialData.links?.find((l: any) => l.label === '__CONFIG_RECEIVE_EMAILS__');
         const initialReceiveEmails = initialPrefLink ? initialPrefLink.url === 'true' : true;
-        
         if (receiveEmails !== initialReceiveEmails) return true;
 
         return false;
@@ -465,8 +467,7 @@ export function EditCompanyProfile({ initialData }: EditCompanyProfileProps) {
                             </div>
                         </div>
 
-                        {/* Links do perfil */}
-                        <div className="space-y-4 pt-4">
+                        <div className="space-y-4 pt-4 border-t border-gray-100 mt-4">
                             <div className="flex justify-between items-center">
                                 <label className="text-sm font-semibold text-gray-600 flex items-center gap-2">
                                     <LinkIcon size={16} /> {t('company_links')}

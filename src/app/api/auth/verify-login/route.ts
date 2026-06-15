@@ -20,7 +20,10 @@ export async function POST(req: Request) {
                 candidato: {
                     include: { candidato_area: true }
                 },
-                empresa: true
+                empresa: true,
+                mentor: {
+                    include: { mentor_area: true }
+                }
             }
         });
         if (!user) return NextResponse.json({ error: "Usuário não encontrado." }, { status: 404 });
@@ -50,9 +53,13 @@ export async function POST(req: Request) {
             isRegistrationComplete = !!(hasName && hasAreas);
         } else if (userType === "EMPRESA") {
             isRegistrationComplete = !!(user.empresa && user.empresa.nome_empresa && user.empresa.nome_empresa.trim() !== "");
+        } else if (userType === "MENTOR") {
+            const hasName = !!(user.mentor && user.mentor.nome && user.mentor.nome.trim() !== "");
+            const hasAreas = user.mentor && user.mentor.mentor_area && user.mentor.mentor_area.length > 0;
+            isRegistrationComplete = !!(hasName && hasAreas);
         }
 
-        let redirectTo = userType === 'CANDIDATO' ? "/candidate/dashboard" : "/company/dashboard";
+        let redirectTo = userType === 'CANDIDATO' ? "/candidate/dashboard" : (userType === 'MENTOR' ? "/mentor/dashboard" : "/company/dashboard");
 
         if (!isRegistrationComplete) {
             if (userType === 'CANDIDATO') {
@@ -61,6 +68,13 @@ export async function POST(req: Request) {
                     redirectTo = "/candidate/area";
                 } else {
                     redirectTo = "/candidate/register";
+                }
+            } else if (userType === 'MENTOR') {
+                const hasName = !!(user.mentor && user.mentor.nome && user.mentor.nome.trim() !== "");
+                if (hasName) {
+                    redirectTo = "/mentor/specialties";
+                } else {
+                    redirectTo = "/mentor/register";
                 }
             } else {
                 redirectTo = "/company/register";

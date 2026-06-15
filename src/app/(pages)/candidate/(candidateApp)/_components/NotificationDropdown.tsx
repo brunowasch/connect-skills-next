@@ -13,6 +13,8 @@ import {
   Trash2,
   Eye,
   X,
+  CalendarCheck,
+  Star,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { FeedbackModal } from "./FeedbackModal";
@@ -74,6 +76,12 @@ export function NotificationDropdown({
         return <CheckCircle size={18} className="text-green-600" />;
       case "feedback_rejected":
         return <XCircle size={18} className="text-red-600" />;
+      case "interview_scheduled":
+        return <CalendarCheck size={18} className="text-indigo-600" />;
+      case "interview_confirmed":
+        return <CalendarCheck size={18} className="text-emerald-600" />;
+      case "FEEDBACK_DISPONIVEL":
+        return <Star size={18} className="text-amber-500 fill-amber-500 animate-pulse" />;
       default:
         return <MessageSquare size={18} className="text-blue-600" />;
     }
@@ -87,6 +95,12 @@ export function NotificationDropdown({
         return "bg-green-50 border-green-100";
       case "feedback_rejected":
         return "bg-red-50 border-red-100";
+      case "interview_scheduled":
+        return "bg-indigo-50 border-indigo-100";
+      case "interview_confirmed":
+        return "bg-emerald-50 border-emerald-100";
+      case "FEEDBACK_DISPONIVEL":
+        return "bg-amber-50 border-amber-100";
       default:
         return "bg-blue-50 border-blue-100";
     }
@@ -383,6 +397,32 @@ export function NotificationDropdown({
                               >
                                 <Video size={12} />
                                 {t("notifications.send_video")}
+                              </button>
+                            )}
+                            {notification.type === "interview_scheduled" && notification.extraData?.entrevistaId && (
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  router.push(`/candidate/interviews/onsite/${notification.extraData!.entrevistaId}/confirm`);
+                                  setIsOpen(false);
+                                }}
+                                className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors cursor-pointer"
+                              >
+                                <CalendarCheck size={12} />
+                                {t("schedule_confirm_btn", "Confirmar Presença")}
+                              </button>
+                            )}
+                            {notification.type === "FEEDBACK_DISPONIVEL" && (
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  router.push("/candidate/interviews");
+                                  setIsOpen(false);
+                                }}
+                                className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-amber-600 hover:bg-amber-50 rounded-md transition-colors cursor-pointer"
+                              >
+                                <Star size={12} className="fill-current" />
+                                {t("notifications.view_feedback_rating", "Ver Avaliação")}
                               </button>
                             )}
                             {!notification.read && (

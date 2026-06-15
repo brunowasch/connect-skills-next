@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from 'react';
-import { X, Trash2, Bell, Video, UserPlus, Clock, Check, Eye, AlertTriangle } from 'lucide-react';
+import { X, Trash2, Bell, Video, UserPlus, Clock, Check, Eye, AlertTriangle, CalendarCheck } from 'lucide-react';
 import { useTranslation } from "react-i18next";
 import { Notification } from "@/src/lib/notifications";
 
@@ -47,6 +47,10 @@ export function AllNotificationsModal({
                 return <UserPlus size={20} className="text-blue-600" />;
             case 'video_expired_unsubmitted':
                 return <AlertTriangle size={20} className="text-red-500" />;
+            case 'interview_confirmed':
+                return <CalendarCheck size={20} className="text-emerald-600" />;
+            case 'interview_expired':
+                return <AlertTriangle size={20} className="text-orange-500" />;
             default:
                 return <Bell size={20} className="text-slate-600" />;
         }
@@ -60,6 +64,10 @@ export function AllNotificationsModal({
                 return 'bg-blue-50 border-blue-100';
             case 'video_expired_unsubmitted':
                 return 'bg-red-50 border-red-100';
+            case 'interview_confirmed':
+                return 'bg-emerald-50 border-emerald-100';
+            case 'interview_expired':
+                return 'bg-orange-50 border-orange-100';
             default:
                 return 'bg-slate-50 border-slate-100';
         }
@@ -69,6 +77,8 @@ export function AllNotificationsModal({
         if (notification.type === 'new_candidate') return t('notifications.company_notifications.new_candidate_title', 'Nova Candidatura');
         if (notification.type === 'video_received') return t('notifications.company_notifications.video_received_title', 'Vídeo Recebido');
         if (notification.type === 'video_expired_unsubmitted') return t('notifications.company_notifications.video_expired_unsubmitted_title', 'Vídeo Não Enviado no Prazo');
+        if (notification.type === 'interview_confirmed') return t('notifications.company_notifications.interview_confirmed_title', 'Mentoria Confirmada');
+        if (notification.type === 'interview_expired') return t('notifications.company_notifications.interview_expired_title', 'Convite de Mentoria Expirado');
         return notification.title;
     };
 
@@ -87,6 +97,18 @@ export function AllNotificationsModal({
         if (notification.type === 'video_expired_unsubmitted') {
             return t('notifications.company_notifications.video_expired_unsubmitted_message', {
                 candidateName: notification.candidateName || 'Candidato'
+            });
+        }
+        if (notification.type === 'interview_confirmed') {
+            return t('notifications.company_notifications.interview_confirmed_message', {
+                candidateName: notification.candidateName || 'Candidato',
+                vacancyTitle: notification.vacancyTitle || 'Vaga'
+            });
+        }
+        if (notification.type === 'interview_expired') {
+            return t('notifications.company_notifications.interview_expired_message', {
+                candidateName: notification.candidateName || 'Candidato',
+                vacancyTitle: notification.vacancyTitle || 'Vaga'
             });
         }
         return notification.message;

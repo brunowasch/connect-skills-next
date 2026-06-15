@@ -64,7 +64,6 @@ export function VacanciesClientContent({
             filteredVagas = filteredVagas.filter(v => v.feedbackStatus === 'REJECTED');
         }
 
-        // Sort rejected to bottom only when showing ALL
         if (historyFilter === 'ALL') {
             filteredVagas.sort((a, b) => {
                 const isRejectedA = a.feedbackStatus === 'REJECTED';
@@ -112,7 +111,6 @@ export function VacanciesClientContent({
                 </div>
             )}
 
-            {/* Grid de Vagas */}
             {vagas.length === 0 ? (
                 <div className="text-center py-10 sm:py-12 bg-white rounded-2xl border border-dashed border-gray-300">
                     <p className="text-gray-500 text-sm sm:text-base">
@@ -122,36 +120,16 @@ export function VacanciesClientContent({
             ) : (
                 <>
                     {isHistory && (
-                        <div className="flex gap-2 mb-4 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide">
-                            <button
-                                onClick={() => setHistoryFilter('ALL')}
-                                className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap cursor-pointer
-                                    ${historyFilter === 'ALL'
-                                        ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                                        : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
+                        <div className="mb-4 flex items-center">
+                            <select
+                                value={historyFilter}
+                                onChange={(e) => setHistoryFilter(e.target.value as any)}
+                                className="bg-white border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full sm:max-w-[250px] p-2 outline-none font-medium cursor-pointer"
                             >
-                                {t("all")}
-                            </button>
-                            <button
-                                onClick={() => setHistoryFilter('APPROVED')}
-                                className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-1.5 cursor-pointer
-                                    ${historyFilter === 'APPROVED'
-                                        ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
-                                        : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
-                            >
-                                <span className={`w-2 h-2 rounded-full ${historyFilter === 'APPROVED' ? 'bg-emerald-500' : 'bg-emerald-400'}`}></span>
-                                {t("approved")}
-                            </button>
-                            <button
-                                onClick={() => setHistoryFilter('REJECTED')}
-                                className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-1.5 cursor-pointer
-                                    ${historyFilter === 'REJECTED'
-                                        ? 'bg-red-100 text-red-700 border border-red-200'
-                                        : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
-                            >
-                                <span className={`w-2 h-2 rounded-full ${historyFilter === 'REJECTED' ? 'bg-red-500' : 'bg-red-400'}`}></span>
-                                {t("not_listed")}
-                            </button>
+                                <option value="ALL">{t("all")}</option>
+                                <option value="APPROVED">{t("approved")}</option>
+                                <option value="REJECTED">{t("not_listed")}</option>
+                            </select>
                         </div>
                     )}
 

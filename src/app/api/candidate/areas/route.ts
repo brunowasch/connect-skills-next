@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
+import { syncUserWithMentorConnect } from "@/src/lib/mentorconnect-sync";
 
 export async function GET() {
     try {
@@ -96,6 +97,8 @@ export async function PUT(req: Request) {
                 }
             });
         }
+
+        await syncUserWithMentorConnect(userId);
 
         return NextResponse.json({ success: true });
     } catch (error) {

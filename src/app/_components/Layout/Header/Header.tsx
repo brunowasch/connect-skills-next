@@ -1,7 +1,6 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { FaWhatsapp } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "../LanguageSwitcher";
 
@@ -23,15 +22,10 @@ export function Header() {
           />
         </Link>
         <div className="flex items-center gap-4 sm:gap-6">
-          <a
-            href="https://wa.me/5551992179330"
-            target="_blank"
-            className="flex items-center gap-2 font-medium text-black hover:text-green-600 lg:mt-0"
-          >
-            <FaWhatsapp className="text-xl text-[#25d366]" />
-            <span className="hidden sm:inline">{t("whatsapp")}</span>
-          </a>
           <LanguageSwitcher />
+          <Link href="/login" className="bg-primary text-white hover:opacity-90 transition px-4 py-2 rounded-lg">
+            {t("btn_login")}
+          </Link>
         </div>
       </div>
     </nav>

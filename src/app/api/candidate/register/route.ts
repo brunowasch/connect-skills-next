@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 
 import { cookies } from "next/headers";
+import { syncUserWithMentorConnect } from "@/src/lib/mentorconnect-sync";
 
 interface RegisterCandidate {
   nome: string;
@@ -71,7 +72,8 @@ export async function POST(req: Request) {
       return candidate;
     });
 
-    // 4. Retorno de sucesso
+    await syncUserWithMentorConnect(finalUserId!);
+
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
     console.error(error);

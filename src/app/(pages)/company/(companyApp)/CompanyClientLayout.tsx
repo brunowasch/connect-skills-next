@@ -19,6 +19,7 @@ export default function CompanyLayout({
     notifications?: Notification[];
 }) {
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(false);
 
     return (
         <div className="flex min-h-screen bg-gray-50 overflow-x-hidden w-full max-w-full">
@@ -26,15 +27,22 @@ export default function CompanyLayout({
             <Sidebar
                 mobileOpen={mobileSidebarOpen}
                 setMobileOpen={setMobileSidebarOpen}
+                isCollapsed={isCollapsed}
             />
 
-            <div className="flex flex-1 flex-col transition-all duration-300 lg:ml-64 w-full min-w-0 overflow-x-hidden">
+            <div className={`flex flex-1 flex-col transition-all duration-300 ${isCollapsed ? 'lg:ml-20' : 'lg:ml-64'} w-full min-w-0 overflow-x-hidden`}>
 
                 <header className="flex h-16 items-center justify-between bg-white px-4 sm:px-6 shadow-sm sticky top-0 z-40 w-full">
-                    <div className="flex items-center gap-4 lg:hidden">
+                    <div className="flex items-center gap-4">
                         <button
                             onClick={() => setMobileSidebarOpen(true)}
-                            className="menu-toggle-btn rounded-lg p-2 text-gray-600 hover:bg-gray-100 cursor-pointer"
+                            className="lg:hidden menu-toggle-btn rounded-lg p-2 text-gray-600 hover:bg-gray-100 cursor-pointer"
+                        >
+                            <FaBars className="text-xl" />
+                        </button>
+                        <button
+                            onClick={() => setIsCollapsed(!isCollapsed)}
+                            className="hidden lg:block menu-toggle-btn rounded-lg p-2 text-gray-600 hover:bg-gray-100 cursor-pointer"
                         >
                             <FaBars className="text-xl" />
                         </button>
@@ -45,6 +53,7 @@ export default function CompanyLayout({
                             height={30}
                             priority
                             style={{ height: "auto", width: "8rem" }}
+                            className="lg:hidden"
                         />
                     </div>
 
