@@ -188,6 +188,8 @@ export default function AssessmentComponent({ vacancy, candidateId, initialState
       return;
     }
 
+    if (!forceReset && questions.length > 0) return;
+
     setQuestions(selectedQuestions);
     setCurrentSection(0);
   }, [vacancy, t, questions.length]);
