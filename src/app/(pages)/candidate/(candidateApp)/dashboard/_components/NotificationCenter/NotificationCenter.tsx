@@ -2,12 +2,12 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Bell, Video, MessageSquare, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Bell, Video, MessageSquare, CheckCircle, XCircle, Clock, CalendarCheck } from 'lucide-react';
 import { useTranslation } from "react-i18next";
 
 interface Notification {
     id: string;
-    type: 'video_request' | 'feedback_approved' | 'feedback_rejected' | 'general';
+    type: 'video_request' | 'feedback_approved' | 'feedback_rejected' | 'general' | 'interview_scheduled' | 'interview_confirmed';
     title: string;
     message: string;
     vacancyTitle: string;
@@ -32,6 +32,10 @@ export function NotificationCenter({ notifications }: NotificationCenterProps) {
                 return <CheckCircle size={20} className="text-green-600" />;
             case 'feedback_rejected':
                 return <XCircle size={20} className="text-red-600" />;
+            case 'interview_scheduled':
+                return <CalendarCheck size={20} className="text-indigo-600" />;
+            case 'interview_confirmed':
+                return <CalendarCheck size={20} className="text-emerald-600" />;
             default:
                 return <MessageSquare size={20} className="text-blue-600" />;
         }
@@ -45,6 +49,10 @@ export function NotificationCenter({ notifications }: NotificationCenterProps) {
                 return 'bg-green-50 border-green-100';
             case 'feedback_rejected':
                 return 'bg-red-50 border-red-100';
+            case 'interview_scheduled':
+                return 'bg-indigo-50 border-indigo-100';
+            case 'interview_confirmed':
+                return 'bg-emerald-50 border-emerald-100';
             default:
                 return 'bg-blue-50 border-blue-100';
         }
@@ -84,9 +92,17 @@ export function NotificationCenter({ notifications }: NotificationCenterProps) {
 
             <div className="divide-y divide-slate-50 overflow-y-auto custom-scrollbar max-h-[500px]">
                 {notifications.map((notification) => {
-                    const linkHref = notification.type === 'video_request' && notification.vacancyUuid
-                        ? `/viewer/vacancy/${notification.vacancyUuid}?action=upload_video`
-                        : '#';
+                    let linkHref = '#';
+                    if (notification.type === 'video_request' && notification.vacancyUuid) {
+                        linkHref = `/viewer/vacancy/${notification.vacancyUuid}?action=upload_video`;
+                    } else if (notification.type === 'interview_scheduled') {
+                        const notifAny = notification as any;
+                        if (notifAny.extraData && notifAny.extraData.entrevistaId) {
+                            linkHref = `/candidate/interviews/onsite/${notifAny.extraData.entrevistaId}/confirm`;
+                        } else {
+                            linkHref = `/candidate/interviews`;
+                        }
+                    }
 
                     return (
                         <Link

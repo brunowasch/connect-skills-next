@@ -23,6 +23,14 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        if (notificationId.startsWith('notificacao_')) {
+            const id = notificationId.replace('notificacao_', '');
+            await (prisma as any).notificacao.delete({
+                where: { id }
+            });
+            return NextResponse.json({ success: true });
+        }
+
         // Buscar candidato
         const candidate = await prisma.candidato.findUnique({
             where: { usuario_id: userId },
@@ -64,7 +72,7 @@ export async function POST(request: NextRequest) {
         // Atualizar o breakdown para remover a notificação
         let breakdown = {};
         try {
-            breakdown = avaliacao.breakdown ? JSON.parse(avaliacao.breakdown) : {};
+            breakdown = avaliacao.breakdown ? JSON.parse(avaliacao.breakdown as string) : {};
         } catch (e) {
             breakdown = {};
         }

@@ -127,10 +127,10 @@ export function RegisterCandidateName({ initialName = "", initialSurname = "" }:
     }
 
     return (
-        <div className="flex justify-center items-center w-full px-4 py-20 md:py-40">
+        <div className="flex justify-center items-center w-full px-2 sm:px-4 py-20 md:py-40 overflow-hidden">
             <form
                 onSubmit={handleSubmit}
-                className="bg-white p-6 md:p-8 rounded-xl shadow-md w-full max-w-lg"
+                className="bg-white p-5 sm:p-6 md:p-8 rounded-xl shadow-md w-full max-w-lg"
             >
                 <h2 className="text-2xl font-semibold mb-2 text-center">
                     {t("candidate_register_title")}
@@ -146,7 +146,7 @@ export function RegisterCandidateName({ initialName = "", initialSurname = "" }:
                         value={nome}
                         onChange={(e) => setNome(e.target.value)}
                         required
-                        className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full min-w-0 max-w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                         placeholder={t("candidate_name_placeholder")}
                     />
                 </div>
@@ -157,7 +157,7 @@ export function RegisterCandidateName({ initialName = "", initialSurname = "" }:
                         type="text"
                         value={sobrenome}
                         onChange={(e) => setSobrenome(e.target.value)}
-                        className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full min-w-0 max-w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                         placeholder={t("candidate_surname_placeholder")}
                     />
                 </div>
@@ -170,7 +170,7 @@ export function RegisterCandidateName({ initialName = "", initialSurname = "" }:
                         required
                         min="1900-01-01"
                         max="2026-12-31"
-                        className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full min-w-0 max-w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white block"
                         lang={i18n.language?.startsWith('pt') ? 'pt-BR' : i18n.language?.startsWith('es') ? 'es-ES' : 'en-US'}
                     />
                 </div>

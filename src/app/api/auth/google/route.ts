@@ -3,12 +3,13 @@ import { NextResponse } from "next/server";
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const tipo = searchParams.get("tipo") || "CANDIDATO";
+    const origin = searchParams.get("origin") || "";
 
     const clientId = process.env.GOOGLE_CLIENT_ID!;
     const callbackUrl = process.env.GOOGLE_CALLBACK_URL!;
 
     const scope = encodeURIComponent("openid email profile");
-    const state = encodeURIComponent(JSON.stringify({ tipo }));
+    const state = encodeURIComponent(JSON.stringify({ tipo, origin }));
 
     const googleAuthUrl =
         `https://accounts.google.com/o/oauth2/v2/auth` +

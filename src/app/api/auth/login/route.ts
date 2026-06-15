@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { generateVerificationCode } from "@/src/lib/code-generator";
 import { sendLoginCodeEmail } from "@/src/lib/mail";
 import { randomUUID } from "crypto";
+import { getRedirectTo } from "@/src/lib/auth-utils";
 
 export async function GET() {
     return NextResponse.json({
@@ -34,7 +35,10 @@ export async function POST(req: Request) {
                 candidato: {
                     include: { candidato_area: true }
                 },
-                empresa: true
+                empresa: true,
+                mentor: {
+                    include: { mentor_area: true }
+                }
             }
         });
 
@@ -64,7 +68,6 @@ export async function POST(req: Request) {
             );
         }
 
-        // 3.1 Verifica se o email foi verificado
         if (!user.email_verificado) {
             return NextResponse.json(
                 { error: "Por favor, verifique seu email antes de fazer login." },
@@ -82,27 +85,18 @@ export async function POST(req: Request) {
             isRegistrationComplete = !!(hasName && hasAreas);
         } else if (userType === "EMPRESA") {
             isRegistrationComplete = !!(user.empresa && user.empresa.nome_empresa && user.empresa.nome_empresa.trim() !== "");
+        } else if (userType === "MENTOR") {
+            const hasName = !!(user.mentor && user.mentor.nome && user.mentor.nome.trim() !== "");
+            const hasAreas = user.mentor && user.mentor.mentor_area && user.mentor.mentor_area.length > 0;
+
+            isRegistrationComplete = !!(hasName && hasAreas);
         }
 
-        // 4. Verificação de Dispositivo Confiável
         const cookieStore = await cookies();
         const trustedDeviceCookie = cookieStore.get(`trusted_device_${user.id}`);
 
         if (trustedDeviceCookie) {
-            let redirectTo = user.tipo.toLocaleLowerCase() === 'candidato' ? "/candidate/dashboard" : "/company/dashboard";
-
-            if (!isRegistrationComplete) {
-                if (user.tipo.toLowerCase() === 'candidato') {
-                    const hasName = !!(user.candidato && user.candidato.nome && user.candidato.nome.trim() !== "");
-                    if (hasName) {
-                        redirectTo = "/candidate/area";
-                    } else {
-                        redirectTo = "/candidate/register";
-                    }
-                } else {
-                    redirectTo = "/company/register";
-                }
-            }
+            const redirectTo = getRedirectTo(user as any);
 
             const response = NextResponse.json(
                 {
@@ -114,7 +108,6 @@ export async function POST(req: Request) {
                 { status: 200 }
             );
 
-            // 5. Configura cookie de sessão/persistente
             const cookieOptions: any = {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
@@ -147,27 +140,24 @@ export async function POST(req: Request) {
                 });
             }
 
-            // Usando response.cookies.set para garantir que estamos modificando a resposta que será retornada
             response.cookies.set("time_user_id", cookieValue, cookieOptions);
 
             return response;
         } else {
-            // Dispositivo não confiável, gerar código e pedir verificação
             const code = generateVerificationCode();
 
-            // Limpa tokens antigos (opcional, mas bom pra evitar lixo)
             await prisma.verification_token.deleteMany({
                 where: { usuario_id: user.id }
             });
 
-            const tokenVal = `${user.id}:${code}`; // Token composto para garantir unicidade e validação
+            const tokenVal = `${user.id}:${code}`;
 
             await prisma.verification_token.create({
                 data: {
                     id: randomUUID(),
                     usuario_id: user.id,
                     token: tokenVal,
-                    expires_at: new Date(Date.now() + 30 * 60 * 1000) // 30 minutos
+                    expires_at: new Date(Date.now() + 30 * 60 * 1000)
                 }
             });
 

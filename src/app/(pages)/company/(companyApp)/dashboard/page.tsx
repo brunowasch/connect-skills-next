@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
 import { checkCompanyRestrictions } from "@/src/lib/companyRestrictions";
-import { CompanyHero, CompanyKPI, ProfileCompletion, RecentVacancies, RecentCandidates, DashboardHeader, VideoEvaluations } from '@/src/app/(pages)/company/(companyApp)/dashboard/_components';
+import { CompanyHero, CompanyKPI, ProfileCompletion, RecentVacancies, RecentCandidates, DashboardHeader, VideoEvaluations, CompanyMentorships } from '@/src/app/(pages)/company/(companyApp)/dashboard/_components';
 
 export default async function Dashboard() {
     const cookieStore = await cookies();
@@ -276,9 +276,46 @@ export default async function Dashboard() {
         })
         .filter((item): item is NonNullable<typeof item> => item !== null);
 
-    // Verificar se há restrições devido a vídeos expirados
     const expiredVideos = await checkCompanyRestrictions(companyId);
     const isRestricted = !!expiredVideos && expiredVideos.length > 0;
+
+    const companyInterviewsRaw = await prisma.entrevista_mentor.findMany({
+        where: {
+            vaga_id: { in: vacancyIds },
+            status: "CONFIRMADA"
+        },
+        orderBy: { data: 'asc' }
+    });
+
+    const mentorshipsForCompany = await Promise.all(companyInterviewsRaw.map(async (int: any) => {
+        const vaga = int.vaga_id
+            ? await prisma.vaga.findUnique({
+                where: { id: int.vaga_id },
+                select: { cargo: true, uuid: true }
+              })
+            : null;
+        const candidato = await prisma.candidato.findUnique({
+            where: { id: int.candidato_id },
+            select: { nome: true, sobrenome: true, foto_perfil: true }
+        });
+        const mentor = await prisma.mentor.findUnique({
+            where: { id: int.mentor_id },
+            select: { nome: true, sobrenome: true, foto_perfil: true }
+        });
+
+        return {
+            id: int.id,
+            cargo: vaga?.cargo || "Mentoria",
+            vagaUuid: vaga?.uuid || "",
+            candidato: `${candidato?.nome || ""} ${candidato?.sobrenome || ""}`.trim(),
+            candidatoFoto: candidato?.foto_perfil || null,
+            mentor: `${mentor?.nome || ""} ${mentor?.sobrenome || ""}`.trim(),
+            mentorFoto: mentor?.foto_perfil || null,
+            data: int.data,
+            hora_inicio: int.hora_inicio,
+            hora_fim: int.hora_fim
+        };
+    }));
 
     return (
         <>
@@ -291,6 +328,7 @@ export default async function Dashboard() {
                 ReceivedCandidates={ReceivedCandidates}
                 OpenVacancies={OpenVacancies}
             />
+            <CompanyMentorships mentorships={mentorshipsForCompany} />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <RecentVacancies vacancies={recentVacancies} isRestricted={isRestricted} />
                 <RecentCandidates applications={applications} isRestricted={isRestricted} />

@@ -41,12 +41,12 @@ export function Footer() {
                     <Link href="/cookies" className="hover:text-blue-500 hover:underline">
                         {t("footer_cookies")}
                     </Link>
-                    <Link href="/help" className="hover:text-blue-500 hover:underline">
+                    {/* <Link href="/help" className="hover:text-blue-500 hover:underline">
                         {t("footer_help")}
                     </Link>
                     <Link href="/contact" className="hover:text-blue-500 hover:underline">
                         {t("footer_contact")}
-                    </Link>
+                    </Link> */}
                 </nav>
             </div>
         </footer>

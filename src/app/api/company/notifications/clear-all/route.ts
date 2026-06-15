@@ -75,6 +75,11 @@ export async function POST(request: NextRequest) {
             });
         }
 
+        // 4. Clear from notificacao table
+        await (prisma as any).notificacao.deleteMany({
+            where: { usuario_id: userId }
+        });
+
         return NextResponse.json({ success: true });
     } catch (error) {
         console.error("Error clearing company notifications:", error);

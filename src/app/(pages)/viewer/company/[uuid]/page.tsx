@@ -1,33 +1,41 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
 import { PublicCompanyProfile } from "./_components/PublicCompanyProfile";
+import { randomUUID } from "node:crypto";
+
+const companyInclude = {
+    usuario: { select: { email: true } },
+    empresa_arquivo: { orderBy: { criadoEm: 'desc' as const } },
+    empresa_link: { orderBy: { ordem: 'asc' as const } },
+};
 
 export default async function CompanyPublicProfilePage({ params }: { params: Promise<{ uuid: string }> }) {
     const { uuid } = await params;
 
-    const company = await prisma.empresa.findUnique({
+    let company = await prisma.empresa.findUnique({
         where: { uuid },
-        include: {
-            usuario: {
-                select: {
-                    email: true
-                }
-            },
-            empresa_arquivo: {
-                orderBy: {
-                    criadoEm: 'desc'
-                }
-            },
-            empresa_link: {
-                orderBy: {
-                    ordem: 'asc'
-                }
-            }
-        }
+        include: companyInclude,
     });
 
     if (!company) {
+        company = await prisma.empresa.findUnique({
+            where: { id: uuid },
+            include: companyInclude,
+        });
+    }
+
+    if (!company) {
         notFound();
+    }
+
+    // Auto-generate uuid if missing and persist it
+    if (!company.uuid) {
+        const newUuid = randomUUID();
+        await prisma.empresa.update({
+            where: { id: company.id },
+            data: { uuid: newUuid },
+        });
+        company = { ...company, uuid: newUuid };
     }
 
     const localidade = company.cidade && company.estado
@@ -150,7 +158,7 @@ export default async function CompanyPublicProfilePage({ params }: { params: Pro
     const companySerialized = JSON.parse(JSON.stringify(company));
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 flex-1">
             <PublicCompanyProfile
                 company={companySerialized}
                 fotoPerfil={company.foto_perfil || undefined}

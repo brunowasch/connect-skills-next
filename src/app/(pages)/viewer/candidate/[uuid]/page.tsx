@@ -110,7 +110,7 @@ export default async function CandidatePublicProfilePage({ params }: { params: P
     const candidateSerialized = JSON.parse(JSON.stringify(candidate));
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8 flex-1">
             <PublicCandidateProfile
                 candidato={candidateSerialized}
                 fotoPerfil={candidate.foto_perfil || undefined}

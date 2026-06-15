@@ -17,7 +17,9 @@ export function EditProfile({ initialData }: EditProfileProps) {
         ...initialData,
         pais: initialData.pais
     });
-    const [links, setLinks] = useState(initialData.links.length > 0 ? initialData.links : [{ label: '', url: '' }]);
+    const [links, setLinks] = useState(
+        initialData.links.length > 0 ? initialData.links : [{ label: '', url: '' }]
+    );
     const [fotoPreview, setFotoPreview] = useState(initialData.fotoPerfil || null);
     const [showPhotoOptions, setShowPhotoOptions] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -152,7 +154,7 @@ export function EditProfile({ initialData }: EditProfileProps) {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ ...formData, links }),
+                body: JSON.stringify({ ...formData, links: links }),
             });
 
             const result = await res.json();
@@ -228,8 +230,7 @@ export function EditProfile({ initialData }: EditProfileProps) {
 
         if (JSON.stringify(formData.anexos) !== JSON.stringify(initialData.anexos)) return true;
 
-        const initialLinks = initialData.links.length > 0 ? initialData.links : [{ label: '', url: '' }];
-        if (JSON.stringify(links) !== JSON.stringify(initialLinks)) return true;
+        if (JSON.stringify(links) !== JSON.stringify(initialData.links.length > 0 ? initialData.links : [{ label: '', url: '' }])) return true;
 
         return false;
     }, [formData, links, initialData]);
@@ -410,7 +411,7 @@ export function EditProfile({ initialData }: EditProfileProps) {
                             </div>
                         </div>
 
-                        <div className="space-y-4 pt-4">
+                        <div className="space-y-4 pt-4 border-t border-gray-100">
                             <div className="flex justify-between items-center">
                                 <label className="text-sm font-semibold text-gray-600">{t('edit_profile_links_label')}</label>
                                 <button

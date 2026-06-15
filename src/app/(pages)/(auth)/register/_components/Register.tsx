@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { VerificationModal } from "@/src/app/_components/VerificationModal";
@@ -50,6 +50,8 @@ function FacebookIcon() {
 export function RegisterCard() {
     const { t } = useTranslation();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const origin = searchParams.get("origin") || "";
 
     const [step, setStep] = useState<"register" | "verify">("register");
     const [isLoading, setIsLoading] = useState(false);
@@ -59,7 +61,7 @@ export function RegisterCard() {
     const [confirmSenha, setConfirmSenha] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [tipo, setTipo] = useState<"CANDIDATO" | "EMPRESA">("CANDIDATO");
+    const [tipo, setTipo] = useState<"CANDIDATO" | "EMPRESA" | "MENTOR">("CANDIDATO");
     const [code, setCode] = useState("");
 
 
@@ -107,17 +109,20 @@ export function RegisterCard() {
 
     function handleGoogleRegister() {
         setIsGoogleLoading(true);
-        window.location.href = `/api/auth/google?tipo=${tipo}`;
+        const url = origin ? `/api/auth/google?tipo=${tipo}&origin=${origin}` : `/api/auth/google?tipo=${tipo}`;
+        window.location.href = url;
     }
 
     function handleLinkedInRegister() {
         setIsLinkedInLoading(true);
-        window.location.href = `/api/auth/linkedin?tipo=${tipo}`;
+        const url = origin ? `/api/auth/linkedin?tipo=${tipo}&origin=${origin}` : `/api/auth/linkedin?tipo=${tipo}`;
+        window.location.href = url;
     }
 
     function handleFacebookRegister() {
         setIsFacebookLoading(true);
-        window.location.href = `/api/auth/facebook?tipo=${tipo}`;
+        const url = origin ? `/api/auth/facebook?tipo=${tipo}&origin=${origin}` : `/api/auth/facebook?tipo=${tipo}`;
+        window.location.href = url;
     }
 
     async function handleRegisterSubmit(e: React.FormEvent) {
@@ -175,7 +180,7 @@ export function RegisterCard() {
             const res = await fetch("/api/auth/verify-code", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, code }),
+                body: JSON.stringify({ email, code, origin }),
             });
 
             const data = await res.json();
@@ -215,7 +220,7 @@ export function RegisterCard() {
     }
 
     return (
-        <div className="flex justify-center items-center min-h-[calc(120vh-12rem)]">
+        <div className="flex justify-center items-center min-h-[calc(100vh-12rem)] py-16">
             <form
                 onSubmit={handleRegisterSubmit}
                 className="bg-white p-8 rounded-xl shadow-md w-full max-w-md"
@@ -231,7 +236,7 @@ export function RegisterCard() {
                             type="button"
                             onClick={() => setTipo("CANDIDATO")}
                             className={`flex-1 py-2 rounded-lg border transition-colors cursor-pointer ${tipo === "CANDIDATO"
-                                ? "bg-blue-600 text-white"
+                                ? "bg-blue-600 text-white border-blue-600"
                                 : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
                                 }`}
                         >
@@ -241,11 +246,21 @@ export function RegisterCard() {
                             type="button"
                             onClick={() => setTipo("EMPRESA")}
                             className={`flex-1 py-2 rounded-lg border transition-colors cursor-pointer ${tipo === "EMPRESA"
-                                ? "bg-blue-600 text-white"
+                                ? "bg-blue-600 text-white border-blue-600"
                                 : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
                                 }`}
                         >
                             {t("register_company")}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setTipo("MENTOR")}
+                            className={`flex-1 py-2 rounded-lg border transition-colors cursor-pointer ${tipo === "MENTOR"
+                                ? "bg-blue-600 text-white border-blue-600"
+                                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                                }`}
+                        >
+                            {t("register_mentor")}
                         </button>
                     </div>
                 </div>
@@ -398,14 +413,13 @@ export function RegisterCard() {
                 </button>
 
                 <p className="text-xs text-gray-500 text-center mt-1 mb-4">
-                    Ao continuar, você concorda com os nossos{" "}
-                    <Link href="/terms" target="_blank" className="text-blue-600 hover:underline">
-                        {t("footer_terms")}
-                    </Link>{" "}
-                    e{" "}
-                    <Link href="/privacy" target="_blank" className="text-blue-600 hover:underline">
-                        {t("footer_privacy")}
-                    </Link>.
+                    <Trans
+                        i18nKey="social_terms_consent"
+                        components={[
+                            <Link href="/terms" target="_blank" className="text-blue-600 hover:underline font-medium" key="terms" />,
+                            <Link href="/privacy" target="_blank" className="text-blue-600 hover:underline font-medium" key="privacy" />
+                        ]}
+                    />
                 </p>
                 <div className="mt-6 text-center text-sm">
                     <span className="text-gray-600">{t("already_have_account")}</span>{" "}

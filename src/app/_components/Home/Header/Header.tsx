@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FaWhatsapp } from "react-icons/fa";
 
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "../../Layout/LanguageSwitcher";
@@ -100,15 +99,6 @@ export function Header() {
               );
             })}
           </ul>
-
-          <a
-            href="https://wa.me/5551992179330"
-            target="_blank"
-            className="mt-2 flex items-center gap-2 font-medium text-black hover:text-green-600 lg:mt-0"
-          >
-            <FaWhatsapp className="text-xl text-[#25d366]" />
-            {t("whatsapp")}
-          </a>
           <div className="lg:hidden mt-4 pt-4 border-t border-gray-200">
             <LanguageSwitcher align="left" />
           </div>
