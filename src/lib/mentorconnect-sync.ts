@@ -72,6 +72,47 @@ export async function syncUserWithMentorConnect(usuarioId: string): Promise<void
     }
 }
 
+/**
+ * Cria uma reunião no MentorConnect e retorna o link.
+ * Tenta novamente uma vez em caso de falha transitória.
+ * Retorna null se MENTORCONNECT_URL não estiver configurada ou se todas as tentativas falharem.
+ */
+export async function createMentorConnectMeeting(params: { usuarioId: string; titulo: string }): Promise<string | null> {
+    const baseUrl = process.env.MENTORCONNECT_URL;
+
+    if (!baseUrl) {
+        return null;
+    }
+
+    const maxAttempts = 2;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+            const response = await fetch(`${baseUrl}/api/meetings`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    usuario_id: params.usuarioId,
+                    titulo: params.titulo,
+                }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data?.link) {
+                    return data.link as string;
+                }
+                console.error("[MentorConnect Meeting] Resposta sem 'link':", JSON.stringify(data));
+            } else {
+                console.error(`[MentorConnect Meeting] Falha ao gerar reunião (tentativa ${attempt}/${maxAttempts}). Status: ${response.status}. Body: ${await response.text()}`);
+            }
+        } catch (err) {
+            console.error(`[MentorConnect Meeting] Erro de comunicação (tentativa ${attempt}/${maxAttempts}):`, err);
+        }
+    }
+
+    return null;
+}
+
 export async function deleteUserInMentorConnect(usuarioId: string): Promise<void> {
     const mentorconnectUrl = process.env.MENTORCONNECT_URL || "http://localhost:3001";
     const syncSecret = process.env.MENTORCONNECT_SYNC_SECRET;

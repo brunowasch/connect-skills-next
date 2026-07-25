@@ -4,7 +4,6 @@ import React, { useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import {
     X,
-    Star,
     Share2,
     Download,
     Copy,
@@ -13,7 +12,6 @@ import {
     Brain,
     Globe,
     Linkedin,
-    Sparkles,
     Activity,
     ArrowLeft,
 } from "lucide-react";
@@ -25,7 +23,7 @@ interface MentorReview {
     id: string;
     cargo: string;
     empresa: { nome_empresa: string; foto_perfil: string | null };
-    mentor: { nome: string; sobrenome: string; foto_perfil: string | null } | null;
+    mentor: { nome: string | null; sobrenome: string | null; foto_perfil: string | null } | null;
     data: string;
     hora_inicio: string;
     nota_comportamental: number | null;
@@ -41,31 +39,6 @@ interface MentorReviewModalProps {
     review: MentorReview;
     candidateName: string;
     onClose: () => void;
-}
-
-function ScoreCircle({ value, label, color }: { value: number; label: string; color: string }) {
-    const radius = 30;
-    const circumference = 2 * Math.PI * radius;
-    const filled = (value / 100) * circumference;
-    const gap = circumference - filled;
-
-    return (
-        <div className="flex flex-col items-center gap-1.5">
-            <svg width="72" height="72" viewBox="0 0 72 72" className="transform -rotate-90">
-                <circle cx="36" cy="36" r={radius} fill="none" stroke="#e2e8f0" strokeWidth="6" />
-                <circle
-                    cx="36" cy="36" r={radius}
-                    fill="none"
-                    stroke={color}
-                    strokeWidth="6"
-                    strokeDasharray={`${filled} ${gap}`}
-                    strokeLinecap="round"
-                />
-            </svg>
-            <span className="text-2xl font-black text-slate-900 -mt-14">{value}</span>
-            <span className="mt-6 text-[11px] font-semibold text-slate-500 text-center leading-tight max-w-[80px]">{label}</span>
-        </div>
-    );
 }
 
 export default function MentorReviewModal({ review, candidateName, onClose }: MentorReviewModalProps) {
@@ -151,13 +124,6 @@ export default function MentorReviewModal({ review, candidateName, onClose }: Me
         window.open(url, "_blank", "noopener,noreferrer");
     }, [shareText]);
 
-    const scoreColor = (v: number | null) => {
-        if (v === null) return "#94a3b8";
-        if (v >= 80) return "#10b981";
-        if (v >= 60) return "#f59e0b";
-        return "#ef4444";
-    };
-
     return (
         <div
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm"
@@ -229,11 +195,11 @@ export default function MentorReviewModal({ review, candidateName, onClose }: Me
                                             width={40}
                                             height={40}
                                             className="w-10 h-10 rounded-full object-cover border-2 border-white shadow"
-                                            alt={review.mentor.nome}
+                                            alt={review.mentor.nome ?? ""}
                                         />
                                     ) : (
                                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
-                                            {review.mentor.nome.charAt(0)}
+                                            {(review.mentor.nome ?? "").charAt(0)}
                                         </div>
                                     )}
                                     <div>
@@ -375,6 +341,7 @@ export default function MentorReviewModal({ review, candidateName, onClose }: Me
                             >
 
                                 <div className="flex items-center gap-2 mb-5">
+                                    {/* eslint-disable-next-line @next/next/no-img-element -- capturado por html-to-image (toPng); next/image quebra a rasterização do card */}
                                     <img
                                         src="/img/logos/icon.png"
                                         width={28}
@@ -388,6 +355,7 @@ export default function MentorReviewModal({ review, candidateName, onClose }: Me
                                 <div className="bg-slate-50 rounded-xl p-5">
                                     <div className="flex items-start gap-4 mb-5">
                                         {review.empresa.foto_perfil ? (
+                                            // eslint-disable-next-line @next/next/no-img-element -- capturado por html-to-image (toPng); next/image quebra a rasterização do card
                                             <img
                                                 src={review.empresa.foto_perfil}
                                                 width={52}
