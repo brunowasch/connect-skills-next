@@ -3,10 +3,11 @@ import { MentorSpecialties } from "./_components/MentorSpecialties";
 import { cookies } from "next/headers";
 import { prisma } from "@/src/lib/prisma";
 import { redirect } from "next/navigation";
+import { parseSessionValue } from "@/src/lib/session";
 
 export default async function MentorSpecialtiesPage() {
     const cookieStore = await cookies();
-    const userId = cookieStore.get("time_user_id")?.value;
+    const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
     if (!userId) {
         redirect("/login");
@@ -29,6 +30,6 @@ export default async function MentorSpecialtiesPage() {
     const currentSpecialties = (user.mentor as any)?.mentor_area.map((ma: any) => ma.area_interesse.nome) || [];
 
     return (
-        <MentorSpecialties initialSpecialties={currentSpecialties} userId={userId} />
+        <MentorSpecialties initialSpecialties={currentSpecialties} />
     );
 }

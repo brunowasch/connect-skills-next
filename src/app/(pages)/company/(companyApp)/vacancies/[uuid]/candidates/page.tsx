@@ -2,6 +2,7 @@ import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { CandidatesPageContent } from "./_components/CandidatesPageContent";
+import { parseSessionValue } from "@/src/lib/session";
 
 interface Props {
     params: Promise<{ uuid: string }>;
@@ -11,7 +12,7 @@ export default async function VacancyCandidatesPage({ params }: Props) {
     const { uuid } = await params;
 
     const cookieStore = await cookies();
-    const userId = cookieStore.get("time_user_id")?.value;
+    const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
     if (!userId) {
         redirect("/login");

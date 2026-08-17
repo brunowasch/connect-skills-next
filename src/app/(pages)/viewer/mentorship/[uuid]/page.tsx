@@ -2,12 +2,13 @@ import { cookies } from "next/headers";
 import { redirect, notFound } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
 import MentorshipDetailsClient from "./_components/MentorshipDetailsClient";
+import { parseSessionValue } from "@/src/lib/session";
 
 export default async function MentorshipDetailsPage({ params }: { params: Promise<{ uuid: string }> }) {
     const { uuid } = await params;
 
     const cookieStore = await cookies();
-    const userId = cookieStore.get("time_user_id")?.value;
+    const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
     if (!userId) {
         redirect("/login");

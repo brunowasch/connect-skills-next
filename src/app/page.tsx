@@ -3,10 +3,11 @@ import { Footer } from "@/src/app/_components/Layout/index"
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
+import { parseSessionValue } from "@/src/lib/session";
 
 export default async function Home() {
   const cookieStore = await cookies();
-  const userId = cookieStore.get("time_user_id")?.value;
+  const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
   if (userId) {
     const user = await prisma.usuario.findUnique({

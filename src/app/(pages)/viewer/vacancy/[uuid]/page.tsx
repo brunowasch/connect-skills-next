@@ -4,6 +4,7 @@ import { prisma } from "@/src/lib/prisma";
 import { VacancyDetails } from "@/src/app/(pages)/viewer/vacancy/[uuid]/_components/VacancyDetails";
 
 import { redirect } from "next/navigation";
+import { parseSessionValue } from "@/src/lib/session";
 
 export default async function VacancyDetailsPage({ params, searchParams }: { params: Promise<{ uuid: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
     const { uuid } = await params;
@@ -86,7 +87,7 @@ export default async function VacancyDetailsPage({ params, searchParams }: { par
 
     // Obter usuário logado para verificar permissões
     const cookieStore = await cookies();
-    const userId = cookieStore.get("time_user_id")?.value;
+    const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
 
     let userType: string | undefined;
@@ -187,7 +188,7 @@ export default async function VacancyDetailsPage({ params, searchParams }: { par
             applicationCount={applicationCount}
             userType={userType}
             isOwner={isOwner}
-            userId={userId}
+            isLoggedIn={!!userId}
             hasApplied={hasApplied}
             applicationResponses={applicationResponses}
             applicationBreakdown={applicationBreakdown}

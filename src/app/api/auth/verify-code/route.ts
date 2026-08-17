@@ -1,6 +1,7 @@
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
+import { createSessionValue } from "@/src/lib/session";
 
 export async function POST(req: Request) {
     try {
@@ -62,7 +63,7 @@ export async function POST(req: Request) {
             { status: 200 }
         );
 
-        response.cookies.set("time_user_id", user.id, {
+        response.cookies.set("time_user_id", createSessionValue(user.id), {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "lax",

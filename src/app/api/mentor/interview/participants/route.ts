@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
+import { isAuthorizedSyncRequest } from "@/src/lib/sync-auth";
 
 export async function GET(req: NextRequest) {
-    const secret = req.headers.get("x-sync-secret");
-    if (!secret || secret !== process.env.MENTORCONNECT_SYNC_SECRET) {
+    if (!isAuthorizedSyncRequest(req)) {
         return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
     }
 

@@ -1,5 +1,18 @@
 import nodemailer from "nodemailer";
 
+function subj(value: unknown): string {
+  return String(value ?? "").replace(/[\r\n]+/g, " ").trim();
+}
+
+function esc(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: Number(process.env.SMTP_PORT) || 587,
@@ -9,7 +22,7 @@ const transporter = nodemailer.createTransport({
     pass: process.env.SMTP_PASS,
   },
   tls: {
-    rejectUnauthorized: false,
+    rejectUnauthorized: true,
   },
   connectionTimeout: 10000,
   greetingTimeout: 5000,
@@ -179,7 +192,7 @@ export async function sendParentalConsentEmail(
                 <h2 style="color: #4F46E5; text-align: center;">Aviso de Cadastro</h2>
                 <p style="text-align: center; color: #555;">Olá,</p>
                 <p style="text-align: center; color: #555;">
-                    Informamos que o menor <strong>${candidateName}</strong> iniciou o processo de cadastro na plataforma <strong>Connect Skills</strong>.
+                    Informamos que o menor <strong>${esc(candidateName)}</strong> iniciou o processo de cadastro na plataforma <strong>Connect Skills</strong>.
                 </p>
                 <p style="text-align: center; color: #555;">
                     Durante o cadastro, foi indicado que você é o responsável legal e que houve consentimento para o uso da plataforma.
@@ -210,13 +223,13 @@ export async function sendVideoRequestEmail(
   const mailOptions = {
     from: process.env.EMAIL_FROM,
     to: email,
-    subject: `Solicitação de Vídeo - Vaga: ${vacancyTitle} - Connect Skills`,
+    subject: `Solicitação de Vídeo - Vaga: ${subj(vacancyTitle)} - Connect Skills`,
     html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
                 <h2 style="color: #4F46E5; text-align: center;">Nova Etapa: Vídeo de Apresentação</h2>
-                <p style="text-align: center; color: #555;">Olá <strong>${candidateName}</strong>,</p>
+                <p style="text-align: center; color: #555;">Olá <strong>${esc(candidateName)}</strong>,</p>
                 <p style="text-align: center; color: #555;">
-                    Parabéns! A empresa gostou do seu perfil para a vaga de <strong>${vacancyTitle}</strong> e gostaria de conhecer você melhor.
+                    Parabéns! A empresa gostou do seu perfil para a vaga de <strong>${esc(vacancyTitle)}</strong> e gostaria de conhecer você melhor.
                 </p>
                 <p style="text-align: center; color: #555;">
                     Solicitamos que você grave ou envie um vídeo de apresentação de até 3 minutos.
@@ -261,13 +274,13 @@ export async function sendFeedbackEmail(
   const mailOptions = {
     from: process.env.EMAIL_FROM,
     to: email,
-    subject: `Feedback da Vaga: ${vacancyTitle} - Connect Skills`,
+    subject: `Feedback da Vaga: ${subj(vacancyTitle)} - Connect Skills`,
     html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
                 <h2 style="color: #4F46E5; text-align: center;">Feedback do Processo Seletivo</h2>
-                <p style="text-align: center; color: #555;">Olá <strong>${candidateName}</strong>,</p>
+                <p style="text-align: center; color: #555;">Olá <strong>${esc(candidateName)}</strong>,</p>
                 <p style="text-align: center; color: #555;">
-                    A empresa enviou um feedback sobre sua candidatura para a vaga de <strong>${vacancyTitle}</strong>.
+                    A empresa enviou um feedback sobre sua candidatura para a vaga de <strong>${esc(vacancyTitle)}</strong>.
                 </p>
                 
                 <div style="text-align: center; margin: 30px 0;">
@@ -280,7 +293,7 @@ export async function sendFeedbackEmail(
         ? `
                     <div style="background-color: #f9fafb; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 20px;">
                         <p style="font-weight: bold; color: #374151; margin-bottom: 5px;">Mensagem da Empresa:</p>
-                        <p style="color: #4b5563; font-style: italic;">"${justification.replace(/\n/g, "<br />")}"</p>
+                        <p style="color: #4b5563; font-style: italic;">"${esc(justification).replace(/\n/g, "<br />")}"</p>
                     </div>
                 `
         : ""
@@ -312,13 +325,13 @@ export async function sendVideoReceivedEmail(
   const mailOptions = {
     from: process.env.EMAIL_FROM,
     to: email,
-    subject: `Vídeo Recebido: ${candidateName} - Vaga: ${vacancyTitle}`,
+    subject: `Vídeo Recebido: ${subj(candidateName)} - Vaga: ${subj(vacancyTitle)}`,
     html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
                 <h2 style="color: #4F46E5; text-align: center;">Novo Vídeo Recebido</h2>
-                <p style="text-align: center; color: #555;">Olá <strong>${companyName}</strong>,</p>
+                <p style="text-align: center; color: #555;">Olá <strong>${esc(companyName)}</strong>,</p>
                 <p style="text-align: center; color: #555;">
-                    O candidato <strong>${candidateName}</strong> enviou o vídeo de apresentação solicitado para a vaga de <strong>${vacancyTitle}</strong>.
+                    O candidato <strong>${esc(candidateName)}</strong> enviou o vídeo de apresentação solicitado para a vaga de <strong>${esc(vacancyTitle)}</strong>.
                 </p>
                 
                 <div style="text-align: center; margin: 30px 0;">
@@ -356,13 +369,13 @@ export async function sendNewApplicationEmail(
   const mailOptions = {
     from: process.env.EMAIL_FROM,
     to: email,
-    subject: `Nova Candidatura: ${candidateName} - Vaga: ${vacancyTitle}`,
+    subject: `Nova Candidatura: ${subj(candidateName)} - Vaga: ${subj(vacancyTitle)}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
         <h2 style="color: #4F46E5; text-align: center;">Nova Candidatura Recebida</h2>
-        <p style="text-align: center; color: #555;">Olá <strong>${companyName}</strong>,</p>
+        <p style="text-align: center; color: #555;">Olá <strong>${esc(companyName)}</strong>,</p>
         <p style="text-align: center; color: #555;">
-          O candidato <strong>${candidateName}</strong> acabou de aplicar para a vaga de <strong>${vacancyTitle}</strong> e completou o questionário.
+          O candidato <strong>${esc(candidateName)}</strong> acabou de aplicar para a vaga de <strong>${esc(vacancyTitle)}</strong> e completou o questionário.
         </p>
         
         <div style="text-align: center; margin: 30px 0;">
@@ -398,13 +411,13 @@ export async function sendVideoExpiredCandidateEmail(
   const mailOptions = {
     from: process.env.EMAIL_FROM,
     to: email,
-    subject: `Prazo Encerrado: Vídeo - Vaga: ${vacancyTitle}`,
+    subject: `Prazo Encerrado: Vídeo - Vaga: ${subj(vacancyTitle)}`,
     html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
                 <h2 style="color: #EF4444; text-align: center;">Prazo do Vídeo Encerrado</h2>
-                <p style="text-align: center; color: #555;">Olá <strong>${candidateName}</strong>,</p>
+                <p style="text-align: center; color: #555;">Olá <strong>${esc(candidateName)}</strong>,</p>
                 <p style="text-align: center; color: #555;">
-                    O prazo estipulado para envio do vídeo de apresentação para a vaga de <strong>${vacancyTitle}</strong> chegou ao fim.
+                    O prazo estipulado para envio do vídeo de apresentação para a vaga de <strong>${esc(vacancyTitle)}</strong> chegou ao fim.
                 </p>
                 <p style="text-align: center; color: #555;">
                     Para manter a organização e agilidade do processo seletivo, o seu link de gravação/envio não está mais disponível.
@@ -435,13 +448,13 @@ export async function sendVideoExpiredCompanyEmail(
   const mailOptions = {
     from: process.env.EMAIL_FROM,
     to: email,
-    subject: `Prazo Encerrado: Vídeo de ${candidateName} - Vaga: ${vacancyTitle}`,
+    subject: `Prazo Encerrado: Vídeo de ${subj(candidateName)} - Vaga: ${subj(vacancyTitle)}`,
     html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
                 <h2 style="color: #F59E0B; text-align: center;">Aviso: Prazo de Vídeo Encerrado</h2>
-                <p style="text-align: center; color: #555;">Olá <strong>${companyName}</strong>,</p>
+                <p style="text-align: center; color: #555;">Olá <strong>${esc(companyName)}</strong>,</p>
                 <p style="text-align: center; color: #555;">
-                    O candidato <strong>${candidateName}</strong> não enviou o vídeo de apresentação dentro do prazo estipulado para a vaga de <strong>${vacancyTitle}</strong>.
+                    O candidato <strong>${esc(candidateName)}</strong> não enviou o vídeo de apresentação dentro do prazo estipulado para a vaga de <strong>${esc(vacancyTitle)}</strong>.
                 </p>
                 
                 <div style="text-align: center; margin: 30px 0;">
@@ -478,13 +491,13 @@ export async function sendInterviewScheduledEmail(
   const mailOptions = {
     from: process.env.EMAIL_FROM,
     to: candidateEmail,
-    subject: `Entrevista Agendada com Mentor - Vaga: ${vacancyTitle}`,
+    subject: `Entrevista Agendada com Mentor - Vaga: ${subj(vacancyTitle)}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
         <h2 style="color: #4F46E5; text-align: center;">Entrevista com Mentor Agendada!</h2>
-        <p style="text-align: center; color: #555;">Olá <strong>${candidateName}</strong>,</p>
+        <p style="text-align: center; color: #555;">Olá <strong>${esc(candidateName)}</strong>,</p>
         <p style="text-align: center; color: #555;">
-          A empresa agendou uma entrevista com um de nossos mentores para a vaga de <strong>${vacancyTitle}</strong>.
+          A empresa agendou uma entrevista com um de nossos mentores para a vaga de <strong>${esc(vacancyTitle)}</strong>.
         </p>
         <div style="background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
           <p style="margin: 0; font-size: 18px; font-weight: bold; color: #1f2937;">${date}</p>
@@ -526,13 +539,13 @@ export async function sendOnsiteInterviewScheduledEmail(
   const mailOptions = {
     from: process.env.EMAIL_FROM,
     to: candidateEmail,
-    subject: `Convite para Entrevista Presencial - Vaga: ${vacancyTitle}`,
+    subject: `Convite para Entrevista Presencial - Vaga: ${subj(vacancyTitle)}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
         <h2 style="color: #4f46e5; text-align: center;">Entrevista Presencial Agendada!</h2>
-        <p style="text-align: center; color: #555;">Olá <strong>${candidateName}</strong>,</p>
+        <p style="text-align: center; color: #555;">Olá <strong>${esc(candidateName)}</strong>,</p>
         <p style="text-align: center; color: #555;">
-          A empresa <strong>${companyName}</strong> convocou você para uma entrevista presencial para a vaga de <strong>${vacancyTitle}</strong>.
+          A empresa <strong>${esc(companyName)}</strong> convocou você para uma entrevista presencial para a vaga de <strong>${esc(vacancyTitle)}</strong>.
         </p>
         <div style="background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
           <p style="margin: 0; font-size: 18px; font-weight: bold; color: #1f2937;">${date}</p>
@@ -575,18 +588,18 @@ export async function sendInterviewConfirmedToMentorEmail(
   const mailOptions = {
     from: process.env.EMAIL_FROM,
     to: mentorEmail,
-    subject: `Entrevista Confirmada - ${candidateName} | ${vacancyTitle}`,
+    subject: `Entrevista Confirmada - ${subj(candidateName)} | ${subj(vacancyTitle)}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
         <h2 style="color: #4F46E5; text-align: center;">Entrevista Confirmada!</h2>
-        <p style="text-align: center; color: #555;">Olá <strong>${mentorName}</strong>,</p>
+        <p style="text-align: center; color: #555;">Olá <strong>${esc(mentorName)}</strong>,</p>
         <p style="text-align: center; color: #555;">
-          Um candidato confirmou presença na entrevista para a vaga de <strong>${vacancyTitle}</strong>.
+          Um candidato confirmou presença na entrevista para a vaga de <strong>${esc(vacancyTitle)}</strong>.
         </p>
         <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
           <p style="margin: 0; font-size: 18px; font-weight: bold; color: #1f2937;">${date}</p>
           <p style="margin: 8px 0 0; font-size: 16px; color: #4b5563;">${startTime} – ${endTime}</p>
-          <p style="margin: 8px 0 0; font-size: 14px; color: #6b7280;">Candidato: ${candidateName}</p>
+          <p style="margin: 8px 0 0; font-size: 14px; color: #6b7280;">Candidato: ${esc(candidateName)}</p>
         </div>
         <p style="text-align: center; font-size: 14px; color: #666; margin-top: 30px;">
           Acesse a plataforma Connect Skills para mais detalhes.
@@ -618,19 +631,19 @@ export async function sendInterviewConfirmedToCompanyEmail(
   const mailOptions = {
     from: process.env.EMAIL_FROM,
     to: companyEmail,
-    subject: `Mentoria Confirmada: ${candidateName} – Vaga: ${vacancyTitle}`,
+    subject: `Mentoria Confirmada: ${subj(candidateName)} – Vaga: ${subj(vacancyTitle)}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
         <h2 style="color: #10B981; text-align: center;">Mentoria Confirmada!</h2>
-        <p style="text-align: center; color: #555;">Olá <strong>${companyName}</strong>,</p>
+        <p style="text-align: center; color: #555;">Olá <strong>${esc(companyName)}</strong>,</p>
         <p style="text-align: center; color: #555;">
-          A mentoria do candidato <strong>${candidateName}</strong> com o mentor <strong>${mentorName}</strong>
-          para a vaga de <strong>${vacancyTitle}</strong> foi confirmada.
+          A mentoria do candidato <strong>${esc(candidateName)}</strong> com o mentor <strong>${esc(mentorName)}</strong>
+          para a vaga de <strong>${esc(vacancyTitle)}</strong> foi confirmada.
         </p>
         <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
           <p style="margin: 0; font-size: 18px; font-weight: bold; color: #1f2937;">${date}</p>
           <p style="margin: 8px 0 0; font-size: 16px; color: #4b5563;">${startTime} – ${endTime}</p>
-          <p style="margin: 8px 0 0; font-size: 14px; color: #6b7280;">Mentor: ${mentorName}</p>
+          <p style="margin: 8px 0 0; font-size: 14px; color: #6b7280;">Mentor: ${esc(mentorName)}</p>
         </div>
         <div style="text-align: center; margin: 30px 0;">
           <a href="${vacancyLink}" style="background-color: #4F46E5; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
@@ -663,13 +676,13 @@ export async function sendInterviewExpiredToCompanyEmail(
   const mailOptions = {
     from: process.env.EMAIL_FROM,
     to: companyEmail,
-    subject: `Convite de Mentoria Expirado: ${candidateName} – Vaga: ${vacancyTitle}`,
+    subject: `Convite de Mentoria Expirado: ${subj(candidateName)} – Vaga: ${subj(vacancyTitle)}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
         <h2 style="color: #F59E0B; text-align: center;">Convite de Mentoria Expirado</h2>
-        <p style="text-align: center; color: #555;">Olá <strong>${companyName}</strong>,</p>
+        <p style="text-align: center; color: #555;">Olá <strong>${esc(companyName)}</strong>,</p>
         <p style="text-align: center; color: #555;">
-          O candidato <strong>${candidateName}</strong> não respondeu ao convite de mentoria para a vaga de <strong>${vacancyTitle}</strong> dentro do prazo de 3 dias.
+          O candidato <strong>${esc(candidateName)}</strong> não respondeu ao convite de mentoria para a vaga de <strong>${esc(vacancyTitle)}</strong> dentro do prazo de 3 dias.
         </p>
         <p style="text-align: center; color: #555;">
           O convite foi automaticamente marcado como <strong style="color: #EF4444;">Expirado</strong>.
@@ -706,13 +719,13 @@ export async function sendMentorFeedbackToCompanyEmail(
   const mailOptions = {
     from: process.env.EMAIL_FROM,
     to: companyEmail,
-    subject: `Relatório de Mentoria Disponível: ${candidateName} – Vaga: ${vacancyTitle}`,
+    subject: `Relatório de Mentoria Disponível: ${subj(candidateName)} – Vaga: ${subj(vacancyTitle)}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
         <h2 style="color: #4F46E5; text-align: center;">Relatório da Entrevista Disponível</h2>
-        <p style="text-align: center; color: #555;">Olá <strong>${companyName}</strong>,</p>
+        <p style="text-align: center; color: #555;">Olá <strong>${esc(companyName)}</strong>,</p>
         <p style="text-align: center; color: #555;">
-          O mentor <strong>${mentorName}</strong> acabou de enviar o relatório da entrevista com o candidato <strong>${candidateName}</strong> para a vaga de <strong>${vacancyTitle}</strong>.
+          O mentor <strong>${esc(mentorName)}</strong> acabou de enviar o relatório da entrevista com o candidato <strong>${esc(candidateName)}</strong> para a vaga de <strong>${esc(vacancyTitle)}</strong>.
         </p>
         
         <div style="text-align: center; margin: 30px 0;">
@@ -751,18 +764,18 @@ export async function sendContactEmail(
   const mailOptions = {
     from: process.env.EMAIL_FROM,
     to: adminEmail,
-    subject: `[Contato - ${userType}] ${subject}`,
+    subject: `[Contato - ${subj(userType)}] ${subj(subject)}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
         <h2 style="color: #4F46E5; text-align: center;">Nova Mensagem de Contato</h2>
         
-        <p><strong>Nome:</strong> ${fullName}</p>
-        <p><strong>Tipo de Usuário:</strong> ${userType}</p>
-        <p><strong>Assunto:</strong> ${subject}</p>
+        <p><strong>Nome:</strong> ${esc(fullName)}</p>
+        <p><strong>Tipo de Usuário:</strong> ${esc(userType)}</p>
+        <p><strong>Assunto:</strong> ${esc(subject)}</p>
         
         <div style="background-color: #f9fafb; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; margin-top: 20px;">
             <p style="font-weight: bold; color: #374151; margin-bottom: 5px;">Mensagem:</p>
-            <p style="color: #4b5563; font-style: italic; white-space: pre-wrap;">${message}</p>
+            <p style="color: #4b5563; font-style: italic; white-space: pre-wrap;">${esc(message)}</p>
         </div>
       </div>
     `,

@@ -6,6 +6,7 @@ import { generateVerificationCode } from "@/src/lib/code-generator";
 import { sendLoginCodeEmail } from "@/src/lib/mail";
 import { randomUUID } from "crypto";
 import { getRedirectTo } from "@/src/lib/auth-utils";
+import { createSessionValue } from "@/src/lib/session";
 
 export async function GET() {
     return NextResponse.json({
@@ -140,7 +141,7 @@ export async function POST(req: Request) {
                 });
             }
 
-            response.cookies.set("time_user_id", cookieValue, cookieOptions);
+            response.cookies.set("time_user_id", createSessionValue(cookieValue), cookieOptions);
 
             return response;
         } else {
@@ -193,12 +194,8 @@ export async function POST(req: Request) {
 
     } catch (err) {
         console.error("Erro no POST /api/auth/login:", err);
-        const errorMessage = err instanceof Error ? err.message : String(err);
         return NextResponse.json(
-            {
-                error: "Erro interno do servidor.",
-                details: errorMessage
-            },
+            { error: "Erro interno do servidor." },
             { status: 500 }
         );
     }

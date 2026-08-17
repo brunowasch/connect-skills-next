@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/src/lib/prisma";
+import { parseSessionValue } from "@/src/lib/session";
 
 export async function POST(request: NextRequest) {
     try {
         const cookieStore = await cookies();
-        const userId = cookieStore.get("time_user_id")?.value;
+        const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
         if (!userId) {
             return NextResponse.json(
@@ -25,9 +26,14 @@ export async function POST(request: NextRequest) {
 
         if (notificationId.startsWith('notificacao_')) {
             const id = notificationId.replace('notificacao_', '');
-            await (prisma as any).notificacao.delete({
-                where: { id }
+            const result = await (prisma as any).notificacao.deleteMany({
+                where: { id, usuario_id: userId }
             });
+
+            if (result.count === 0) {
+                return NextResponse.json({ error: "Notification not found" }, { status: 404 });
+            }
+
             return NextResponse.json({ success: true });
         }
 

@@ -79,8 +79,14 @@ export async function syncUserWithMentorConnect(usuarioId: string): Promise<void
  */
 export async function createMentorConnectMeeting(params: { usuarioId: string; titulo: string }): Promise<string | null> {
     const baseUrl = process.env.MENTORCONNECT_URL;
+    const syncSecret = process.env.MENTORCONNECT_SYNC_SECRET;
 
     if (!baseUrl) {
+        return null;
+    }
+
+    if (!syncSecret) {
+        console.error("[MentorConnect Meeting] MENTORCONNECT_SYNC_SECRET não configurado.");
         return null;
     }
 
@@ -89,7 +95,10 @@ export async function createMentorConnectMeeting(params: { usuarioId: string; ti
         try {
             const response = await fetch(`${baseUrl}/api/meetings`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-sync-secret": syncSecret,
+                },
                 body: JSON.stringify({
                     usuario_id: params.usuarioId,
                     titulo: params.titulo,

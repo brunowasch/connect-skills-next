@@ -2,10 +2,11 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
 import { Hero, KPI, RecommendedVacancies, ApplicationHistory, ProfileCompletion, DashboardHeader, VideoRequests, DraftApplications, InterviewRequests } from "@/src/app/(pages)/candidate/(candidateApp)/dashboard/_components/index";
+import { parseSessionValue } from "@/src/lib/session";
 
 export default async function Dashboard() {
     const cookieStore = await cookies();
-    const userId = cookieStore.get("time_user_id")?.value;
+    const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
     if (!userId) {
         redirect("/login");

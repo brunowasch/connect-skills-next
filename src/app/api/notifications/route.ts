@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
+import { getSessionUserId } from "@/src/lib/session";
 
 export async function GET(req: Request) {
     try {
-        const { searchParams } = new URL(req.url);
-        const userId = searchParams.get("userId");
+        const userId = await getSessionUserId();
 
         if (!userId) {
-            return NextResponse.json({ error: "userId é obrigatório." }, { status: 400 });
+            return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
         }
 
         const notifications = await (prisma as any).notificacao.findMany({
@@ -25,12 +25,18 @@ export async function GET(req: Request) {
 
 export async function PATCH(req: Request) {
     try {
+        const userId = await getSessionUserId();
+
+        if (!userId) {
+            return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+        }
+
         const body = await req.json();
 
-        if (body.markAllRead && body.userId) {
+        if (body.markAllRead) {
             await (prisma as any).notificacao.updateMany({
                 where: {
-                    usuario_id: body.userId,
+                    usuario_id: userId,
                     lida: false
                 },
                 data: { lida: true }
@@ -39,10 +45,18 @@ export async function PATCH(req: Request) {
         }
 
         if (body.notificationId) {
-            await (prisma as any).notificacao.update({
-                where: { id: body.notificationId },
+            const result = await (prisma as any).notificacao.updateMany({
+                where: {
+                    id: body.notificationId,
+                    usuario_id: userId
+                },
                 data: { lida: true }
             });
+
+            if (result.count === 0) {
+                return NextResponse.json({ error: "Notificação não encontrada." }, { status: 404 });
+            }
+
             return NextResponse.json({ success: true });
         }
 

@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { verifyOAuthState, OAUTH_STATE_COOKIE } from "@/src/lib/oauth-state";
 import { prisma } from "@/src/lib/prisma";
 import { randomUUID } from "crypto";
-import { getRedirectTo } from "@/src/lib/auth-utils";
+import { getRedirectTo, shouldHandoffToMentorConnect } from "@/src/lib/auth-utils";
 import { syncUserWithMentorConnect } from "@/src/lib/mentorconnect-sync";
+import { createSessionValue } from "@/src/lib/session";
+import { createHandoffToken } from "@/src/lib/mentorconnect-handoff";
 
 interface FacebookTokenResponse {
     access_token: string;
@@ -43,16 +47,20 @@ export async function GET(req: Request) {
 
     let tipo: "CANDIDATO" | "EMPRESA" | "MENTOR" = "CANDIDATO";
     let origin = "";
-    if (stateParam) {
-        try {
-            const stateObj = JSON.parse(decodeURIComponent(stateParam));
-            if (stateObj.tipo === "EMPRESA" || stateObj.tipo === "CANDIDATO" || stateObj.tipo === "MENTOR") {
-                tipo = stateObj.tipo;
-            }
-            if (stateObj.origin) {
-                origin = stateObj.origin;
-            }
-        } catch {}
+
+    const oauthCookies = await cookies();
+    const statePayload = verifyOAuthState(stateParam, oauthCookies.get(OAUTH_STATE_COOKIE)?.value);
+
+    if (!statePayload) {
+        console.error("[Facebook OAuth] state inválido ou ausente.");
+        return NextResponse.redirect(`${appUrl}/login?error=facebook_invalid_state`);
+    }
+
+    if (statePayload.tipo === "EMPRESA" || statePayload.tipo === "CANDIDATO" || statePayload.tipo === "MENTOR") {
+        tipo = statePayload.tipo;
+    }
+    if (statePayload.origin) {
+        origin = statePayload.origin;
     }
 
     try {
@@ -103,6 +111,11 @@ export async function GET(req: Request) {
             },
         });
 
+        if (user && user.facebookId !== facebookUser.id) {
+            console.warn("[Facebook OAuth] Conta com este e-mail já existe e não está vinculada ao Facebook.");
+            return NextResponse.redirect(`${appUrl}/login?error=facebook_account_exists`);
+        }
+
         const pictureUrl = facebookUser.picture?.data?.url;
 
         if (user) {
@@ -133,8 +146,8 @@ export async function GET(req: Request) {
             let nextUrl = `${appUrl}${redirectToStr}`;
             
             if (origin === "mentorconnect") {
-                if (redirectToStr === "/candidate/dashboard" || redirectToStr === "/company/dashboard") {
-                     nextUrl = `${mentorConnectUrl}/api/auth/social-callback?userId=${user.id}`;
+                if (shouldHandoffToMentorConnect(redirectToStr)) {
+                     nextUrl = `${mentorConnectUrl}/api/auth/social-callback?token=${encodeURIComponent(createHandoffToken(user.id))}`;
                 }
             }
             
@@ -149,7 +162,7 @@ export async function GET(req: Request) {
                     maxAge: 60 * 30,
                 });
             }
-            response.cookies.set("time_user_id", user.id, {
+            response.cookies.set("time_user_id", createSessionValue(user.id), {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
                 sameSite: "lax",
@@ -249,7 +262,7 @@ export async function GET(req: Request) {
                 maxAge: 60 * 30,
             });
         }
-        response.cookies.set("time_user_id", newUser.id, {
+        response.cookies.set("time_user_id", createSessionValue(newUser.id), {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "lax",

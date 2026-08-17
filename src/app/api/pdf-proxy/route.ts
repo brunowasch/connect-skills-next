@@ -1,29 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const ALLOWED_HOSTS = new Set(['res.cloudinary.com']);
+
 export async function GET(request: NextRequest) {
     try {
-        let url = request.nextUrl.searchParams.get('url');
+        const rawUrl = request.nextUrl.searchParams.get('url');
 
-        if (!url) {
+        if (!rawUrl) {
             return NextResponse.json({ error: 'URL não fornecida' }, { status: 400 });
         }
 
         // Valida que é uma URL do Cloudinary
-        if (!url.includes('cloudinary.com')) {
+        let urlObj: URL;
+        try {
+            urlObj = new URL(rawUrl);
+        } catch {
+            return NextResponse.json({ error: 'URL inválida' }, { status: 400 });
+        }
+
+        if (urlObj.protocol !== 'https:' || !ALLOWED_HOSTS.has(urlObj.hostname)) {
             return NextResponse.json({ error: 'URL inválida' }, { status: 400 });
         }
 
         // Remove parâmetros de autenticação problemáticos que causam 401
-        try {
-            const urlObj = new URL(url);
-            // Remove parâmetros que podem causar erro de autenticação
-            urlObj.searchParams.delete('_a');
-            urlObj.searchParams.delete('signature');
-            urlObj.searchParams.delete('api_key');
-            url = urlObj.toString();
-        } catch (e) {
-            console.warn('[PDF Proxy] Erro ao limpar URL, usando original:', e);
-        }
+        urlObj.searchParams.delete('_a');
+        urlObj.searchParams.delete('signature');
+        urlObj.searchParams.delete('api_key');
+        const url = urlObj.toString();
 
         // console.log('[PDF Proxy] URL original recebida');
         // console.log('[PDF Proxy] URL limpa para fetch:', url);

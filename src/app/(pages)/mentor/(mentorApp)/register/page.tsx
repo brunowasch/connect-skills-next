@@ -3,10 +3,11 @@ import { RegisterMentorInfo } from "./_components/RegisterMentor";
 import { cookies } from "next/headers";
 import { prisma } from "@/src/lib/prisma";
 import { redirect } from "next/navigation";
+import { parseSessionValue } from "@/src/lib/session";
 
 export default async function MentorRegisterPage() {
     const cookieStore = await cookies();
-    const userId = cookieStore.get("time_user_id")?.value;
+    const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
     if (!userId) {
         redirect("/login");
@@ -36,6 +37,6 @@ export default async function MentorRegisterPage() {
     const initialSurname = user.mentor?.sobrenome || user.sobrenome || "";
 
     return (
-        <RegisterMentorInfo initialName={initialName} initialSurname={initialSurname} userId={userId} />
+        <RegisterMentorInfo initialName={initialName} initialSurname={initialSurname} />
     );
 }

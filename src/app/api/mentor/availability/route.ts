@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
+import { getSessionUserId } from "@/src/lib/session";
 
 function getSlotRange(dateStr: string, startStr: string, endStr: string): { start: Date, end: Date } {
     const [year, month, day] = dateStr.split("-").map(Number);
@@ -17,10 +18,15 @@ function getSlotRange(dateStr: string, startStr: string, endStr: string): { star
 
 export async function POST(req: Request) {
     try {
-        const body = await req.json();
-        const { slots, usuario_id } = body;
+        const usuario_id = await getSessionUserId();
+        if (!usuario_id) {
+            return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+        }
 
-        if (!slots || !Array.isArray(slots) || !usuario_id) {
+        const body = await req.json();
+        const { slots } = body;
+
+        if (!slots || !Array.isArray(slots)) {
             return NextResponse.json({ error: "Dados inválidos." }, { status: 400 });
         }
 

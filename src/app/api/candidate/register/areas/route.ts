@@ -2,21 +2,21 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 
 import { cookies } from "next/headers";
+import { parseSessionValue } from "@/src/lib/session";
 
 interface RegisterArea {
     id: number;
     nome: string;
-    usuario_id?: string;
 }
 
 export async function POST(req: Request) {
     try {
         const body: RegisterArea = await req.json();
-        const { nome, usuario_id } = body;
+        const { nome } = body;
 
         const cookieStore = await cookies();
-        const userIdFromCookie = cookieStore.get("time_user_id")?.value;
-        const finalUserId = userIdFromCookie || usuario_id;
+        const userIdFromCookie = parseSessionValue(cookieStore.get("time_user_id")?.value);
+        const finalUserId = userIdFromCookie;
 
         // 1. Validação
         if (!nome || !finalUserId) {

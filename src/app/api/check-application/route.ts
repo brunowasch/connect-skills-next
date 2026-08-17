@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/src/lib/prisma";
+import { parseSessionValue } from "@/src/lib/session";
 
 export async function GET(req: NextRequest) {
     console.log("Check-application API route hit at", new Date().toISOString());
@@ -8,7 +9,7 @@ export async function GET(req: NextRequest) {
     const uuid = searchParams.get("uuid") || "";
     try {
         const cookieStore = await cookies();
-        const userId = cookieStore.get("time_user_id")?.value;
+        const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
         if (!userId) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -47,10 +48,6 @@ export async function GET(req: NextRequest) {
 
     } catch (error) {
         console.error("Error checking application (uuid:", uuid, "):", error);
-        return NextResponse.json({
-            error: "Internal server error",
-            details: error instanceof Error ? error.message : String(error),
-            stack: error instanceof Error ? error.stack : undefined
-        }, { status: 500 });
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
 }

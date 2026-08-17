@@ -1,21 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
+import { parseSessionValue } from "@/src/lib/session";
 
 interface RegisterCompany {
     nome: string;
     descricao: string;
-    usuario_id?: string;
 }
 
 export async function POST(request: NextRequest) {
     try {
         const body: RegisterCompany = await request.json();
-        const { nome, descricao, usuario_id } = body;
+        const { nome, descricao } = body;
 
         const cookieStore = await cookies();
-        const userIdFromCookie = cookieStore.get("time_user_id")?.value;
-        const finalUserId = userIdFromCookie || usuario_id;
+        const userIdFromCookie = parseSessionValue(cookieStore.get("time_user_id")?.value);
+        const finalUserId = userIdFromCookie;
 
         if (!nome || !finalUserId) {
             return NextResponse.json(

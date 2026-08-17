@@ -3,10 +3,11 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
 import { CompanyProfilePageContent } from "./_components/CompanyProfilePageContent";
 import { randomUUID } from "node:crypto";
+import { parseSessionValue } from "@/src/lib/session";
 
 export default async function CompanyProfilePage() {
     const cookieStore = await cookies();
-    const userId = cookieStore.get("time_user_id")?.value;
+    const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
     if (!userId) {
         redirect("/login");

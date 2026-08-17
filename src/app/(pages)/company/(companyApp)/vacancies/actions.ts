@@ -4,6 +4,30 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
 import { sendVideoRequestEmail, sendFeedbackEmail } from "@/src/lib/mail";
+import { getSessionUserId } from "@/src/lib/session";
+
+async function requireOwnedVacancy(vacancyUuid: string) {
+    const userId = await getSessionUserId();
+    if (!userId) throw new Error("Não autorizado");
+
+    const empresa = await prisma.empresa.findUnique({
+        where: { usuario_id: userId },
+        select: { id: true },
+    });
+    if (!empresa) throw new Error("Não autorizado");
+
+    const vacancy = await prisma.vaga.findFirst({
+        where: {
+            OR: [{ uuid: vacancyUuid }, { id: vacancyUuid }],
+        },
+    });
+
+    if (!vacancy || vacancy.empresa_id !== empresa.id) {
+        throw new Error("Vaga não encontrada");
+    }
+
+    return { vacancy, empresa };
+}
 
 export async function selectVacancyForRanking(vacancyUuid: string) {
     const cookieStore = await cookies();
@@ -31,19 +55,7 @@ export async function selectVacancyForEditing(vacancyUuid: string) {
 
 export async function requestVideo(candidateId: string, vacancyUuid: string) {
     try {
-        // Fetch vacancy ID from UUID
-        const vacancy = await prisma.vaga.findFirst({
-            where: {
-                OR: [
-                    { uuid: vacancyUuid },
-                    { id: vacancyUuid }
-                ]
-            }
-        });
-
-        if (!vacancy) {
-            throw new Error("Vaga não encontrada");
-        }
+        const { vacancy } = await requireOwnedVacancy(vacancyUuid);
 
         const vacancyId = vacancy.id;
 
@@ -145,17 +157,11 @@ export async function requestVideo(candidateId: string, vacancyUuid: string) {
 
 export async function submitFeedback(candidateId: string, vacancyUuid: string, status: 'APPROVED' | 'REJECTED', justification: string) {
     try {
-        // Fetch vacancy ID from UUID
-        const vacancy = await prisma.vaga.findFirst({
-            where: {
-                OR: [
-                    { uuid: vacancyUuid },
-                    { id: vacancyUuid }
-                ]
-            }
-        });
+        const { vacancy } = await requireOwnedVacancy(vacancyUuid);
 
-        if (!vacancy) throw new Error("Vaga não encontrada");
+        if (status !== 'APPROVED' && status !== 'REJECTED') {
+            throw new Error("Status inválido");
+        }
 
         const vacancyId = vacancy.id;
 
@@ -247,16 +253,7 @@ export async function submitFeedback(candidateId: string, vacancyUuid: string, s
 
 export async function markVideoAsViewed(candidateId: string, vacancyUuid: string) {
     try {
-        const vacancy = await prisma.vaga.findFirst({
-            where: {
-                OR: [
-                    { uuid: vacancyUuid },
-                    { id: vacancyUuid }
-                ]
-            }
-        });
-
-        if (!vacancy) throw new Error("Vaga não encontrada");
+        const { vacancy } = await requireOwnedVacancy(vacancyUuid);
 
         const application = await prisma.vaga_avaliacao.findUnique({
             where: {

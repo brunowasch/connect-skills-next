@@ -3,11 +3,13 @@ import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
 import { randomUUID } from "crypto";
 import { sendOnsiteInterviewScheduledEmail } from "@/src/lib/mail";
+import { generateVerificationCode } from "@/src/lib/code-generator";
+import { parseSessionValue } from "@/src/lib/session";
 
 export async function POST(req: Request) {
     try {
         const cookieStore = await cookies();
-        const userId = cookieStore.get("time_user_id")?.value;
+        const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
         if (!userId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
         const empresa = await prisma.empresa.findUnique({
@@ -88,6 +90,9 @@ export async function POST(req: Request) {
 
 export async function PATCH(req: Request) {
     try {
+        const userId = parseSessionValue((await cookies()).get("time_user_id")?.value);
+        if (!userId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+
         const { entrevistaId, action } = await req.json();
         if (!entrevistaId || !action) return NextResponse.json({ error: "Dados inválidos." }, { status: 400 });
 
@@ -98,6 +103,15 @@ export async function PATCH(req: Request) {
 
         if (!entrevista) return NextResponse.json({ error: "Entrevista não encontrada." }, { status: 404 });
 
+        const candidatoDaEntrevista = await prisma.candidato.findUnique({
+            where: { id: entrevista.candidato_id },
+            select: { usuario_id: true }
+        });
+
+        if (!candidatoDaEntrevista || candidatoDaEntrevista.usuario_id !== userId) {
+            return NextResponse.json({ error: "Acesso negado." }, { status: 403 });
+        }
+
         if (action === "CONFIRM") {
             if (entrevista.status === "CONFIRMADA") {
                 return NextResponse.json({ error: "Você já confirmou esta entrevista." }, { status: 400 });
@@ -106,7 +120,7 @@ export async function PATCH(req: Request) {
                 return NextResponse.json({ error: "Esta entrevista foi recusada e não pode ser confirmada." }, { status: 400 });
             }
 
-            const codigo = Math.random().toString(36).substring(2, 8).toUpperCase();
+            const codigo = generateVerificationCode(6);
 
             await (prisma as any).entrevista_presencial.update({
                 where: { id: entrevistaId },
@@ -185,6 +199,9 @@ export async function PATCH(req: Request) {
 
 export async function GET(req: Request) {
     try {
+        const userId = parseSessionValue((await cookies()).get("time_user_id")?.value);
+        if (!userId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+
         const { searchParams } = new URL(req.url);
         const entrevistaId = searchParams.get("id");
         if (!entrevistaId) return NextResponse.json({ error: "ID obrigatório." }, { status: 400 });
@@ -195,6 +212,27 @@ export async function GET(req: Request) {
         });
 
         if (!entrevista) return NextResponse.json({ entrevista: null }, { status: 404 });
+
+        const [candidatoDaEntrevista, empresaDaEntrevista] = await Promise.all([
+            prisma.candidato.findUnique({
+                where: { id: entrevista.candidato_id },
+                select: { usuario_id: true }
+            }),
+            prisma.empresa.findUnique({
+                where: { id: entrevista.empresa_id },
+                select: { usuario_id: true }
+            })
+        ]);
+
+        const isCandidato = candidatoDaEntrevista?.usuario_id === userId;
+        const isEmpresa = empresaDaEntrevista?.usuario_id === userId;
+
+        if (!isCandidato && !isEmpresa) {
+            return NextResponse.json({ error: "Acesso negado." }, { status: 403 });
+        }
+
+        const { codigo_participacao, ...entrevistaSemCodigo } = entrevista;
+        const entrevistaVisivel = isCandidato ? entrevista : entrevistaSemCodigo;
 
         const empresa = await prisma.empresa.findUnique({
             where: { id: entrevista.empresa_id },
@@ -208,7 +246,7 @@ export async function GET(req: Request) {
 
         return NextResponse.json({
             entrevista: {
-                ...entrevista,
+                ...entrevistaVisivel,
                 empresa: empresa || null,
                 vaga: vaga || null,
             }

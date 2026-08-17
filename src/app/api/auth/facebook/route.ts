@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createOAuthState, OAUTH_STATE_COOKIE, oauthStateCookieOptions } from "@/src/lib/oauth-state";
 
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
@@ -9,7 +10,8 @@ export async function GET(req: Request) {
     const callbackUrl = process.env.FACEBOOK_CALLBACK_URL!;
 
     const scope = encodeURIComponent("email,public_profile");
-    const state = encodeURIComponent(JSON.stringify({ tipo, origin }));
+    const { state: rawState, nonce } = createOAuthState(tipo, origin);
+    const state = encodeURIComponent(rawState);
 
     const facebookAuthUrl =
         `https://www.facebook.com/v19.0/dialog/oauth` +
@@ -19,5 +21,7 @@ export async function GET(req: Request) {
         `&scope=${scope}` +
         `&state=${state}`;
 
-    return NextResponse.redirect(facebookAuthUrl);
+    const response = NextResponse.redirect(facebookAuthUrl);
+    response.cookies.set(OAUTH_STATE_COOKIE, nonce, oauthStateCookieOptions());
+    return response;
 }

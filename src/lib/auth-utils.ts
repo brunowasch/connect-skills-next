@@ -46,3 +46,13 @@ export function getRedirectTo(user: {
 
     return "/company/register";
 }
+
+const COMPLETED_REGISTRATION_DESTINATIONS = new Set([
+    "/candidate/dashboard",
+    "/company/dashboard",
+    "/mentor/dashboard",
+]);
+
+export function shouldHandoffToMentorConnect(redirectTo: string): boolean {
+    return COMPLETED_REGISTRATION_DESTINATIONS.has(redirectTo);
+}

@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { prisma } from "@/src/lib/prisma";
+import { parseSessionValue } from "@/src/lib/session";
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
     const cookieStore = await cookies();
-    const userId = cookieStore.get("time_user_id")?.value;
+    const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
     if (!userId) {
         redirect("/");

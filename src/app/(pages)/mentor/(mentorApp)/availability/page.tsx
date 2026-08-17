@@ -2,10 +2,11 @@ import { MentorAvailabilityList } from "./_components/MentorAvailabilityList";
 import { cookies } from "next/headers";
 import { prisma } from "@/src/lib/prisma";
 import { redirect } from "next/navigation";
+import { parseSessionValue } from "@/src/lib/session";
 
 export default async function MentorAvailabilityPage() {
     const cookieStore = await cookies();
-    const userId = cookieStore.get("time_user_id")?.value;
+    const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
     if (!userId) {
         redirect("/login");

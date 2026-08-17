@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { sendVideoExpiredCandidateEmail, sendVideoExpiredCompanyEmail } from "@/src/lib/mail";
+import { isAuthorizedCronRequest } from "@/src/lib/cron-auth";
 
 export async function GET(req: Request) {
+    if (!isAuthorizedCronRequest(req)) {
+        return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+    }
+
+
 
     try {
         console.log("[CRON] Iniciando verificação de vídeos expirados...");

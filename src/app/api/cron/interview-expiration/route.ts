@@ -2,8 +2,14 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { sendInterviewExpiredToCompanyEmail } from "@/src/lib/mail";
 import { randomUUID } from "crypto";
+import { isAuthorizedCronRequest } from "@/src/lib/cron-auth";
 
 export async function GET(req: Request) {
+    if (!isAuthorizedCronRequest(req)) {
+        return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+    }
+
+
     try {
         console.log("[CRON] Iniciando verificação de convites de mentoria expirados...");
 

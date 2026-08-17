@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { randomUUID } from "crypto";
+import { isAuthorizedCronRequest } from "@/src/lib/cron-auth";
 
 // This endpoint adds 'Ativa' status to all vacancies that don't have a status yet
-export async function POST() {
+export async function POST(req: Request) {
+    if (!isAuthorizedCronRequest(req)) {
+        return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+    }
+
     try {
         // Get all vacancy IDs
         const allVacancies = await prisma.vaga.findMany({

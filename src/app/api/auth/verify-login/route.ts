@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
+import { createSessionValue } from "@/src/lib/session";
 
 export async function POST(req: Request) {
     try {
@@ -136,7 +137,7 @@ export async function POST(req: Request) {
             });
         }
 
-        response.cookies.set("time_user_id", cookieValue, cookieOptions);
+        response.cookies.set("time_user_id", createSessionValue(cookieValue), cookieOptions);
 
         response.cookies.set("pending_verify_uuid", "", {
             httpOnly: true,

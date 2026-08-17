@@ -3,12 +3,13 @@ import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
 import { randomUUID } from "crypto";
 import { syncUserWithMentorConnect, createMentorConnectMeeting } from "@/src/lib/mentorconnect-sync";
+import { parseSessionValue } from "@/src/lib/session";
 
 
 export async function POST(req: Request) {
     try {
         const cookieStore = await cookies();
-        const userId = cookieStore.get("time_user_id")?.value;
+        const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
         if (!userId) {
             return NextResponse.json({ error: "Não autorizado." }, { status: 401 });

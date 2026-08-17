@@ -4,6 +4,7 @@ import { prisma } from "@/src/lib/prisma";
 import { sendPasswordResetCodeEmail } from "@/src/lib/mail";
 import { hashPassword } from "@/src/lib/auth/hash";
 import { generateVerificationCode } from "@/src/lib/code-generator";
+import { validatePassword } from "@/src/lib/password-validation";
 
 export async function requestPasswordReset(email: string) {
     try {
@@ -92,6 +93,11 @@ export async function verifyResetCode(email: string, code: string) {
 
 export async function resetPassword(email: string, code: string, newPassword: string) {
     try {
+        const passwordCheck = validatePassword(newPassword ?? "");
+        if (!passwordCheck.isValid) {
+            return { success: false, error: "password_too_weak", details: passwordCheck.errors };
+        }
+
         const user = await prisma.usuario.findUnique({ where: { email } });
         if (!user) return { success: false, error: "user_not_found" };
 

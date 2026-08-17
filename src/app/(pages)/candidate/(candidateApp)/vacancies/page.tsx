@@ -2,10 +2,11 @@ import { cookies } from "next/headers";
 import { prisma } from "@/src/lib/prisma";
 import { VacanciesClientContent } from "./_components/VacanciesClientContent";
 import { Vacancy } from "@/src/app/(pages)/candidate/(candidateApp)/types/Vacancy";
+import { parseSessionValue } from "@/src/lib/session";
 
 async function getVacancies(searchParams?: { q?: string; loc?: string; type?: string; all?: string; tab?: string }) {
     const cookieStore = await cookies();
-    const userId = cookieStore.get("time_user_id")?.value;
+    const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
     if (!userId) {
         return { vagas: [], areas: [], count: 0, isSearch: false, isAll: false, isFavorites: false, isHistory: false, allFavoritesCount: 0, appliedCount: 0 };

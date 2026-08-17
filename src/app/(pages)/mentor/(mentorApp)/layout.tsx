@@ -3,10 +3,11 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
 import { getMentorNotifications } from "@/src/lib/notifications";
 import MentorClientLayout from "./MentorClientLayout";
+import { parseSessionValue } from "@/src/lib/session";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
     const cookieStore = await cookies();
-    const userId = cookieStore.get("time_user_id")?.value;
+    const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
     if (!userId) redirect("/login");
 

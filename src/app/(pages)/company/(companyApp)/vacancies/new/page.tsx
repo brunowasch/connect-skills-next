@@ -3,10 +3,16 @@ import { getAreasFromJson, getSoftSkillsFromJson } from "@/src/lib/skillsFromJso
 import { VacancyForm } from "../_components/VacancyForm";
 import { VacancyFormHeader } from "../_components/VacancyFormHeader";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { parseSessionValue } from "@/src/lib/session";
 
 export default async function NewVacancyPage() {
     const cookieStore = await cookies();
-    const userId = cookieStore.get("time_user_id")?.value;
+    const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
+
+    if (!userId) {
+        redirect("/login");
+    }
 
     const company = await prisma.empresa.findUnique({
         where: { usuario_id: userId },
