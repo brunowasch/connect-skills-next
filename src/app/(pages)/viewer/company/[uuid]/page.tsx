@@ -158,7 +158,7 @@ export default async function CompanyPublicProfilePage({ params }: { params: Pro
     const companySerialized = JSON.parse(JSON.stringify(company));
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 flex-1">
             <PublicCompanyProfile
                 company={companySerialized}
                 fotoPerfil={company.foto_perfil || undefined}

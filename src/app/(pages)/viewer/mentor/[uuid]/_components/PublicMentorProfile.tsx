@@ -1,8 +1,8 @@
 "use client";
 
 import {
-    MapPin, Link as LinkIcon, ExternalLink, User,
-    Paperclip, FileText, ArrowLeft
+    MapPin, User,
+    ArrowLeft, Calendar, Clock, Video
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -29,6 +29,13 @@ interface MentorArquivo {
     criadoEm: string;
 }
 
+interface AvailabilitySlot {
+    id: string;
+    data: string;
+    hora_inicio: string;
+    hora_fim: string;
+}
+
 interface MentorData {
     id: string;
     uuid: string | null;
@@ -47,9 +54,58 @@ interface MentorData {
 interface Props {
     mentor: MentorData;
     localidade: string | null;
+    slots: AvailabilitySlot[];
 }
 
-export function PublicMentorProfile({ mentor, localidade }: Props) {
+const DAY_NAMES_PT = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+
+function formatDate(data: string) {
+    try {
+        const [year, month, day] = data.split("-").map(Number);
+        const date = new Date(year, month - 1, day);
+        return {
+            dayName: DAY_NAMES_PT[date.getDay()],
+            dayNum: String(day).padStart(2, "0"),
+            monthShort: date.toLocaleDateString("pt-BR", { month: "short" }).replace(".", ""),
+            full: date.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" }),
+        };
+    } catch {
+        return { dayName: "", dayNum: data, monthShort: "", full: data };
+    }
+}
+
+function SlotCard({ slot }: { slot: AvailabilitySlot }) {
+    const { dayName, dayNum, monthShort, full } = formatDate(slot.data);
+
+    return (
+        <div className="flex items-center gap-4 p-4 border border-gray-100 rounded-xl bg-white hover:border-indigo-200 hover:shadow-sm transition-all">
+            {/* Date badge */}
+            <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-indigo-50 border border-indigo-100 flex flex-col items-center justify-center text-indigo-700 gap-0">
+                <span className="text-[10px] font-bold uppercase leading-tight tracking-wide">{monthShort}</span>
+                <span className="text-2xl font-extrabold leading-none">{dayNum}</span>
+                <span className="text-[10px] font-semibold text-indigo-400 leading-tight">{dayName}</span>
+            </div>
+
+            {/* Info */}
+            <div className="flex-grow min-w-0">
+                <p className="font-semibold text-gray-800 text-sm truncate">{full}</p>
+                <div className="flex items-center gap-1.5 mt-1">
+                    <Clock size={12} className="text-indigo-400 flex-shrink-0" />
+                    <span className="text-xs text-gray-600 font-medium">
+                        {slot.hora_inicio} – {slot.hora_fim}
+                    </span>
+                </div>
+            </div>
+
+            {/* Fixed platform badge */}
+            <span className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                <Video size={11} /> Online · Meetor.ai
+            </span>
+        </div>
+    );
+}
+
+export function PublicMentorProfile({ mentor, localidade, slots }: Props) {
     const { t } = useTranslation();
     const router = useRouter();
     const [showBackButton, setShowBackButton] = useState(false);
@@ -116,7 +172,7 @@ export function PublicMentorProfile({ mentor, localidade }: Props) {
                         </button>
                     )}
                     <h1 className="text-2xl font-bold text-gray-800">
-                        Perfil do Mentor — {fullName}
+                        {t("public_mentor_profile_title", "Perfil do Mentor")} — {fullName}
                     </h1>
                 </div>
                 <LanguageSwitcher align="right" />
@@ -171,10 +227,10 @@ export function PublicMentorProfile({ mentor, localidade }: Props) {
                 </div>
 
                 {/* Bottom sections */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                <div className="grid grid-cols-1 gap-8 mt-8">
 
                     {/* Areas of expertise */}
-                    <div className="col-span-1 md:col-span-2">
+                    <div>
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="font-bold text-gray-800 flex items-center gap-2">
                                 <Target className="text-indigo-600" size={18} />
@@ -194,6 +250,36 @@ export function PublicMentorProfile({ mentor, localidade }: Props) {
                             </div>
                         ) : (
                             <p className="text-gray-400 text-sm">{t("no_areas", "Nenhuma área informada.")}</p>
+                        )}
+                    </div>
+
+                    {/* Availability slots */}
+                    <div>
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                                <Calendar className="text-indigo-600" size={18} />
+                                {t("mentor_availability_title", "Agenda de Mentorias")}
+                            </h3>
+                            <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-full">
+                                {slots.length} {slots.length === 1
+                                    ? t("slot_singular", "horário disponível")
+                                    : t("slot_plural", "horários disponíveis")}
+                            </span>
+                        </div>
+
+                        {slots.length === 0 ? (
+                            <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-8 text-center">
+                                <Calendar size={32} className="text-slate-300 mx-auto mb-3" />
+                                <p className="text-slate-500 text-sm font-medium">
+                                    {t("no_upcoming_slots_public", "Este mentor não possui horários disponíveis no momento.")}
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {slots.map((slot) => (
+                                    <SlotCard key={slot.id} slot={slot} />
+                                ))}
+                            </div>
                         )}
                     </div>
 

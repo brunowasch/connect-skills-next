@@ -32,10 +32,12 @@ export default async function MentorshipDetailsPage({ params }: { params: Promis
         notFound();
     }
 
-    const vaga = await prisma.vaga.findUnique({
-        where: { id: interview.vaga_id },
-        select: { cargo: true, empresa_id: true, descricao: true, tipo_local_trabalho: true, vinculo_empregaticio: true }
-    });
+    const vaga = interview.vaga_id
+        ? await prisma.vaga.findUnique({
+            where: { id: interview.vaga_id },
+            select: { cargo: true, empresa_id: true, descricao: true, tipo_local_trabalho: true, vinculo_empregaticio: true }
+          })
+        : null;
 
     let empresaData = null;
     if (vaga?.empresa_id) {

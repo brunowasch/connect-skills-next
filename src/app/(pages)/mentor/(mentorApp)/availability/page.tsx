@@ -26,7 +26,7 @@ export default async function MentorAvailabilityPage() {
         where: { mentor_id: user.mentor.id }
     });
 
-    const vagaIds = entrevistas.map(e => e.vaga_id).filter(Boolean);
+    const vagaIds = entrevistas.map(e => e.vaga_id).filter((id): id is string => !!id);
     const vagas = vagaIds.length > 0 ? await prisma.vaga.findMany({
         where: { id: { in: vagaIds } }
     }) : [];
@@ -44,7 +44,7 @@ export default async function MentorAvailabilityPage() {
         const agendado = entrevistas.find(e => e.disponibilidade_id === slot.id);
         let agendamento = null;
         if (agendado) {
-            const vaga = vagasMap.get(agendado.vaga_id);
+            const vaga = agendado.vaga_id ? vagasMap.get(agendado.vaga_id) : undefined;
             if (vaga) {
                 const empresa = empresasMap.get(vaga.empresa_id);
                 if (empresa) {

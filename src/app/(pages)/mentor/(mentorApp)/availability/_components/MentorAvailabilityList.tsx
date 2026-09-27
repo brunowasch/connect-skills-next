@@ -85,7 +85,7 @@ export function MentorAvailabilityList({
         },
         {
             key: "history",
-            label: "Histórico de Reuniões",
+            label: "Histórico de Mentorias",
             icon: <History className="w-4 h-4" />,
             count: expiredSlots.length,
         },

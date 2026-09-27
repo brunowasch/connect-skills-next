@@ -23,15 +23,18 @@ export default async function CandidateInterviewsPage() {
     const interviews = await prisma.entrevista_mentor.findMany({
         where: {
             candidato_id: candidate.id,
+            vaga_id: { not: null }, // Apenas entrevistas vinculadas a vagas
         },
         orderBy: [{ data: 'desc' }, { hora_inicio: 'desc' }]
     });
 
     const mentorshipData = await Promise.all(interviews.map(async (interview: any) => {
-        const vaga = await prisma.vaga.findUnique({
-            where: { id: interview.vaga_id },
-            select: { cargo: true, empresa_id: true }
-        });
+        const vaga = interview.vaga_id 
+            ? await prisma.vaga.findUnique({
+                where: { id: interview.vaga_id },
+                select: { cargo: true, empresa_id: true }
+              })
+            : null;
 
         let empresaData = null;
         if (vaga?.empresa_id) {
@@ -52,9 +55,10 @@ export default async function CandidateInterviewsPage() {
         return {
             id: interview.id,
             status: interview.status,
-            cargo: vaga?.cargo || "Mentoria",
+            vagaExcluida: interview.vaga_id ? !vaga : false,
+            cargo: vaga?.cargo || "Mentoria Individual",
             empresa: {
-                nome_empresa: empresaData?.nome_empresa || "Empresa",
+                nome_empresa: empresaData?.nome_empresa || "Connect Skills",
                 foto_perfil: empresaData?.foto_perfil || null
             },
             mentor: mentorData ? {
@@ -67,7 +71,16 @@ export default async function CandidateInterviewsPage() {
             hora_fim: interview.hora_fim,
             link_reuniao: interview.link_reuniao,
             criado_em: interview.criado_em.toISOString(),
-            type: 'online' as const
+            type: 'online' as const,
+            nota_comportamental: interview.nota_comportamental ?? null,
+            nota_tecnica: interview.nota_tecnica ?? null,
+            nota_geral: interview.nota_geral ?? null,
+            feedback_comportamental: interview.feedback_comportamental ?? null,
+            feedback_tecnico: interview.feedback_tecnico ?? null,
+            feedback_geral: interview.feedback_geral ?? null,
+            feedback_enviado_em: interview.feedback_enviado_em
+                ? interview.feedback_enviado_em.toISOString()
+                : null,
         };
     }));
 
@@ -97,6 +110,7 @@ export default async function CandidateInterviewsPage() {
         return {
             id: interview.id,
             status: interview.status,
+            vagaExcluida: !vaga,
             cargo: vaga?.cargo || "Entrevista Presencial",
             empresa: {
                 nome_empresa: empresaData?.nome_empresa || "Empresa",
@@ -109,7 +123,14 @@ export default async function CandidateInterviewsPage() {
             link_reuniao: null,
             criado_em: interview.criado_em.toISOString(),
             candidato_compareceu: !!interview.candidato_compareceu,
-            type: 'presencial' as const
+            type: 'presencial' as const,
+            nota_comportamental: null,
+            nota_tecnica: null,
+            nota_geral: null,
+            feedback_comportamental: null,
+            feedback_tecnico: null,
+            feedback_geral: null,
+            feedback_enviado_em: null,
         };
     }));
 
@@ -119,10 +140,30 @@ export default async function CandidateInterviewsPage() {
         return dateB - dateA;
     });
 
+    const mentorshipReviews = mentorshipData.filter(
+        (m) =>
+            m.nota_geral !== null ||
+            m.nota_comportamental !== null ||
+            m.nota_tecnica !== null
+    );
+
+    const candidateInfo = await prisma.candidato.findUnique({
+        where: { id: candidate.id },
+        select: { nome: true, sobrenome: true, foto_perfil: true }
+    });
+
     return (
         <main className="flex-1 overflow-y-auto bg-slate-50 p-4 lg:p-8">
             <div className="mx-auto max-w-6xl space-y-8">
-                <CandidateInterviewsClient interviews={allInterviews} />
+                <CandidateInterviewsClient
+                    interviews={allInterviews}
+                    mentorshipReviews={mentorshipReviews}
+                    candidateName={
+                        [candidateInfo?.nome, candidateInfo?.sobrenome]
+                            .filter(Boolean)
+                            .join(" ") || "Candidato"
+                    }
+                />
             </div>
         </main>
     );

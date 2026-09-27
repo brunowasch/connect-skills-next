@@ -42,16 +42,18 @@ export async function GET(req: NextRequest) {
         });
         if (candidato) authorizedUsuarioIds.push(candidato.usuario_id);
 
-        const vaga = await prisma.vaga.findUnique({
-            where: { id: entrevista.vaga_id },
-            select: { empresa_id: true },
-        });
-        if (vaga) {
-            const empresa = await prisma.empresa.findUnique({
-                where: { id: vaga.empresa_id },
-                select: { usuario_id: true },
+        if (entrevista.vaga_id) {
+            const vaga = await prisma.vaga.findUnique({
+                where: { id: entrevista.vaga_id },
+                select: { empresa_id: true },
             });
-            if (empresa) authorizedUsuarioIds.push(empresa.usuario_id);
+            if (vaga) {
+                const empresa = await prisma.empresa.findUnique({
+                    where: { id: vaga.empresa_id },
+                    select: { usuario_id: true },
+                });
+                if (empresa) authorizedUsuarioIds.push(empresa.usuario_id);
+            }
         }
 
         return NextResponse.json({

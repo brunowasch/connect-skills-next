@@ -288,10 +288,12 @@ export default async function Dashboard() {
     });
 
     const mentorshipsForCompany = await Promise.all(companyInterviewsRaw.map(async (int: any) => {
-        const vaga = await prisma.vaga.findUnique({
-            where: { id: int.vaga_id },
-            select: { cargo: true, uuid: true }
-        });
+        const vaga = int.vaga_id
+            ? await prisma.vaga.findUnique({
+                where: { id: int.vaga_id },
+                select: { cargo: true, uuid: true }
+              })
+            : null;
         const candidato = await prisma.candidato.findUnique({
             where: { id: int.candidato_id },
             select: { nome: true, sobrenome: true, foto_perfil: true }

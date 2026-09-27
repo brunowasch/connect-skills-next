@@ -3,11 +3,18 @@
 import { useState } from 'react';
 import {
     MapPin, Phone, User, PencilLine,
-    Link as LinkIcon, ExternalLink, Copy, Check, Target, Calendar
+    Link as LinkIcon, ExternalLink, Check, Target, Calendar, Clock, Video
 } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslation } from "react-i18next";
 import { AreasList } from "@/src/app/_components/Shared/AreasList";
+
+interface AvailabilitySlot {
+    id: string;
+    data: string;
+    hora_inicio: string;
+    hora_fim: string;
+}
 
 interface MentorProfileProps {
     mentor: any;
@@ -15,9 +22,62 @@ interface MentorProfileProps {
     localidade: string | null;
     contato: { ddi?: string; ddd?: string; numero?: string };
     perfilShareUrl: string;
+    slots: AvailabilitySlot[];
 }
 
-export function MentorProfile({ mentor, fotoPerfil, localidade, contato, perfilShareUrl }: MentorProfileProps) {
+const DAY_NAMES_PT = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
+
+function formatDate(data: string) {
+    try {
+        const [year, month, day] = data.split("-").map(Number);
+        const date = new Date(year, month - 1, day);
+        const dayName = DAY_NAMES_PT[date.getDay()];
+        return {
+            dayName,
+            display: date.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" }),
+            short: date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+        };
+    } catch {
+        return { dayName: "", display: data, short: data };
+    }
+}
+
+function SlotCard({ slot }: { slot: AvailabilitySlot }) {
+    const { dayName, display } = formatDate(slot.data);
+
+    return (
+        <div className="flex items-center gap-4 p-4 border border-slate-100 rounded-xl bg-white hover:border-blue-200 hover:shadow-sm transition-all">
+            {/* Date badge */}
+            <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-blue-50 border border-blue-100 flex flex-col items-center justify-center text-blue-700">
+                <span className="text-xs font-bold uppercase leading-none">
+                    {display.split(" de ")[1]?.substring(0, 3) ?? ""}
+                </span>
+                <span className="text-2xl font-extrabold leading-none">
+                    {slot.data.split("-")[2]}
+                </span>
+            </div>
+
+            {/* Info */}
+            <div className="flex-grow min-w-0">
+                <p className="font-semibold text-slate-800 text-sm truncate">{dayName}</p>
+                <p className="text-xs text-slate-500 truncate">{display}</p>
+                <div className="flex items-center gap-1.5 mt-1">
+                    <Clock size={12} className="text-blue-400 flex-shrink-0" />
+                    <span className="text-xs text-slate-600 font-medium">
+                        {slot.hora_inicio} – {slot.hora_fim}
+                    </span>
+                </div>
+            </div>
+
+            {/* Fixed platform badge */}
+            <span className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                <Video size={11} /> Online · Meetor.ai
+            </span>
+        </div>
+    );
+}
+
+export function MentorProfile({ mentor, fotoPerfil, localidade, contato, perfilShareUrl, slots }: MentorProfileProps) {
     const { t } = useTranslation();
     const [copiado, setCopiado] = useState(false);
 
@@ -98,8 +158,9 @@ export function MentorProfile({ mentor, fotoPerfil, localidade, contato, perfilS
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-                    <div className="col-span-1 md:col-span-2">
+                <div className="grid grid-cols-1 gap-8 mt-8">
+                    {/* Specialties */}
+                    <div>
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="font-bold text-slate-800 flex items-center gap-2">
                                 <Target className="text-blue-600" size={18} /> {t("mentor_specialties_title", "Especialidades")}
@@ -110,23 +171,42 @@ export function MentorProfile({ mentor, fotoPerfil, localidade, contato, perfilS
                         </div>
                         <AreasList areas={mentor.mentor_area} />
                     </div>
-                    <div className="col-span-1 md:col-span-2">
+
+                    {/* Availability slots */}
+                    <div>
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="font-bold text-slate-800 flex items-center gap-2">
                                 <Calendar className="text-blue-600" size={18} /> {t("mentor_availability_title", "Agenda de Mentorias")}
                             </h3>
                             <Link href="/mentor/availability">
-                                <button className="text-blue-600 text-sm font-bold cursor-pointer hover:underline">{t("edit_schedule", "Gerenciar Agenda")}</button>
+                                <button className="text-blue-600 text-sm font-bold cursor-pointer hover:underline">
+                                    {t("edit_schedule", "Gerenciar Agenda")}
+                                </button>
                             </Link>
                         </div>
-                        <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6 text-center">
-                            <p className="text-slate-600 text-sm mb-4">
-                                {t("availability_summary", "Você possui horários configurados para sessões de mentoria.")}
-                            </p>
-                            <Link href="/mentor/availability" className="inline-flex items-center gap-2 text-blue-600 font-bold text-sm hover:gap-3 transition-all">
-                                {t("view_full_schedule", "Ver agenda completa")} <ExternalLink size={14} />
-                            </Link>
-                        </div>
+
+                        {slots.length === 0 ? (
+                            <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-8 text-center">
+                                <Calendar size={32} className="text-slate-300 mx-auto mb-3" />
+                                <p className="text-slate-500 text-sm font-medium mb-3">
+                                    {t("no_upcoming_slots", "Nenhum horário disponível cadastrado.")}
+                                </p>
+                                <Link href="/mentor/availability" className="inline-flex items-center gap-2 text-blue-600 font-bold text-sm hover:gap-3 transition-all">
+                                    {t("add_availability_link", "Adicionar horários")} <ExternalLink size={14} />
+                                </Link>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {slots.map((slot) => (
+                                    <SlotCard key={slot.id} slot={slot} />
+                                ))}
+                                <div className="pt-2 text-right">
+                                    <Link href="/mentor/availability" className="inline-flex items-center gap-1.5 text-blue-600 font-bold text-sm hover:gap-2.5 transition-all">
+                                        {t("manage_full_schedule", "Gerenciar agenda completa")} <ExternalLink size={14} />
+                                    </Link>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </section>

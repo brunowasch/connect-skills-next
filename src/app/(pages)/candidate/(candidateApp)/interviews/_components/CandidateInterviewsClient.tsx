@@ -4,9 +4,25 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { format } from "date-fns";
 import { ptBR, enUS, es } from "date-fns/locale";
-import { Calendar, Clock, Building2, User, CheckCircle, XCircle, AlertTriangle, ChevronRight, Timer, History, Video, MapPin } from "lucide-react";
+import { Calendar, Clock, Building2, CheckCircle, XCircle, AlertTriangle, ChevronRight, Timer, History, Video, MapPin, Star, TrendingDown, Activity, TrendingUp, Globe, Brain } from "lucide-react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
+import MentorReviewModal from "./MentorReviewModal";
+
+const getScoreStyle = (score: number) => {
+    if (score < 50) return {
+        bg: "bg-red-50 border-red-200 text-red-700",
+        icon: <TrendingDown size={12} />
+    };
+    if (score < 70) return {
+        bg: "bg-orange-50 border-orange-200 text-orange-700",
+        icon: <Activity size={12} />
+    };
+    return {
+        bg: "bg-emerald-50 border-emerald-200 text-emerald-700",
+        icon: <TrendingUp size={12} />
+    };
+};
 
 function useCountdown(criado_em: string) {
     const EXPIRATION_MS = 3 * 24 * 60 * 60 * 1000;
@@ -48,8 +64,8 @@ function CountdownChip({ criado_em }: { criado_em: string }) {
     const colorClass = isUrgent
         ? "bg-red-50 border-red-200 text-red-700"
         : days === 0
-        ? "bg-amber-50 border-amber-200 text-amber-700"
-        : "bg-blue-50 border-blue-200 text-blue-700";
+            ? "bg-amber-50 border-amber-200 text-amber-700"
+            : "bg-blue-50 border-blue-200 text-blue-700";
 
     const label = days > 0
         ? t("interview_countdown_expires_days", { defaultValue: "Expira em {{days}}d {{hours}}h", days, hours })
@@ -63,10 +79,19 @@ function CountdownChip({ criado_em }: { criado_em: string }) {
     );
 }
 
-export default function CandidateInterviewsClient({ interviews }: { interviews: any[] }) {
+export default function CandidateInterviewsClient({
+    interviews,
+    mentorshipReviews = [],
+    candidateName = "Candidato",
+}: {
+    interviews: any[];
+    mentorshipReviews?: any[];
+    candidateName?: string;
+}) {
     const { t, i18n } = useTranslation();
-    const [activeTab, setActiveTab] = useState<'scheduled' | 'history' | 'pending'>('scheduled');
-    const [filterType, setFilterType] = useState<'all' | 'empresas'>('all');
+    const [activeTab, setActiveTab] = useState<'scheduled' | 'history' | 'pending' | 'reviews'>('scheduled');
+    const [filterType, setFilterType] = useState<'all' | 'empresas' | 'mentores'>('all');
+    const [selectedReview, setSelectedReview] = useState<any | null>(null);
 
     const processedInterviews = interviews.map(m => {
         let isMeetingExpired = false;
@@ -76,26 +101,35 @@ export default function CandidateInterviewsClient({ interviews }: { interviews: 
         } else if (m.data) {
             const [year, month, day] = m.data.split("-");
             
-            if (m.type === 'presencial') {
-                if (m.candidato_compareceu) {
-                    isMeetingExpired = true;
-                }
-            } else if (m.hora_fim) {
-                const [hFim, mFim] = m.hora_fim.split(":");
-                if (year && month && day && hFim && mFim) {
-                    const endData = new Date(Number(year), Number(month) - 1, Number(day), Number(hFim), Number(mFim), 0);
-                    if (Date.now() > endData.getTime()) {
+            const timeToUse = m.hora_fim || m.hora_inicio;
+
+            if (timeToUse && year && month && day) {
+                const [h, min] = timeToUse.split(":");
+                if (h && min) {
+                    const endData = new Date(Number(year), Number(month) - 1, Number(day), Number(h), Number(min), 0);
+                    const expirationTime = m.hora_fim ? endData.getTime() : endData.getTime() + (60 * 60 * 1000);
+                    
+                    if (Date.now() > expirationTime) {
                         isMeetingExpired = true;
                     }
                 }
+            }
+
+            if (m.candidato_compareceu) {
+                isMeetingExpired = true;
             }
         }
         return { ...m, isMeetingExpired };
     });
 
-    const scheduled = processedInterviews.filter(m => m.status === 'CONFIRMADA' && !m.isMeetingExpired && (filterType === 'all' || (filterType === 'empresas' && m.type === 'presencial')));
-    const pending = processedInterviews.filter(m => m.status === 'PENDENTE_CANDIDATO' && !m.isMeetingExpired && (filterType === 'all' || (filterType === 'empresas' && m.type === 'presencial')));
-    const history = processedInterviews.filter(m => (!['CONFIRMADA', 'PENDENTE_CANDIDATO'].includes(m.status) || m.isMeetingExpired) && (filterType === 'all' || (filterType === 'empresas' && m.type === 'presencial')));
+    const typeFilter = (m: any) =>
+        filterType === 'all' ||
+        (filterType === 'empresas' && m.type === 'presencial') ||
+        (filterType === 'mentores' && m.type === 'online');
+
+    const scheduled = processedInterviews.filter(m => m.status === 'CONFIRMADA' && !m.isMeetingExpired && typeFilter(m));
+    const pending = processedInterviews.filter(m => m.status === 'PENDENTE_CANDIDATO' && !m.isMeetingExpired && typeFilter(m));
+    const history = processedInterviews.filter(m => (!['CONFIRMADA', 'PENDENTE_CANDIDATO'].includes(m.status) || m.isMeetingExpired) && typeFilter(m));
 
     const renderCard = (m: any) => {
         const isScheduled = activeTab === 'scheduled';
@@ -133,10 +167,12 @@ export default function CandidateInterviewsClient({ interviews }: { interviews: 
         }
 
         const themeColor = isOnline ? 'blue' : 'indigo';
+        const isFaded = m.vagaExcluida;
 
         return (
-            <div key={m.id} className={`group bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md hover:border-${themeColor}-400 transition-all flex flex-col h-full relative min-w-0 overflow-hidden`}>
-                <div className="p-4 sm:p-5 flex-grow flex flex-col">
+            <div key={m.id} className={`group bg-white rounded-xl shadow-sm border border-gray-100 transition-all flex flex-col h-full relative min-w-0 overflow-hidden ${isFaded ? 'opacity-60 grayscale-[0.3]' : `hover:shadow-md hover:border-${themeColor}-400`}`}>
+
+                <div className="p-4 sm:p-5 flex-grow flex flex-col relative z-0">
                     <div className="flex items-center mb-3 sm:mb-4">
                         <div className="flex items-center gap-2 sm:gap-3">
                             {m.empresa?.foto_perfil ? (
@@ -155,6 +191,11 @@ export default function CandidateInterviewsClient({ interviews }: { interviews: 
                             <span className="text-xs sm:text-sm font-medium text-gray-600 truncate max-w-[150px] sm:max-w-[200px]">
                                 {m.empresa ? m.empresa.nome_empresa : t("company_default", { defaultValue: "Empresa" })}
                             </span>
+                            {m.vagaExcluida && (
+                                <span className="bg-red-100 text-red-700 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wide whitespace-nowrap">
+                                    {t("interview_card_vacancy_deleted", { defaultValue: "Vaga Excluída" })}
+                                </span>
+                            )}
                         </div>
                     </div>
 
@@ -170,7 +211,7 @@ export default function CandidateInterviewsClient({ interviews }: { interviews: 
                             {(m.status === 'CANCELADA' || m.status === 'RECUSADA' || (m.status === 'EXPIRADA' && !m.candidato_compareceu)) && <XCircle size={10} />}
                             {statusText}
                         </span>
-                        
+
                         <span className={`inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded-full bg-${themeColor}-50 text-${themeColor}-600`}>
                             {isOnline ? <Video size={12} /> : <MapPin size={12} />}
                             {isOnline ? 'Online' : 'Presencial'}
@@ -211,7 +252,7 @@ export default function CandidateInterviewsClient({ interviews }: { interviews: 
                                     if (!url.startsWith('http')) url = `http://${url}`;
                                     window.open(url, "_blank", "noopener,noreferrer");
                                 }}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition border border-indigo-200 font-semibold shadow-sm cursor-pointer whitespace-nowrap"
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 transition border border-blue-200 font-semibold shadow-sm cursor-pointer whitespace-nowrap"
                             >
                                 <Video size={12} />
                                 {t("interview_meeting_link", { defaultValue: "Entrar na Reunião" })}
@@ -229,13 +270,13 @@ export default function CandidateInterviewsClient({ interviews }: { interviews: 
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{t("interviews_page_title", { defaultValue: "Minhas Entrevistas" })}</h1>
-                <p className="text-slate-500 mt-2 text-sm leading-relaxed mb-6">{t("interviews_page_subtitle", { defaultValue: "Acompanhe suas entrevistas agendadas e acesse o histórico das sessões concluídas." })}</p>
+            <div className="mb-4 sm:mb-6">
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">{t("interviews_page_title", { defaultValue: "Minhas Entrevistas" })}</h1>
+                <p className="text-gray-500">{t("interviews_page_subtitle", { defaultValue: "Acompanhe suas entrevistas agendadas e acesse o histórico das sessões concluídas." })}</p>
             </div>
 
             {pending.length > 0 && (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3 shadow-sm">
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3 shadow-sm mb-6">
                     <div className="bg-amber-100 p-2 rounded-full flex-shrink-0 animate-pulse">
                         <AlertTriangle className="w-5 h-5 text-amber-600" />
                     </div>
@@ -250,52 +291,75 @@ export default function CandidateInterviewsClient({ interviews }: { interviews: 
                 </div>
             )}
 
-            <div className="flex border-b border-slate-200 gap-6 overflow-x-auto no-scrollbar pb-1">
-                <button
-                    onClick={() => setActiveTab('scheduled')}
-                    className={`pb-3 whitespace-nowrap text-sm font-semibold transition-colors relative ${activeTab === 'scheduled' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
-                >
-                    <div className="flex items-center gap-2 cursor-pointer">
-                        <Calendar size={16} />
+            <div className="relative mb-4 sm:mb-8 overflow-hidden">
+                <div className="flex border-b border-gray-200 overflow-x-auto scrollbar-hide w-full">
+                    <button
+                        onClick={() => setActiveTab('scheduled')}
+                        className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 border-b-2 font-medium text-xs sm:text-sm transition-all whitespace-nowrap flex-shrink-0 active:bg-gray-50 cursor-pointer ${
+                            activeTab === 'scheduled'
+                                ? "border-blue-600 text-blue-600"
+                                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                        }`}
+                    >
+                        <Calendar className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
                         {t("interviews_tab_scheduled", { defaultValue: "Agendadas" })}
-                        <span className={`inline-flex items-center justify-center h-5 px-2 rounded-full text-xs ${activeTab === 'scheduled' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
+                        <span className={`ml-1 sm:ml-1.5 text-[10px] sm:text-xs font-semibold px-1.5 sm:px-2 py-0.5 rounded-full ${
+                            activeTab === 'scheduled' ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-600"
+                        }`}>
                             {scheduled.length}
                         </span>
-                    </div>
-                    {activeTab === 'scheduled' && (
-                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full" />
-                    )}
-                </button>
-                <button
-                    onClick={() => setActiveTab('pending')}
-                    className={`pb-3 whitespace-nowrap text-sm font-semibold transition-colors relative ${activeTab === 'pending' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
-                >
-                    <div className="flex items-center gap-2 cursor-pointer">
-                        <Timer size={16} className={pending.length > 0 ? "text-red-500 animate-pulse" : ""} />
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('pending')}
+                        className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 border-b-2 font-medium text-xs sm:text-sm transition-all whitespace-nowrap flex-shrink-0 active:bg-gray-50 cursor-pointer ${
+                            activeTab === 'pending'
+                                ? "border-blue-600 text-blue-600"
+                                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                        }`}
+                    >
+                        <Timer className={`w-4 h-4 sm:w-[18px] sm:h-[18px] ${pending.length > 0 ? "text-red-500 animate-pulse" : ""}`} />
                         <span className={pending.length > 0 ? "text-red-600" : ""}>{t("interviews_tab_pending", { defaultValue: "Pendentes" })}</span>
-                        <span className={`inline-flex items-center justify-center h-5 px-2 rounded-full text-xs font-bold transition-all ${pending.length > 0 ? 'bg-red-500 text-white shadow-sm ring-2 ring-red-200 animate-pulse' : (activeTab === 'pending' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600')}`}>
+                        <span className={`ml-1 sm:ml-1.5 text-[10px] sm:text-xs font-semibold px-1.5 sm:px-2 py-0.5 rounded-full transition-all ${
+                            pending.length > 0 ? 'bg-red-500 text-white shadow-sm ring-2 ring-red-200 animate-pulse' : (activeTab === 'pending' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600')
+                        }`}>
                             {pending.length}
                         </span>
-                    </div>
-                    {activeTab === 'pending' && (
-                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full" />
-                    )}
-                </button>
-                <button
-                    onClick={() => setActiveTab('history')}
-                    className={`pb-3 whitespace-nowrap text-sm font-semibold transition-colors relative ${activeTab === 'history' ? 'text-slate-900' : 'text-slate-500 hover:text-slate-800'}`}
-                >
-                    <div className="flex items-center gap-2 cursor-pointer">
-                        <History size={16} />
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('history')}
+                        className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 border-b-2 font-medium text-xs sm:text-sm transition-all whitespace-nowrap flex-shrink-0 active:bg-gray-50 cursor-pointer ${
+                            activeTab === 'history'
+                                ? "border-blue-600 text-blue-600"
+                                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                        }`}
+                    >
+                        <History className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
                         {t("interviews_tab_history", { defaultValue: "Histórico" })}
-                        <span className={`inline-flex items-center justify-center h-5 px-2 rounded-full text-xs ${activeTab === 'history' ? 'bg-slate-200 text-slate-800' : 'bg-slate-100 text-slate-600'}`}>
+                        <span className={`ml-1 sm:ml-1.5 text-[10px] sm:text-xs font-semibold px-1.5 sm:px-2 py-0.5 rounded-full ${
+                            activeTab === 'history' ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-600"
+                        }`}>
                             {history.length}
                         </span>
-                    </div>
-                    {activeTab === 'history' && (
-                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900 rounded-t-full" />
+                    </button>
+                    {mentorshipReviews.length > 0 && (
+                        <button
+                            onClick={() => setActiveTab('reviews')}
+                            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 border-b-2 font-medium text-xs sm:text-sm transition-all whitespace-nowrap flex-shrink-0 active:bg-gray-50 cursor-pointer ${
+                                activeTab === 'reviews'
+                                    ? "border-blue-600 text-blue-600"
+                                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                            }`}
+                        >
+                            <Star className={`w-4 h-4 sm:w-[18px] sm:h-[18px] ${activeTab === 'reviews' ? 'fill-blue-600 text-blue-600' : ''}`} />
+                            {t("interviews_tab_reviews", { defaultValue: "Avaliações" })}
+                            <span className={`ml-1 sm:ml-1.5 text-[10px] sm:text-xs font-semibold px-1.5 sm:px-2 py-0.5 rounded-full ${
+                                activeTab === 'reviews' ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-600"
+                            }`}>
+                                {mentorshipReviews.length}
+                            </span>
+                        </button>
                     )}
-                </button>
+                </div>
             </div>
 
             <div className="flex items-center">
@@ -306,6 +370,7 @@ export default function CandidateInterviewsClient({ interviews }: { interviews: 
                 >
                     <option value="all">{t("filter_all", "Todos")}</option>
                     <option value="empresas">{t("filter_empresas", "Empresas")}</option>
+                    <option value="mentores">{t("filter_mentores", "Mentores")}</option>
                 </select>
             </div>
 
@@ -341,7 +406,130 @@ export default function CandidateInterviewsClient({ interviews }: { interviews: 
                         </div>
                     )
                 )}
+
+                {activeTab === 'reviews' && (
+                    mentorshipReviews.length > 0 ? mentorshipReviews.map((r: any) => {
+                        const isFaded = r.vagaExcluida;
+                        return (
+                            <div key={r.id} className={`group bg-white rounded-2xl border border-slate-200 transition-all flex flex-col h-full relative overflow-hidden ${isFaded ? 'opacity-60 grayscale-[0.3]' : 'hover:shadow-lg hover:border-blue-200'}`}>
+
+                                <div className="p-5 flex-grow flex flex-col relative z-0">
+
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className="flex items-center gap-3">
+                                        {r.empresa?.foto_perfil ? (
+                                            <img src={r.empresa.foto_perfil} className="w-10 h-10 rounded-xl object-cover border border-slate-100 shadow-sm" alt={r.empresa.nome_empresa} />
+                                        ) : (
+                                            <div className="w-10 h-10 rounded-xl border border-slate-100 flex items-center justify-center bg-blue-50 shadow-sm">
+                                                <Building2 className="w-5 h-5 text-blue-400" />
+                                            </div>
+                                        )}
+                                        <div className="flex flex-col">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-sm font-bold text-slate-700 truncate max-w-[150px]">
+                                                    {r.empresa?.nome_empresa || "Empresa"}
+                                                </span>
+                                                {r.vagaExcluida && (
+                                                    <span className="bg-red-100 text-red-700 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wide whitespace-nowrap mt-0.5">
+                                                        {t("interview_card_vacancy_deleted", { defaultValue: "Vaga Excluída" })}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            {r.mentor && (
+                                                <span className="text-[11px] text-slate-500 font-medium truncate max-w-[150px] mt-0.5">
+                                                    {t("review_card_evaluator", { defaultValue: "Avaliador(a):" })} {r.mentor.nome} {r.mentor.sobrenome}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    
+                                    {r.nota_geral !== null && (
+                                        <div className="flex flex-col items-end">
+                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[13px] font-extrabold shadow-sm ${getScoreStyle(r.nota_geral).bg}`}>
+                                                {getScoreStyle(r.nota_geral).icon}
+                                                {r.nota_geral}<span className="opacity-60 text-[10px] font-normal">/100</span>
+                                            </span>
+                                            <span className="text-[9px] uppercase font-bold tracking-wider text-slate-400 mt-1.5">
+                                                {t("review_card_general_score", { defaultValue: "Nota Geral" })}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <h3 className="font-extrabold text-lg text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2 mb-4">
+                                    {r.cargo}
+                                </h3>
+
+                                {r.feedback_geral && (
+                                    <div className="mb-5 bg-slate-50 border border-slate-100 rounded-xl p-3 relative shadow-sm">
+                                        <div className="absolute -top-2.5 left-3 bg-white px-1.5 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                                            Feedback
+                                        </div>
+                                        <p className="text-[13px] text-slate-600 line-clamp-2 italic pt-1 leading-relaxed">
+                                            "{r.feedback_geral}"
+                                        </p>
+                                    </div>
+                                )}
+
+                                <div className="flex flex-col gap-2 mt-auto">
+                                    {r.nota_comportamental !== null && (
+                                        <div className="flex items-center gap-2 text-[13px] text-slate-600 font-medium">
+                                            <Globe size={14} className="text-slate-400" />
+                                            <span>{t("review_card_behavioral", { defaultValue: "Comportamental" })}</span>
+                                            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[11px] font-bold ml-auto ${getScoreStyle(r.nota_comportamental).bg}`}>
+                                                {getScoreStyle(r.nota_comportamental).icon}
+                                                {r.nota_comportamental}<span className="opacity-60 text-[9px] font-normal">/100</span>
+                                            </span>
+                                        </div>
+                                    )}
+                                    {r.nota_tecnica !== null && (
+                                        <div className="flex items-center gap-2 text-[13px] text-slate-600 font-medium mt-1">
+                                            <Brain size={14} className="text-slate-400" />
+                                            <span>{t("review_card_technical", { defaultValue: "Técnico" })}</span>
+                                            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[11px] font-bold ml-auto ${getScoreStyle(r.nota_tecnica).bg}`}>
+                                                {getScoreStyle(r.nota_tecnica).icon}
+                                                {r.nota_tecnica}<span className="opacity-60 text-[9px] font-normal">/100</span>
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="px-5 py-4 border-t border-slate-100 flex items-center justify-between bg-white mt-1 rounded-b-2xl">
+                                <span className="text-[11px] font-medium text-slate-400">
+                                    {r.feedback_enviado_em 
+                                        ? `${t("review_card_evaluated_at", { defaultValue: "Avaliado em:" })} ${format(new Date(r.feedback_enviado_em), 'dd/MM/yyyy')}`
+                                        : (r.data ? `${t("review_card_completed_at", { defaultValue: "Concluída em:" })} ${format(new Date(`${r.data}T00:00:00`), 'dd/MM/yyyy')}` : '')}
+                                </span>
+
+                                <button
+                                    onClick={() => setSelectedReview(r)}
+                                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white text-sm font-bold transition-all shadow-sm active:scale-95 cursor-pointer group-hover:shadow"
+                                >
+                                    <Star size={14} className="group-hover:fill-current" />
+                                    {t("review_card_view_btn", { defaultValue: "Ver Avaliação" })}
+                                </button>
+                            </div>
+                        </div>
+                    );
+                }) : (
+                        <div className="col-span-full text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300">
+                            <Star className="mx-auto h-12 w-12 text-slate-300 mb-3" />
+                            <h3 className="text-lg font-semibold text-slate-900">{t("interview_empty_reviews_title", { defaultValue: "Nenhuma avaliação disponível" })}</h3>
+                            <p className="text-slate-500 mt-1 max-w-sm mx-auto text-sm">{t("interview_empty_reviews_desc", { defaultValue: "Suas avaliações de mentoria aparecerão aqui após as sessões concluídas." })}</p>
+                        </div>
+                    )
+                )}
             </div>
+
+
+            {selectedReview && (
+                <MentorReviewModal
+                    review={selectedReview}
+                    candidateName={candidateName}
+                    onClose={() => setSelectedReview(null)}
+                />
+            )}
         </div>
     );
 }

@@ -33,10 +33,12 @@ export async function GET(req: Request) {
                     data: { status: "EXPIRADA" },
                 });
 
-                const vaga = await prisma.vaga.findUnique({
-                    where: { id: interview.vaga_id },
-                    select: { cargo: true, uuid: true, empresa_id: true },
-                });
+                const vaga = interview.vaga_id
+                    ? await prisma.vaga.findUnique({
+                        where: { id: interview.vaga_id },
+                        select: { cargo: true, uuid: true, empresa_id: true },
+                    })
+                    : null;
 
                 const candidato = await prisma.candidato.findUnique({
                     where: { id: interview.candidato_id },
