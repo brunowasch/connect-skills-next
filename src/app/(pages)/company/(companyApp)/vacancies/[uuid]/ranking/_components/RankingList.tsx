@@ -550,7 +550,7 @@ export function RankingList({ candidates, vacancyUuid, vacancy, pendingCandidate
                                             className="flex items-center gap-1 px-3 py-1.5 bg-gray-50 text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-100 transition-colors cursor-pointer border border-gray-200"
                                         >
                                             <ExternalLink size={14} />
-                                            {t('vacancy_view_public_profile')}
+                                            {t('ranking_public_profile_short', 'Perfil')}
                                         </a>
                                     )}
                                     <button
@@ -558,7 +558,7 @@ export function RankingList({ candidates, vacancyUuid, vacancy, pendingCandidate
                                         className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium hover:bg-blue-100 transition-colors cursor-pointer"
                                     >
                                         <FileText size={14} />
-                                        {t('ranking_view_answers')}
+                                        {t('ranking_view_answers_short', 'Respostas')}
                                     </button>
                                     <button
                                         onClick={() => handleShowAnalysis(candidate.id)}
@@ -575,7 +575,7 @@ export function RankingList({ candidates, vacancyUuid, vacancy, pendingCandidate
                                                 className="flex items-center gap-1 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-medium hover:bg-indigo-100 transition-colors cursor-pointer border border-indigo-200"
                                             >
                                                 <MessageSquare size={14} />
-                                                Relatório da Entrevista
+                                                Relatório
                                             </button>
                                         )}
 
@@ -632,13 +632,13 @@ export function RankingList({ candidates, vacancyUuid, vacancy, pendingCandidate
                                             <button
                                                 onClick={() => setScheduleCandidate(candidate)}
                                                 disabled={!!candidate.application?.interviewStatus && !['CANCELADA', 'RECUSADA', 'EXPIRADA'].includes(candidate.application?.interviewStatus)}
-                                                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-colors cursor-pointer
+                                                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer
                                                     ${(() => {
                                                         const status = candidate.application?.interviewStatus;
                                                         if (status === 'PENDENTE_CANDIDATO') return 'bg-amber-50 text-amber-600 border border-amber-200 cursor-not-allowed';
                                                         if (status === 'CONFIRMADA') return 'bg-green-50 text-green-600 border border-green-200 cursor-not-allowed';
                                                         if (status === 'CONCLUIDA') return 'bg-blue-50 text-blue-600 border border-blue-200 cursor-not-allowed';
-                                                        return 'bg-emerald-500 text-white hover:bg-emerald-600';
+                                                        return 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100';
                                                     })()}`}
                                             >
                                                 <CalendarPlus size={14} />
@@ -655,14 +655,13 @@ export function RankingList({ candidates, vacancyUuid, vacancy, pendingCandidate
                                                 onClick={() => handleFinalDecisionClick(candidate)}
                                                 disabled={limiteAtingido}
                                                 title={limiteAtingido ? `Limite de ${vagasDisponiveis} proposta(s) atingido` : 'Decisão Final'}
-                                                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-colors cursor-pointer
+                                                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer
                                                     ${limiteAtingido
                                                         ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
                                                         : ultimaVaga
-                                                            ? 'bg-amber-500 text-white hover:bg-amber-600'
-                                                            : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
+                                                            ? 'bg-amber-50 text-amber-600 hover:bg-amber-100'
+                                                            : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'}`}
                                             >
-                                                <Trophy size={14} />
                                                 {limiteAtingido ? 'Limite Atingido' : 'Decisão Final'}
                                             </button>
                                         </>
@@ -890,7 +889,6 @@ export function RankingList({ candidates, vacancyUuid, vacancy, pendingCandidate
                                 }}
                                 className="flex-1 px-4 py-2.5 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors cursor-pointer flex items-center justify-center gap-2"
                             >
-                                <Trophy size={16} />
                                 Entendi, Continuar
                             </button>
                         </div>

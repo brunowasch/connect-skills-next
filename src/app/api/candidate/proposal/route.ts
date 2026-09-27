@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/src/lib/prisma';
+import { sendProposalResponseToCompanyEmail } from '@/src/lib/mail';
 
 export async function POST(request: Request) {
     try {
@@ -16,13 +17,16 @@ export async function POST(request: Request) {
             include: { candidato: true }
         });
 
-        if (!user || user.tipo !== 'candidato' || !user.candidato) {
+        if (!user || user.tipo !== 'CANDIDATO' || !user.candidato) {
             return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
         }
 
         const candidatoId = user.candidato.id;
         const body = await request.json();
-        const { propostaId, action, justification } = body;
+        const { propostaId, action } = body;
+        const justification = typeof body.justification === 'string'
+            ? body.justification.trim().slice(0, 1000) || null
+            : null;
 
         if (!propostaId || !['ACEITAR', 'RECUSAR'].includes(action)) {
             return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 });
@@ -77,7 +81,7 @@ export async function POST(request: Request) {
         // Buscar dados da vaga para a notificação
         const vaga = await prisma.vaga.findUnique({
             where: { id: proposta.vaga_id },
-            select: { cargo: true }
+            select: { cargo: true, uuid: true }
         });
 
         // Buscar empresa para notificação
@@ -109,6 +113,23 @@ export async function POST(request: Request) {
                     })
                 }
             });
+        }
+
+        if (empresa?.usuario?.email) {
+            try {
+                const vacancyLink = `${process.env.APP_URL}/company/vacancies/${vaga?.uuid || proposta.vaga_id}/ranking`;
+                await sendProposalResponseToCompanyEmail(
+                    empresa.usuario.email,
+                    empresa.nome_empresa,
+                    candidateName,
+                    vagaCargo,
+                    action === 'ACEITAR',
+                    vacancyLink,
+                    justification
+                );
+            } catch (emailErr) {
+                console.error('Warning: failed to send proposal response email to company:', emailErr);
+            }
         }
 
         return NextResponse.json({ success: true, status: newStatus });

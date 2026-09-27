@@ -17,7 +17,7 @@ export async function POST(req: Request) {
             select: { tipo: true, empresa: { select: { id: true } } }
         });
 
-        if (!user || user.tipo !== 'empresa') {
+        if (!user || user.tipo !== 'EMPRESA') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 

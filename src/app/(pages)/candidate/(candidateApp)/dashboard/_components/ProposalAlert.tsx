@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Sparkles, CheckCircle2, XCircle, Clock, ArrowRight, Building2 } from "lucide-react";
+import { Handshake, CheckCircle2, XCircle, Clock, ArrowRight, Building2 } from "lucide-react";
 
 interface Proposta {
     id: string;
@@ -51,14 +51,11 @@ export function ProposalAlert({ propostas }: ProposalAlertProps) {
     const outras = propostas.filter(p => p.status !== "PENDENTE_CANDIDATO");
 
     return (
-        <div className="w-full px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto mt-6">
+        <div className="w-full mt-6">
             {/* Alerta de pendentes */}
             {pendentes.length > 0 && (
                 <div className="mb-4 rounded-2xl border border-indigo-200 bg-gradient-to-r from-indigo-50 to-violet-50 p-5 shadow-sm">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center shrink-0">
-                            <Sparkles size={20} className="text-indigo-600" />
-                        </div>
                         <div>
                             <h3 className="font-bold text-indigo-900 text-base">
                                 {pendentes.length === 1
@@ -107,7 +104,7 @@ export function ProposalAlert({ propostas }: ProposalAlertProps) {
             {outras.length > 0 && (
                 <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                     <h3 className="font-bold text-slate-700 text-sm mb-3 flex items-center gap-2">
-                        <Sparkles size={16} className="text-slate-400" />
+                        <Handshake size={16} className="text-slate-400" />
                         Histórico de Propostas
                     </h3>
                     <div className="space-y-2">

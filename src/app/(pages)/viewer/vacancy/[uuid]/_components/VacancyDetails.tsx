@@ -154,6 +154,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
     const [isUploading, setIsUploading] = useState(false);
     const [isRecordingMode, setIsRecordingMode] = useState(false);
     const [isProcessingProposal, setIsProcessingProposal] = useState(false);
+    const proposalJustificationRef = useRef('');
     const isApplyingRef = useRef(false);
 
     useEffect(() => {
@@ -673,12 +674,29 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
     };
 
     const handleProposalDecision = async (action: 'ACEITAR' | 'RECUSAR') => {
+        proposalJustificationRef.current = '';
         setModal({
             isOpen: true,
             title: action === 'ACEITAR' ? 'Aceitar Proposta' : 'Recusar Proposta',
             description: action === 'ACEITAR'
                 ? 'Deseja realmente aceitar esta proposta de emprego? A empresa será notificada da sua decisão e entrará em contato para os próximos passos.'
-                : 'Deseja realmente recusar esta proposta? Esta ação não pode ser desfeita.',
+                : (
+                    <>
+                        Deseja realmente recusar esta proposta? Esta ação não pode ser desfeita.
+                        <span className="block mt-4">
+                            <span className="block text-sm font-medium text-slate-700 mb-1.5">
+                                Motivo da recusa <span className="font-normal text-slate-400">(opcional)</span>
+                            </span>
+                            <textarea
+                                rows={4}
+                                maxLength={1000}
+                                onChange={(e) => { proposalJustificationRef.current = e.target.value; }}
+                                placeholder="Conte à empresa por que você está recusando a proposta..."
+                                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-300 resize-none"
+                            />
+                        </span>
+                    </>
+                ),
             confirmText: action === 'ACEITAR' ? 'Sim, Aceitar Proposta' : 'Sim, Recusar',
             variant: action === 'ACEITAR' ? 'success' : 'danger',
             onConfirm: async () => {
@@ -688,7 +706,11 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                     const res = await fetch('/api/candidate/proposal', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ propostaId: applicationProposta.id, action })
+                        body: JSON.stringify({
+                            propostaId: applicationProposta.id,
+                            action,
+                            justification: action === 'RECUSAR' ? proposalJustificationRef.current.trim() || undefined : undefined
+                        })
                     });
 
                     if (!res.ok) {
@@ -894,7 +916,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                                     <button
                                         onClick={() => handleProposalDecision('ACEITAR')}
                                         disabled={isProcessingProposal}
-                                        className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-xl transition-all shadow-md shadow-indigo-200 active:scale-95 disabled:opacity-50 disabled:active:scale-100 cursor-pointer"
+                                        className="flex-1 bg-white hover:bg-emerald-50 text-emerald-600 font-semibold py-3 px-6 rounded-xl border border-emerald-200 transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100 cursor-pointer"
                                     >
                                         Aceitar Proposta
                                     </button>
