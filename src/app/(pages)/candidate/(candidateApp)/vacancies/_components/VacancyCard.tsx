@@ -152,7 +152,7 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
                         <span>{vinculoMap[vaga.vinculo_empregaticio || '']}</span>
                     </div>
 
-                    {(vaga.feedbackStatus || vaga.videoStatus || vaga.isDraft) && (
+                    {(vaga.feedbackStatus || vaga.videoStatus || vaga.isDraft || vaga.propostaStatus) && (
                         <div className="flex flex-wrap gap-2 mt-1">
                             {vaga.feedbackStatus === 'APPROVED' && (
                                 <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[9px] sm:text-[10px] font-bold text-emerald-600 shadow-sm">
@@ -182,6 +182,24 @@ export function VacancyCard({ vaga }: { vaga: Vacancy }) {
                                 <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-green-50 border border-green-200 text-[9px] sm:text-[10px] font-bold text-green-600 shadow-sm">
                                     <Check size={10} className="mr-1" />
                                     {t("video_submitted")}
+                                </span>
+                            )}
+                            {vaga.propostaStatus === 'PENDENTE_CANDIDATO' && (
+                                <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-[9px] sm:text-[10px] font-bold text-indigo-600 shadow-sm">
+                                    <Star size={10} className="mr-1" />
+                                    Proposta Recebida
+                                </span>
+                            )}
+                            {vaga.propostaStatus === 'ACEITA' && (
+                                <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[9px] sm:text-[10px] font-bold text-emerald-600 shadow-sm">
+                                    <CheckCircle size={10} className="mr-1" />
+                                    Proposta Aceita
+                                </span>
+                            )}
+                            {vaga.propostaStatus === 'RECUSADA' && (
+                                <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-[9px] sm:text-[10px] font-bold text-rose-600 shadow-sm">
+                                    <XCircle size={10} className="mr-1" />
+                                    Proposta Recusada
                                 </span>
                             )}
                         </div>
