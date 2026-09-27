@@ -121,6 +121,7 @@
     "google_select_type_candidate_desc": "Quero encontrar vagas e oportunidades.",
     "google_select_type_company_desc": "Quero publicar vagas e contratar talentos.",
     "register_error_password_mismatch": "As senhas não coincidem.",
+    "register_error_password_requirements": "A senha não atende aos requisitos.",
     "password_min_length": "Mínimo de 8 caracteres",
     "password_uppercase": "Pelo menos uma letra maiúscula",
     "password_lowercase": "Pelo menos uma letra minúscula",

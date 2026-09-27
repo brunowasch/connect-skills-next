@@ -243,6 +243,7 @@ export function RegisterCard() {
                             {t("register_candidate")}
                         </button>
                         <button
+                            id="companyButton"
                             type="button"
                             onClick={() => setTipo("EMPRESA")}
                             className={`flex-1 py-2 rounded-lg border transition-colors cursor-pointer ${tipo === "EMPRESA"
@@ -253,6 +254,7 @@ export function RegisterCard() {
                             {t("register_company")}
                         </button>
                         <button
+                            id="mentorButton"
                             type="button"
                             onClick={() => setTipo("MENTOR")}
                             className={`flex-1 py-2 rounded-lg border transition-colors cursor-pointer ${tipo === "MENTOR"
@@ -281,6 +283,7 @@ export function RegisterCard() {
                     <label className="block text-gray-700 mb-2">{t("register_password")}</label>
                     <div className="relative">
                         <input
+                            id="password"
                             type={showPassword ? "text" : "password"}
                             value={senha}
                             onChange={(e) => setSenha(e.target.value)}
@@ -329,6 +332,7 @@ export function RegisterCard() {
                     <label className="block text-gray-700 mb-2">{t("password_confirm")}</label>
                     <div className="relative">
                         <input
+                            id="confirmPassword"
                             type={showConfirmPassword ? "text" : "password"}
                             value={confirmSenha}
                             onChange={(e) => setConfirmSenha(e.target.value)}
