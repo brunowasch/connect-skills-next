@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
 import { Hero, KPI, RecommendedVacancies, ApplicationHistory, ProfileCompletion, DashboardHeader, VideoRequests, DraftApplications, InterviewRequests } from "@/src/app/(pages)/candidate/(candidateApp)/dashboard/_components/index";
 import { parseSessionValue } from "@/src/lib/session";
+import { ProposalAlert } from "@/src/app/(pages)/candidate/(candidateApp)/dashboard/_components/ProposalAlert";
 
 export default async function Dashboard() {
     const cookieStore = await cookies();
@@ -127,7 +128,7 @@ export default async function Dashboard() {
                     moeda: true,
                     empresa_id: true,
                 },
-                take: 3 
+                take: 3
             });
 
             // Buscar dados das empresas
@@ -213,7 +214,7 @@ export default async function Dashboard() {
     let appliedVacancies: any[] = [];
     let appliedVagas: any[] = [];
     let appliedEmpresas: any[] = [];
-    
+
     if (appliedVacanciesData.length > 0) {
         const appliedVagasIds = appliedVacanciesData.map((av: any) => av.vaga_id);
 
@@ -367,6 +368,38 @@ export default async function Dashboard() {
         }
     });
 
+    const propostasRaw = await (prisma as any).proposta.findMany({
+        where: { candidato_id: candidateComplete.id },
+        orderBy: { criado_em: 'desc' }
+    });
+
+    const propostasComVaga = await Promise.all(propostasRaw.map(async (proposta: any) => {
+        const vaga = await prisma.vaga.findUnique({
+            where: { id: proposta.vaga_id },
+            select: { cargo: true, uuid: true, empresa_id: true }
+        });
+        let empresa = null;
+        if (vaga?.empresa_id) {
+            empresa = await prisma.empresa.findUnique({
+                where: { id: vaga.empresa_id },
+                select: { nome_empresa: true, foto_perfil: true }
+            });
+        }
+        return {
+            id: proposta.id,
+            vaga_uuid: vaga?.uuid || proposta.vaga_id,
+            cargo: vaga?.cargo || 'Vaga',
+            empresa_nome: empresa?.nome_empresa || 'Empresa',
+            empresa_foto: empresa?.foto_perfil || null,
+            status: proposta.status,
+            salario: proposta.salario ? Number(proposta.salario) : null,
+            moeda: proposta.moeda || null,
+            data_inicio: proposta.data_inicio || null,
+            criado_em: proposta.criado_em?.toISOString() || new Date().toISOString(),
+        };
+    }));
+
+
     const mentorshipRequests = await Promise.all(pendingInterviews.map(async (interview: any) => {
         const vaga = interview.vaga_id
             ? await prisma.vaga.findUnique({
@@ -473,6 +506,7 @@ export default async function Dashboard() {
                 appliedVacanciesCount={appliedVacanciesCount}
                 areas={areas}
             />
+            <ProposalAlert propostas={propostasComVaga} />
             <VideoRequests requests={videoRequests} />
             <InterviewRequests requests={allInterviewRequests} />
 

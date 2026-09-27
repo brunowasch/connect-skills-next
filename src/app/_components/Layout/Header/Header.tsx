@@ -23,9 +23,6 @@ export function Header() {
         </Link>
         <div className="flex items-center gap-4 sm:gap-6">
           <LanguageSwitcher />
-          <Link href="/login" className="bg-primary text-white hover:opacity-90 transition px-4 py-2 rounded-lg">
-            {t("btn_login")}
-          </Link>
         </div>
       </div>
     </nav>

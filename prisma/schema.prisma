@@ -427,3 +427,23 @@ model entrevista_presencial {
   @@index([empresa_id])
   @@index([vaga_id])
 }
+
+model proposta {
+  id              String   @id @default(uuid())
+  vaga_id         String
+  candidato_id    String
+  empresa_id      String
+  status          String   @default("PENDENTE_CANDIDATO") @db.VarChar(30) // PENDENTE_CANDIDATO, ACEITA, RECUSADA
+  salario         Decimal? @db.Decimal(10, 2)
+  moeda           String?  @db.VarChar(5)
+  data_inicio     String?  @db.VarChar(10)
+  modelo_trabalho String?  @db.VarChar(50)
+  localizacao     String?  @db.VarChar(255)
+  mensagem        String?  @db.Text
+  criado_em       DateTime @default(now())
+  atualizado_em   DateTime @updatedAt
+  
+  @@index([candidato_id])
+  @@index([empresa_id])
+  @@index([vaga_id])
+}

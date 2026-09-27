@@ -124,6 +124,7 @@ export default async function VacancyDetailsPage({ params, searchParams }: { par
     let isDraft = false;
     let applicationResponses: any = null;
     let applicationBreakdown: any = null;
+    let applicationProposta: any = null;
     if (userId && userType?.toUpperCase() === 'CANDIDATO') {
         const candidate = await prisma.candidato.findUnique({
             where: { usuario_id: userId },
@@ -157,6 +158,16 @@ export default async function VacancyDetailsPage({ params, searchParams }: { par
                 } catch (e) { 
                     // ignore
                 }
+            }
+            
+            const proposta = await (prisma as any).proposta.findFirst({
+                where: {
+                    vaga_id: vacancy.id,
+                    candidato_id: candidate.id
+                }
+            });
+            if (proposta) {
+                applicationProposta = proposta;
             }
         }
     }
@@ -192,6 +203,7 @@ export default async function VacancyDetailsPage({ params, searchParams }: { par
             hasApplied={hasApplied}
             applicationResponses={applicationResponses}
             applicationBreakdown={applicationBreakdown}
+            applicationProposta={applicationProposta}
             isDraft={isDraft}
         />
     );

@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Mail, FileText, Brain, User, ExternalLink, Video, MessageSquare, AlertTriangle, Play, CalendarPlus } from "lucide-react";
+import { Mail, FileText, Brain, User, ExternalLink, Video, MessageSquare, AlertTriangle, Play, CalendarPlus, Trophy, CheckCircle2, XCircle } from "lucide-react";
 import { AnswersModal } from "./AnswersModal";
 import { AnalysisModal } from "./AnalysisModal";
 import { VideoAnalysisModal } from "../../candidates/_components/VideoAnalysisModal";
 import { FeedbackModal } from "./FeedbackModal";
 import { ScheduleInterviewModal } from "./ScheduleInterviewModal";
 import { ViewMentorFeedbackModal } from "./ViewMentorFeedbackModal";
+import { FinalDecisionModal, ProposalData } from "./FinalDecisionModal";
 import { useTranslation } from "react-i18next";
 import { requestVideo, submitFeedback } from "../../../actions";
 import { useRouter } from "next/navigation";
@@ -59,17 +60,26 @@ interface Candidate {
 interface RankingListProps {
     candidates: Candidate[];
     vacancyUuid: string;
-    vacancyId?: string;
-    vacancyTitle?: string;
+    vacancy?: {
+        id?: string;
+        cargo: string;
+        salario?: number | null;
+        moeda?: string | null;
+        tipo_local_trabalho?: string | null;
+        cidade?: string | null;
+        estado?: string | null;
+    } | null;
     pendingCandidateId?: string;
+    vagasDisponiveis?: number | null;
+    propostasEnviadas?: number;
 }
 
 type SortOption = 'score' | 'score_D' | 'score_I' | 'score_S' | 'score_C';
 
-export function RankingList({ candidates, vacancyUuid, vacancyId, vacancyTitle, pendingCandidateId }: RankingListProps) {
+export function RankingList({ candidates, vacancyUuid, vacancy, pendingCandidateId, vagasDisponiveis, propostasEnviadas = 0 }: RankingListProps) {
     const { t } = useTranslation();
     const [sortBy, setSortBy] = useState<SortOption>('score');
-    const [filter, setFilter] = useState<'all' | 'approved' | 'rejected'>('all');
+    const [filter, setFilter] = useState<'all' | 'approved' | 'rejected' | 'final_decision'>('all');
     const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null);
     const [showAnswers, setShowAnswers] = useState(false);
     const [showAnalysis, setShowAnalysis] = useState(false);
@@ -80,12 +90,21 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, vacancyTitle, 
     const [videoRequestCandidate, setVideoRequestCandidate] = useState<string | null>(null);
     const [scheduleCandidate, setScheduleCandidate] = useState<Candidate | null>(null);
     const [viewMentorFeedbackCandidate, setViewMentorFeedbackCandidate] = useState<string | null>(null);
+    const [showFinalDecision, setShowFinalDecision] = useState(false);
+    const [finalDecisionCandidate, setFinalDecisionCandidate] = useState<Candidate | null>(null);
+    const [showLastSlotWarning, setShowLastSlotWarning] = useState(false);
+    const [pendingFinalDecisionCandidate, setPendingFinalDecisionCandidate] = useState<Candidate | null>(null);
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
 
+    // Calcular slots restantes
+    const slotsRestantes = vagasDisponiveis != null ? vagasDisponiveis - propostasEnviadas : null;
+    const limiteAtingido = slotsRestantes != null && slotsRestantes <= 0;
+    const ultimaVaga = slotsRestantes === 1;
+
     // Parse breakdown to extract DISC scores
     const parseBreakdown = (breakdown: string | null | undefined) => {
-        if (!breakdown) return { D: 0, I: 0, S: 0, C: 0, video: null, suggestions: null, videoAnalysis: null };
+        if (!breakdown) return { D: 0, I: 0, S: 0, C: 0, video: null, suggestions: null, feedback: null as any, videoAnalysis: null, finalDecision: null as any };
 
         try {
             const parsed = JSON.parse(breakdown);
@@ -97,10 +116,11 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, vacancyTitle, 
                 video: parsed.video,
                 suggestions: parsed.suggestions,
                 feedback: parsed.feedback,
-                videoAnalysis: parsed.videoAnalysis
+                videoAnalysis: parsed.videoAnalysis,
+                finalDecision: parsed.finalDecision
             };
         } catch {
-            return { D: 0, I: 0, S: 0, C: 0, video: null, suggestions: null, videoAnalysis: null };
+            return { D: 0, I: 0, S: 0, C: 0, video: null, suggestions: null, feedback: null as any, videoAnalysis: null, finalDecision: null as any };
         }
     };
 
@@ -129,6 +149,10 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, vacancyTitle, 
     const filteredCandidates = candidates.filter(candidate => {
         const breakdown = parseBreakdown(candidate.application?.breakdown);
         const status = breakdown.feedback?.status;
+        const finalStatus = breakdown.finalDecision?.status;
+
+        if (filter === 'final_decision') return !!finalStatus;
+        if (finalStatus) return false;
 
         if (filter === 'approved') return status === 'APPROVED';
         if (filter === 'rejected') return status === 'REJECTED';
@@ -180,6 +204,46 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, vacancyTitle, 
             window.location.replace(`/company/vacancies/${vacancyUuid}/ranking`);
         } else {
             router.refresh();
+        }
+    };
+
+    const handleFinalDecisionClick = (candidate: Candidate) => {
+        if (limiteAtingido) return;
+        if (ultimaVaga) {
+            setPendingFinalDecisionCandidate(candidate);
+            setShowLastSlotWarning(true);
+        } else {
+            setFinalDecisionCandidate(candidate);
+            setShowFinalDecision(true);
+        }
+    };
+
+    const handleFinalDecisionSubmit = async (data: ProposalData) => {
+        if (!finalDecisionCandidate) return;
+
+        try {
+            const res = await fetch('/api/company/proposal', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    candidato_id: finalDecisionCandidate.id,
+                    vaga_id: vacancy?.id,
+                    vaga_uuid: vacancyUuid,
+                    ...data
+                })
+            });
+
+            const json = await res.json();
+            if (json.success) {
+                setShowFinalDecision(false);
+                setFinalDecisionCandidate(null);
+                toast.success('Decisão final registrada com sucesso!');
+                router.refresh();
+            } else {
+                throw new Error(json.error || "Erro ao salvar a decisão.");
+            }
+        } catch (e) {
+            throw e;
         }
     };
 
@@ -244,6 +308,32 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, vacancyTitle, 
             )}
 
             <div className="flex flex-col gap-4 mb-6">
+                {/* Indicador de vagas disponíveis — só exibe se há candidatos aprovados aguardando decisão */}
+                {vagasDisponiveis != null && (() => {
+                    const candidatosAprovadosSemDecisao = candidates.some(c => {
+                        const bd = parseBreakdown(c.application?.breakdown);
+                        return bd.feedback?.status === 'APPROVED' && !bd.finalDecision?.status;
+                    });
+                    if (!candidatosAprovadosSemDecisao && !limiteAtingido) return null;
+                    return (
+                        <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-medium
+                            ${limiteAtingido
+                                ? 'bg-red-50 border-red-200 text-red-700'
+                                : ultimaVaga
+                                    ? 'bg-amber-50 border-amber-200 text-amber-700'
+                                    : 'bg-blue-50 border-blue-100 text-blue-700'}`}>
+                            <Trophy size={16} className="shrink-0" />
+                            <span>
+                                {limiteAtingido
+                                    ? `Limite de propostas atingido. Você enviou ${propostasEnviadas} de ${vagasDisponiveis} proposta(s) permitida(s).`
+                                    : ultimaVaga
+                                        ? `Última vaga disponível! ${propostasEnviadas} de ${vagasDisponiveis} proposta(s) enviada(s).`
+                                        : `${propostasEnviadas} de ${vagasDisponiveis} proposta(s) enviada(s). Ainda há ${slotsRestantes} vaga(s) disponível(eis).`}
+                            </span>
+                        </div>
+                    );
+                })()}
+
                 {/* Header Controls */}
                 <div className="flex justify-between items-center bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-xl border border-blue-100">
                     <div className="flex items-center gap-3">
@@ -301,6 +391,15 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, vacancyTitle, 
                             }`}
                     >
                         {t('ranking_filter_rejected', 'Reprovados')}
+                    </button>
+                    <button
+                        onClick={() => setFilter('final_decision')}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer border-l border-gray-200 ml-2 pl-6 ${filter === 'final_decision'
+                            ? 'bg-white text-indigo-600 shadow-sm font-bold'
+                            : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                    >
+                        Contratados / Recusados
                     </button>
                 </div>
             </div>
@@ -451,7 +550,7 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, vacancyTitle, 
                                             className="flex items-center gap-1 px-3 py-1.5 bg-gray-50 text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-100 transition-colors cursor-pointer border border-gray-200"
                                         >
                                             <ExternalLink size={14} />
-                                            {t('vacancy_view_public_profile')}
+                                            {t('ranking_public_profile_short', 'Perfil')}
                                         </a>
                                     )}
                                     <button
@@ -459,7 +558,7 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, vacancyTitle, 
                                         className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium hover:bg-blue-100 transition-colors cursor-pointer"
                                     >
                                         <FileText size={14} />
-                                        {t('ranking_view_answers')}
+                                        {t('ranking_view_answers_short', 'Respostas')}
                                     </button>
                                     <button
                                         onClick={() => handleShowAnalysis(candidate.id)}
@@ -468,17 +567,17 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, vacancyTitle, 
                                         <Brain size={14} />
                                         {t('ranking_ai_analysis')}
                                     </button>
-                                    
+
                                     {(candidate.application?.mentorFeedback?.enviado_em ||
                                         candidate.application?.mentorFeedback?.falta_marcada_pelo_mentor === true) && (
-                                        <button
-                                            onClick={() => setViewMentorFeedbackCandidate(candidate.id)}
-                                            className="flex items-center gap-1 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-medium hover:bg-indigo-100 transition-colors cursor-pointer border border-indigo-200"
-                                        >
-                                            <MessageSquare size={14} />
-                                            Relatório da Entrevista
-                                        </button>
-                                    )}
+                                            <button
+                                                onClick={() => setViewMentorFeedbackCandidate(candidate.id)}
+                                                className="flex items-center gap-1 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-medium hover:bg-indigo-100 transition-colors cursor-pointer border border-indigo-200"
+                                            >
+                                                <MessageSquare size={14} />
+                                                Relatório
+                                            </button>
+                                        )}
 
                                     {(() => {
                                         const status = breakdown?.video?.status;
@@ -514,28 +613,58 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, vacancyTitle, 
 
                                     {renderFeedbackButton(candidate, breakdown)}
 
-                                    {breakdown?.feedback?.status === 'APPROVED' && (
-                                        <button
-                                            onClick={() => setScheduleCandidate(candidate)}
-                                            disabled={!!candidate.application?.interviewStatus && !['CANCELADA', 'RECUSADA', 'EXPIRADA'].includes(candidate.application?.interviewStatus)}
-                                            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-colors cursor-pointer
-                                                ${(() => {
+                                    {breakdown?.finalDecision?.status ? (
+                                        <div className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold border cursor-default
+                                            ${breakdown.finalDecision.status === 'APPROVED' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                                breakdown.finalDecision.status === 'ACEITA' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                                    breakdown.finalDecision.status === 'RECUSADA' ? 'bg-red-50 text-red-700 border-red-200' :
+                                                        'bg-rose-50 text-rose-700 border-rose-200'}`}>
+                                            {breakdown.finalDecision.status === 'ACEITA' ? <CheckCircle2 size={14} /> :
+                                                breakdown.finalDecision.status === 'RECUSADA' || breakdown.finalDecision.status === 'REJECTED' ? <XCircle size={14} /> :
+                                                    <AlertTriangle size={14} />}
+                                            {breakdown.finalDecision.status === 'APPROVED' ? 'Pendente (Aguardando Candidato)' :
+                                                breakdown.finalDecision.status === 'ACEITA' ? 'Contratado' :
+                                                    breakdown.finalDecision.status === 'RECUSADA' ? 'Proposta Recusada' :
+                                                        'Não Selecionado'}
+                                        </div>
+                                    ) : breakdown?.feedback?.status === 'APPROVED' && (
+                                        <>
+                                            <button
+                                                onClick={() => setScheduleCandidate(candidate)}
+                                                disabled={!!candidate.application?.interviewStatus && !['CANCELADA', 'RECUSADA', 'EXPIRADA'].includes(candidate.application?.interviewStatus)}
+                                                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer
+                                                    ${(() => {
+                                                        const status = candidate.application?.interviewStatus;
+                                                        if (status === 'PENDENTE_CANDIDATO') return 'bg-amber-50 text-amber-600 border border-amber-200 cursor-not-allowed';
+                                                        if (status === 'CONFIRMADA') return 'bg-green-50 text-green-600 border border-green-200 cursor-not-allowed';
+                                                        if (status === 'CONCLUIDA') return 'bg-blue-50 text-blue-600 border border-blue-200 cursor-not-allowed';
+                                                        return 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100';
+                                                    })()}`}
+                                            >
+                                                <CalendarPlus size={14} />
+                                                {(() => {
                                                     const status = candidate.application?.interviewStatus;
-                                                    if (status === 'PENDENTE_CANDIDATO') return 'bg-amber-50 text-amber-600 border border-amber-200 cursor-not-allowed';
-                                                    if (status === 'CONFIRMADA') return 'bg-green-50 text-green-600 border border-green-200 cursor-not-allowed';
-                                                    if (status === 'CONCLUIDA') return 'bg-blue-50 text-blue-600 border border-blue-200 cursor-not-allowed';
-                                                    return 'bg-emerald-500 text-white hover:bg-emerald-600';
-                                                })()}`}
-                                        >
-                                            <CalendarPlus size={14} />
-                                            {(() => {
-                                                const status = candidate.application?.interviewStatus;
-                                                if (status === 'PENDENTE_CANDIDATO') return t('interview_status_requested', 'Solicitada');
-                                                if (status === 'CONFIRMADA') return t('interview_status_confirmed', 'Aceita');
-                                                if (status === 'CONCLUIDA') return t('interview_status_completed', 'Concluída');
-                                                return t('schedule_interview_btn', 'Agendar Entrevista');
-                                            })()}
-                                        </button>
+                                                    if (status === 'PENDENTE_CANDIDATO') return t('interview_status_requested', 'Solicitada');
+                                                    if (status === 'CONFIRMADA') return t('interview_status_confirmed', 'Aceita');
+                                                    if (status === 'CONCLUIDA') return t('interview_status_completed', 'Concluída');
+                                                    return t('schedule_interview_btn', 'Agendar Entrevista');
+                                                })()}
+                                            </button>
+
+                                            <button
+                                                onClick={() => handleFinalDecisionClick(candidate)}
+                                                disabled={limiteAtingido}
+                                                title={limiteAtingido ? `Limite de ${vagasDisponiveis} proposta(s) atingido` : 'Decisão Final'}
+                                                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer
+                                                    ${limiteAtingido
+                                                        ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
+                                                        : ultimaVaga
+                                                            ? 'bg-amber-50 text-amber-600 hover:bg-amber-100'
+                                                            : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'}`}
+                                            >
+                                                {limiteAtingido ? 'Limite Atingido' : 'Decisão Final'}
+                                            </button>
+                                        </>
                                     )}
                                 </div>
                             </div>
@@ -629,7 +758,7 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, vacancyTitle, 
                             videoUrl={selectedVideoUrl || ""}
                             candidateId={selectedCandidate}
                             vacancyUuid={vacancyUuid}
-                            vacancyId={vacancyId}
+                            vacancyId={vacancy?.id || ""}
                             showFeedbackButton={(() => {
                                 const candidate = sortedCandidates.find(c => c.id === selectedCandidate);
                                 const breakdown = parseBreakdown(candidate?.application?.breakdown);
@@ -644,7 +773,7 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, vacancyTitle, 
                     </>
                 )
             }
-            
+
             <ViewMentorFeedbackModal
                 isOpen={viewMentorFeedbackCandidate !== null}
                 onClose={() => setViewMentorFeedbackCandidate(null)}
@@ -707,9 +836,64 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, vacancyTitle, 
                     onClose={() => setScheduleCandidate(null)}
                     candidateId={scheduleCandidate.id}
                     candidateName={`${scheduleCandidate.nome || ''} ${scheduleCandidate.sobrenome || ''}`.trim()}
-                    vacancyId={vacancyId || ''}
-                    vacancyTitle={vacancyTitle || ''}
+                    vacancyId={vacancy?.id || ''}
+                    vacancyTitle={vacancy?.cargo || ''}
                 />
+            )}
+
+            {finalDecisionCandidate && (
+                <FinalDecisionModal
+                    isOpen={showFinalDecision}
+                    onClose={() => {
+                        setShowFinalDecision(false);
+                        setFinalDecisionCandidate(null);
+                    }}
+                    candidateId={finalDecisionCandidate.id}
+                    candidateName={`${finalDecisionCandidate.nome || ''} ${finalDecisionCandidate.sobrenome || ''}`.trim()}
+                    vacancyId={vacancy?.id || ''}
+                    vacancyTitle={vacancy?.cargo || ''}
+                    vacancyDetails={vacancy}
+                    onSubmit={handleFinalDecisionSubmit}
+                />
+            )}
+
+            {showLastSlotWarning && pendingFinalDecisionCandidate && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in-95 duration-200">
+                        <div className="w-14 h-14 bg-amber-50 border border-amber-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <AlertTriangle size={28} className="text-amber-500" />
+                        </div>
+                        <h3 className="text-xl font-bold text-slate-900 text-center mb-2">Atenção: Última vaga disponível!</h3>
+                        <p className="text-slate-600 text-center text-sm mb-2 leading-relaxed">
+                            Esta é a <strong>última proposta</strong> que você pode enviar para esta vaga.
+                        </p>
+                        <p className="text-slate-500 text-center text-sm mb-6 leading-relaxed">
+                            Após enviar esta proposta para <strong>{`${pendingFinalDecisionCandidate.nome || ''} ${pendingFinalDecisionCandidate.sobrenome || ''}`.trim()}</strong>, o botão de Decisão Final será bloqueado para os demais candidatos.
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => {
+                                    setShowLastSlotWarning(false);
+                                    setPendingFinalDecisionCandidate(null);
+                                }}
+                                className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-colors cursor-pointer"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setShowLastSlotWarning(false);
+                                    setFinalDecisionCandidate(pendingFinalDecisionCandidate);
+                                    setPendingFinalDecisionCandidate(null);
+                                    setShowFinalDecision(true);
+                                }}
+                                className="flex-1 px-4 py-2.5 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors cursor-pointer flex items-center justify-center gap-2"
+                            >
+                                Entendi, Continuar
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </>
     );
