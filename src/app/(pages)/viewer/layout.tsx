@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { PublicProfileBanner } from "./_components/PublicProfileBanner";
+import { parseSessionValue } from "@/src/lib/session";
 
 export default async function ViewerLayout({
     children,
@@ -7,7 +8,7 @@ export default async function ViewerLayout({
     children: React.ReactNode;
 }) {
     const cookieStore = await cookies();
-    const isLoggedIn = !!cookieStore.get("time_user_id");
+    const isLoggedIn = !!parseSessionValue(parseSessionValue(cookieStore.get("time_user_id")?.value));
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col">

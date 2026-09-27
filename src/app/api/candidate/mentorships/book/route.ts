@@ -2,13 +2,14 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
 import { randomUUID } from "crypto";
-import { syncUserWithMentorConnect } from "@/src/lib/mentorconnect-sync";
+import { syncUserWithMentorConnect, createMentorConnectMeeting } from "@/src/lib/mentorconnect-sync";
+import { parseSessionValue } from "@/src/lib/session";
 
 
 export async function POST(req: Request) {
     try {
         const cookieStore = await cookies();
-        const userId = cookieStore.get("time_user_id")?.value;
+        const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
         if (!userId) {
             return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
@@ -61,30 +62,20 @@ export async function POST(req: Request) {
         }
 
         // Generate meeting link
-        let linkReuniao = null;
+        let linkReuniao: string | null = null;
         if (process.env.MENTORCONNECT_URL) {
-            try {
-                // Ensure the mentor is synced in mentorship-connections before creating the meeting
-                // This prevents 404 if the mentor hasn't been synced yet
-                await syncUserWithMentorConnect(mentor.usuario_id);
+            // Ensure the mentor is synced in mentorship-connections before creating the meeting
+            // This prevents 404 if the mentor hasn't been synced yet
+            await syncUserWithMentorConnect(mentor.usuario_id);
 
-                const reqMc = await fetch(`${process.env.MENTORCONNECT_URL}/api/meetings`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        usuario_id: mentor.usuario_id,
-                        titulo: `Mentoria: ${candidato.nome || "Candidato"} ${candidato.sobrenome || ""} - ${mentor.nome || "Mentor"} ${mentor.sobrenome || ""}`.trim()
-                    })
-                });
+            linkReuniao = await createMentorConnectMeeting({
+                usuarioId: mentor.usuario_id,
+                titulo: `Mentoria: ${candidato.nome || "Candidato"} ${candidato.sobrenome || ""} - ${mentor.nome || "Mentor"} ${mentor.sobrenome || ""}`.trim()
+            });
 
-                if (reqMc.ok) {
-                    const data = await reqMc.json();
-                    linkReuniao = data.link || null;
-                } else {
-                    console.error("Falha ao gerar reunião no MC:", await reqMc.text());
-                }
-            } catch (err) {
-                console.error("Erro na comunicação com MENTORCONNECT_URL:", err);
+            // Alerta operacional: MentorConnect está configurado mas o link não foi gerado.
+            if (!linkReuniao) {
+                console.error(`[mentorship book] Mentoria agendada para o candidato ${candidato.id}, mas o link de reunião não pôde ser gerado.`);
             }
         }
 

@@ -2,10 +2,11 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
 import { EditSpecialties } from "@/src/app/(pages)/mentor/(mentorApp)/edit/area/_components/EditSpecialties";
+import { parseSessionValue } from "@/src/lib/session";
 
 export default async function EditMentorSpecialtiesPage() {
     const cookieStore = await cookies();
-    const userId = cookieStore.get("time_user_id")?.value;
+    const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
     if (!userId) {
         redirect("/login");

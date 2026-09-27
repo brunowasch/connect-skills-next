@@ -2,11 +2,12 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
 import { syncUserWithMentorConnect } from "@/src/lib/mentorconnect-sync";
+import { parseSessionValue } from "@/src/lib/session";
 
 export async function GET() {
     try {
         const cookieStore = await cookies();
-        const userId = cookieStore.get("time_user_id")?.value;
+        const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
         if (!userId) {
             return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
@@ -39,7 +40,7 @@ export async function GET() {
 export async function PUT(req: Request) {
     try {
         const cookieStore = await cookies();
-        const userId = cookieStore.get("time_user_id")?.value;
+        const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
         if (!userId) {
             return NextResponse.json({ error: "Não autorizado" }, { status: 401 });

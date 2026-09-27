@@ -2,12 +2,13 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
 import { MentorshipsClient } from "./_components/MentorshipsClient";
+import { parseSessionValue } from "@/src/lib/session";
 
 export const dynamic = "force-dynamic";
 
 export default async function CandidateMentorshipsPage() {
     const cookieStore = await cookies();
-    const userId = cookieStore.get("time_user_id")?.value;
+    const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
     if (!userId) {
         redirect("/login");

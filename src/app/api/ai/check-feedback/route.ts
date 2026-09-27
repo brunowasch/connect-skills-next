@@ -1,7 +1,13 @@
 import { NextResponse } from 'next/server';
+import { getSessionUserId } from '@/src/lib/session';
 
 export async function POST(request: Request) {
     try {
+        const userId = await getSessionUserId();
+        if (!userId) {
+            return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+        }
+
         const { profile, feedback, language } = await request.json();
 
         if (!profile || !feedback) {

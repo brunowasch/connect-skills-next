@@ -77,14 +77,8 @@ export function RegisterCompany({ initialName = "" }: { initialName?: string }) 
                 if (originCookie === "mentorconnect") {
                     // Limpar cookie de origin
                     document.cookie = "register_origin=; max-age=0; path=/";
-                    // Buscar o userId para o callback
-                    const meRes = await fetch("/api/auth/me");
-                    if (meRes.ok) {
-                        const meData = await meRes.json();
-                        const mentorconnectUrl = process.env.NEXT_PUBLIC_MENTORCONNECT_URL || "http://localhost:3001";
-                        window.location.href = `${mentorconnectUrl}/api/auth/social-callback?userId=${meData.id}`;
-                        return;
-                    }
+                    window.location.href = "/api/auth/mentorconnect-handoff";
+                    return;
                 }
                 
                 router.push("/company/dashboard");

@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import Cookies from "js-cookie";
 
-export function MentorSpecialties({ initialSpecialties = [], userId }: { initialSpecialties?: string[], userId: string }) {
+export function MentorSpecialties({ initialSpecialties = [] }: { initialSpecialties?: string[] }) {
     const { t } = useTranslation();
     const router = useRouter();
     const [selectedSkills, setSelectedSkills] = useState<string[]>(initialSpecialties);
@@ -70,7 +70,6 @@ export function MentorSpecialties({ initialSpecialties = [], userId }: { initial
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     specialties: selectedSkills,
-                    usuario_id: userId,
                 }),
             });
 
@@ -83,14 +82,7 @@ export function MentorSpecialties({ initialSpecialties = [], userId }: { initial
 
             if (originCookie === "mentorconnect") {
                 Cookies.remove("register_origin", { path: '/' });
-                const meRes = await fetch("/api/auth/me");
-                if (meRes.ok) {
-                    const meData = await meRes.json();
-                    const mentorconnectUrl = process.env.NEXT_PUBLIC_MENTORCONNECT_URL || "http://localhost:3001";
-                    window.location.href = `${mentorconnectUrl}/api/auth/social-callback?userId=${meData.id}`;
-                } else {
-                    router.push("/mentor/dashboard");
-                }
+                window.location.href = "/api/auth/mentorconnect-handoff";
             } else {
                 router.push("/mentor/dashboard");
             }

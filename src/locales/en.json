@@ -2140,6 +2140,8 @@
     "mentorship_card_time_label": "Time",
     "mentorship_or_access_link": "Or access via link:",
     "mentorship_meeting_link": "Meeting Link",
+    "mentorship_meeting_link_pending": "The meeting link is still being generated. Please refresh the page in a moment.",
+    "interview_meeting_link_pending": "The meeting link is being generated. Please refresh in a moment.",
     "mentorship_card_details_btn": "View Details on Dashboard",
     "mentorship_empty_scheduled_title": "No mentorship scheduled",
     "mentorship_empty_scheduled_desc": "You have no confirmed mentorship at this time.",

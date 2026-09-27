@@ -3,11 +3,12 @@ import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
 import { randomUUID } from "crypto";
 import { uploadToCloudinary } from "@/src/lib/cloudinary";
+import { parseSessionValue } from "@/src/lib/session";
 
 export async function PUT(request: Request, { params }: { params: Promise<{ uuid: string }> }) {
     try {
         const cookieStore = await cookies();
-        const userId = cookieStore.get("time_user_id")?.value;
+        const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
         const { uuid } = await params;
 
         if (!userId) {
@@ -153,7 +154,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ uuid
 export async function DELETE(request: Request, { params }: { params: Promise<{ uuid: string }> }) {
     try {
         const cookieStore = await cookies();
-        const userId = cookieStore.get("time_user_id")?.value;
+        const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
         const { uuid } = await params;
 
         if (!userId) {

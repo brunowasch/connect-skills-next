@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import Cookies from "js-cookie";
 
-export function RegisterMentorInfo({ initialName = "", initialSurname = "", userId }: { initialName?: string, initialSurname?: string, userId: string }) {
+export function RegisterMentorInfo({ initialName = "", initialSurname = "" }: { initialName?: string, initialSurname?: string }) {
     const { t } = useTranslation();
     const router = useRouter();
     const [nome, setNome] = useState(initialName);
@@ -25,7 +25,6 @@ export function RegisterMentorInfo({ initialName = "", initialSurname = "", user
                 body: JSON.stringify({
                     nome,
                     sobrenome,
-                    usuario_id: userId,
                 }),
             });
 

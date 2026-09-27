@@ -8,6 +8,7 @@ import {
 } from "@/src/lib/email-validation";
 import { sendVerificationEmail } from "@/src/lib/mail";
 import { generateVerificationCode } from "@/src/lib/code-generator";
+import { validatePassword } from "@/src/lib/password-validation";
 import { syncUserWithMentorConnect } from "@/src/lib/mentorconnect-sync";
 
 interface RegisterRequest {
@@ -34,6 +35,14 @@ export async function POST(req: Request) {
     if (acceptedTerms !== true) {
       return NextResponse.json(
         { error: "register_error_terms_required" },
+        { status: 400 },
+      );
+    }
+
+    const passwordCheck = validatePassword(senha);
+    if (!passwordCheck.isValid) {
+      return NextResponse.json(
+        { error: "register_error_weak_password", details: passwordCheck.errors },
         { status: 400 },
       );
     }

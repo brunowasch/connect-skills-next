@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
+import { getSessionUserId } from "@/src/lib/session";
 
 export async function GET(req: Request) {
     try {
+        const userId = await getSessionUserId();
+        if (!userId) {
+            return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+        }
+
         const { searchParams } = new URL(req.url);
         const vagaId = searchParams.get("vagaId");
 
@@ -52,7 +58,6 @@ export async function GET(req: Request) {
         const mentors = await prisma.mentor.findMany({
             where: { id: { in: mentorIds } },
             include: {
-                usuario: { select: { email: true } },
                 mentor_area: {
                     include: { area_interesse: { select: { nome: true } } }
                 }

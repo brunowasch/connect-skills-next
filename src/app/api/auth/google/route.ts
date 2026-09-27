@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createOAuthState, OAUTH_STATE_COOKIE, oauthStateCookieOptions } from "@/src/lib/oauth-state";
 
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
@@ -9,7 +10,8 @@ export async function GET(req: Request) {
     const callbackUrl = process.env.GOOGLE_CALLBACK_URL!;
 
     const scope = encodeURIComponent("openid email profile");
-    const state = encodeURIComponent(JSON.stringify({ tipo, origin }));
+    const { state: rawState, nonce } = createOAuthState(tipo, origin);
+    const state = encodeURIComponent(rawState);
 
     const googleAuthUrl =
         `https://accounts.google.com/o/oauth2/v2/auth` +
@@ -21,5 +23,7 @@ export async function GET(req: Request) {
         `&access_type=offline` +
         `&prompt=select_account`;
 
-    return NextResponse.redirect(googleAuthUrl);
+    const response = NextResponse.redirect(googleAuthUrl);
+    response.cookies.set(OAUTH_STATE_COOKIE, nonce, oauthStateCookieOptions());
+    return response;
 }

@@ -16,7 +16,7 @@ interface Slot {
     isNew?: boolean;
 }
 
-export function MentorAvailability({ initialAvailability = [], userId }: { initialAvailability?: Slot[], userId: string }) {
+export function MentorAvailability({ initialAvailability = [] }: { initialAvailability?: Slot[] }) {
     const { t, i18n } = useTranslation();
     const router = useRouter();
     const [slots, setSlots] = useState<Slot[]>(initialAvailability.length > 0 ? initialAvailability : []);
@@ -95,7 +95,7 @@ export function MentorAvailability({ initialAvailability = [], userId }: { initi
             const res = await fetch("/api/mentor/availability", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ slots, usuario_id: userId }),
+                body: JSON.stringify({ slots }),
             });
 
             if (!res.ok) {

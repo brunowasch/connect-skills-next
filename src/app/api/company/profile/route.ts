@@ -4,11 +4,12 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { randomUUID } from "crypto";
 import { uploadToCloudinary } from "@/src/lib/cloudinary";
+import { parseSessionValue } from "@/src/lib/session";
 
 export async function PUT(request: Request) {
     try {
         const cookieStore = await cookies();
-        const userId = cookieStore.get("time_user_id")?.value;
+        const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
         if (!userId) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

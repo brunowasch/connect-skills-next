@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
+import { getSessionUserId } from "@/src/lib/session";
 
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
@@ -20,6 +21,12 @@ export async function GET(req: NextRequest) {
 
         if (!user) {
             return NextResponse.json({ exists: false });
+        }
+
+        const sessionUserId = await getSessionUserId();
+
+        if (sessionUserId !== user.id) {
+            return NextResponse.json({ exists: true });
         }
 
         const nome       = user.candidato?.nome      ?? user.nome      ?? null;

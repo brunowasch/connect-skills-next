@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
+import { parseSessionValue } from "@/src/lib/session";
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const cookieStore = await cookies();
-        const userId = cookieStore.get("time_user_id")?.value;
+        const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
         if (!userId) {
             return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
@@ -59,7 +60,7 @@ function getSlotRange(dateStr: string, startStr: string, endStr: string): { star
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const cookieStore = await cookies();
-        const userId = cookieStore.get("time_user_id")?.value;
+        const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
         if (!userId) {
             return NextResponse.json({ error: "Não autorizado." }, { status: 401 });

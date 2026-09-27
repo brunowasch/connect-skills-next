@@ -3,24 +3,24 @@ import { prisma } from "@/src/lib/prisma";
 
 import { cookies } from "next/headers";
 import { syncUserWithMentorConnect } from "@/src/lib/mentorconnect-sync";
+import { parseSessionValue } from "@/src/lib/session";
 
 interface RegisterCandidate {
   nome: string;
   sobrenome: string;
   data_nascimento: string;
-  usuario_id?: string;
   consentimento_parental?: boolean;
 }
 
 export async function POST(req: Request) {
   try {
     const body: RegisterCandidate = await req.json();
-    const { nome, sobrenome, data_nascimento, usuario_id, consentimento_parental } = body;
+    const { nome, sobrenome, data_nascimento, consentimento_parental } = body;
 
     const cookieStore = await cookies();
-    const userIdFromCookie = cookieStore.get("time_user_id")?.value;
+    const userIdFromCookie = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
-    const finalUserId = userIdFromCookie || usuario_id;
+        const finalUserId = userIdFromCookie;
 
     // 1. Validação básica de campos obrigatórios
     if (!nome || !data_nascimento || !finalUserId) {

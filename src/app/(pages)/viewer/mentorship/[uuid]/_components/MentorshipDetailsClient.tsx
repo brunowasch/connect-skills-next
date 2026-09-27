@@ -352,19 +352,23 @@ export default function MentorshipDetailsClient({ mentorship }: { mentorship: an
 
                             {isScheduled && (
                                 <div className="mt-6 pt-5 border-t border-gray-100">
-                                    <button 
-                                        onClick={() => {
-                                            if (mentorship.link_reuniao) {
-                                                let url = mentorship.link_reuniao.replace(/"/g, "");
+                                    {mentorship.link_reuniao ? (
+                                        <button
+                                            onClick={() => {
+                                                let url = mentorship.link_reuniao!.replace(/"/g, "");
                                                 if (!url.startsWith('http')) url = `http://${url}`;
                                                 window.open(url, "_blank", "noopener,noreferrer");
-                                            }
-                                        }}
-                                        className="flex w-full items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition font-bold shadow-sm cursor-pointer"
-                                    >
-                                        <Video size={16} />
-                                        {t("mentorship_meeting_link", { defaultValue: "Acessar Reunião" })}
-                                    </button>
+                                            }}
+                                            className="flex w-full items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition font-bold shadow-sm cursor-pointer"
+                                        >
+                                            <Video size={16} />
+                                            {t("mentorship_meeting_link", { defaultValue: "Acessar Reunião" })}
+                                        </button>
+                                    ) : (
+                                        <p className="text-center text-sm text-gray-500 bg-gray-50 border border-gray-100 rounded-lg px-4 py-2.5">
+                                            {t("mentorship_meeting_link_pending", { defaultValue: "O link da reunião ainda está sendo gerado. Atualize a página em instantes." })}
+                                        </p>
+                                    )}
                                 </div>
                             )}
                             {status === 'PENDENTE_CANDIDATO' && (

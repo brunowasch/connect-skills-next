@@ -1,5 +1,8 @@
 import { prisma } from "@/src/lib/prisma";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { RankingPageContent } from "./_components/RankingPageContent";
+import { parseSessionValue } from "@/src/lib/session";
 
 interface Props {
     params: Promise<{ uuid: string }>;
@@ -14,6 +17,22 @@ export default async function RankingPage({ params, searchParams }: Props) {
         return <RankingPageContent state="no_selection" />;
     }
 
+    const cookieStore = await cookies();
+    const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
+
+    if (!userId) {
+        redirect("/login");
+    }
+
+    const company = await prisma.empresa.findUnique({
+        where: { usuario_id: userId },
+        select: { id: true, cidade: true, estado: true }
+    });
+
+    if (!company) {
+        return <RankingPageContent state="not_found" />;
+    }
+
     const vacancy = await prisma.vaga.findFirst({
         where: {
             OR: [
@@ -23,14 +42,7 @@ export default async function RankingPage({ params, searchParams }: Props) {
         }
     });
 
-    let company = null;
-    if (vacancy?.empresa_id) {
-        company = await prisma.empresa.findUnique({
-            where: { id: vacancy.empresa_id }
-        });
-    }
-
-    if (!vacancy) {
+    if (!vacancy || vacancy.empresa_id !== company.id) {
         return <RankingPageContent state="not_found" />;
     }
 

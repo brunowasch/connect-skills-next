@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
+import { isAuthorizedSyncRequest } from "@/src/lib/sync-auth";
 
 export async function POST(req: NextRequest) {
-    const syncSecret = req.headers.get("x-sync-secret");
 
-    if (!syncSecret || syncSecret !== process.env.SYNC_SECRET) {
+    if (!isAuthorizedSyncRequest(req)) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -12,8 +12,12 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const { entrevistaId, nota } = body;
 
-        if (!entrevistaId || !nota) {
+        if (!entrevistaId || nota === undefined || nota === null) {
             return NextResponse.json({ error: "Parâmetros incompletos" }, { status: 400 });
+        }
+
+        if (typeof nota !== "number" || nota < 1 || nota > 5) {
+            return NextResponse.json({ error: "Nota deve ser entre 1 e 5." }, { status: 400 });
         }
 
         const entrevista = await prisma.entrevista_mentor.findUnique({
@@ -33,6 +37,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ success: true });
     } catch (error) {
+        console.error("[POST /api/mentor/interview/rate] Erro:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }

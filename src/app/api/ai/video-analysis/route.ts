@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/src/lib/prisma';
+import { getSessionUserId } from '@/src/lib/session';
 
 export async function POST(request: Request) {
     try {
+        const userId = await getSessionUserId();
+        if (!userId) {
+            return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+        }
+
         const { videoUrl, candidateId, vacancyUuid, vacancyId } = await request.json();
 
         if (!candidateId || !vacancyId) {
@@ -10,6 +16,20 @@ export async function POST(request: Request) {
                 { error: 'candidateId and vacancyId are required' },
                 { status: 400 }
             );
+        }
+
+        const empresa = await prisma.empresa.findUnique({
+            where: { usuario_id: userId },
+            select: { id: true }
+        });
+
+        const vaga = await prisma.vaga.findUnique({
+            where: { id: String(vacancyId) },
+            select: { empresa_id: true }
+        });
+
+        if (!empresa || !vaga || vaga.empresa_id !== empresa.id) {
+            return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
         }
 
         let existingApplication = null;

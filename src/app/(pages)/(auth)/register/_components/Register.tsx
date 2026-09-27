@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import { VerificationModal } from "@/src/app/_components/VerificationModal";
 import { Eye, EyeOff, Check, Loader2 } from "lucide-react";
 import { validatePassword, PASSWORD_REQUIREMENTS } from "@/src/lib/password-validation";

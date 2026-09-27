@@ -116,7 +116,7 @@ interface VacancyDetailsProps {
     applicationCount: number;
     userType?: string;
     isOwner?: boolean;
-    userId?: string;
+    isLoggedIn?: boolean;
     hasApplied?: boolean;
 
     applicationResponses?: any;
@@ -127,7 +127,7 @@ interface VacancyDetailsProps {
 
 import { useTranslation } from "react-i18next";
 
-export function VacancyDetails({ vacancy, company, isActive, applicationCount, userType, isOwner, userId, hasApplied, applicationResponses, applicationBreakdown, applicationProposta, isDraft }: VacancyDetailsProps) {
+export function VacancyDetails({ vacancy, company, isActive, applicationCount, userType, isOwner, isLoggedIn, hasApplied, applicationResponses, applicationBreakdown, applicationProposta, isDraft }: VacancyDetailsProps) {
     const { t, i18n } = useTranslation();
     const router = useRouter();
     const stickyCardRef = useRef<HTMLDivElement>(null);
@@ -468,7 +468,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
     const [isCheckingApplication, setIsCheckingApplication] = useState(false);
 
     const handleApply = async () => {
-        if (!userId) {
+        if (!isLoggedIn) {
             router.push("/login?redirect=" + window.location.pathname);
             return;
         }
@@ -601,7 +601,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
 
                     try {
                         // 1. Obter assinatura (Server Action)
-                        const res = await getVideoUploadSignatureAction(vacancy.uuid, userId!);
+                        const res = await getVideoUploadSignatureAction(vacancy.uuid);
 
                         if (!res.success) {
                             throw new Error(res.error || "Erro ao iniciar upload");
@@ -635,7 +635,7 @@ export function VacancyDetails({ vacancy, company, isActive, applicationCount, u
                         const uploadData = await uploadResponse.json();
 
                         // 3. Salvar metadados no banco (Server Action)
-                        const saveResult = await saveVideoMetadataAction(vacancy.uuid, userId!, {
+                        const saveResult = await saveVideoMetadataAction(vacancy.uuid, {
                             url: uploadData.secure_url,
                             fileName: file.name,
                             mimeType: "video/" + (uploadData.format || "mp4"),

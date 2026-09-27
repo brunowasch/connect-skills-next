@@ -1,12 +1,27 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { sendInterviewScheduledEmail, sendInterviewConfirmedToMentorEmail, sendInterviewConfirmedToCompanyEmail } from "@/src/lib/mail";
-import { syncUserWithMentorConnect } from "@/src/lib/mentorconnect-sync";
+import { syncUserWithMentorConnect, createMentorConnectMeeting } from "@/src/lib/mentorconnect-sync";
 
 import { randomUUID } from "crypto";
+import { getSessionUserId } from "@/src/lib/session";
 
 export async function POST(req: Request) {
     try {
+        const userId = await getSessionUserId();
+        if (!userId) {
+            return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+        }
+
+        const empresaLogada = await prisma.empresa.findUnique({
+            where: { usuario_id: userId },
+            select: { id: true }
+        });
+
+        if (!empresaLogada) {
+            return NextResponse.json({ error: "Acesso negado." }, { status: 403 });
+        }
+
         const body = await req.json();
         const { vagaId, candidatoId, mentorId, disponibilidadeId } = body;
 
@@ -36,8 +51,19 @@ export async function POST(req: Request) {
         }
 
         const vaga = await prisma.vaga.findUnique({ where: { id: vagaId } });
-        if (!vaga) {
+        if (!vaga || vaga.empresa_id !== empresaLogada.id) {
             return NextResponse.json({ error: "Vaga não encontrada." }, { status: 404 });
+        }
+
+        const candidatura = await prisma.vaga_avaliacao.findUnique({
+            where: {
+                vaga_id_candidato_id: { vaga_id: vagaId, candidato_id: candidatoId }
+            },
+            select: { id: true }
+        });
+
+        if (!candidatura) {
+            return NextResponse.json({ error: "Candidatura não encontrada." }, { status: 404 });
         }
 
         const candidato = await prisma.candidato.findUnique({
@@ -116,6 +142,11 @@ export async function POST(req: Request) {
 
 export async function PATCH(req: Request) {
     try {
+        const userId = await getSessionUserId();
+        if (!userId) {
+            return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+        }
+
         const body = await req.json();
         const { entrevistaId, action } = body;
 
@@ -129,6 +160,15 @@ export async function PATCH(req: Request) {
 
         if (!interview) {
             return NextResponse.json({ error: "Entrevista não encontrada." }, { status: 404 });
+        }
+
+        const candidatoDaEntrevista = await prisma.candidato.findUnique({
+            where: { id: interview.candidato_id },
+            select: { usuario_id: true }
+        });
+
+        if (!candidatoDaEntrevista || candidatoDaEntrevista.usuario_id !== userId) {
+            return NextResponse.json({ error: "Acesso negado." }, { status: 403 });
         }
 
         if (action === "CONFIRM") {
@@ -164,29 +204,16 @@ export async function PATCH(req: Request) {
                 }
             }
 
-            let linkReuniao = null;
-            if (process.env.MENTORCONNECT_URL) {
-                try {
-                    const reqMc = await fetch(`${process.env.MENTORCONNECT_URL}/api/meetings`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            usuario_id: mentor.usuario_id,
-                            titulo: vaga 
-                                ? `Entrevista: ${vaga.cargo} - ${candidato.nome} ${candidato.sobrenome || ""}`.trim()
-                                : `Mentoria: ${candidato.nome} ${candidato.sobrenome || ""}`.trim()
-                        })
-                    });
+            const linkReuniao = await createMentorConnectMeeting({
+                usuarioId: mentor.usuario_id,
+                titulo: vaga
+                    ? `Entrevista: ${vaga.cargo} - ${candidato.nome} ${candidato.sobrenome || ""}`.trim()
+                    : `Mentoria: ${candidato.nome} ${candidato.sobrenome || ""}`.trim()
+            });
 
-                    if (reqMc.ok) {
-                        const data = await reqMc.json();
-                        linkReuniao = data.link || null;
-                    } else {
-                        console.error("Falha ao gerar reunião no MC:", await reqMc.text());
-                    }
-                } catch (err) {
-                    console.error("Erro na comunicação com MENTORCONNECT_URL:", err);
-                }
+            // Alerta operacional: MentorConnect está configurado mas o link não foi gerado.
+            if (process.env.MENTORCONNECT_URL && !linkReuniao) {
+                console.error(`[interview CONFIRM] Entrevista ${entrevistaId} confirmada, mas o link de reunião não pôde ser gerado.`);
             }
 
             await prisma.entrevista_mentor.update({

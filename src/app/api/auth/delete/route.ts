@@ -4,11 +4,12 @@ import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { deleteUserInMentorConnect } from "@/src/lib/mentorconnect-sync";
+import { parseSessionValue } from "@/src/lib/session";
 
 export async function DELETE(req: NextRequest) {
     try {
         const cookieStore = await cookies();
-        const userId = cookieStore.get("time_user_id")?.value;
+        const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
         if (!userId) {
             return NextResponse.json({ error: "Não autorizado" }, { status: 401 });

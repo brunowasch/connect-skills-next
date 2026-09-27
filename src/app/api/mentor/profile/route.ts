@@ -3,11 +3,12 @@ import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { uploadToCloudinary } from "@/src/lib/cloudinary";
+import { parseSessionValue } from "@/src/lib/session";
 
 export async function PUT(req: NextRequest) {
     try {
         const cookieStore = await cookies();
-        const userId = cookieStore.get("time_user_id")?.value;
+        const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
         if (!userId) {
             return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
@@ -101,8 +102,8 @@ export async function PUT(req: NextRequest) {
                         console.error("Erro ao subir anexo do mentor:", error);
                     }
                 } else if (anexo.id) {
-                    const existing = await prisma.mentor_arquivo.findUnique({
-                        where: { id: anexo.id }
+                    const existing = await prisma.mentor_arquivo.findFirst({
+                        where: { id: anexo.id, mentor_id: mentor.id }
                     });
                     if (existing) {
                         processedAnexos.push({

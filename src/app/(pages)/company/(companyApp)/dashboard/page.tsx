@@ -3,10 +3,11 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
 import { checkCompanyRestrictions } from "@/src/lib/companyRestrictions";
 import { CompanyHero, CompanyKPI, ProfileCompletion, RecentVacancies, RecentCandidates, DashboardHeader, VideoEvaluations, CompanyMentorships } from '@/src/app/(pages)/company/(companyApp)/dashboard/_components';
+import { parseSessionValue } from "@/src/lib/session";
 
 export default async function Dashboard() {
     const cookieStore = await cookies();
-    const userId = cookieStore.get("time_user_id")?.value;
+    const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
     if (!userId) {
         redirect("/login");

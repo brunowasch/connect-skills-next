@@ -4,6 +4,7 @@ import { VacancyForm } from "../../_components/VacancyForm";
 import { VacancyFormHeader } from "../../_components/VacancyFormHeader";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
+import { parseSessionValue } from "@/src/lib/session";
 
 interface Props {
     params: Promise<{ uuid: string }>;
@@ -12,12 +13,16 @@ interface Props {
 export default async function EditVacancyPage({ params }: Props) {
     const { uuid } = await params;
     const cookieStore = await cookies();
-    const userId = cookieStore.get("time_user_id")?.value;
+    const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
+
+    if (!userId) notFound();
 
     const company = await prisma.empresa.findUnique({
         where: { usuario_id: userId },
-        select: { cidade: true, estado: true, pais: true }
+        select: { id: true, cidade: true, estado: true, pais: true }
     });
+
+    if (!company) notFound();
 
     const vacancy = await prisma.vaga.findFirst({
         where: {
@@ -28,7 +33,7 @@ export default async function EditVacancyPage({ params }: Props) {
         },
     });
 
-    if (!vacancy) notFound();
+    if (!vacancy || vacancy.empresa_id !== company.id) notFound();
 
     const id = vacancy.id;
 

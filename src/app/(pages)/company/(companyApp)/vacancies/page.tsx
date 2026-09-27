@@ -3,10 +3,11 @@ import { prisma } from "@/src/lib/prisma";
 import { VacanciesList } from "./_components/VacanciesList";
 import { redirect } from "next/navigation";
 import { checkCompanyRestrictions } from "@/src/lib/companyRestrictions";
+import { parseSessionValue } from "@/src/lib/session";
 
 export default async function VacanciesPage() {
     const cookieStore = await cookies();
-    const userId = cookieStore.get("time_user_id")?.value;
+    const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
     if (!userId) {
         redirect('/login');

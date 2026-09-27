@@ -3,10 +3,11 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
 import { MentorProfile } from "./_components/MentorProfile";
 import { randomUUID } from "crypto";
+import { parseSessionValue } from "@/src/lib/session";
 
 export default async function MentorProfilePage() {
     const cookieStore = await cookies();
-    const userId = cookieStore.get("time_user_id")?.value;
+    const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
     if (!userId) {
         redirect("/login");

@@ -2142,6 +2142,8 @@
     "mentorship_card_time_label": "Horario",
     "mentorship_or_access_link": "O accede a través del enlace:",
     "mentorship_meeting_link": "Enlace de Reunión",
+    "mentorship_meeting_link_pending": "El enlace de la reunión aún se está generando. Actualiza la página en unos instantes.",
+    "interview_meeting_link_pending": "El enlace de la reunión se está generando. Actualiza en unos instantes.",
     "mentorship_card_details_btn": "Ver Detalles en el Panel",
     "mentorship_empty_scheduled_title": "Ninguna mentoría programada",
     "mentorship_empty_scheduled_desc": "No tiene ninguna mentoría confirmada en este momento.",

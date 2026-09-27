@@ -2,12 +2,25 @@
 
 import { prisma } from "@/src/lib/prisma";
 import { uploadToCloudinary, uploadBufferToCloudinary, generateUploadSignature } from "@/src/lib/cloudinary";
+import { getSessionUserId } from "@/src/lib/session";
+
+function isAllowedUploadUrl(url: unknown): url is string {
+    if (typeof url !== "string") return false;
+    try {
+        const parsed = new URL(url);
+        return parsed.protocol === "https:" && parsed.hostname === "res.cloudinary.com";
+    } catch {
+        return false;
+    }
+}
 
 export async function getVideoUploadSignatureAction(
-    vacancyUuid: string,
-    userId: string
+    vacancyUuid: string
 ) {
     try {
+        const userId = await getSessionUserId();
+        if (!userId) return { success: false, error: "Não autorizado" };
+
         const vacancy = await prisma.vaga.findUnique({
             where: { uuid: vacancyUuid },
             select: { id: true }
@@ -71,7 +84,6 @@ export async function getVideoUploadSignatureAction(
 
 export async function saveVideoMetadataAction(
     vacancyUuid: string,
-    userId: string,
     fileData: {
         url: string;
         fileName: string;
@@ -80,6 +92,13 @@ export async function saveVideoMetadataAction(
     }
 ) {
     try {
+        const userId = await getSessionUserId();
+        if (!userId) return { success: false, error: "Não autorizado" };
+
+        if (!isAllowedUploadUrl(fileData?.url)) {
+            return { success: false, error: "URL de vídeo inválida" };
+        }
+
         const vacancy = await prisma.vaga.findUnique({
             where: { uuid: vacancyUuid },
             select: { id: true, cargo: true, empresa_id: true }
@@ -197,10 +216,14 @@ import { revalidatePath } from "next/cache";
 
 export async function uploadVideoAction(
     vacancyUuid: string,
-    userId: string,
     formData: FormData
 ) {
     try {
+        const userId = await getSessionUserId();
+        if (!userId) {
+            return { success: false, error: "Não autorizado" };
+        }
+
         const vacancy = await prisma.vaga.findUnique({
             where: { uuid: vacancyUuid },
             select: { id: true }

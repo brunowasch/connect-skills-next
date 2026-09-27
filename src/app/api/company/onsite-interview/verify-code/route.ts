@@ -2,11 +2,12 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
 import { randomUUID } from "crypto";
+import { parseSessionValue } from "@/src/lib/session";
 
 export async function POST(req: Request) {
     try {
         const cookieStore = await cookies();
-        const userId = cookieStore.get("time_user_id")?.value;
+        const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
         if (!userId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
         const empresa = await prisma.empresa.findUnique({

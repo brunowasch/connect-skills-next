@@ -84,14 +84,7 @@ export function SelectAreas() {
 
             if (originCookie === "mentorconnect") {
                 Cookies.remove("register_origin", { path: '/' });
-                const meRes = await fetch("/api/auth/me");
-                if (meRes.ok) {
-                    const meData = await meRes.json();
-                    const mentorconnectUrl = process.env.NEXT_PUBLIC_MENTORCONNECT_URL || "http://localhost:3001";
-                    window.location.href = `${mentorconnectUrl}/api/auth/social-callback?userId=${meData.id}`;
-                } else {
-                    router.push("/candidate/dashboard");
-                }
+                window.location.href = "/api/auth/mentorconnect-handoff";
             } else {
                 router.push("/candidate/dashboard");
             }

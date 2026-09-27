@@ -1,13 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { randomUUID } from "crypto";
+import { requireCandidato, UnauthorizedError, ForbiddenError } from "@/src/lib/session";
 
 export async function POST(req: NextRequest) {
     try {
-        const body = await req.json();
-        const { vaga_id, candidato_id, currentSection, answers, questions } = body;
+        const { candidato } = await requireCandidato();
+        const candidato_id = candidato.id;
 
-        if (!vaga_id || !candidato_id) {
+        const body = await req.json();
+        const { vaga_id, currentSection, answers, questions } = body;
+
+        if (!vaga_id) {
             return NextResponse.json({ error: "Dados incompletos" }, { status: 400 });
         }
 
@@ -67,6 +71,9 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true });
 
     } catch (error) {
+        if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
+            return NextResponse.json({ error: error.message }, { status: error.status });
+        }
         console.error("Erro ao salvar progresso parcial:", error);
         return NextResponse.json({ error: "Erro interno" }, { status: 500 });
     }

@@ -1,14 +1,29 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { syncUserWithMentorConnect } from "@/src/lib/mentorconnect-sync";
+import { getSessionUserId } from "@/src/lib/session";
 
 export async function POST(req: Request) {
     try {
-        const body = await req.json();
-        const { nome, sobrenome, usuario_id } = body;
+        const usuario_id = await getSessionUserId();
+        if (!usuario_id) {
+            return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+        }
 
-        if (!nome || !usuario_id) {
+        const body = await req.json();
+        const { nome, sobrenome } = body;
+
+        if (!nome) {
             return NextResponse.json({ error: "Dados obrigatórios ausentes." }, { status: 400 });
+        }
+
+        const usuario = await prisma.usuario.findUnique({
+            where: { id: usuario_id },
+            select: { tipo: true }
+        });
+
+        if (!usuario || usuario.tipo.toUpperCase() !== "MENTOR") {
+            return NextResponse.json({ error: "Acesso negado." }, { status: 403 });
         }
 
         // Update or create mentor profile

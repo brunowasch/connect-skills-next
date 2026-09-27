@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
     pass: process.env.SMTP_PASS,
   },
   tls: {
-    rejectUnauthorized: false,
+    rejectUnauthorized: true,
   },
   connectionTimeout: 10000,
   greetingTimeout: 5000,
@@ -19,9 +19,14 @@ const transporter = nodemailer.createTransport({
 
 type BuiltEmail = { subject: string; html: string };
 
+// Remove quebras de linha do assunto para evitar injeção de cabeçalhos.
+function subj(value: unknown): string {
+  return String(value ?? "").replace(/[\r\n]+/g, " ").trim();
+}
+
 async function send(to: string, { subject, html }: BuiltEmail, errorLabel: string) {
   try {
-    await transporter.sendMail({ from: process.env.EMAIL_FROM, to, subject, html });
+    await transporter.sendMail({ from: process.env.EMAIL_FROM, to, subject: subj(subject), html });
     return true;
   } catch (error) {
     console.error(errorLabel, error);

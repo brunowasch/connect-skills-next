@@ -1,13 +1,19 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
+import { parseSessionValue } from "@/src/lib/session";
 
 export async function POST(req: Request) {
     try {
-        const body = await req.json();
-        const { specialties, usuario_id } = body;
+        const usuario_id = parseSessionValue((await cookies()).get("time_user_id")?.value);
+        if (!usuario_id) {
+            return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+        }
 
-        if (!specialties || !Array.isArray(specialties) || !usuario_id) {
+        const body = await req.json();
+        const { specialties } = body;
+
+        if (!specialties || !Array.isArray(specialties)) {
             return NextResponse.json({ error: "Dados inválidos." }, { status: 400 });
         }
 
@@ -61,7 +67,7 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
     try {
         const cookieStore = await cookies();
-        const userId = cookieStore.get("time_user_id")?.value;
+        const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
         if (!userId) {
             return NextResponse.json({ error: "Não autorizado" }, { status: 401 });

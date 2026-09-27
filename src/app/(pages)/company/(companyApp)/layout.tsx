@@ -6,10 +6,11 @@ import { getCompanyNotifications } from "@/src/lib/notifications";
 import { checkCompanyRestrictions } from "@/src/lib/companyRestrictions";
 import PendingEvaluationBanner from "./_components/PendingEvaluationBanner";
 import DisabledOverlay from "./_components/DisabledOverlay";
+import { parseSessionValue } from "@/src/lib/session";
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
     const cookieStore = await cookies();
-    const userId = cookieStore.get("time_user_id")?.value;
+    const userId = parseSessionValue(cookieStore.get("time_user_id")?.value);
 
     if (!userId) {
         redirect("/login");
