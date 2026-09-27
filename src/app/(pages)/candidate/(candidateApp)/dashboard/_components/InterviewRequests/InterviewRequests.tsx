@@ -149,7 +149,9 @@ export function InterviewRequests({ requests }: InterviewRequestsProps) {
                                 </button>
                             ) : (
                                 <Link 
-                                    href={isOnline ? `/candidate/interviews/${req.id}/confirm` : `/candidate/interviews/onsite/${req.id}/confirm`}
+                                    href={isOnline
+                                        ? `/candidate/interviews/${req.id}/confirm`
+                                        : `/candidate/interviews/onsite/${req.id}/${isConfirmed ? 'details' : 'confirm'}`}
                                     className={`w-full flex items-center justify-center gap-2 text-white py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${themeBtnBg}`}
                                 >
                                     {isConfirmed ? <ExternalLink size={16} /> : <Calendar size={16} />}

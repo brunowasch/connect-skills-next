@@ -13,6 +13,7 @@ interface Props {
     companyPhoto: string | null;
     date: string;
     horaInicio: string;
+    address: { line1: string; line2: string } | null;
 }
 
 export default function ConfirmOnsiteInterviewClient({
@@ -23,6 +24,7 @@ export default function ConfirmOnsiteInterviewClient({
     companyPhoto,
     date,
     horaInicio,
+    address,
 }: Props) {
     const { t } = useTranslation();
     const router = useRouter();
@@ -46,47 +48,6 @@ export default function ConfirmOnsiteInterviewClient({
                     <p className="text-gray-500">
                         {t("onsite_confirm_not_found_desc", "Este link pode ser inválido ou expirado.")}
                     </p>
-                </div>
-            </div>
-        );
-    }
-
-    if (currentStatus === "CONFIRMADA") {
-        return (
-            <div className="flex-1 flex flex-col items-center justify-center py-10 p-4 min-h-[60vh]">
-                <div className="bg-white rounded-2xl p-8 shadow-xl max-w-md w-full text-center border border-green-100">
-                    <CheckCircle className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                        {t("onsite_confirm_success_title", "Presença Confirmada!")}
-                    </h1>
-                    <div className="text-gray-600 mb-2">
-                        <Trans i18nKey="onsite_confirm_success_desc" values={{ company: companyName, job: vagaTitle }}>
-                            Sua entrevista presencial na <strong>{companyName}</strong> para a vaga de <strong>{vagaTitle}</strong> foi confirmada.
-                        </Trans>
-                    </div>
-                    <div className="bg-emerald-50 rounded-xl p-4 my-4 text-left">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Calendar className="w-4 h-4 text-emerald-600" />
-                            <span className="font-semibold text-gray-800">{date}</span>
-                        </div>
-                        <div className="flex items-center gap-2 mb-2">
-                            <Clock className="w-4 h-4 text-emerald-600" />
-                            <span className="font-semibold text-gray-800">{horaInicio}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-emerald-600" />
-                            <span className="font-semibold text-gray-800">{companyName}</span>
-                        </div>
-                    </div>
-                    <p className="text-sm text-gray-500 mb-6">
-                        {t("onsite_confirm_success_hint", "Os detalhes foram enviados para seu e-mail. A empresa entrará em contato com o endereço e informações adicionais.")}
-                    </p>
-                    <button
-                        onClick={() => router.push("/candidate/dashboard")}
-                        className="w-full px-6 py-3 bg-slate-800 text-white rounded-xl font-semibold hover:bg-slate-900 transition-colors cursor-pointer"
-                    >
-                        {t("interview_confirm_back_dashboard", "Ir para o Dashboard")}
-                    </button>
                 </div>
             </div>
         );
@@ -125,8 +86,7 @@ export default function ConfirmOnsiteInterviewClient({
             });
             const data = await res.json();
             if (data.success) {
-                setCurrentStatus("CONFIRMADA");
-                router.refresh();
+                router.replace(`/candidate/interviews/onsite/${entrevistaId}/details`);
             } else {
                 setError(data.error || t("error_general", "Erro ao confirmar. Tente novamente."));
             }
@@ -202,13 +162,14 @@ export default function ConfirmOnsiteInterviewClient({
                             <p className="font-bold text-gray-900">{horaInicio}</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-indigo-600 flex-shrink-0" />
+                    <div className="flex items-start gap-2">
+                        <MapPin className="w-4 h-4 text-indigo-600 flex-shrink-0 mt-0.5" />
                         <div>
                             <p className="text-xs text-slate-500 font-medium uppercase tracking-wide">
                                 {t("onsite_confirm_location_label", "Local")}
                             </p>
-                            <p className="font-bold text-gray-900">{companyName}</p>
+                            <p className="font-bold text-gray-900">{address?.line1 || companyName}</p>
+                            {address?.line2 && <p className="text-sm text-gray-600">{address.line2}</p>}
                         </div>
                     </div>
                 </div>

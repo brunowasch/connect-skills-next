@@ -3,6 +3,7 @@ import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
 import { randomUUID } from "crypto";
 import { sendOnsiteInterviewScheduledEmail } from "@/src/lib/mail";
+import { isOnsiteSlotPast, isOnsiteAddressComplete, formatOnsiteAddress, OnsiteAddress } from "@/src/lib/onsite-slot";
 
 export async function POST(req: Request) {
     try {
@@ -16,10 +17,25 @@ export async function POST(req: Request) {
         });
         if (!empresa) return NextResponse.json({ error: "Empresa não encontrada." }, { status: 404 });
 
-        const { slotId, candidatoId, vagaId } = await req.json();
+        const { slotId, candidatoId, vagaId, endereco } = await req.json();
         if (!slotId || !candidatoId || !vagaId) {
             return NextResponse.json({ error: "Dados incompletos." }, { status: 400 });
         }
+
+        const address: OnsiteAddress = {
+            cep: String(endereco?.cep ?? "").trim(),
+            logradouro: String(endereco?.logradouro ?? "").trim(),
+            numero: String(endereco?.numero ?? "").trim(),
+            complemento: String(endereco?.complemento ?? "").trim(),
+            bairro: String(endereco?.bairro ?? "").trim(),
+            cidade: String(endereco?.cidade ?? "").trim(),
+            estado: String(endereco?.estado ?? "").trim().toUpperCase(),
+        };
+        if (!isOnsiteAddressComplete(address)) {
+            return NextResponse.json({ error: "Preencha o endereço completo da entrevista." }, { status: 400 });
+        }
+        const cepDigits = address.cep.replace(/\D/g, "");
+        address.cep = `${cepDigits.slice(0, 5)}-${cepDigits.slice(5)}`;
 
         const slot = await (prisma as any).entrevista_presencial_slot.findUnique({
             where: { id: slotId },
@@ -30,6 +46,9 @@ export async function POST(req: Request) {
         if (slot.empresa_id !== empresa.id) return NextResponse.json({ error: "Acesso negado." }, { status: 403 });
         if (slot.entrevista_presencial) {
             return NextResponse.json({ error: "Este horário já está reservado." }, { status: 400 });
+        }
+        if (isOnsiteSlotPast(slot.data, slot.hora_inicio)) {
+            return NextResponse.json({ error: "Este horário já passou." }, { status: 400 });
         }
 
         const candidato = await prisma.candidato.findUnique({
@@ -48,8 +67,17 @@ export async function POST(req: Request) {
                 empresa_id: empresa.id,
                 candidato_id: candidatoId,
                 status: "PENDENTE_CANDIDATO",
+                endereco_cep: address.cep,
+                endereco_logradouro: address.logradouro.slice(0, 255),
+                endereco_numero: address.numero.slice(0, 20),
+                endereco_complemento: address.complemento.slice(0, 100) || null,
+                endereco_bairro: address.bairro.slice(0, 100),
+                endereco_cidade: address.cidade.slice(0, 100),
+                endereco_estado: address.estado.slice(0, 2),
             }
         });
+        const formattedAddress = formatOnsiteAddress(entrevista);
+        const addressText = formattedAddress ? `${formattedAddress.line1}, ${formattedAddress.line2}` : "";
 
         const vaga = await prisma.vaga.findUnique({ where: { id: vagaId } });
         const [dayStr, monthStr, yearStr] = slot.data.split("-").reverse();
@@ -61,7 +89,7 @@ export async function POST(req: Request) {
                 usuario_id: candidato.usuario.id,
                 tipo: "ENTREVISTA_PRESENCIAL_AGENDADA",
                 titulo: "Convite para Entrevista Presencial",
-                mensagem: `A empresa "${empresa.nome_empresa}" convocou você para uma entrevista presencial para a vaga de "${vaga?.cargo || "a vaga"}". Data: ${formattedDate}, às ${slot.hora_inicio}. Confirme sua presença!`,
+                mensagem: `A empresa "${empresa.nome_empresa}" convocou você para uma entrevista presencial para a vaga de "${vaga?.cargo || "a vaga"}". Data: ${formattedDate}, às ${slot.hora_inicio}. Local: ${addressText}. Confirme sua presença!`,
                 dados: JSON.stringify({ entrevistaId: entrevista.id, vagaId, slotId }),
             }
         });
@@ -76,7 +104,8 @@ export async function POST(req: Request) {
             vaga?.cargo || "a vaga",
             formattedDate,
             slot.hora_inicio,
-            confirmLink
+            confirmLink,
+            addressText
         );
 
         return NextResponse.json({ success: true, entrevistaId: entrevista.id });

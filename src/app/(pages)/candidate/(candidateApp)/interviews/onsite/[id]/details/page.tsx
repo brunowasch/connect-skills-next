@@ -1,4 +1,5 @@
 import { prisma } from "@/src/lib/prisma";
+import { formatOnsiteAddress } from "@/src/lib/onsite-slot";
 import OnsiteInterviewDetailsClient from "./_components/OnsiteInterviewDetailsClient";
 
 export const dynamic = "force-dynamic";
@@ -20,6 +21,7 @@ export default async function OnsiteInterviewDetailsPage({ params }: Props) {
     let companyPhoto: string | null = null;
     let formattedDate = "";
     let horaInicio = "";
+    let address: { line1: string; line2: string } | null = null;
     let codigo = "";
 
     if (entrevista) {
@@ -33,6 +35,7 @@ export default async function OnsiteInterviewDetailsPage({ params }: Props) {
         const parts = entrevista.slot.data.split("-");
         formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
         horaInicio = entrevista.slot.hora_inicio;
+        address = formatOnsiteAddress(entrevista);
         codigo = (entrevista as any).codigo_participacao || "";
     }
 
@@ -45,6 +48,7 @@ export default async function OnsiteInterviewDetailsPage({ params }: Props) {
             companyPhoto={companyPhoto}
             date={formattedDate}
             horaInicio={horaInicio}
+            address={address}
             codigo={codigo}
             candidatoCompareceu={(entrevista as any)?.candidato_compareceu || false}
         />

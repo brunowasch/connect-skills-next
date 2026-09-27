@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { prisma } from "@/src/lib/prisma";
 import { redirect } from "next/navigation";
 import { OnsiteScheduleList } from "./_components/OnsiteScheduleList";
+import { isOnsiteSlotPast } from "@/src/lib/onsite-slot";
 
 export default async function OnsiteSchedulePage() {
     const cookieStore = await cookies();
@@ -29,6 +30,13 @@ export default async function OnsiteSchedulePage() {
                     candidato_id: true,
                     vaga_id: true,
                     candidato_compareceu: true,
+                    endereco_cep: true,
+                    endereco_logradouro: true,
+                    endereco_numero: true,
+                    endereco_complemento: true,
+                    endereco_bairro: true,
+                    endereco_cidade: true,
+                    endereco_estado: true,
                 }
             }
         },
@@ -77,20 +85,15 @@ export default async function OnsiteSchedulePage() {
         };
     });
 
-    const isExpired = (slot: typeof enrichedSlots[number]): boolean => {
-        try {
-            if (slot.entrevista_presencial?.status === "CONFIRMADA") return true;
-            const [year, month, day] = slot.data.split("-").map(Number);
-            const [h, m] = slot.hora_inicio.split(":").map(Number);
-            const slotEnd = new Date(year, month - 1, day, h, m, 0);
-            return slotEnd <= now;
-        } catch {
-            return false;
-        }
-    };
+    // Confirmadas ficam na própria aba até a empresa validar o código de presença (vira CONCLUIDA).
+    const isConfirmed = (slot: any) => slot.entrevista_presencial?.status === "CONFIRMADA";
 
-    const activeSlots = enrichedSlots.filter((s: any) => !isExpired(s));
-    const historySlots = enrichedSlots.filter((s: any) => isExpired(s));
+    const isHistory = (slot: any) => slot.entrevista_presencial?.status === "CONCLUIDA"
+        || isOnsiteSlotPast(slot.data, slot.hora_inicio, now);
 
-    return <OnsiteScheduleList activeSlots={activeSlots} historySlots={historySlots} />;
+    const confirmedSlots = enrichedSlots.filter((s: any) => isConfirmed(s));
+    const activeSlots = enrichedSlots.filter((s: any) => !isConfirmed(s) && !isHistory(s));
+    const historySlots = enrichedSlots.filter((s: any) => !isConfirmed(s) && isHistory(s)).reverse();
+
+    return <OnsiteScheduleList activeSlots={activeSlots} confirmedSlots={confirmedSlots} historySlots={historySlots} />;
 }

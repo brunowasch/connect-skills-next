@@ -1,4 +1,6 @@
 import { prisma } from "@/src/lib/prisma";
+import { redirect } from "next/navigation";
+import { formatOnsiteAddress } from "@/src/lib/onsite-slot";
 import ConfirmOnsiteInterviewClient from "./_components/ConfirmOnsiteInterviewClient";
 
 export const dynamic = "force-dynamic";
@@ -15,11 +17,16 @@ export default async function ConfirmOnsiteInterviewPage({ params }: Props) {
         include: { slot: true }
     });
 
+    if (entrevista?.status === "CONFIRMADA" || entrevista?.status === "CONCLUIDA") {
+        redirect(`/candidate/interviews/onsite/${id}/details`);
+    }
+
     let vagaTitle = "a vaga";
     let companyName = "Empresa";
     let companyPhoto: string | null = null;
     let formattedDate = "";
     let horaInicio = "";
+    let address: { line1: string; line2: string } | null = null;
 
     if (entrevista) {
         const vaga = await prisma.vaga.findUnique({ where: { id: entrevista.vaga_id } });
@@ -32,6 +39,7 @@ export default async function ConfirmOnsiteInterviewPage({ params }: Props) {
         const parts = entrevista.slot.data.split("-");
         formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
         horaInicio = entrevista.slot.hora_inicio;
+        address = formatOnsiteAddress(entrevista);
     }
 
     return (
@@ -43,6 +51,7 @@ export default async function ConfirmOnsiteInterviewPage({ params }: Props) {
             companyPhoto={companyPhoto}
             date={formattedDate}
             horaInicio={horaInicio}
+            address={address}
         />
     );
 }

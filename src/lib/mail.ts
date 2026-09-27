@@ -522,7 +522,9 @@ export async function sendOnsiteInterviewScheduledEmail(
   date: string,
   startTime: string,
   confirmLink: string,
+  address: string,
 ) {
+  const safeAddress = address.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
   const mailOptions = {
     from: process.env.EMAIL_FROM,
     to: candidateEmail,
@@ -537,6 +539,7 @@ export async function sendOnsiteInterviewScheduledEmail(
         <div style="background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
           <p style="margin: 0; font-size: 18px; font-weight: bold; color: #1f2937;">${date}</p>
           <p style="margin: 8px 0 0; font-size: 16px; color: #4b5563;">${startTime}</p>
+          <p style="margin: 12px 0 0; font-size: 14px; color: #4b5563;">${safeAddress}</p>
         </div>
         <p style="text-align: center; color: #555;">Por favor, confirme ou recuse sua presença clicando no botão abaixo:</p>
         <div style="text-align: center; margin: 30px 0;">

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 import { OnsiteSlot } from "@/src/app/_components/onsite-interview/InterviewSlotCard";
+import { isOnsiteSlotPast, OnsiteAddress, emptyOnsiteAddress, isOnsiteAddressComplete } from "@/src/lib/onsite-slot";
 
 interface Slot {
     id: string;
@@ -62,6 +63,9 @@ export function ScheduleInterviewModal({
     const [onsiteSlots, setOnsiteSlots] = useState<OnsiteSlot[]>([]);
     const [loadingOnsite, setLoadingOnsite] = useState(false);
     const [selectedOnsiteSlot, setSelectedOnsiteSlot] = useState<OnsiteSlot | null>(null);
+    const [address, setAddress] = useState<OnsiteAddress>(emptyOnsiteAddress);
+    const [loadingCep, setLoadingCep] = useState(false);
+    const [cepError, setCepError] = useState("");
 
     useEffect(() => {
         if (!isOpen) {
@@ -72,8 +76,44 @@ export function ScheduleInterviewModal({
             setSelectedSlot(null);
             setOnsiteSlots([]);
             setSelectedOnsiteSlot(null);
+            setAddress(emptyOnsiteAddress);
+            setCepError("");
         }
     }, [isOpen]);
+
+    const updateAddress = (field: keyof OnsiteAddress, value: string) => {
+        setAddress((prev) => ({ ...prev, [field]: value }));
+    };
+
+    const handleCepChange = async (value: string) => {
+        const digits = value.replace(/\D/g, "").slice(0, 8);
+        const masked = digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
+        updateAddress("cep", masked);
+        setCepError("");
+        if (digits.length !== 8) return;
+
+        setLoadingCep(true);
+        try {
+            const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+            const data = await res.json();
+            if (data.erro) {
+                setCepError(t("onsite_cep_not_found", "CEP não encontrado. Preencha o endereço manualmente."));
+                return;
+            }
+            setAddress((prev) => ({
+                ...prev,
+                logradouro: data.logradouro || prev.logradouro,
+                bairro: data.bairro || prev.bairro,
+                cidade: data.localidade || prev.cidade,
+                estado: data.uf || prev.estado,
+            }));
+            document.getElementById("onsite-address-numero")?.focus();
+        } catch {
+            setCepError(t("onsite_cep_error", "Não foi possível buscar o CEP. Preencha o endereço manualmente."));
+        } finally {
+            setLoadingCep(false);
+        }
+    };
 
     const fetchMentors = async () => {
         setLoadingMentors(true);
@@ -102,7 +142,9 @@ export function ScheduleInterviewModal({
             const res = await fetch(`/api/company/onsite-interview/slots`);
             const data = await res.json();
             if (data.slots) {
-                const available = data.slots.filter((s: OnsiteSlot) => !s.entrevista_presencial);
+                const available = data.slots.filter((s: OnsiteSlot) =>
+                    !s.entrevista_presencial && !isOnsiteSlotPast(s.data, s.hora_inicio)
+                );
                 setOnsiteSlots(available);
             }
         } catch {
@@ -163,6 +205,7 @@ export function ScheduleInterviewModal({
                     vagaId: vacancyId,
                     candidatoId: candidateId,
                     slotId: selectedOnsiteSlot.id,
+                    endereco: address,
                 })
             });
             const data = await res.json();
@@ -187,6 +230,9 @@ export function ScheduleInterviewModal({
     };
 
     if (!isOpen) return null;
+
+    const labelClass = "block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1";
+    const inputClass = "w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-800 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-50 outline-none transition-all";
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
@@ -274,7 +320,7 @@ export function ScheduleInterviewModal({
                                         onClick={() => setStep("options")}
                                         className="mt-4 px-4 py-2 text-sm text-indigo-600 hover:underline cursor-pointer"
                                     >
-                                        ← {t("back_btn", "Voltar")}
+                                        {t("back_btn", "Voltar")}
                                     </button>
                                 </div>
                             ) : (
@@ -579,6 +625,58 @@ export function ScheduleInterviewModal({
                                     </div>
                                 )}
                             </div>
+
+                            <div className="mt-6">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <MapPin className="w-4 h-4 text-indigo-600" />
+                                    <p className="text-sm font-bold text-gray-800">{t("onsite_address_title", "Local da Entrevista")}</p>
+                                </div>
+                                <div className="grid grid-cols-6 gap-3">
+                                    <div className="col-span-6 sm:col-span-2">
+                                        <label className={labelClass}>{t("onsite_address_cep", "CEP")}</label>
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                inputMode="numeric"
+                                                value={address.cep}
+                                                onChange={(e) => handleCepChange(e.target.value)}
+                                                placeholder="00000-000"
+                                                className={inputClass}
+                                            />
+                                            {loadingCep && (
+                                                <div className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="col-span-6 sm:col-span-4">
+                                        <label className={labelClass}>{t("onsite_address_street", "Endereço")}</label>
+                                        <input type="text" value={address.logradouro} onChange={(e) => updateAddress("logradouro", e.target.value)} placeholder={t("onsite_address_street_placeholder", "Rua, avenida...")} className={inputClass} />
+                                    </div>
+                                    <div className="col-span-2">
+                                        <label className={labelClass}>{t("onsite_address_number", "Número")}</label>
+                                        <input id="onsite-address-numero" type="text" value={address.numero} onChange={(e) => updateAddress("numero", e.target.value)} className={inputClass} />
+                                    </div>
+                                    <div className="col-span-4">
+                                        <label className={labelClass}>{t("onsite_address_complement", "Complemento")}</label>
+                                        <input type="text" value={address.complemento} onChange={(e) => updateAddress("complemento", e.target.value)} placeholder={t("onsite_address_complement_placeholder", "Sala, andar... (opcional)")} className={inputClass} />
+                                    </div>
+                                    <div className="col-span-6 sm:col-span-2">
+                                        <label className={labelClass}>{t("onsite_address_district", "Bairro")}</label>
+                                        <input type="text" value={address.bairro} onChange={(e) => updateAddress("bairro", e.target.value)} className={inputClass} />
+                                    </div>
+                                    <div className="col-span-4 sm:col-span-3">
+                                        <label className={labelClass}>{t("onsite_address_city", "Cidade")}</label>
+                                        <input type="text" value={address.cidade} onChange={(e) => updateAddress("cidade", e.target.value)} className={inputClass} />
+                                    </div>
+                                    <div className="col-span-2 sm:col-span-1">
+                                        <label className={labelClass}>{t("onsite_address_state", "UF")}</label>
+                                        <input type="text" maxLength={2} value={address.estado} onChange={(e) => updateAddress("estado", e.target.value.toUpperCase())} className={inputClass} />
+                                    </div>
+                                </div>
+                                {cepError && (
+                                    <p className="text-xs text-amber-600 mt-2">{cepError}</p>
+                                )}
+                            </div>
                         </div>
                     )}
                     {step === "success" && (
@@ -634,7 +732,7 @@ export function ScheduleInterviewModal({
                             }}
                             className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl font-medium hover:bg-gray-50 transition-colors cursor-pointer"
                         >
-                            ← {t("back_btn", "Voltar")}
+                            {t("back_btn", "Voltar")}
                         </button>
                     )}
 
@@ -674,7 +772,7 @@ export function ScheduleInterviewModal({
                     {step === "presencial_confirm" && (
                         <button
                             onClick={handleSchedulePresencial}
-                            disabled={isScheduling}
+                            disabled={isScheduling || !isOnsiteAddressComplete(address)}
                             className="flex-1 py-2.5 bg-gray-800 hover:bg-gray-900 disabled:bg-gray-300 text-white rounded-xl font-semibold transition-colors cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                             {isScheduling ? (

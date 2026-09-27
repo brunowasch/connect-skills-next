@@ -420,9 +420,36 @@ model entrevista_presencial {
   atualizado_em DateTime @updatedAt
   codigo_participacao String? @db.VarChar(10)
   candidato_compareceu Boolean @default(false)
+  endereco_cep         String? @db.VarChar(9)
+  endereco_logradouro  String? @db.VarChar(255)
+  endereco_numero      String? @db.VarChar(20)
+  endereco_complemento String? @db.VarChar(100)
+  endereco_bairro      String? @db.VarChar(100)
+  endereco_cidade      String? @db.VarChar(100)
+  endereco_estado      String? @db.VarChar(2)
 
   slot entrevista_presencial_slot @relation(fields: [slot_id], references: [id], onDelete: Cascade)
 
+  @@index([candidato_id])
+  @@index([empresa_id])
+  @@index([vaga_id])
+}
+
+model proposta {
+  id              String   @id @default(uuid())
+  vaga_id         String
+  candidato_id    String
+  empresa_id      String
+  status          String   @default("PENDENTE_CANDIDATO") @db.VarChar(30) // PENDENTE_CANDIDATO, ACEITA, RECUSADA
+  salario         Decimal? @db.Decimal(10, 2)
+  moeda           String?  @db.VarChar(5)
+  data_inicio     String?  @db.VarChar(10)
+  modelo_trabalho String?  @db.VarChar(50)
+  localizacao     String?  @db.VarChar(255)
+  mensagem        String?  @db.Text
+  criado_em       DateTime @default(now())
+  atualizado_em   DateTime @updatedAt
+  
   @@index([candidato_id])
   @@index([empresa_id])
   @@index([vaga_id])

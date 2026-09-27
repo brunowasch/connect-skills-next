@@ -524,7 +524,7 @@ export function RankingList({ candidates, vacancyUuid, vacancyId, vacancyTitle, 
                                                     if (status === 'PENDENTE_CANDIDATO') return 'bg-amber-50 text-amber-600 border border-amber-200 cursor-not-allowed';
                                                     if (status === 'CONFIRMADA') return 'bg-green-50 text-green-600 border border-green-200 cursor-not-allowed';
                                                     if (status === 'CONCLUIDA') return 'bg-blue-50 text-blue-600 border border-blue-200 cursor-not-allowed';
-                                                    return 'bg-emerald-500 text-white hover:bg-emerald-600';
+                                                    return 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100';
                                                 })()}`}
                                         >
                                             <CalendarPlus size={14} />

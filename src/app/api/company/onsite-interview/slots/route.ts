@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { cookies } from "next/headers";
 import { randomUUID } from "crypto";
+import { isOnsiteSlotPast } from "@/src/lib/onsite-slot";
 
 export async function GET(req: Request) {
     try {
@@ -56,6 +57,9 @@ export async function POST(req: Request) {
         const { data: dataValue, hora_inicio } = await req.json();
         if (!dataValue || !hora_inicio) {
             return NextResponse.json({ error: "Dados incompletos." }, { status: 400 });
+        }
+        if (isOnsiteSlotPast(dataValue, hora_inicio)) {
+            return NextResponse.json({ error: "Não é possível publicar um horário que já passou." }, { status: 400 });
         }
 
         const slot = await prisma.entrevista_presencial_slot.create({

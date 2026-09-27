@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import {
     Building2, Plus, Calendar, History, CalendarClock, Clock,
-    User, CheckCircle, AlertCircle, X, Trash2
+    User, CheckCircle, AlertCircle, X, Trash2, MapPin, CalendarCheck
 } from "lucide-react";
 import { DatePicker } from "@/src/app/_components/DatePicker";
 import { toast } from "sonner";
+import { isOnsiteSlotPast, formatOnsiteAddress, brasiliaNow } from "@/src/lib/onsite-slot";
 
 type SlotStatus = "PENDENTE_CANDIDATO" | "CONFIRMADA" | "CONCLUIDA" | "CANCELADA" | null;
 
@@ -31,17 +32,25 @@ interface EnrichedSlot {
         candidato_id: string;
         vaga_id: string;
         candidato_compareceu?: boolean;
+        endereco_cep?: string | null;
+        endereco_logradouro?: string | null;
+        endereco_numero?: string | null;
+        endereco_complemento?: string | null;
+        endereco_bairro?: string | null;
+        endereco_cidade?: string | null;
+        endereco_estado?: string | null;
     } | null;
 }
 
-type TabKey = "active" | "history";
+type TabKey = "active" | "confirmed" | "history";
 
 interface Props {
     activeSlots: EnrichedSlot[];
+    confirmedSlots: EnrichedSlot[];
     historySlots: EnrichedSlot[];
 }
 
-export function OnsiteScheduleList({ activeSlots, historySlots }: Props) {
+export function OnsiteScheduleList({ activeSlots, confirmedSlots, historySlots }: Props) {
     const { t, i18n } = useTranslation();
     const router = useRouter();
 
@@ -58,7 +67,9 @@ export function OnsiteScheduleList({ activeSlots, historySlots }: Props) {
     const [isConfirmingPresence, setIsConfirmingPresence] = useState(false);
     const [presenceError, setPresenceError] = useState("");
 
-    const displaySlots = activeTab === "active" ? activeSlots : historySlots;
+    const displaySlots = activeTab === "active" ? activeSlots
+        : activeTab === "confirmed" ? confirmedSlots
+        : historySlots;
 
 
 
@@ -75,10 +86,19 @@ export function OnsiteScheduleList({ activeSlots, historySlots }: Props) {
         }
     };
 
+    const handleSlotInputChange = (date: string, start: string) => {
+        setNewDate(date);
+        setNewStart(start);
+        setFormError(date && start && isOnsiteSlotPast(date, start)
+            ? t("onsite_error_past_slot", "Não é possível publicar um horário que já passou.")
+            : "");
+    };
+
     const handleSave = async () => {
         setFormError("");
         if (!newDate) { setFormError(t("onsite_error_empty_date", "Preencha a data.")); return; }
         if (!newStart) { setFormError(t("onsite_error_empty_start", "Preencha o horário de início.")); return; }
+        if (isOnsiteSlotPast(newDate, newStart)) { setFormError(t("onsite_error_past_slot", "Não é possível publicar um horário que já passou.")); return; }
 
         setIsSaving(true);
         try {
@@ -154,8 +174,13 @@ export function OnsiteScheduleList({ activeSlots, historySlots }: Props) {
         }
     };
 
-    const getStatusBadge = (slot: EnrichedSlot) => {
+    const getStatusBadge = (slot: EnrichedSlot, isHistory: boolean) => {
         const status = slot.entrevista_presencial?.status as SlotStatus;
+        if (isHistory && (!status || status === "PENDENTE_CANDIDATO")) return (
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-500">
+                {t("onsite_status_expired", "Expirado")}
+            </span>
+        );
         if (!status) return (
             <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">
                 {t("onsite_slot_available", "Disponível")}
@@ -187,6 +212,7 @@ export function OnsiteScheduleList({ activeSlots, historySlots }: Props) {
 
     const tabs = [
         { key: "active" as TabKey, label: t("onsite_tab_active", "Horários Publicados"), icon: <CalendarClock className="w-4 h-4" />, count: activeSlots.length },
+        { key: "confirmed" as TabKey, label: t("onsite_tab_confirmed", "Confirmadas"), icon: <CalendarCheck className="w-4 h-4" />, count: confirmedSlots.length },
         { key: "history" as TabKey, label: t("onsite_tab_history", "Histórico"), icon: <History className="w-4 h-4" />, count: historySlots.length },
     ];
 
@@ -259,7 +285,7 @@ export function OnsiteScheduleList({ activeSlots, historySlots }: Props) {
                             <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1 mb-2">
                                 <Calendar className="w-3.5 h-3.5" /> {t("date", "Data")}
                             </label>
-                            <DatePicker value={newDate} onChange={setNewDate} disablePastDates={true} />
+                            <DatePicker value={newDate} onChange={(d) => handleSlotInputChange(d, newStart)} disablePastDates={true} />
                         </div>
                         <div>
                             <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1 mb-2">
@@ -268,7 +294,8 @@ export function OnsiteScheduleList({ activeSlots, historySlots }: Props) {
                             <input
                                 type="time"
                                 value={newStart}
-                                onChange={(e) => setNewStart(e.target.value)}
+                                min={newDate === brasiliaNow().date ? brasiliaNow().time : undefined}
+                                onChange={(e) => handleSlotInputChange(newDate, e.target.value)}
                                 className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-slate-700 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-50 outline-none transition-all"
                             />
                         </div>
@@ -312,17 +339,23 @@ export function OnsiteScheduleList({ activeSlots, historySlots }: Props) {
             {displaySlots.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 px-4 bg-white rounded-2xl border border-dashed border-gray-300 shadow-sm text-center">
                     <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mb-4">
-                        {activeTab === "active" ? <Building2 className="w-8 h-8" /> : <History className="w-8 h-8" />}
+                        {activeTab === "active" ? <Building2 className="w-8 h-8" />
+                            : activeTab === "confirmed" ? <CalendarCheck className="w-8 h-8" />
+                            : <History className="w-8 h-8" />}
                     </div>
                     <h3 className="text-xl font-bold text-slate-900 mb-2">
                         {activeTab === "active"
                             ? t("onsite_no_slots", "Nenhum horário cadastrado.")
-                            : t("onsite_no_history", "Nenhum histórico encontrado.")}
+                            : activeTab === "confirmed"
+                                ? t("onsite_no_confirmed", "Nenhuma entrevista confirmada.")
+                                : t("onsite_no_history", "Nenhum histórico encontrado.")}
                     </h3>
                     <p className="text-slate-500 max-w-md mx-auto mb-6 text-sm">
                         {activeTab === "active"
                             ? t("onsite_no_slots_hint", "Adicione horários para os candidatos confirmarem.")
-                            : t("onsite_no_history_hint", "Horários utilizados ou expirados aparecerão aqui.")}
+                            : activeTab === "confirmed"
+                                ? t("onsite_no_confirmed_hint", "Entrevistas aceitas pelos candidatos aparecerão aqui.")
+                                : t("onsite_no_history_hint", "Horários utilizados ou expirados aparecerão aqui.")}
                     </p>
                     {activeTab === "active" && (
                         <button
@@ -342,6 +375,7 @@ export function OnsiteScheduleList({ activeSlots, historySlots }: Props) {
                             ? [slot.candidato.nome, slot.candidato.sobrenome].filter(Boolean).join(" ")
                             : null;
                         const candidateAvatar = slot.candidato?.foto_perfil || slot.candidato?.usuario?.avatarUrl;
+                        const address = slot.entrevista_presencial ? formatOnsiteAddress(slot.entrevista_presencial) : null;
 
                         return (
                             <div
@@ -370,7 +404,7 @@ export function OnsiteScheduleList({ activeSlots, historySlots }: Props) {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            {getStatusBadge(slot)}
+                                            {getStatusBadge(slot, isHistory)}
                                         </div>
                                     </div>
 
@@ -390,10 +424,25 @@ export function OnsiteScheduleList({ activeSlots, historySlots }: Props) {
                                                 )}
                                             </div>
                                         </div>
+                                    ) : isHistory ? (
+                                        <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100 mb-4 text-xs text-gray-500 font-medium">
+                                            <Calendar className="w-3.5 h-3.5" />
+                                            {t("onsite_slot_expired_free", "Horário expirado sem agendamento")}
+                                        </div>
                                     ) : (
                                         <div className="flex items-center gap-2 p-3 bg-green-50 rounded-xl border border-green-100 mb-4 text-xs text-green-700 font-medium">
                                             <Calendar className="w-3.5 h-3.5" />
                                             {t("onsite_slot_free", "Disponível para agendamento")}
+                                        </div>
+                                    )}
+
+                                    {address && (
+                                        <div className="flex items-start gap-2 mb-4 text-xs text-slate-500">
+                                            <MapPin className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-slate-400" />
+                                            <div>
+                                                <p className="font-medium text-slate-700">{address.line1}</p>
+                                                <p>{address.line2}</p>
+                                            </div>
                                         </div>
                                     )}
 

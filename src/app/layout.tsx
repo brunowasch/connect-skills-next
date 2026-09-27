@@ -16,6 +16,7 @@ export const metadata: Metadata = {
 import { Toaster } from "sonner";
 import { SessionWatcher } from "./_components/SessionWatcher";
 import { I18nProvider } from "./_components/Providers/I18nProvider";
+import { CookieConsent } from "./_components/CookieConsent";
 
 export default function RootLayout({
   children,
@@ -28,6 +29,7 @@ export default function RootLayout({
         <SessionWatcher />
         <I18nProvider>
           {children}
+          <CookieConsent />
         </I18nProvider>
         <Toaster
           position="top-right"

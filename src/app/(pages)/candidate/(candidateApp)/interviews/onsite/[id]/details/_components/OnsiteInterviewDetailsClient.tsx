@@ -11,6 +11,7 @@ interface Props {
     companyPhoto: string | null;
     date: string;
     horaInicio: string;
+    address: { line1: string; line2: string } | null;
     codigo: string;
     candidatoCompareceu: boolean;
 }
@@ -22,6 +23,7 @@ export default function OnsiteInterviewDetailsClient({
     companyPhoto,
     date,
     horaInicio,
+    address,
     codigo,
     candidatoCompareceu,
 }: Props) {
@@ -93,31 +95,37 @@ export default function OnsiteInterviewDetailsClient({
                             </div>
                             <div>
                                 <p className="text-xs text-indigo-400 font-bold uppercase tracking-wider">Local</p>
-                                <p className="font-semibold text-gray-900 mb-1">Presencial</p>
-                                <p className="text-sm text-gray-600">A empresa entrará em contato com o endereço completo.</p>
+                                {address ? (
+                                    <>
+                                        <p className="font-semibold text-gray-900 mb-1">{address.line1}</p>
+                                        <p className="text-sm text-gray-600">{address.line2}</p>
+                                    </>
+                                ) : (
+                                    <p className="font-semibold text-gray-900">Presencial</p>
+                                )}
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div className="border-t border-gray-100 pt-8">
-                    <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-8 text-center relative overflow-hidden shadow-2xl">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-500" />
-                        
-                        <Key className="w-12 h-12 text-indigo-400 mx-auto mb-4" />
-                        <h2 className="text-xl text-slate-300 font-medium mb-2">Seu Código de Participação</h2>
-                        
-                        <div className="bg-white/10 border border-white/20 rounded-2xl p-4 max-w-sm mx-auto mb-6 backdrop-blur-sm">
-                            <p className="text-4xl sm:text-5xl font-mono font-bold text-white tracking-[0.2em]">{codigo}</p>
+                    <div className="bg-indigo-50/50 border border-indigo-100 rounded-3xl p-8 text-center">
+                        <div className="w-14 h-14 rounded-full bg-indigo-100 flex items-center justify-center mx-auto mb-4">
+                            <Key className="w-7 h-7 text-indigo-600" />
                         </div>
-                        
+                        <h2 className="text-lg text-slate-700 font-semibold mb-3">Seu Código de Participação</h2>
+
+                        <div className="bg-white border-2 border-dashed border-indigo-200 rounded-2xl p-4 max-w-sm mx-auto mb-6">
+                            <p className="text-4xl sm:text-5xl font-mono font-bold text-indigo-700 tracking-[0.2em]">{codigo}</p>
+                        </div>
+
                         {candidatoCompareceu ? (
-                            <div className="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-4 py-2 rounded-full text-sm font-medium">
+                            <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200 px-4 py-2 rounded-full text-sm font-medium">
                                 <CheckCircle className="w-4 h-4" />
                                 Presença confirmada pela empresa
                             </div>
                         ) : (
-                            <p className="text-slate-400 text-sm max-w-md mx-auto">
+                            <p className="text-slate-500 text-sm max-w-md mx-auto">
                                 Apresente este código na recepção da empresa ou para o entrevistador no dia da entrevista para registrar sua presença.
                             </p>
                         )}
