@@ -1,7 +1,14 @@
 export { Header } from "@/src/app/_components/Home/Header/Header";
 export { Hero } from "@/src/app/_components/Home/Hero/Hero";
 export { Carousel } from "@/src/app/_components/Home/Carousel/Carousel";
-export { About } from "@/src/app/_components/Home/InfoCards/About";
+export { Problems } from "@/src/app/_components/Home/Problems/Problems";
+export { HowItWorks } from "@/src/app/_components/Home/HowItWorks/HowItWorks";
+export { Features } from "@/src/app/_components/Home/Features/Features";
+export { Commitment } from "@/src/app/_components/Home/Commitment/Commitment";
+export { Audiences } from "@/src/app/_components/Home/Audiences/Audiences";
+export { AiSection } from "@/src/app/_components/Home/AiSection/AiSection";
+export { Faq } from "@/src/app/_components/Home/Faq/Faq";
 export { ClientsSection } from "@/src/app/_components/Home/Clients/ClientsSection";
 export { CTA } from "@/src/app/_components/Home/CTA/CTA"
 export { Contact } from "@/src/app/_components/Home/Contact/Contact";
+export { LandingFooter } from "@/src/app/_components/Home/Footer/LandingFooter";

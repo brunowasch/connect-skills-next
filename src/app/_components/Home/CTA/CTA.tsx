@@ -1,44 +1,41 @@
 "use client";
 
 import Link from "next/link";
-import { HiUserAdd, HiLogin } from "react-icons/hi";
+import { ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Reveal } from "../Reveal/Reveal";
 
 export function CTA() {
   const { t } = useTranslation();
 
   return (
-    <>
-      <section className="pb-20">
-        <div className="mx-auto max-w-7xl px-4">
-          <div className="flex flex-col gap-4 rounded-2xl bg-blue-500 p-6 shadow-md lg:flex-row lg:items-center lg:justify-between">
-            <div className="p-5">
-              <h3 className="text-3xl font-semibold text-white">{t("cta_ready")}</h3>
-              <p className="text-white">
-                {t("cta_desc")}
-              </p>
-            </div>
+    <section className="bg-white pb-20 lg:pb-28">
+      <Reveal className="mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="rounded-3xl bg-brand-navy px-6 py-20 text-center text-white sm:px-12 lg:py-24">
+          <div>
+            <h2 className="mx-auto max-w-4xl text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl">
+              {t("lp_final_title_1")} <span className="text-brand-sky">{t("lp_final_title_2")}</span>
+            </h2>
+            <p className="mx-auto mt-6 max-w-xl text-lg text-white/80">{t("lp_final_desc")}</p>
 
-            <div className="flex flex-wrap gap-3">
+            <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
               <Link
                 href="/register"
-                className="flex items-center rounded-lg bg-white px-6 py-3 text-lg text-blue-500 transition hover:-translate-y-1 hover:shadow-lg"
+                className="group inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-4 font-semibold text-brand-navy transition-colors hover:bg-brand-mist"
               >
-                <HiUserAdd className="text-xl mr-2" />
-                {t("register")}
+                {t("lp_create_account")}
+                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Link>
-
               <Link
                 href="/login"
-                className="flex items-center rounded-lg border bg-white px-6 py-3 text-lg text-blue-500 transition hover:-translate-y-1 hover:shadow-lg"
+                className="inline-flex items-center justify-center rounded-full border border-white/40 px-8 py-4 font-semibold text-white transition hover:border-white hover:bg-white/10"
               >
-                <HiLogin className="text-xl mr-2" />
-                {t("login")}
+                {t("lp_have_account")}
               </Link>
             </div>
           </div>
         </div>
-      </section>
-    </>
+      </Reveal>
+    </section>
   );
 }

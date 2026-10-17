@@ -1,5 +1,18 @@
-import { Header, Hero, Carousel, About, ClientsSection, CTA, Contact } from "@/src/app/_components/Home/index"
-import { Footer } from "@/src/app/_components/Layout/index"
+import {
+  Header,
+  Hero,
+  Carousel,
+  Problems,
+  HowItWorks,
+  Features,
+  Commitment,
+  Audiences,
+  AiSection,
+  Faq,
+  CTA,
+  Contact,
+  LandingFooter,
+} from "@/src/app/_components/Home/index"
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/prisma";
@@ -29,15 +42,21 @@ export default async function Home() {
   return (
     <>
       <Header />
-      <main className="pt-[8vh]">
-        <Carousel />
+      <main>
         <Hero />
-        <About />
+        <Carousel />
+        <Problems />
+        <HowItWorks />
+        <Features />
+        <Commitment />
+        <Audiences />
+        <AiSection />
         {/* <ClientsSection /> */}
+        <Faq />
         <CTA />
         <Contact />
-        <Footer />
       </main>
+      <LandingFooter />
     </>
   );
 }

@@ -47,7 +47,7 @@ export default function CompanyLayout({
                             <FaBars className="text-xl" />
                         </button>
                         <Image
-                            src="/img/logos/logo-connect-skills.png"
+                            src="/img/logos/logo-connect-skills.svg"
                             alt="Connect Skills"
                             width={120}
                             height={30}

@@ -13,11 +13,11 @@ export function Header() {
 
         <Link href="/">
           <Image
-            src="/img/logos/logo-connect-skills.png"
+            src="/img/logos/logo-connect-skills.svg"
             alt="Logo Connect Skills"
             width={180}
             height={20}
-            className="w-[180px] lg:w-[200px]"
+            className="h-auto w-[180px] lg:w-[200px]"
             priority
           />
         </Link>
