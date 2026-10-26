@@ -343,7 +343,7 @@ export default function MentorReviewModal({ review, candidateName, onClose }: Me
                                 <div className="flex items-center gap-2 mb-5">
                                     {/* eslint-disable-next-line @next/next/no-img-element -- capturado por html-to-image (toPng); next/image quebra a rasterização do card */}
                                     <img
-                                        src="/img/logos/icon.png"
+                                        src="/img/logos/icon.svg"
                                         width={28}
                                         height={28}
                                         alt="Connect Skills"

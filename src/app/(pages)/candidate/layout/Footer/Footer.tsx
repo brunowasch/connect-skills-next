@@ -17,7 +17,7 @@ export function Footer() {
                 <div className="flex items-center gap-2">
                     <Link href="/candidate/dashboard">
                         <Image
-                            src="/img/logos/icon.png"
+                            src="/img/logos/icon.svg"
                             alt="Connect Skills"
                             width={32}
                             height={32}

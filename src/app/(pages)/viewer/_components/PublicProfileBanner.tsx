@@ -11,7 +11,7 @@ export function PublicProfileBanner({ isLoggedIn }: { isLoggedIn?: boolean }) {
                 {/* Logo + Brand */}
                 <Link href="/" className="flex items-center gap-3 group flex-shrink-0">
                     <Image
-                        src="/img/logos/logo-connect-skills.png"
+                        src="/img/logos/logo-connect-skills.svg"
                         alt="Logo Connect Skills"
                         width={140}
                         height={40}

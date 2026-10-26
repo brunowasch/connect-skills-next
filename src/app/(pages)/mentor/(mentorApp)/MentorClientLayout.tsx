@@ -52,7 +52,7 @@ export default function MentorClientLayout({
                                 <FaBars className="text-2xl" />
                             </button>
                             <Image
-                                src="/img/logos/logo-connect-skills.png"
+                                src="/img/logos/logo-connect-skills.svg"
                                 alt="Connect Skills"
                                 width={160}
                                 height={40}

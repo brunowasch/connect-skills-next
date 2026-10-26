@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { Menu, X, ArrowRight } from "lucide-react";
 
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "../../Layout/LanguageSwitcher";
@@ -10,6 +11,7 @@ import { LanguageSwitcher } from "../../Layout/LanguageSwitcher";
 export function Header() {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("inicio");
 
   useEffect(() => {
@@ -31,12 +33,14 @@ export function Header() {
     sections.forEach((section) => observer.observe(section));
 
     const onScroll = () => {
+      setScrolled(window.scrollY > 16);
       if (window.scrollY < 50) {
         setActiveSection("inicio");
       }
     };
 
-    window.addEventListener("scroll", onScroll);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
 
     return () => {
       observer.disconnect();
@@ -45,77 +49,129 @@ export function Header() {
   }, []);
 
   const navItems = [
-    { label: t("inicio"), href: "/", id: "inicio" },
-    { label: t("sobre"), href: "#about", id: "about" },
+    { label: t("lp_nav_how"), href: "#how", id: "how" },
+    { label: t("lp_nav_features"), href: "#features", id: "features" },
+    { label: t("lp_nav_audiences"), href: "#audiences", id: "audiences" },
+    { label: t("lp_nav_ai"), href: "#ai", id: "ai" },
+    { label: t("lp_nav_faq"), href: "#faq", id: "faq" },
     { label: t("contato"), href: "#contact", id: "contact" },
   ];
 
+  const solid = scrolled || open;
+
   return (
-    <nav className="fixed top-0 z-50 w-full bg-[#F2F4F7]">
-      <div className="mx-auto flex min-h-[13vh] max-w-7xl items-center justify-between px-4 relative">
-        {/* Logo */}
-        <Link href="/" onClick={() => window.scrollTo({ top: 0 })}>
+    <header
+      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${solid ? "border-b border-slate-200 bg-white" : "bg-transparent"
+        }`}
+    >
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-6 px-4 sm:px-6">
+        <Link
+          href="/"
+          onClick={() => {
+            setOpen(false);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+          className="shrink-0"
+        >
           <Image
-            src="/img/logos/logo-connect-skills.png"
-            alt="Logo Connect Skills"
-            width={180}
-            height={20}
-            className="w-[180px] lg:w-[200px]"
+            src="/img/logos/logo-connect-skills.svg"
+            alt="Connect Skills"
+            width={190}
+            height={42}
+            className="h-auto w-[160px] lg:w-[190px]"
             priority
           />
         </Link>
 
-        {/* Menu (Desktop + Mobile) */}
-        <div
-          className={`${open ? "flex" : "hidden"
-            } absolute left-0 top-full w-full flex-col gap-4 bg-[#F2F4F7] p-4 lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:top-1/2 lg:-translate-y-1/2 lg:w-auto lg:flex lg:flex-row lg:items-center lg:gap-8 lg:bg-transparent lg:p-0`}
-        >
-          <ul className="flex flex-col gap-3 lg:flex-row lg:gap-6">
+        {/* Navegação desktop */}
+        <nav className="hidden xl:block">
+          <ul className="flex items-center gap-1 rounded-full border border-slate-200 bg-white p-1">
             {navItems.map((item) => {
               const isActive = activeSection === item.id;
 
               return (
-                <li key={item.label}>
-                  <Link
+                <li key={item.id}>
+                  <a
                     href={item.href}
-                    onClick={() => {
-                      setOpen(false);
-                      if (item.href === "/") {
-                        window.scrollTo({ top: 0, behavior: "smooth" });
-                      }
-                    }}
-                    className={`relative font-medium transition-colors duration-300
-                      ${isActive
-                        ? "text-blue-500 after:w-full"
-                        : "text-black hover:text-blue-400"
-                      }
-                      after:absolute after:-bottom-1 after:left-0 after:h-[2px]
-                      after:bg-blue-400 after:transition-all after:duration-300
-                    `}
+                    className={`block rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-300 ${isActive ? "bg-brand-navy text-white" : "text-slate-600 hover:bg-brand-mist hover:text-brand-navy"
+                      }`}
                   >
                     {item.label}
-                  </Link>
+                  </a>
                 </li>
               );
             })}
           </ul>
-          <div className="lg:hidden mt-4 pt-4 border-t border-gray-200">
-            <LanguageSwitcher align="left" />
-          </div>
-        </div>
+        </nav>
 
-        {/* Action Buttons & Language Switcher (Right Side) */}
-        <div className="flex items-center gap-4">
-          <div className="hidden lg:flex items-center">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="hidden xl:flex items-center">
             <LanguageSwitcher />
           </div>
 
-          {/* Mobile Menu Button */}
-          <button onClick={() => setOpen(!open)} className="lg:hidden text-2xl text-gray-700 p-2 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer">
-            ☰
+          <Link
+            href="/login"
+            className="hidden rounded-full px-4 py-2.5 text-sm font-semibold text-brand-navy transition hover:bg-brand-mist sm:inline-flex"
+          >
+            {t("login")}
+          </Link>
+
+          <Link
+            href="/register"
+            className="group hidden items-center gap-2 rounded-full bg-brand-navy px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-blue sm:inline-flex"
+          >
+            {t("lp_create_account")}
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+          </Link>
+
+          {/* Botão do menu mobile */}
+          <button
+            onClick={() => setOpen(!open)}
+            aria-label={open ? t("lp_close_menu") : t("lp_open_menu")}
+            aria-expanded={open}
+            className="rounded-full p-2.5 text-brand-navy transition-colors hover:bg-brand-mist xl:hidden cursor-pointer"
+          >
+            {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
       </div>
-    </nav>
+
+      {/* Menu mobile */}
+      <div
+        className={`overflow-hidden border-t border-slate-200/70 bg-white transition-[max-height,opacity] duration-300 xl:hidden ${open ? "max-h-[85vh] opacity-100" : "max-h-0 border-transparent opacity-0"
+          }`}
+      >
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+          <ul className="flex flex-col gap-1">
+            {navItems.map((item) => (
+              <li key={item.id}>
+                <a
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className={`block rounded-xl px-4 py-3 text-lg font-semibold ${activeSection === item.id ? "bg-brand-mist text-brand-navy" : "text-slate-700"
+                    }`}
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-6 grid grid-cols-2 gap-3">
+            <Link
+              href="/login"
+              className="rounded-full border border-brand-navy px-4 py-3 text-center font-semibold text-brand-navy"
+            >
+              {t("login")}
+            </Link>
+            <Link href="/register" className="rounded-full bg-brand-navy px-4 py-3 text-center font-semibold text-white">
+              {t("register")}
+            </Link>
+          </div>
+          <div className="mt-6 border-t border-slate-200 pt-4">
+            <LanguageSwitcher align="left" />
+          </div>
+        </div>
+      </div>
+    </header>
   );
 }

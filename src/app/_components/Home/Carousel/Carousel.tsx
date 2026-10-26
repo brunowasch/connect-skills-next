@@ -1,99 +1,147 @@
 "use client";
 
-import Image from "next/image";
-import { useEffect, useState } from "react";
+import { getImageProps } from "next/image";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { SectionHeading } from "../SectionHeading/SectionHeading";
+import { Reveal } from "../Reveal/Reveal";
 
-const images = [
-  "/img/carousel/1.png",
-  "/img/carousel/2.png",
-  "/img/carousel/3.png",
-  "/img/carousel/4.png",
-  "/img/carousel/5.png",
-  "/img/carousel/6.png",
-];
+// Banners em WebP: 1920px para desktop e 960px para telas pequenas
+const slides = [1, 2, 3, 4, 5, 6].map((n) => ({
+  desktop: `/img/carousel/${n}.webp`,
+  mobile: `/img/carousel/${n}-sm.webp`,
+  altKey: `lp_slide_${n}_alt`,
+}));
+
+const SLIDE_DURATION = 6000;
 
 export function Carousel() {
+  const { t } = useTranslation();
   const [current, setCurrent] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const touchStartX = useRef<number | null>(null);
 
-  function nextSlide() {
-    setCurrent((prev) => (prev + 1) % images.length);
-  }
-
-  function prevSlide() {
-    setCurrent((prev) => (prev === 0 ? images.length - 1 : prev - 1));
-  }
-
-  useEffect(() => {
-    const interval = setInterval(nextSlide, 5000);
-    return () => clearInterval(interval);
+  const goTo = useCallback((index: number) => {
+    setCurrent((index + slides.length) % slides.length);
   }, []);
 
+  const next = useCallback(() => goTo(current + 1), [current, goTo]);
+  const prev = useCallback(() => goTo(current - 1), [current, goTo]);
+
+  useEffect(() => {
+    if (paused) return;
+    const timeout = setTimeout(next, SLIDE_DURATION);
+    return () => clearTimeout(timeout);
+  }, [current, paused, next]);
+
   return (
-    <main className="w-full bg-white">
-      <div className="relative w-full overflow-hidden">
-        {/* Slides */}
-        <div
-          className="flex transition-transform duration-700 ease-in-out"
-          style={{ transform: `translateX(-${current * 100}%)` }}
-        >
-          {images.map((src, index) => (
+    <section id="showcase" className="scroll-mt-24 bg-white py-20 lg:py-28">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <SectionHeading kicker={t("lp_showcase_kicker")} title={t("lp_showcase_title")} />
+
+        <Reveal delay={120} className="mt-12">
+          <div
+            className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-brand-surface"
+            role="region"
+            aria-roledescription="carousel"
+            aria-label={t("lp_showcase_kicker")}
+            onMouseEnter={() => setPaused(true)}
+            onMouseLeave={() => setPaused(false)}
+            onFocus={() => setPaused(true)}
+            onBlur={() => setPaused(false)}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowRight") next();
+              if (e.key === "ArrowLeft") prev();
+            }}
+            onTouchStart={(e) => {
+              touchStartX.current = e.touches[0].clientX;
+            }}
+            onTouchEnd={(e) => {
+              if (touchStartX.current === null) return;
+              const delta = e.changedTouches[0].clientX - touchStartX.current;
+              if (Math.abs(delta) > 40) {
+                if (delta < 0) next();
+                else prev();
+              }
+              touchStartX.current = null;
+            }}
+          >
             <div
-              key={index}
-              className="relative w-full shrink-0 aspect-16/7 md:aspect-3/1"
+              className="flex transition-transform duration-700 ease-[cubic-bezier(0.65,0,0.35,1)]"
+              style={{ transform: `translateX(-${current * 100}%)` }}
             >
-              <Image
-                src={src}
-                alt={`Slide ${index + 1}`}
-                fill
-                unoptimized
-                className="object-contain"
-                draggable={false}
-                priority={index === 0}
-              />
+              {slides.map((slide, index) => (
+                <div
+                  key={slide.desktop}
+                  className="relative aspect-[10/3] w-full shrink-0"
+                  aria-hidden={current !== index}
+                  aria-roledescription="slide"
+                >
+                  <Slide slide={slide} alt={t(slide.altKey)} priority={index === 0} />
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        {/* Indicadores */}
-        <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-2">
-          {images.map((_, index) => (
             <button
-              key={index}
-              onClick={() => setCurrent(index)}
-              className={`h-1.5 transition-all duration-300 rounded-full cursor-pointer ${current === index ? "w-6 bg-blue-500" : "w-1.5 bg-gray-400/60"
-                }`}
-              aria-label={`Ir para slide ${index + 1}`}
-            />
-          ))}
-        </div>
+              onClick={prev}
+              aria-label={t("lp_prev_slide")}
+              className="absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full border border-slate-200 bg-white p-2 text-brand-navy transition-colors hover:bg-brand-mist md:left-5 md:p-3 md:opacity-0 md:group-hover:opacity-100 cursor-pointer"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button
+              onClick={next}
+              aria-label={t("lp_next_slide")}
+              className="absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full border border-slate-200 bg-white p-2 text-brand-navy transition-colors hover:bg-brand-mist md:right-5 md:p-3 md:opacity-0 md:group-hover:opacity-100 cursor-pointer"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </div>
 
-        {/* Botões de navegação */}
-        <button
-          onClick={prevSlide}
-          className="absolute left-2 md:left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/10 p-2 text-white transition-colors cursor-pointer hover:bg-black/30 md:p-3"
-        >
-          <ChevronLeftIcon />
-        </button>
-
-        <button
-          onClick={nextSlide}
-          className="absolute right-2 md:right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/10 p-2 text-white transition-colors cursor-pointer hover:bg-black/30 md:p-3"
-        >
-          <ChevronRightIcon />
-        </button>
+          {/* Indicadores com barra de progresso */}
+          <div className="mt-6 flex items-center justify-center gap-2">
+            {slides.map((slide, index) => (
+              <button
+                key={slide.desktop}
+                onClick={() => goTo(index)}
+                aria-label={`${t("lp_go_to_slide")} ${index + 1}`}
+                aria-current={current === index}
+                className={`relative h-1.5 overflow-hidden rounded-full transition-all duration-300 cursor-pointer ${current === index ? "w-12 bg-brand-mist" : "w-6 bg-slate-200 hover:bg-slate-300"
+                  }`}
+              >
+                {current === index && (
+                  <span
+                    key={current}
+                    data-paused={paused}
+                    className="slide-progress absolute inset-0 rounded-full bg-brand-navy"
+                    style={{ "--slide-duration": `${SLIDE_DURATION}ms` } as React.CSSProperties}
+                  />
+                )}
+              </button>
+            ))}
+          </div>
+        </Reveal>
       </div>
-    </main>
+    </section>
   );
 }
 
-function ChevronLeftIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 md:w-6 md:h-6"><path d="m15 18-6-6 6-6" /></svg>
-  );
-}
+function Slide({ slide, alt, priority }: { slide: (typeof slides)[number]; alt: string; priority: boolean }) {
+  // As imagens já estão otimizadas, então o Next só monta os atributos da <img>
+  const { props: desktopProps } = getImageProps({
+    alt,
+    priority,
+    unoptimized: true,
+    src: slide.desktop,
+    width: 1920,
+    height: 576,
+  });
 
-function ChevronRightIcon() {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 md:w-6 md:h-6"><path d="m9 18 6-6-6-6" /></svg>
+    <picture>
+      <source media="(max-width: 767px)" srcSet={slide.mobile} width={960} height={288} />
+      <img {...desktopProps} alt={alt} className="absolute inset-0 h-full w-full object-cover" draggable={false} />
+    </picture>
   );
 }

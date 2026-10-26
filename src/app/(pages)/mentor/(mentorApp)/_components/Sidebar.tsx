@@ -90,7 +90,7 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen, isCollapsed
                             <div style={{ backgroundColor: "rgba(255,255,255,0.9)", borderRadius: "0.5rem", padding: "0.5rem" }}>
                                 {!isCollapsed ? (
                                     <Image
-                                        src="/img/logos/logo-connect-skills.png"
+                                        src="/img/logos/logo-connect-skills.svg"
                                         alt="Connect Skills"
                                         width={160}
                                         height={40}
@@ -99,7 +99,7 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen, isCollapsed
                                     />
                                 ) : (
                                     <Image
-                                        src="/img/logos/icon.png"
+                                        src="/img/logos/icon.svg"
                                         alt="Connect Skills Icon"
                                         width={40}
                                         height={40}
