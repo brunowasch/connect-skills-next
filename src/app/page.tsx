@@ -44,11 +44,11 @@ export default async function Home() {
       <Header />
       <main>
         <Hero />
-        <Carousel />
+        {/* <Carousel /> */}
         <Problems />
         <HowItWorks />
         <Features />
-        <Commitment />
+        {/* <Commitment /> */}
         <Audiences />
         <AiSection />
         {/* <ClientsSection /> */}

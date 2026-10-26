@@ -144,7 +144,7 @@ function MatchMockup() {
       </div>
 
       {/* Cards de status sobre o card principal */}
-      <div className="absolute -top-6 right-0 flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 sm:-right-10">
+      {/* <div className="absolute -top-6 right-0 flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 sm:-right-10">
         <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
           <CalendarCheck className="h-5 w-5" />
         </span>
@@ -152,12 +152,12 @@ function MatchMockup() {
           <p className="text-sm font-bold text-brand-ink">{t("lp_mock_notif_title")}</p>
           <p className="text-xs text-slate-500">{t("lp_mock_notif_desc")}</p>
         </div>
-      </div>
+      </div> */}
 
-      <div className="absolute -bottom-6 left-0 flex items-center gap-3 rounded-2xl bg-brand-navy px-4 py-3 text-white sm:-left-10">
+      {/* <div className="absolute -bottom-6 left-0 flex items-center gap-3 rounded-2xl bg-brand-navy px-4 py-3 text-white sm:-left-10">
         <PlayCircle className="h-6 w-6 text-brand-sky" />
         <p className="text-sm font-semibold">{t("lp_mock_video")}</p>
-      </div>
+      </div> */}
     </div>
   );
 }
